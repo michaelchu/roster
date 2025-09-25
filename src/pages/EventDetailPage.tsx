@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -90,6 +92,7 @@ export function EventDetailPage() {
     name: "",
     email: "",
     phone: "",
+    notes: "",
     responses: {} as Record<string, any>,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -288,6 +291,7 @@ export function EventDetailPage() {
         name: userRegistration.name || "",
         email: userRegistration.email || "",
         phone: userRegistration.phone || "",
+        notes: userRegistration.notes || "",
         responses: userRegistration.responses || {},
       });
     } else {
@@ -296,6 +300,7 @@ export function EventDetailPage() {
         name: "",
         email: "",
         phone: "",
+        notes: "",
         responses: {},
       });
     }
@@ -318,6 +323,7 @@ export function EventDetailPage() {
             name: signupForm.name,
             email: signupForm.email,
             phone: signupForm.phone,
+            notes: signupForm.notes,
             responses: signupForm.responses,
           })
           .eq("id", userRegistration.id);
@@ -330,6 +336,7 @@ export function EventDetailPage() {
           name: signupForm.name,
           email: signupForm.email,
           phone: signupForm.phone,
+          notes: signupForm.notes,
           responses: signupForm.responses,
           user_id: user?.id || null,
         });
@@ -342,6 +349,7 @@ export function EventDetailPage() {
         name: "",
         email: "",
         phone: "",
+        notes: "",
         responses: {},
       });
       setShowSignupDrawer(false);
@@ -517,7 +525,7 @@ export function EventDetailPage() {
                             {participant.name}
                           </div>
                           {participant.user_id === event.organizer_id && (
-                            <Badge variant="secondary" className="text-xs h-5 px-2">
+                            <Badge variant="outline" className="text-xs h-5 px-2">
                               Organizer
                             </Badge>
                           )}
@@ -649,6 +657,12 @@ export function EventDetailPage() {
               onSubmit={handleSignup}
               className="space-y-4 pb-4"
             >
+              <Tabs defaultValue="registration" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="registration">Registration</TabsTrigger>
+                  <TabsTrigger value="notes">Notes</TabsTrigger>
+                </TabsList>
+                <TabsContent value="registration" className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label htmlFor="signup-name" className="text-xs">
                   Name *
@@ -668,7 +682,7 @@ export function EventDetailPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="signup-email" className="text-xs">
-                  Email
+                  Email (optional)
                 </Label>
                 <Input
                   id="signup-email"
@@ -687,7 +701,7 @@ export function EventDetailPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="signup-phone" className="text-xs">
-                  Phone
+                  Phone (optional)
                 </Label>
                 <Input
                   id="signup-phone"
@@ -761,6 +775,25 @@ export function EventDetailPage() {
                   ))}
                 </div>
               )}
+                </TabsContent>
+
+                <TabsContent value="notes" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-notes" className="text-xs">
+                      Notes (optional)
+                    </Label>
+                    <Textarea
+                      id="signup-notes"
+                      value={signupForm.notes}
+                      onChange={(e) =>
+                        setSignupForm((prev) => ({ ...prev, notes: e.target.value }))
+                      }
+                      placeholder="Any additional notes or comments..."
+                      className="min-h-[100px] text-sm"
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
 
               {signupError && (
                 <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
