@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { ArrowLeft, Plus, Trash2, Minus } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Minus, Lock, Unlock } from 'lucide-react'
 
 interface CustomField {
   id: string
@@ -24,7 +24,8 @@ export function NewEventPage() {
     description: '',
     datetime: '',
     location: '',
-    max_participants: null as number | null
+    max_participants: null as number | null,
+    is_private: false
   })
   const [customFields, setCustomFields] = useState<CustomField[]>([])
   const [maxParticipants, setMaxParticipants] = useState<number>(50)
@@ -79,6 +80,7 @@ export function NewEventPage() {
           datetime: formData.datetime || null,
           location: formData.location || null,
           max_participants: maxParticipants,
+          is_private: formData.is_private,
           custom_fields: customFields.filter(f => f.label)
         })
         .select()
@@ -184,6 +186,38 @@ export function NewEventPage() {
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm">Event Privacy</Label>
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, is_private: !prev.is_private }))}
+              className={`flex items-center justify-between w-full p-3 rounded-lg border-2 transition-colors ${
+                formData.is_private
+                  ? 'border-red-200 bg-red-50'
+                  : 'border-green-200 bg-green-50'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                {formData.is_private ? (
+                  <Lock className="h-4 w-4 text-red-600" />
+                ) : (
+                  <Unlock className="h-4 w-4 text-green-600" />
+                )}
+                <span className={`font-medium ${
+                  formData.is_private ? 'text-red-700' : 'text-green-700'
+                }`}>
+                  {formData.is_private ? 'Private Event' : 'Public Event'}
+                </span>
+              </div>
+            </button>
+            <p className="text-xs text-gray-500">
+              {formData.is_private
+                ? 'Only people you invite can view and sign up for this event'
+                : 'Anyone with the link can view and sign up for this event'
+              }
+            </p>
           </div>
         </div>
 

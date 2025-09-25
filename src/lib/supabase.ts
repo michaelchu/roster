@@ -45,6 +45,7 @@ export type Database = {
           description: string | null
           datetime: string | null
           location: string | null
+          is_private: boolean
           custom_fields: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at: string
           parent_event_id: string | null
@@ -56,6 +57,7 @@ export type Database = {
           description?: string | null
           datetime?: string | null
           location?: string | null
+          is_private?: boolean
           custom_fields?: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at?: string
           parent_event_id?: string | null
@@ -67,6 +69,7 @@ export type Database = {
           description?: string | null
           datetime?: string | null
           location?: string | null
+          is_private?: boolean
           custom_fields?: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at?: string
           parent_event_id?: string | null

@@ -76,6 +76,7 @@ interface EventData {
   location: string | null;
   max_participants: number | null;
   organizer_id: string;
+  is_private: boolean;
   custom_fields: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
@@ -107,10 +108,10 @@ export function EventDetailPage() {
   const [showSearchBar, setShowSearchBar] = useState(false);
 
   useEffect(() => {
-    if (eventId && user) {
+    if (eventId) {
       loadEventData();
     }
-  }, [eventId, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEventData = async () => {
     if (!eventId) return;
@@ -124,6 +125,30 @@ export function EventDetailPage() {
         .single();
 
       if (eventError) throw eventError;
+
+      // If event is private and user is not authenticated, deny access
+      if (eventData.is_private && !user) {
+        navigate('/auth/login');
+        return;
+      }
+
+      // If event is private and user is authenticated, check if they're the organizer
+      if (eventData.is_private && user && eventData.organizer_id !== user.id) {
+        // Check if user is a participant
+        const { data: participantCheck } = await supabase
+          .from("participants")
+          .select("id")
+          .eq("event_id", eventId)
+          .eq("user_id", user.id)
+          .single();
+
+        // If not organizer and not participant, deny access
+        if (!participantCheck) {
+          navigate('/');
+          return;
+        }
+      }
+
       setEvent(eventData);
 
       // Load labels
