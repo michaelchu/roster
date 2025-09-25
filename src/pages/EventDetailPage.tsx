@@ -19,13 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerFooter,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -128,7 +122,7 @@ export function EventDetailPage() {
 
       // If event is private and user is not authenticated, deny access
       if (eventData.is_private && !user) {
-        navigate('/auth/login');
+        navigate("/auth/login");
         return;
       }
 
@@ -144,7 +138,7 @@ export function EventDetailPage() {
 
         // If not organizer and not participant, deny access
         if (!participantCheck) {
-          navigate('/');
+          navigate("/");
           return;
         }
       }
@@ -261,8 +255,6 @@ export function EventDetailPage() {
     a.click();
   };
 
-
-
   const toggleParticipantLabel = async (
     participant: Participant,
     label: Label,
@@ -287,6 +279,12 @@ export function EventDetailPage() {
   };
 
   const openSignupDrawer = () => {
+    // Redirect to login if user is not authenticated
+    if (!user) {
+      navigate("/auth/login");
+      return;
+    }
+
     if (userRegistration) {
       // Pre-fill form with existing registration data
       setSignupForm({
@@ -405,7 +403,7 @@ export function EventDetailPage() {
   const quickFillFromProfile = () => {
     if (!user) return;
 
-    setSignupForm(prev => ({
+    setSignupForm((prev) => ({
       ...prev,
       name: user.user_metadata?.full_name || prev.name,
       email: user.email || prev.email,
@@ -439,39 +437,43 @@ export function EventDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className={`min-h-screen bg-gray-50 ${user ? 'pb-32' : 'pb-20'}`}>
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center px-4 py-3">
-          <button onClick={() => navigate("/events")} className="absolute">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+        <div className="flex items-center px-4 py-2">
+          {user && (
+            <button onClick={() => navigate("/events")} className="absolute">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          )}
           <div className="flex-1 text-center">
             <h1 className="text-lg font-semibold truncate">{event.name}</h1>
           </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-3 space-y-3">
         {/* Event Info */}
         {(event.description ||
           event.datetime ||
           event.location ||
           event.max_participants) && (
           <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-4 space-y-3">
+            <div className="p-3 space-y-2">
               {/* Top row: Date and Registration Deadline */}
-              {(event.datetime) && (
-                <div className="grid grid-cols-2 gap-4">
+              {event.datetime && (
+                <div className="grid grid-cols-2 gap-3">
                   {event.datetime && (
                     <div className="text-sm text-gray-600">
                       <div className="font-medium text-gray-800">Date</div>
-                      <div>{new Date(event.datetime).toLocaleString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit'
-                      })}</div>
+                      <div>
+                        {new Date(event.datetime).toLocaleString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </div>
                     </div>
                   )}
                   <div className="text-sm text-gray-600">
@@ -512,21 +514,21 @@ export function EventDetailPage() {
               <div className="flex divide-x divide-gray-200">
                 <button
                   onClick={() => navigate(`/events/${eventId}/edit`)}
-                  className="flex-1 flex items-center justify-center py-3 px-4 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </button>
                 <button
                   onClick={shareEvent}
-                  className="flex-1 flex items-center justify-center py-3 px-4 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </button>
                 <button
                   onClick={exportToCSV}
-                  className="flex-1 flex items-center justify-center py-3 px-4 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export
@@ -538,14 +540,14 @@ export function EventDetailPage() {
 
         {/* Participants List */}
         <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
+          <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
             <div>
               <h2 className="text-sm font-medium">Participants</h2>
               <p className="text-xs text-gray-500">
                 {(() => {
                   // Count unique users (by user_id and email for non-users)
                   const uniqueUsers = new Set();
-                  participants.forEach(p => {
+                  participants.forEach((p) => {
                     if (p.user_id) {
                       uniqueUsers.add(p.user_id);
                     } else if (p.email) {
@@ -558,9 +560,9 @@ export function EventDetailPage() {
                   const uniqueUserCount = uniqueUsers.size;
 
                   if (event.max_participants) {
-                    return `${participants.length}/${event.max_participants} participants, ${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                    return `${participants.length}/${event.max_participants} participants, ${uniqueUserCount} ${uniqueUserCount === 1 ? "person" : "persons"} signed up`;
                   } else {
-                    return `${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                    return `${uniqueUserCount} ${uniqueUserCount === 1 ? "person" : "persons"} signed up`;
                   }
                 })()}
               </p>
@@ -639,22 +641,32 @@ export function EventDetailPage() {
                             {participant.name}
                           </div>
                           {participant.user_id === event.organizer_id && (
-                            <Badge variant="outline" className="text-xs h-5 px-2">
+                            <Badge
+                              variant="outline"
+                              className="text-xs h-5 px-2"
+                            >
                               Organizer
                             </Badge>
                           )}
                         </div>
                         <div className="text-xs text-gray-500">
-                          Signed up {(() => {
+                          Signed up{" "}
+                          {(() => {
                             const now = new Date();
                             const signupTime = new Date(participant.created_at);
                             const diffMs = now.getTime() - signupTime.getTime();
                             const diffMins = Math.floor(diffMs / (1000 * 60));
-                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                            const diffHours = Math.floor(
+                              diffMs / (1000 * 60 * 60),
+                            );
+                            const diffDays = Math.floor(
+                              diffMs / (1000 * 60 * 60 * 24),
+                            );
 
                             if (diffMins < 60) {
-                              return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
+                              return diffMins <= 1
+                                ? "just now"
+                                : `${diffMins}m ago`;
                             } else if (diffHours < 24) {
                               return `${diffHours}h ago`;
                             } else if (diffDays < 7) {
@@ -731,8 +743,8 @@ export function EventDetailPage() {
         </div>
       </div>
 
-      {/* Join Event Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
+      {/* Join Event Button */}
+      <div className={`fixed left-0 right-0 z-40 px-4 pb-2 ${user ? 'bottom-16' : 'bottom-4'}`}>
         <Button
           onClick={openSignupDrawer}
           className={`w-full text-white shadow-lg ${
@@ -758,141 +770,141 @@ export function EventDetailPage() {
 
       {/* Signup Drawer */}
       <Drawer open={showSignupDrawer} onOpenChange={setShowSignupDrawer}>
-        <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader className="text-center">
-            <DrawerTitle>
-              {userRegistration ? "Modify Registration for" : "Join"}{" "}
-              {event?.name}
-            </DrawerTitle>
-          </DrawerHeader>
-          <div className="overflow-y-auto flex-1 px-4">
+        <DrawerContent className="max-h-[90vh] p-0">
+          <div className="overflow-y-auto flex-1 px-3">
             <form
               id="signup-form"
               onSubmit={handleSignup}
-              className="space-y-4 pb-4"
+              className="space-y-2 pb-3"
             >
               <Tabs defaultValue="registration" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="registration">Registration</TabsTrigger>
                   <TabsTrigger value="notes">Notes</TabsTrigger>
                 </TabsList>
-                <TabsContent value="registration" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="signup-name" className="text-xs">
-                  Name *
-                </Label>
-                <Input
-                  id="signup-name"
-                  type="text"
-                  value={signupForm.name}
-                  onChange={(e) =>
-                    setSignupForm((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  required
-                  autoComplete="off"
-                  className="h-9 text-sm"
-                />
-              </div>
+                <TabsContent value="registration" className="space-y-2 mt-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-name" className="text-xs">
+                      Name *
+                    </Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      value={signupForm.name}
+                      onChange={(e) =>
+                        setSignupForm((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      required
+                      autoComplete="off"
+                      className="h-9 text-sm"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-email" className="text-xs">
-                  Email (optional)
-                </Label>
-                <Input
-                  id="signup-email"
-                  type="email"
-                  value={signupForm.email}
-                  onChange={(e) =>
-                    setSignupForm((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                  autoComplete="off"
-                  className="h-9 text-sm"
-                />
-              </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-email" className="text-xs">
+                      Email (optional)
+                    </Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      value={signupForm.email}
+                      onChange={(e) =>
+                        setSignupForm((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                      className="h-9 text-sm"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-phone" className="text-xs">
-                  Phone (optional)
-                </Label>
-                <Input
-                  id="signup-phone"
-                  type="tel"
-                  value={signupForm.phone}
-                  onChange={(e) =>
-                    setSignupForm((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }))
-                  }
-                  autoComplete="off"
-                  className="h-9 text-sm"
-                />
-              </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-phone" className="text-xs">
+                      Phone (optional)
+                    </Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      value={signupForm.phone}
+                      onChange={(e) =>
+                        setSignupForm((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                      className="h-9 text-sm"
+                    />
+                  </div>
 
-              {event?.custom_fields && event.custom_fields.length > 0 && (
-                <div className="border-t pt-4">
-                  <h3 className="text-sm font-medium mb-3">
-                    Additional Information
-                  </h3>
-                  {event.custom_fields.map((field) => (
-                    <div key={field.id} className="space-y-2 mb-4">
-                      <Label htmlFor={`signup-${field.id}`} className="text-xs">
-                        {field.label} {field.required && "*"}
-                      </Label>
-                      {field.type === "select" && field.options ? (
-                        <Select
-                          value={signupForm.responses[field.id] || ""}
-                          onValueChange={(value) =>
-                            setSignupForm((prev) => ({
-                              ...prev,
-                              responses: {
-                                ...prev.responses,
-                                [field.id]: value,
-                              },
-                            }))
-                          }
-                        >
-                          <SelectTrigger className="h-9 text-sm">
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {field.options.map((option: string) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          id={`signup-${field.id}`}
-                          type={field.type}
-                          value={signupForm.responses[field.id] || ""}
-                          onChange={(e) =>
-                            setSignupForm((prev) => ({
-                              ...prev,
-                              responses: {
-                                ...prev.responses,
-                                [field.id]: e.target.value,
-                              },
-                            }))
-                          }
-                          required={field.required}
-                          autoComplete="off"
-                          className="h-9 text-sm"
-                        />
-                      )}
+                  {event?.custom_fields && event.custom_fields.length > 0 && (
+                    <div className="border-t pt-4">
+                      <h3 className="text-sm font-medium mb-2">
+                        Additional Information
+                      </h3>
+                      {event.custom_fields.map((field) => (
+                        <div key={field.id} className="space-y-1.5 mb-2">
+                          <Label
+                            htmlFor={`signup-${field.id}`}
+                            className="text-xs"
+                          >
+                            {field.label} {field.required && "*"}
+                          </Label>
+                          {field.type === "select" && field.options ? (
+                            <Select
+                              value={signupForm.responses[field.id] || ""}
+                              onValueChange={(value) =>
+                                setSignupForm((prev) => ({
+                                  ...prev,
+                                  responses: {
+                                    ...prev.responses,
+                                    [field.id]: value,
+                                  },
+                                }))
+                              }
+                            >
+                              <SelectTrigger className="h-9 text-sm">
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {field.options.map((option: string) => (
+                                  <SelectItem key={option} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input
+                              id={`signup-${field.id}`}
+                              type={field.type}
+                              value={signupForm.responses[field.id] || ""}
+                              onChange={(e) =>
+                                setSignupForm((prev) => ({
+                                  ...prev,
+                                  responses: {
+                                    ...prev.responses,
+                                    [field.id]: e.target.value,
+                                  },
+                                }))
+                              }
+                              required={field.required}
+                              autoComplete="off"
+                              className="h-9 text-sm"
+                            />
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                  )}
                 </TabsContent>
 
-                <TabsContent value="notes" className="space-y-4 mt-4">
-                  <div className="space-y-2">
+                <TabsContent value="notes" className="space-y-2 mt-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="signup-notes" className="text-xs">
                       Notes (optional)
                     </Label>
@@ -900,7 +912,10 @@ export function EventDetailPage() {
                       id="signup-notes"
                       value={signupForm.notes}
                       onChange={(e) =>
-                        setSignupForm((prev) => ({ ...prev, notes: e.target.value }))
+                        setSignupForm((prev) => ({
+                          ...prev,
+                          notes: e.target.value,
+                        }))
                       }
                       placeholder="Any additional notes or comments..."
                       className="min-h-[100px] text-sm"
@@ -910,19 +925,20 @@ export function EventDetailPage() {
               </Tabs>
 
               {signupError && (
-                <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                <div className="text-xs text-red-600 bg-red-50 p-1.5 rounded">
                   {signupError}
                 </div>
               )}
             </form>
           </div>
-          <div className="border-t border-gray-200 my-4 -mx-4"></div>
-          <DrawerFooter>
-            <div className="flex gap-2 w-full">
+          <div className="border-t border-gray-200"></div>
+          <div className="p-3">
+            <div className="flex gap-1.5 w-full">
               {userRegistration && (
                 <Button
                   variant="destructive"
-                  className="flex-1"
+                  size="sm"
+                  className="flex-1 py-1"
                   onClick={() => setShowWithdrawDialog(true)}
                   disabled={submitting}
                 >
@@ -933,7 +949,8 @@ export function EventDetailPage() {
               {!userRegistration && (
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  size="sm"
+                  className="flex-1 py-1"
                   onClick={quickFillFromProfile}
                   disabled={!canQuickFill || submitting}
                 >
@@ -944,7 +961,8 @@ export function EventDetailPage() {
               <Button
                 type="submit"
                 form="signup-form"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                size="sm"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-1"
                 disabled={submitting}
               >
                 {submitting
@@ -956,7 +974,7 @@ export function EventDetailPage() {
                     : "Join Event"}
               </Button>
             </div>
-          </DrawerFooter>
+          </div>
         </DrawerContent>
       </Drawer>
 
@@ -971,10 +989,10 @@ export function EventDetailPage() {
               <SheetHeader>
                 <SheetTitle>{selectedParticipant.name}</SheetTitle>
               </SheetHeader>
-              <div className="mt-4 space-y-4">
-                <div className="space-y-2">
+              <div className="mt-3 space-y-2">
+                <div className="space-y-1.5">
                   <h3 className="text-sm font-medium">Contact Information</h3>
-                  <div className="text-sm space-y-1">
+                  <div className="text-sm space-y-0.5">
                     <div>
                       Email: {selectedParticipant.email || "Not provided"}
                     </div>
@@ -991,11 +1009,11 @@ export function EventDetailPage() {
                 </div>
 
                 {event.custom_fields && event.custom_fields.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <h3 className="text-sm font-medium">
                       Additional Information
                     </h3>
-                    <div className="text-sm space-y-1">
+                    <div className="text-sm space-y-0.5">
                       {event.custom_fields.map((field) => (
                         <div key={field.id}>
                           {field.label}:{" "}
@@ -1007,9 +1025,9 @@ export function EventDetailPage() {
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <h3 className="text-sm font-medium">Labels</h3>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {labels.map((label) => {
                       const hasLabel = selectedParticipant.labels.some(
                         (l) => l.id === label.id,
@@ -1020,7 +1038,7 @@ export function EventDetailPage() {
                           onClick={() =>
                             toggleParticipantLabel(selectedParticipant, label)
                           }
-                          className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                          className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
                             hasLabel
                               ? "bg-primary text-white border-primary"
                               : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
@@ -1044,10 +1062,12 @@ export function EventDetailPage() {
           <DialogHeader>
             <DialogTitle>Withdraw from Event</DialogTitle>
             <DialogDescription>
-              Are you sure you want to withdraw from this event? This action cannot be undone and you'll need to register again if you change your mind.
+              Are you sure you want to withdraw from this event? This action
+              cannot be undone and you'll need to register again if you change
+              your mind.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col gap-2 sm:flex-row">
+          <DialogFooter className="flex-col gap-1.5 sm:flex-row">
             <Button
               variant="outline"
               onClick={() => setShowWithdrawDialog(false)}

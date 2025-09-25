@@ -116,12 +116,12 @@ export function ParticipantsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="px-4 py-3">
+        <div className="px-4 py-2">
           <h1 className="text-lg font-semibold text-center">All Participants</h1>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-3 space-y-3">
         {loading ? (
           <div className="text-sm text-gray-500 text-center py-8">
             Loading...

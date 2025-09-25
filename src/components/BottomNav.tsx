@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Home, Calendar, Users, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
 
 const navItems = [
   { icon: Home, label: 'Home', path: '/' },
@@ -11,6 +12,12 @@ const navItems = [
 
 export function BottomNav() {
   const location = useLocation()
+  const { user } = useAuth()
+
+  // Hide navigation for non-authenticated users
+  if (!user) {
+    return null
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">

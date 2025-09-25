@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/hooks/useAuth'
-import { ArrowLeft } from 'lucide-react'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -33,19 +32,13 @@ export function RegisterPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b">
-        <div className="flex items-center px-4 py-3">
-          <button
-            onClick={() => navigate('/')}
-            className="mr-3"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+        <div className="flex items-center justify-center px-4 py-2">
           <h1 className="text-lg font-semibold">Sign Up</h1>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-4">
-        <div className="bg-white rounded-lg p-4 border space-y-4">
+      <form onSubmit={handleSubmit} className="p-3 space-y-3">
+        <div className="bg-white rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm">Name</Label>
             <Input

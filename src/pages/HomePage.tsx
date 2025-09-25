@@ -140,15 +140,15 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
       <div className="bg-white border-b">
-        <div className="px-4 py-3">
+        <div className="px-4 py-2">
           <h1 className="text-lg font-semibold text-center">Venu</h1>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-3 space-y-3">
         {user ? (
           <>
-            <div className="bg-white rounded-lg p-4 border">
+            <div className="bg-white rounded-lg p-3 border">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-medium">Quick Actions</h2>
               </div>
@@ -175,7 +175,7 @@ export function HomePage() {
             </div>
 
             <div className="bg-white rounded-lg border overflow-hidden">
-              <div className="p-4 border-b">
+              <div className="p-3 border-b">
                 <div className="flex items-center justify-between">
                   <h2 className="text-sm font-medium">Upcoming Events</h2>
                   <Select
@@ -196,11 +196,11 @@ export function HomePage() {
               </div>
 
               {loading ? (
-                <div className="p-4 text-xs text-gray-500 text-center">
+                <div className="p-3 text-xs text-gray-500 text-center">
                   Loading...
                 </div>
               ) : upcomingEvents.length === 0 ? (
-                <div className="p-4 text-xs text-gray-500 text-center">
+                <div className="p-3 text-xs text-gray-500 text-center">
                   No events {timePeriod === "week" ? "this week" : "this month"}
                 </div>
               ) : (
@@ -209,7 +209,7 @@ export function HomePage() {
                     <button
                       key={event.id}
                       onClick={() => navigate(`/events/${event.id}`)}
-                      className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full p-3 text-left hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex flex-col">
                         <div className="flex items-start justify-between mb-2">

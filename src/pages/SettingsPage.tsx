@@ -34,14 +34,14 @@ export function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
       <div className="bg-white border-b">
-        <div className="px-4 py-3">
+        <div className="px-4 py-2">
           <h1 className="text-lg font-semibold text-center">Settings</h1>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-3 space-y-3">
         <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="p-4 border-b bg-gray-50">
+          <div className="p-3 border-b bg-gray-50">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center">
                 <User className="h-5 w-5 text-white" />
@@ -55,7 +55,7 @@ export function SettingsPage() {
 
           <div className="divide-y">
             <button
-              className="w-full p-4 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
+              className="w-full p-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
               onClick={() => navigate('/profile')}
             >
               <User className="h-5 w-5 text-gray-400" />
@@ -68,7 +68,7 @@ export function SettingsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border p-3">
           <Button
             variant="destructive"
             size="sm"
@@ -80,7 +80,7 @@ export function SettingsPage() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-lg border p-3">
           <div className="text-xs text-gray-500">
             <div className="mb-2">
               <strong>About Venu</strong>

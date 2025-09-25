@@ -140,16 +140,16 @@ export function EventsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="px-4 py-3">
+        <div className="px-4 py-2">
           <h1 className="text-lg font-semibold text-center">My Events</h1>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-3 space-y-3">
         {loading ? (
           <div className="text-sm text-gray-500 text-center py-8">Loading...</div>
         ) : events.length === 0 ? (
-          <div className="bg-white rounded-lg p-6 border text-center">
+          <div className="bg-white rounded-lg p-3 border text-center">
             <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-3" />
             <h2 className="text-base font-medium mb-2">No Events Yet</h2>
             <p className="text-xs text-gray-500 mb-4">
@@ -165,7 +165,7 @@ export function EventsPage() {
             </Button>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {events.map((event) => (
               <div
                 key={event.id}
@@ -173,7 +173,7 @@ export function EventsPage() {
               >
                 <button
                   onClick={() => navigate(`/events/${event.id}`)}
-                  className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full p-3 text-left hover:bg-gray-50 transition-colors"
                 >
                   <div className="mb-3">
                     <h3 className="text-sm font-semibold truncate">

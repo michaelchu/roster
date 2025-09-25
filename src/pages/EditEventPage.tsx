@@ -202,7 +202,7 @@ export function EditEventPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center justify-center px-4 py-3 relative">
+        <div className="flex items-center justify-center px-4 py-2 relative">
           <button
             onClick={() => navigate(`/events/${event.id}`)}
             className="absolute left-4"
@@ -221,8 +221,8 @@ export function EditEventPage() {
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
-        <div className="bg-white rounded-lg p-4 border space-y-4">
+      <div className="p-3 space-y-3">
+        <div className="bg-white rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm">
               Event Name *
@@ -352,7 +352,7 @@ export function EditEventPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 border space-y-4">
+        <div className="bg-white rounded-lg p-3 border space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium">Custom Fields</h2>
             <Button
