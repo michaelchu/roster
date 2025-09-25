@@ -470,7 +470,13 @@ export function EventDetailPage() {
                   {event.datetime && (
                     <div className="text-sm text-gray-600">
                       <div className="font-medium text-gray-800">Date</div>
-                      <div>{new Date(event.datetime).toLocaleString()}</div>
+                      <div>{new Date(event.datetime).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                      })}</div>
                     </div>
                   )}
                   <div className="text-sm text-gray-600">
@@ -623,9 +629,17 @@ export function EventDetailPage() {
                     onClick={() => setSelectedParticipant(participant)}
                     className="w-full p-3 text-left hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="text-xs text-gray-400 font-mono flex-shrink-0 mt-1">
+                        {i + 1}.
+                      </div>
+                      <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-medium text-white">
+                          {participant.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between">
                           <div className="text-sm font-medium">
                             {participant.name}
                           </div>
@@ -667,9 +681,6 @@ export function EventDetailPage() {
                           ))}
                         </div>
                       </div>
-                      <div className="text-xs text-gray-400 font-mono">
-                        #{i + 1}
-                      </div>
                     </div>
                   </button>,
                 );
@@ -690,12 +701,15 @@ export function EventDetailPage() {
                       key={`empty-${i}`}
                       className="p-3 border-dashed border-gray-200"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="text-xs text-gray-400 font-mono flex-shrink-0">
+                          {i + 1}.
+                        </div>
+                        <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs text-gray-400">?</span>
+                        </div>
                         <div className="text-sm text-gray-400 italic">
                           Available slot
-                        </div>
-                        <div className="text-xs text-gray-400 font-mono">
-                          #{i + 1}
                         </div>
                       </div>
                     </div>,
