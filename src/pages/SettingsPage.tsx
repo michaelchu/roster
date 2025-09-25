@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
-import { User, LogOut, FileText } from 'lucide-react'
+import { User, LogOut } from 'lucide-react'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -35,7 +35,7 @@ export function SettingsPage() {
     <div className="min-h-screen bg-gray-50 pb-14">
       <div className="bg-white border-b">
         <div className="px-4 py-3">
-          <h1 className="text-lg font-semibold">Settings</h1>
+          <h1 className="text-lg font-semibold text-center">Settings</h1>
         </div>
       </div>
 
@@ -65,16 +65,6 @@ export function SettingsPage() {
               </div>
             </button>
 
-            <button
-              className="w-full p-4 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
-              onClick={() => window.open('/supabase/migrations/001_initial_schema.sql', '_blank')}
-            >
-              <FileText className="h-5 w-5 text-gray-400" />
-              <div>
-                <div className="text-sm font-medium">Database Schema</div>
-                <div className="text-xs text-gray-500">View migration file</div>
-              </div>
-            </button>
           </div>
         </div>
 

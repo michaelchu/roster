@@ -42,6 +42,8 @@ import {
   UserPlus,
   UserCheck,
   UserX,
+  ArrowUpDown,
+  Zap,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
@@ -104,6 +106,7 @@ export function EventDetailPage() {
     null,
   );
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
 
   useEffect(() => {
     if (eventId && user) {
@@ -404,6 +407,19 @@ export function EventDetailPage() {
     }
   };
 
+  const quickFillFromProfile = () => {
+    if (!user) return;
+
+    setSignupForm(prev => ({
+      ...prev,
+      name: user.user_metadata?.full_name || prev.name,
+      email: user.email || prev.email,
+      phone: user.user_metadata?.phone || prev.phone,
+    }));
+  };
+
+  const canQuickFill = user && (user.user_metadata?.full_name || user.email);
+
   const filteredParticipants = participants.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -436,10 +452,6 @@ export function EventDetailPage() {
           </button>
           <div className="flex-1 text-center">
             <h1 className="text-lg font-semibold truncate">{event.name}</h1>
-            <p className="text-xs text-gray-500">
-              {participants.length} participant
-              {participants.length !== 1 ? "s" : ""}
-            </p>
           </div>
         </div>
       </div>
@@ -452,8 +464,8 @@ export function EventDetailPage() {
           event.max_participants) && (
           <div className="bg-white rounded-lg border overflow-hidden">
             <div className="p-4 space-y-3">
-              {/* Top row: Date and Participants */}
-              {(event.datetime || event.max_participants) && (
+              {/* Top row: Date and Registration Deadline */}
+              {(event.datetime || true) && (
                 <div className="grid grid-cols-2 gap-4">
                   {event.datetime && (
                     <div className="text-sm text-gray-600">
@@ -461,16 +473,12 @@ export function EventDetailPage() {
                       <div>{new Date(event.datetime).toLocaleString()}</div>
                     </div>
                   )}
-                  {event.max_participants && (
-                    <div className="text-sm text-gray-600">
-                      <div className="font-medium text-gray-800">
-                        Participants
-                      </div>
-                      <div>
-                        {participants.length}/{event.max_participants}
-                      </div>
+                  <div className="text-sm text-gray-600">
+                    <div className="font-medium text-gray-800">
+                      Registration Deadline
                     </div>
-                  )}
+                    <div>None</div>
+                  </div>
                 </div>
               )}
 
@@ -480,6 +488,11 @@ export function EventDetailPage() {
                   <div className="font-medium text-gray-800">Location</div>
                   <div>{event.location}</div>
                 </div>
+              )}
+
+              {/* Horizontal divider */}
+              {event.location && event.description && (
+                <div className="border-t border-gray-200"></div>
               )}
 
               {/* Description */}
@@ -524,18 +537,72 @@ export function EventDetailPage() {
 
         {/* Participants List */}
         <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="p-3 border-b bg-gray-50">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="search"
-                placeholder="Search participants..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-8 text-sm"
-              />
+          <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-medium">Participants</h2>
+              <p className="text-xs text-gray-500">
+                {(() => {
+                  // Count unique users (by user_id and email for non-users)
+                  const uniqueUsers = new Set();
+                  participants.forEach(p => {
+                    if (p.user_id) {
+                      uniqueUsers.add(p.user_id);
+                    } else if (p.email) {
+                      uniqueUsers.add(p.email);
+                    } else {
+                      // For participants without user_id or email, count each as unique
+                      uniqueUsers.add(p.id);
+                    }
+                  });
+                  const uniqueUserCount = uniqueUsers.size;
+
+                  if (event.max_participants) {
+                    return `${participants.length}/${event.max_participants} participants, ${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                  } else {
+                    return `${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                  }
+                })()}
+              </p>
+            </div>
+            <div className="flex border border-gray-300 rounded">
+              <Button
+                size="sm"
+                variant="ghost"
+                className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
+                  showSearchBar ? "bg-gray-200" : ""
+                }`}
+                onClick={() => setShowSearchBar(!showSearchBar)}
+                disabled={participants.length === 0}
+              >
+                <Search className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 rounded-l-none border-0"
+                onClick={() => {}}
+                disabled={participants.length === 0}
+              >
+                <ArrowUpDown className="h-3 w-3" />
+              </Button>
             </div>
           </div>
+
+          {/* Search Bar */}
+          {showSearchBar && (
+            <div className="p-3 border-b bg-gray-50">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="search"
+                  placeholder="Search participants..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-8 text-sm"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="divide-y">
             {(() => {
@@ -852,6 +919,17 @@ export function EventDetailPage() {
                 >
                   <UserX className="h-4 w-4 mr-2" />
                   Withdraw
+                </Button>
+              )}
+              {!userRegistration && (
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={quickFillFromProfile}
+                  disabled={!canQuickFill || submitting}
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Quick Fill
                 </Button>
               )}
               <Button
