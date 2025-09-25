@@ -140,7 +140,7 @@ export function HomePage() {
     <div className="min-h-screen bg-gray-50 pb-14">
       <div className="bg-white border-b">
         <div className="px-4 py-3">
-          <h1 className="text-lg font-semibold">Venu</h1>
+          <h1 className="text-lg font-semibold text-center">Venu</h1>
         </div>
       </div>
 

@@ -3,6 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Plus, Trash2, Minus, Save } from "lucide-react";
@@ -40,6 +48,7 @@ export function EditEventPage() {
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [maxParticipants, setMaxParticipants] = useState<number>(50);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     if (eventId && user) {
@@ -144,17 +153,10 @@ export function EditEventPage() {
     }
   };
 
-  const deleteEvent = async () => {
+  const confirmDelete = async () => {
     if (!event || !user) return;
 
-    if (
-      !confirm(
-        "Are you sure you want to delete this event? All participants and data will be permanently removed.",
-      )
-    ) {
-      return;
-    }
-
+    setLoading(true);
     try {
       const { error } = await supabase
         .from("events")
@@ -166,6 +168,9 @@ export function EditEventPage() {
       navigate("/events");
     } catch (error) {
       console.error("Error deleting event:", error);
+    } finally {
+      setLoading(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -193,21 +198,19 @@ export function EditEventPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center">
-            <button
-              onClick={() => navigate(`/events/${event.id}`)}
-              className="mr-3"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <h1 className="text-lg font-semibold">Edit Event</h1>
-          </div>
+        <div className="flex items-center justify-center px-4 py-3 relative">
+          <button
+            onClick={() => navigate(`/events/${event.id}`)}
+            className="absolute left-4"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-lg font-semibold">Edit Event</h1>
           <Button
             variant="destructive"
             size="sm"
-            className="h-8 px-3 text-xs"
-            onClick={deleteEvent}
+            className="h-8 px-3 text-xs absolute right-4"
+            onClick={() => setShowDeleteDialog(true)}
           >
             Delete
           </Button>
@@ -427,6 +430,36 @@ export function EditEventPage() {
           {loading ? "Saving..." : "Save Changes"}
         </Button>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this event? All participants and data will be permanently removed. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
+              {loading ? "Deleting..." : "Delete Event"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

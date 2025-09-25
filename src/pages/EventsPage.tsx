@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { Plus, Calendar, Users, Copy, ChevronRight, Edit } from 'lucide-react'
+import { Plus, Calendar, Users, Copy, Edit } from 'lucide-react'
 
 interface Event {
   id: string
@@ -120,7 +120,7 @@ export function EventsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 pb-32 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
           <p className="text-sm text-gray-500 mb-4">
@@ -138,10 +138,10 @@ export function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-14">
+    <div className="min-h-screen bg-gray-50 pb-32">
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="px-4 py-3">
-          <h1 className="text-lg font-semibold">My Events</h1>
+          <h1 className="text-lg font-semibold text-center">My Events</h1>
         </div>
       </div>
 
@@ -173,34 +173,42 @@ export function EventsPage() {
               >
                 <button
                   onClick={() => navigate(`/events/${event.id}`)}
-                  className="w-full p-3 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium truncate pr-2">
-                        {event.name}
-                      </h3>
-                      {event.description && (
-                        <p className="text-xs text-gray-500 truncate mt-0.5">
-                          {event.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <Users className="h-3 w-3" />
-                          <span>{event.participant_count || 0}</span>
-                        </div>
-                        {event.datetime && (
-                          <div className="text-xs text-gray-500">
-                            {new Date(event.datetime).toLocaleDateString()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <div className="mb-3">
+                    <h3 className="text-sm font-semibold truncate">
+                      {event.name}
+                    </h3>
                   </div>
+                  {(event.datetime || event.location) && (
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      {event.datetime && (
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
+                          <span>
+                            {new Date(event.datetime).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric"
+                            })}
+                          </span>
+                        </div>
+                      )}
+                      {event.location && (
+                        <div className="text-xs text-gray-500 truncate ml-2">
+                          📍 {event.location}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </button>
-                <div className="border-t px-3 py-2 bg-gray-50 flex justify-end gap-2">
+                <div className="border-t px-3 py-2 bg-gray-50 flex justify-between items-center gap-2">
+                  <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    <Users className="h-3 w-3" />
+                    <span className="font-medium">{event.participant_count || 0}</span>
+                  </div>
+                  <div className="flex gap-2">
                   <Button
                     size="sm"
                     variant="ghost"
@@ -225,6 +233,7 @@ export function EventsPage() {
                     <Copy className="h-3 w-3 mr-1" />
                     Duplicate
                   </Button>
+                  </div>
                 </div>
               </div>
             ))}

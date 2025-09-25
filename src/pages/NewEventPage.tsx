@@ -96,10 +96,10 @@ export function NewEventPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center px-4 py-3">
+        <div className="flex items-center justify-center px-4 py-3 relative">
           <button
             onClick={() => navigate('/events')}
-            className="mr-3"
+            className="absolute left-4"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>

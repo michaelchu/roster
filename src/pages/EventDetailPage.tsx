@@ -428,13 +428,13 @@ export function EventDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-14">
+    <div className="min-h-screen bg-gray-50 pb-32">
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="flex items-center px-4 py-3">
-          <button onClick={() => navigate("/events")} className="mr-3">
+          <button onClick={() => navigate("/events")} className="absolute">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 text-center">
             <h1 className="text-lg font-semibold truncate">{event.name}</h1>
             <p className="text-xs text-gray-500">
               {participants.length} participant
@@ -444,7 +444,7 @@ export function EventDetailPage() {
         </div>
       </div>
 
-      <div className="p-4 space-y-4 pb-18">
+      <div className="p-4 space-y-4">
         {/* Event Info */}
         {(event.description ||
           event.datetime ||

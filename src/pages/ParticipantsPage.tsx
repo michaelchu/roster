@@ -117,7 +117,7 @@ export function ParticipantsPage() {
     <div className="min-h-screen bg-gray-50 pb-14">
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="px-4 py-3">
-          <h1 className="text-lg font-semibold">All Participants</h1>
+          <h1 className="text-lg font-semibold text-center">All Participants</h1>
         </div>
       </div>
 
