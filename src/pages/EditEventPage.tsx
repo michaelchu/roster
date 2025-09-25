@@ -192,7 +192,7 @@ export function EditEventPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      <div className="bg-white border-b">
+      <div className="bg-white border-b sticky top-0 z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center">
             <button

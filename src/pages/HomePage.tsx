@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Users, Plus, ChevronRight } from "lucide-react";
+import { Calendar, Users, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 
@@ -208,54 +208,57 @@ export function HomePage() {
                     <button
                       key={event.id}
                       onClick={() => navigate(`/events/${event.id}`)}
-                      className="w-full p-3 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-sm font-medium truncate">
-                              {event.name}
-                            </h3>
-                            <Badge
-                              variant={
-                                event.isOrganizer ? "default" : "secondary"
-                              }
-                              className="text-xs h-4 px-1.5"
-                            >
-                              {event.isOrganizer ? "Organizer" : "Attending"}
-                            </Badge>
+                      <div className="flex flex-col">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="text-sm font-semibold truncate flex-1 min-w-0 pr-2">
+                            {event.name}
+                          </h3>
+                          <Badge
+                            variant={
+                              event.isOrganizer ? "default" : "secondary"
+                            }
+                            className="text-xs h-5 px-2 flex-shrink-0"
+                          >
+                            {event.isOrganizer ? "Organizer" : "Attending"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-end justify-between">
+                          <div className="space-y-1 flex-1 min-w-0">
+                            {event.datetime && (
+                              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <Calendar className="h-3 w-3 flex-shrink-0" />
+                                <span>
+                                  {new Date(event.datetime).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      weekday: "short",
+                                      month: "short",
+                                      day: "numeric",
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                    },
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                            {event.location && (
+                              <div className="text-xs text-gray-500 truncate">
+                                📍 {event.location}
+                              </div>
+                            )}
                           </div>
-                          {event.datetime && (
-                            <div className="text-xs text-gray-500 mb-0.5">
-                              {new Date(event.datetime).toLocaleDateString(
-                                "en-US",
-                                {
-                                  weekday: "short",
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                },
-                              )}
-                            </div>
-                          )}
-                          {event.location && (
-                            <div className="text-xs text-gray-400 truncate">
-                              {event.location}
-                            </div>
-                          )}
                           {event.isOrganizer &&
                             event.participantCount !== undefined && (
-                              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                              <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                                 <Users className="h-3 w-3" />
-                                <span>
-                                  {event.participantCount} participant
-                                  {event.participantCount !== 1 ? "s" : ""}
+                                <span className="font-medium">
+                                  {event.participantCount}
                                 </span>
                               </div>
                             )}
                         </div>
-                        <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                       </div>
                     </button>
                   ))}
