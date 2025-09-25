@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -39,6 +41,7 @@ import {
   Edit,
   UserPlus,
   UserCheck,
+  UserX,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
@@ -100,6 +103,7 @@ export function EventDetailPage() {
   const [userRegistration, setUserRegistration] = useState<Participant | null>(
     null,
   );
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
   useEffect(() => {
     if (eventId && user) {
@@ -361,6 +365,40 @@ export function EventDetailPage() {
         err.message ||
           "Failed to " + (userRegistration ? "update registration" : "sign up"),
       );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const confirmWithdraw = async () => {
+    if (!userRegistration || !user) return;
+
+    setSubmitting(true);
+    setSignupError("");
+
+    try {
+      const { error } = await supabase
+        .from("participants")
+        .delete()
+        .eq("id", userRegistration.id);
+
+      if (error) throw error;
+
+      // Reset form and close drawer
+      setSignupForm({
+        name: "",
+        email: "",
+        phone: "",
+        notes: "",
+        responses: {},
+      });
+      setShowSignupDrawer(false);
+      setShowWithdrawDialog(false);
+
+      // Reload participants
+      loadEventData();
+    } catch (err: any) {
+      setSignupError(err.message || "Failed to withdraw from event");
     } finally {
       setSubmitting(false);
     }
@@ -805,14 +843,17 @@ export function EventDetailPage() {
           <div className="border-t border-gray-200 my-4 -mx-4"></div>
           <DrawerFooter>
             <div className="flex gap-2 w-full">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowSignupDrawer(false)}
-              >
-                Cancel
-              </Button>
+              {userRegistration && (
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => setShowWithdrawDialog(true)}
+                  disabled={submitting}
+                >
+                  <UserX className="h-4 w-4 mr-2" />
+                  Withdraw
+                </Button>
+              )}
               <Button
                 type="submit"
                 form="signup-form"
@@ -909,6 +950,36 @@ export function EventDetailPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Withdraw Confirmation Dialog */}
+      <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Withdraw from Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to withdraw from this event? This action cannot be undone and you'll need to register again if you change your mind.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => setShowWithdrawDialog(false)}
+              disabled={submitting}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmWithdraw}
+              disabled={submitting}
+              className="w-full sm:w-auto"
+            >
+              {submitting ? "Withdrawing..." : "Withdraw"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

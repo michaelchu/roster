@@ -140,16 +140,8 @@ export function EventsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="px-4 py-3">
           <h1 className="text-lg font-semibold">My Events</h1>
-          <Button
-            size="sm"
-            className="h-8 px-3"
-            onClick={() => navigate('/events/new')}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            New
-          </Button>
         </div>
       </div>
 
@@ -238,6 +230,17 @@ export function EventsPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* New Event Button above navbar */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
+        <Button
+          onClick={() => navigate('/events/new')}
+          className="w-full text-white shadow-lg"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          New Event
+        </Button>
       </div>
     </div>
   )

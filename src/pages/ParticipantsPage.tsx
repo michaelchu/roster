@@ -1,98 +1,101 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
-import { Users, Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
+import { Users, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 interface Participant {
-  id: string
-  name: string
-  email: string | null
-  phone: string | null
-  created_at: string
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
   event: {
-    id: string
-    name: string
-  }
-  labels: any[]
+    id: string;
+    name: string;
+  };
+  labels: any[];
 }
 
 export function ParticipantsPage() {
-  const navigate = useNavigate()
-  const { user } = useAuth()
-  const [participants, setParticipants] = useState<Participant[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (user) {
-      loadParticipants()
+      loadParticipants();
     }
-  }, [user])
+  }, [user]);
 
   const loadParticipants = async () => {
     try {
       // First get all events for this organizer
       const { data: events } = await supabase
-        .from('events')
-        .select('id')
-        .eq('organizer_id', user?.id)
+        .from("events")
+        .select("id")
+        .eq("organizer_id", user?.id);
 
       if (!events || events.length === 0) {
-        setParticipants([])
-        setLoading(false)
-        return
+        setParticipants([]);
+        setLoading(false);
+        return;
       }
 
-      const eventIds = events.map(e => e.id)
+      const eventIds = events.map((e) => e.id);
 
       // Get all participants for these events
       const { data: participantsData } = await supabase
-        .from('participants')
-        .select(`
+        .from("participants")
+        .select(
+          `
           *,
           events!inner (
             id,
             name
           )
-        `)
-        .in('event_id', eventIds)
-        .order('created_at', { ascending: false })
+        `,
+        )
+        .in("event_id", eventIds)
+        .order("created_at", { ascending: false });
 
       if (participantsData) {
         // Get labels for each participant
         const participantsWithLabels = await Promise.all(
           participantsData.map(async (p) => {
             const { data: labelData } = await supabase
-              .from('participant_labels')
-              .select('labels!inner(*)')
-              .eq('participant_id', p.id)
+              .from("participant_labels")
+              .select("labels!inner(*)")
+              .eq("participant_id", p.id);
 
             return {
               ...p,
               event: p.events,
-              labels: labelData?.map(l => l.labels) || []
-            }
-          })
-        )
-        setParticipants(participantsWithLabels as any)
+              labels: labelData?.map((l) => l.labels) || [],
+            };
+          }),
+        );
+        setParticipants(participantsWithLabels as any);
       }
     } catch (error) {
-      console.error('Error loading participants:', error)
+      console.error("Error loading participants:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const filteredParticipants = participants.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.phone?.includes(searchQuery) ||
-    p.event.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredParticipants = participants.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.phone?.includes(searchQuery) ||
+      p.event.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   if (!user) {
     return (
@@ -102,15 +105,12 @@ export function ParticipantsPage() {
           <p className="text-sm text-gray-500 mb-4">
             Please sign in to view participants
           </p>
-          <Button
-            size="sm"
-            onClick={() => navigate('/auth/login')}
-          >
+          <Button size="sm" onClick={() => navigate("/auth/login")}>
             Sign In
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -118,15 +118,14 @@ export function ParticipantsPage() {
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="px-4 py-3">
           <h1 className="text-lg font-semibold">All Participants</h1>
-          <p className="text-xs text-gray-500">
-            {participants.length} total participant{participants.length !== 1 ? 's' : ''}
-          </p>
         </div>
       </div>
 
       <div className="p-4 space-y-4">
         {loading ? (
-          <div className="text-sm text-gray-500 text-center py-8">Loading...</div>
+          <div className="text-sm text-gray-500 text-center py-8">
+            Loading...
+          </div>
         ) : participants.length === 0 ? (
           <div className="bg-white rounded-lg p-6 border text-center">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
@@ -158,24 +157,32 @@ export function ParticipantsPage() {
                   <p className="text-sm text-gray-500">No participants found</p>
                 </div>
               ) : (
-                filteredParticipants.map(participant => (
+                filteredParticipants.map((participant) => (
                   <div
                     key={participant.id}
                     className="p-3 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium">{participant.name}</div>
+                        <div className="text-sm font-medium">
+                          {participant.name}
+                        </div>
                         <div className="text-xs text-gray-500">
-                          {participant.email || participant.phone || 'No contact info'}
+                          {participant.email ||
+                            participant.phone ||
+                            "No contact info"}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
                           Event: {participant.event.name}
                         </div>
                         {participant.labels.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {participant.labels.map(label => (
-                              <Badge key={label.id} variant="outline" className="text-xs h-5">
+                            {participant.labels.map((label) => (
+                              <Badge
+                                key={label.id}
+                                variant="outline"
+                                className="text-xs h-5"
+                              >
                                 {label.name}
                               </Badge>
                             ))}
@@ -194,5 +201,5 @@ export function ParticipantsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
