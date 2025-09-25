@@ -107,9 +107,9 @@ export function HomePage() {
 
       if (participantEvents) {
         for (const participantEvent of participantEvents) {
-          const event = participantEvent.events;
+          const event = participantEvent.events as any;
           // Don't duplicate events the user is organizing
-          if (event.organizer_id !== user?.id) {
+          if (event?.organizer_id !== user?.id) {
             events.push({
               id: event.id,
               name: event.name,

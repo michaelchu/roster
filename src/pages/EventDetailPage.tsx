@@ -12,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Sheet,
@@ -34,9 +33,6 @@ import {
   Users,
   Share2,
   Download,
-  Plus,
-  Tag,
-  X,
   Search,
   Edit,
   UserPlus,
@@ -59,6 +55,8 @@ interface Participant {
   name: string;
   email: string | null;
   phone: string | null;
+  notes: string | null;
+  user_id: string | null;
   created_at: string;
   labels: Label[];
   responses: Record<string, any>;
@@ -238,35 +236,7 @@ export function EventDetailPage() {
     a.click();
   };
 
-  const createLabel = async () => {
-    if (!newLabelName.trim() || !eventId) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("labels")
-        .insert({
-          event_id: eventId,
-          name: newLabelName.trim(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      setLabels([...labels, data]);
-      setNewLabelName("");
-    } catch (error) {
-      console.error("Error creating label:", error);
-    }
-  };
-
-  const deleteLabel = async (labelId: string) => {
-    try {
-      await supabase.from("labels").delete().eq("id", labelId);
-      setLabels(labels.filter((l) => l.id !== labelId));
-    } catch (error) {
-      console.error("Error deleting label:", error);
-    }
-  };
 
   const toggleParticipantLabel = async (
     participant: Participant,
@@ -864,7 +834,7 @@ export function EventDetailPage() {
                             <SelectValue placeholder="Select..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {field.options.map((option) => (
+                            {field.options.map((option: string) => (
                               <SelectItem key={option} value={option}>
                                 {option}
                               </SelectItem>
