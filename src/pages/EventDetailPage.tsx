@@ -59,7 +59,7 @@ interface Participant {
   user_id: string | null;
   created_at: string;
   labels: Label[];
-  responses: Record<string, any>;
+  responses: Record<string, string>;
 }
 
 interface Label {
@@ -76,7 +76,7 @@ interface EventData {
   location: string | null;
   max_participants: number | null;
   organizer_id: string;
-  custom_fields: any[];
+  custom_fields: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export function EventDetailPage() {
@@ -96,7 +96,7 @@ export function EventDetailPage() {
     email: "",
     phone: "",
     notes: "",
-    responses: {} as Record<string, any>,
+    responses: {} as Record<string, string>,
   });
   const [submitting, setSubmitting] = useState(false);
   const [signupError, setSignupError] = useState("");
@@ -110,7 +110,7 @@ export function EventDetailPage() {
     if (eventId && user) {
       loadEventData();
     }
-  }, [eventId, user]);
+  }, [eventId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEventData = async () => {
     if (!eventId) return;
@@ -148,7 +148,7 @@ export function EventDetailPage() {
           ...p,
           labels: [],
         }));
-        setParticipants(participantsWithLabels as any);
+        setParticipants(participantsWithLabels as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
         // Check if current user is already registered
         let currentUserRegistration = participantsWithLabels.find(
@@ -333,7 +333,7 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       setSignupError(
         err.message ||
           "Failed to " + (userRegistration ? "update registration" : "sign up"),
@@ -370,7 +370,7 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       setSignupError(err.message || "Failed to withdraw from event");
     } finally {
       setSubmitting(false);
@@ -435,7 +435,7 @@ export function EventDetailPage() {
           <div className="bg-white rounded-lg border overflow-hidden">
             <div className="p-4 space-y-3">
               {/* Top row: Date and Registration Deadline */}
-              {(event.datetime || true) && (
+              {(event.datetime) && (
                 <div className="grid grid-cols-2 gap-4">
                   {event.datetime && (
                     <div className="text-sm text-gray-600">

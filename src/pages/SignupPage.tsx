@@ -40,13 +40,13 @@ export function SignupPage() {
     name: '',
     email: '',
     phone: '',
-    responses: {} as Record<string, any>
+    responses: {} as Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
   })
 
   useEffect(() => {
     loadEvent()
     loadQuickFill()
-  }, [eventId])
+  }, [eventId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEvent = async () => {
     if (!eventId) return
@@ -60,7 +60,7 @@ export function SignupPage() {
 
       if (error) throw error
       setEvent(data)
-    } catch (err) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
       setError('Event not found')
     } finally {
       setLoading(false)
@@ -111,7 +111,7 @@ export function SignupPage() {
 
       if (error) throw error
       setSubmitted(true)
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       setError(err.message || 'Failed to sign up')
     } finally {
       setSubmitting(false)

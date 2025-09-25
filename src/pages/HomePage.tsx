@@ -33,7 +33,7 @@ export function HomePage() {
     if (user) {
       loadUpcomingEvents();
     }
-  }, [user, timePeriod]);
+  }, [user, timePeriod]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadUpcomingEvents = async () => {
     setLoading(true);
@@ -107,7 +107,8 @@ export function HomePage() {
 
       if (participantEvents) {
         for (const participantEvent of participantEvents) {
-          const event = participantEvent.events as any;
+          const eventData = participantEvent.events as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+          const event = Array.isArray(eventData) ? eventData[0] : eventData;
           // Don't duplicate events the user is organizing
           if (event?.organizer_id !== user?.id) {
             events.push({

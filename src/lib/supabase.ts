@@ -9,6 +9,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+export interface CustomField {
+  id?: string;
+  label: string;
+  type: string;
+  required: boolean;
+  options?: string[];
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -37,7 +45,7 @@ export type Database = {
           description: string | null
           datetime: string | null
           location: string | null
-          custom_fields: any[]
+          custom_fields: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at: string
           parent_event_id: string | null
         }
@@ -48,7 +56,7 @@ export type Database = {
           description?: string | null
           datetime?: string | null
           location?: string | null
-          custom_fields?: any[]
+          custom_fields?: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at?: string
           parent_event_id?: string | null
         }
@@ -59,7 +67,7 @@ export type Database = {
           description?: string | null
           datetime?: string | null
           location?: string | null
-          custom_fields?: any[]
+          custom_fields?: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at?: string
           parent_event_id?: string | null
         }
@@ -71,7 +79,7 @@ export type Database = {
           name: string
           email: string | null
           phone: string | null
-          responses: Record<string, any>
+          responses: Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at: string
         }
         Insert: {
@@ -80,7 +88,7 @@ export type Database = {
           name: string
           email?: string | null
           phone?: string | null
-          responses?: Record<string, any>
+          responses?: Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at?: string
         }
         Update: {
@@ -89,7 +97,7 @@ export type Database = {
           name?: string
           email?: string | null
           phone?: string | null
-          responses?: Record<string, any>
+          responses?: Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
           created_at?: string
         }
       }

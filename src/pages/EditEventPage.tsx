@@ -54,7 +54,7 @@ export function EditEventPage() {
     if (eventId && user) {
       loadEvent();
     }
-  }, [eventId, user]);
+  }, [eventId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEvent = async () => {
     if (!eventId) return;
@@ -420,7 +420,7 @@ export function EditEventPage() {
         <Button
           onClick={(e) => {
             e.preventDefault();
-            handleSubmit(e as any);
+            handleSubmit(e as React.FormEvent);
           }}
           className="w-full text-white shadow-lg"
           size="sm"

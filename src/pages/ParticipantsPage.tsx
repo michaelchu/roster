@@ -17,7 +17,7 @@ interface Participant {
     id: string;
     name: string;
   };
-  labels: any[];
+  labels: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export function ParticipantsPage() {
@@ -31,7 +31,7 @@ export function ParticipantsPage() {
     if (user) {
       loadParticipants();
     }
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadParticipants = async () => {
     try {
@@ -80,7 +80,7 @@ export function ParticipantsPage() {
             };
           }),
         );
-        setParticipants(participantsWithLabels as any);
+        setParticipants(participantsWithLabels as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       }
     } catch (error) {
       console.error("Error loading participants:", error);

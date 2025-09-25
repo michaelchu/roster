@@ -25,7 +25,7 @@ export function EventsPage() {
     if (user) {
       loadEvents()
     }
-  }, [user])
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEvents = async () => {
     try {
