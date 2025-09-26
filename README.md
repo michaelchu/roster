@@ -1,4 +1,4 @@
-# Venu - Mobile Event Signup Platform
+# JoinUp - Mobile Event Signup Platform
 
 A mobile-first event management platform built with React, TypeScript, and Supabase.
 
