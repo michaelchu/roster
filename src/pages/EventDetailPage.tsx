@@ -555,7 +555,7 @@ export function EventDetailPage() {
               const maxSlots = event.max_participants || filteredParticipants.length;
               const slots = [];
 
-              // Add existing participants to slots
+              // Add existing participants to slots (already ordered by slot_number)
               for (let i = 0; i < Math.min(filteredParticipants.length, maxSlots); i++) {
                 const participant = filteredParticipants[i];
                 slots.push(
@@ -566,7 +566,7 @@ export function EventDetailPage() {
                   >
                     <div className="flex items-start gap-3">
                       <div className="text-xs text-gray-400 font-mono flex-shrink-0 mt-1">
-                        {i + 1}.
+                        {participant.slot_number}.
                       </div>
                       <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-medium text-white">
@@ -576,11 +576,12 @@ export function EventDetailPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div className="text-sm font-medium">{participant.name}</div>
-                          {participant.user_id === event.organizer_id && (
-                            <Badge variant="outline" className="text-xs h-5 px-2">
-                              Organizer
-                            </Badge>
-                          )}
+                          {participant.user_id === event.organizer_id &&
+                            participant.slot_number === 1 && (
+                              <Badge variant="outline" className="text-xs h-5 px-2">
+                                Organizer
+                              </Badge>
+                            )}
                         </div>
                         <div className="text-xs text-gray-500">
                           Signed up{' '}
@@ -618,12 +619,19 @@ export function EventDetailPage() {
 
               // Add empty slots if we have max_participants set
               if (event.max_participants && filteredParticipants.length < event.max_participants) {
-                for (let i = filteredParticipants.length; i < event.max_participants; i++) {
+                // Find the highest slot number used
+                const maxUsedSlot =
+                  filteredParticipants.length > 0
+                    ? Math.max(...filteredParticipants.map((p) => p.slot_number))
+                    : 0;
+
+                // Add empty slots for remaining capacity
+                for (let slotNum = maxUsedSlot + 1; slotNum <= event.max_participants; slotNum++) {
                   slots.push(
-                    <div key={`empty-${i}`} className="p-3 border-dashed border-gray-200">
+                    <div key={`empty-${slotNum}`} className="p-3 border-dashed border-gray-200">
                       <div className="flex items-center gap-3">
                         <div className="text-xs text-gray-400 font-mono flex-shrink-0">
-                          {i + 1}.
+                          {slotNum}.
                         </div>
                         <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-xs text-gray-400">?</span>

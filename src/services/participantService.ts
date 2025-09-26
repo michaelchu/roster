@@ -13,6 +13,7 @@ export interface Participant extends Omit<Tables<'participants'>, 'responses' | 
   created_at: string;
   labels?: Label[];
   responses: ResponseRecord;
+  slot_number: number;
 }
 
 export type Label = Tables<'labels'>;
@@ -25,6 +26,7 @@ function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Part
     ...dbParticipant,
     created_at: dbParticipant.created_at || new Date().toISOString(),
     responses: (dbParticipant.responses as ResponseRecord) || {},
+    slot_number: dbParticipant.slot_number || 0,
   };
 }
 
@@ -42,7 +44,7 @@ export const participantService = {
       `
       )
       .eq('event_id', eventId)
-      .order('created_at', { ascending: false });
+      .order('slot_number', { ascending: true });
 
     if (participantsError) throw errorHandler.fromSupabaseError(participantsError);
 
@@ -87,7 +89,7 @@ export const participantService = {
   },
 
   async createParticipant(
-    participant: Omit<Participant, 'id' | 'created_at' | 'labels'>
+    participant: Omit<Participant, 'id' | 'created_at' | 'labels' | 'slot_number'>
   ): Promise<Participant> {
     const insertData: TablesInsert<'participants'> = {
       event_id: participant.event_id,

@@ -60,6 +60,7 @@ export const mockParticipant: Participant = {
     'Dietary Restrictions': 'Vegetarian',
   },
   created_at: '2024-01-01T00:00:00Z',
+  slot_number: 1,
   labels: [],
 };
 
@@ -70,6 +71,7 @@ export const mockParticipantsList: Participant[] = [
     id: '550e8400-e29b-41d4-a716-446655440011',
     name: 'Jane Doe',
     email: 'jane@example.com',
+    slot_number: 2,
     labels: [],
   },
   {
@@ -77,6 +79,7 @@ export const mockParticipantsList: Participant[] = [
     id: '550e8400-e29b-41d4-a716-446655440012',
     name: 'Bob Smith',
     email: 'bob@example.com',
+    slot_number: 3,
     labels: [],
   },
 ];

@@ -158,6 +158,7 @@ export type Database = {
           notes: string | null;
           phone: string | null;
           responses: Json | null;
+          slot_number: number | null;
           user_id: string | null;
         };
         Insert: {
@@ -169,6 +170,7 @@ export type Database = {
           notes?: string | null;
           phone?: string | null;
           responses?: Json | null;
+          slot_number?: number | null;
           user_id?: string | null;
         };
         Update: {
@@ -180,6 +182,7 @@ export type Database = {
           notes?: string | null;
           phone?: string | null;
           responses?: Json | null;
+          slot_number?: number | null;
           user_id?: string | null;
         };
         Relationships: [
