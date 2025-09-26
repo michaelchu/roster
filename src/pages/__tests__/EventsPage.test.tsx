@@ -88,7 +88,7 @@ describe('EventsPage', () => {
       fireEvent.click(eventButton);
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith('/events/550e8400-e29b-41d4-a716-446655440001');
+    expect(mockNavigate).toHaveBeenCalledWith('/events/V1StGXR8_Z');
   });
 
   it('navigates to edit page when edit button is clicked', async () => {
@@ -102,7 +102,7 @@ describe('EventsPage', () => {
       fireEvent.click(editButtons[0]);
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith('/events/550e8400-e29b-41d4-a716-446655440001/edit');
+    expect(mockNavigate).toHaveBeenCalledWith('/events/V1StGXR8_Z/edit');
   });
 
   it('duplicates event when copy button is clicked', async () => {

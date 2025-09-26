@@ -6,6 +6,7 @@ import {
   validateCustomFields,
   type CustomField
 } from '@/lib/validation';
+import { nanoid } from 'nanoid';
 
 // Extended Event type with additional computed properties and properly typed custom_fields
 export interface Event extends Omit<Tables<'events'>, 'custom_fields'> {
@@ -71,10 +72,13 @@ export const eventService = {
   },
 
   async createEvent(event: Omit<Event, 'id' | 'created_at' | 'participant_count'>): Promise<Event> {
+    // Generate nanoid for event
+    const eventId = nanoid(10); // 10 characters for clean, short URLs
+
     // Validate input data
     const validationResult = safeValidateEvent({
       ...event,
-      id: '550e8400-e29b-41d4-a716-446655440999', // Add temporary UUID for validation
+      id: eventId,
       created_at: new Date().toISOString(),
     });
 
@@ -86,6 +90,7 @@ export const eventService = {
     }
 
     const insertData: TablesInsert<'events'> = {
+      id: eventId, // Use our generated nanoid
       organizer_id: event.organizer_id,
       name: event.name.trim(),
       description: event.description,
@@ -147,7 +152,11 @@ export const eventService = {
     if (fetchError) throw fetchError;
     if (!originalEvent) throw new Error('Original event not found');
 
+    // Generate nanoid for duplicate event
+    const newEventId = nanoid(10);
+
     const insertData: TablesInsert<'events'> = {
+      id: newEventId, // Use our generated nanoid
       organizer_id: organizerId,
       name: `${originalEvent.name} (Copy)`,
       description: originalEvent.description,

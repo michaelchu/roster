@@ -10,7 +10,7 @@ export const mockOrganizer: Organizer = {
 };
 
 export const mockEvent: Event = {
-  id: '550e8400-e29b-41d4-a716-446655440001',
+  id: 'V1StGXR8_Z', // Using nanoid format
   organizer_id: '550e8400-e29b-41d4-a716-446655440000',
   name: 'Test Event',
   description: 'A test event description',
@@ -35,13 +35,13 @@ export const mockEventsList: Event[] = [
   mockEvent,
   {
     ...mockEvent,
-    id: '550e8400-e29b-41d4-a716-446655440002',
+    id: 'K1LoGXR8_A', // Using nanoid format
     name: 'Another Event',
     participant_count: 0,
   },
   {
     ...mockEvent,
-    id: '550e8400-e29b-41d4-a716-446655440003',
+    id: 'M2JhGXR8_B', // Using nanoid format
     name: 'Third Event',
     is_private: true,
     participant_count: 0,
@@ -50,7 +50,7 @@ export const mockEventsList: Event[] = [
 
 export const mockParticipant: Participant = {
   id: '550e8400-e29b-41d4-a716-446655440010',
-  event_id: '550e8400-e29b-41d4-a716-446655440001',
+  event_id: 'V1StGXR8_Z', // Using nanoid format for event reference
   name: 'John Doe',
   email: 'john@example.com',
   phone: '555-1234',
@@ -83,7 +83,7 @@ export const mockParticipantsList: Participant[] = [
 
 export const mockLabel: Label = {
   id: '550e8400-e29b-41d4-a716-446655440020',
-  event_id: '550e8400-e29b-41d4-a716-446655440001',
+  event_id: 'V1StGXR8_Z', // Using nanoid format for event reference
   name: 'VIP',
   color: '#gold',
 };
