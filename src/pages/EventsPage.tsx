@@ -1,20 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Calendar, Users, Copy, Edit } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
-
-interface Event {
-  id: string;
-  name: string;
-  description: string | null;
-  datetime: string | null;
-  location: string | null;
-  created_at: string;
-  participant_count?: number;
-}
+import { eventService, type Event } from '@/services';
 
 export function EventsPage() {
   const navigate = useNavigate();
@@ -30,40 +20,9 @@ export function EventsPage() {
 
   const loadEvents = async () => {
     try {
-      const { data: eventsData, error: eventsError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('organizer_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (eventsError) throw eventsError;
-
-      // Get participant counts
-      if (eventsData && eventsData.length > 0) {
-        const eventIds = eventsData.map((e) => e.id);
-        const { data: participantCounts } = await supabase
-          .from('participants')
-          .select('event_id')
-          .in('event_id', eventIds);
-
-        const countMap =
-          participantCounts?.reduce(
-            (acc, p) => {
-              acc[p.event_id] = (acc[p.event_id] || 0) + 1;
-              return acc;
-            },
-            {} as Record<string, number>
-          ) || {};
-
-        const eventsWithCounts = eventsData.map((event) => ({
-          ...event,
-          participant_count: countMap[event.id] || 0,
-        }));
-
-        setEvents(eventsWithCounts);
-      } else {
-        setEvents([]);
-      }
+      if (!user) return;
+      const eventsWithCounts = await eventService.getEventsByOrganizer(user.id);
+      setEvents(eventsWithCounts);
     } catch (error) {
       console.error('Error loading events:', error);
     } finally {
@@ -73,45 +32,8 @@ export function EventsPage() {
 
   const duplicateEvent = async (event: Event) => {
     try {
-      // Get full event details including custom fields
-      const { data: originalEvent, error: fetchError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', event.id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Create new event
-      const { data: newEvent, error: createError } = await supabase
-        .from('events')
-        .insert({
-          organizer_id: user?.id,
-          name: `${originalEvent.name} (Copy)`,
-          description: originalEvent.description,
-          datetime: originalEvent.datetime,
-          location: originalEvent.location,
-          custom_fields: originalEvent.custom_fields,
-          parent_event_id: originalEvent.id,
-        })
-        .select()
-        .single();
-
-      if (createError) throw createError;
-
-      // Copy labels
-      const { data: labels } = await supabase.from('labels').select('*').eq('event_id', event.id);
-
-      if (labels && labels.length > 0) {
-        await supabase.from('labels').insert(
-          labels.map((label) => ({
-            event_id: newEvent.id,
-            name: label.name,
-            color: label.color,
-          }))
-        );
-      }
-
+      if (!user) return;
+      await eventService.duplicateEvent(event.id, user.id);
       loadEvents();
     } catch (error) {
       console.error('Error duplicating event:', error);

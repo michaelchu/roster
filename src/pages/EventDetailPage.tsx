@@ -18,6 +18,13 @@ import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import {
+  eventService,
+  participantService,
+  labelService,
+  type Participant as ServiceParticipant,
+  type Label as LabelType,
+} from '@/services';
+import {
   Users,
   Share2,
   Download,
@@ -39,23 +46,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-interface Participant {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  notes: string | null;
-  user_id: string | null;
-  created_at: string;
-  labels: Label[];
-  responses: Record<string, string>;
-}
-
-interface Label {
-  id: string;
-  name: string;
-  color: string;
-}
+type Participant = ServiceParticipant & {
+  notes?: string | null;
+  user_id?: string | null;
+};
 
 interface EventData {
   id: string;
@@ -75,7 +69,7 @@ export function EventDetailPage() {
   const { user } = useAuth();
   const [event, setEvent] = useState<EventData | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [labels, setLabels] = useState<Label[]>([]);
+  const [labels, setLabels] = useState<LabelType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
@@ -104,13 +98,7 @@ export function EventDetailPage() {
 
     try {
       // Load event
-      const { data: eventData, error: eventError } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', eventId)
-        .single();
-
-      if (eventError) throw eventError;
+      const eventData = await eventService.getEventById(eventId);
 
       // If event is private and user is not authenticated, deny access
       if (eventData.is_private && !user) {
@@ -138,49 +126,29 @@ export function EventDetailPage() {
       setEvent(eventData);
 
       // Load labels
-      const { data: labelsData } = await supabase
-        .from('labels')
-        .select('*')
-        .eq('event_id', eventId)
-        .order('name');
-
-      setLabels(labelsData || []);
+      const labelsData = await labelService.getLabelsByEventId(eventId);
+      setLabels(labelsData);
 
       // Load participants
-      const { data: participantsData } = await supabase
-        .from('participants')
-        .select('*')
-        .eq('event_id', eventId)
-        .order('created_at', { ascending: false });
+      const participantsData = await participantService.getParticipantsByEventId(eventId);
 
       if (participantsData) {
-        // Add empty labels array since we removed labels functionality
-        const participantsWithLabels = participantsData.map((p) => ({
-          ...p,
-          labels: [],
-        }));
-        setParticipants(participantsWithLabels as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        setParticipants(participantsData as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
         // Check if current user is already registered
-        let currentUserRegistration = participantsWithLabels.find(
+        let currentUserRegistration = participantsData.find(
           (p) => (user?.id && p.user_id === user.id) || (user?.email && p.email === user.email)
         );
 
         // If not found by user_id but found by email, update the participant record to link to user
         if (!currentUserRegistration && user?.email) {
-          const emailMatch = participantsWithLabels.find(
-            (p) => p.email === user.email && !p.user_id
-          );
+          const emailMatch = participantsData.find((p) => p.email === user.email && !p.user_id);
           if (emailMatch) {
             // Update participant to link to current user
-            supabase
-              .from('participants')
-              .update({ user_id: user.id })
-              .eq('id', emailMatch.id)
-              .then(() => {
-                // Reload data to reflect the update
-                loadEventData();
-              });
+            participantService.updateParticipant(emailMatch.id, { user_id: user.id }).then(() => {
+              // Reload data to reflect the update
+              loadEventData();
+            });
             currentUserRegistration = emailMatch;
           }
         }
@@ -221,7 +189,7 @@ export function EventDetailPage() {
         p.name,
         p.email || '',
         p.phone || '',
-        p.labels.map((l) => l.name).join('; '),
+        p.labels?.map((l) => l.name).join('; ') || '',
         new Date(p.created_at).toLocaleDateString(),
       ];
       if (event?.custom_fields) {
@@ -245,19 +213,14 @@ export function EventDetailPage() {
     a.click();
   };
 
-  const toggleParticipantLabel = async (participant: Participant, label: Label) => {
-    const hasLabel = participant.labels.some((l) => l.id === label.id);
+  const toggleParticipantLabel = async (participant: Participant, label: LabelType) => {
+    const hasLabel = participant.labels?.some((l) => l.id === label.id) || false;
 
     try {
       if (hasLabel) {
-        await supabase
-          .from('participant_labels')
-          .delete()
-          .match({ participant_id: participant.id, label_id: label.id });
+        await participantService.removeLabelFromParticipant(participant.id, label.id);
       } else {
-        await supabase
-          .from('participant_labels')
-          .insert({ participant_id: participant.id, label_id: label.id });
+        await participantService.addLabelToParticipant(participant.id, label.id);
       }
       loadEventData();
     } catch (error) {
@@ -304,21 +267,16 @@ export function EventDetailPage() {
     try {
       if (userRegistration) {
         // Update existing registration
-        const { error } = await supabase
-          .from('participants')
-          .update({
-            name: signupForm.name,
-            email: signupForm.email,
-            phone: signupForm.phone,
-            notes: signupForm.notes,
-            responses: signupForm.responses,
-          })
-          .eq('id', userRegistration.id);
-
-        if (error) throw error;
+        await participantService.updateParticipant(userRegistration.id, {
+          name: signupForm.name,
+          email: signupForm.email,
+          phone: signupForm.phone,
+          notes: signupForm.notes,
+          responses: signupForm.responses,
+        });
       } else {
         // Create new registration
-        const { error } = await supabase.from('participants').insert({
+        await participantService.createParticipant({
           event_id: event.id,
           name: signupForm.name,
           email: signupForm.email,
@@ -327,8 +285,6 @@ export function EventDetailPage() {
           responses: signupForm.responses,
           user_id: user?.id || null,
         });
-
-        if (error) throw error;
       }
 
       // Reset form and close drawer
@@ -360,9 +316,7 @@ export function EventDetailPage() {
     setSignupError('');
 
     try {
-      const { error } = await supabase.from('participants').delete().eq('id', userRegistration.id);
-
-      if (error) throw error;
+      await participantService.deleteParticipant(userRegistration.id);
 
       // Reset form and close drawer
       setSignupForm({
@@ -628,7 +582,7 @@ export function EventDetailPage() {
                           })()}
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {participant.labels.map((label) => (
+                          {participant.labels?.map((label) => (
                             <Badge key={label.id} variant="outline" className="text-xs h-5">
                               {label.name}
                             </Badge>
@@ -938,7 +892,8 @@ export function EventDetailPage() {
                   <h3 className="text-sm font-medium">Labels</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {labels.map((label) => {
-                      const hasLabel = selectedParticipant.labels.some((l) => l.id === label.id);
+                      const hasLabel =
+                        selectedParticipant.labels?.some((l) => l.id === label.id) || false;
                       return (
                         <button
                           key={label.id}
