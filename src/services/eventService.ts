@@ -199,4 +199,32 @@ export const eventService = {
 
     return (data || []).map(dbEventToEvent);
   },
+
+  async getEventsByParticipant(userId: string): Promise<Event[]> {
+    // Get events where the user is a participant
+    const { data: eventsData, error: eventsError } = await supabase
+      .from('events')
+      .select(
+        `
+        *,
+        participants!inner(id)
+      `
+      )
+      .eq('participants.user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (eventsError) throw errorHandler.fromSupabaseError(eventsError);
+
+    if (!eventsData) return [];
+
+    return eventsData.map((event) => {
+      // Remove the participants array from the event object before processing
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { participants: _, ...eventWithoutParticipants } = event as Tables<'events'> & {
+        participants: Array<{ id: string } | null>;
+      };
+
+      return dbEventToEvent(eventWithoutParticipants);
+    });
+  },
 };

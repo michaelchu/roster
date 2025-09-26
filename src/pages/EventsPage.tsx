@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,22 +9,46 @@ import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 
+type TabType = 'organizing' | 'joined';
+
 export function EventsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isLoading, data: events, execute: loadEvents } = useLoadingState<Event[]>([]);
+  const [activeTab, setActiveTab] = useState<TabType>('organizing');
+  const {
+    isLoading: isLoadingOrganizing,
+    data: organizingEvents,
+    execute: loadOrganizingEvents,
+  } = useLoadingState<Event[]>([]);
+  const {
+    isLoading: isLoadingJoined,
+    data: joinedEvents,
+    execute: loadJoinedEvents,
+  } = useLoadingState<Event[]>([]);
   const { isLoading: isDuplicating, execute: duplicateEventAsync } = useLoadingState<Event>();
 
-  const loadEventsCallback = useCallback(async () => {
+  const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
     return await eventService.getEventsByOrganizer(user.id);
   }, [user]);
 
+  const loadJoinedEventsCallback = useCallback(async () => {
+    if (!user) return [];
+    return await eventService.getEventsByParticipant(user.id);
+  }, [user]);
+
   useEffect(() => {
     if (user) {
-      loadEvents(loadEventsCallback);
+      loadOrganizingEvents(loadOrganizingEventsCallback);
+      loadJoinedEvents(loadJoinedEventsCallback);
     }
-  }, [user, loadEvents, loadEventsCallback]);
+  }, [
+    user,
+    loadOrganizingEvents,
+    loadJoinedEvents,
+    loadOrganizingEventsCallback,
+    loadJoinedEventsCallback,
+  ]);
 
   const duplicateEvent = async (event: Event) => {
     if (!user) return;
@@ -35,7 +59,7 @@ export function EventsPage() {
 
     if (result) {
       errorHandler.success(`"${event.name}" has been duplicated successfully`);
-      loadEvents(loadEventsCallback);
+      loadOrganizingEvents(loadOrganizingEventsCallback);
     }
   };
 
@@ -53,28 +77,64 @@ export function EventsPage() {
     );
   }
 
+  const currentEvents = activeTab === 'organizing' ? organizingEvents : joinedEvents;
+  const isLoading = activeTab === 'organizing' ? isLoadingOrganizing : isLoadingJoined;
+  const showDuplicateButton = activeTab === 'organizing';
+
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
       <TopNav title="My Events" sticky />
 
+      {/* Tab Bar */}
+      <div className="bg-white border-b px-3 py-2">
+        <div className="flex rounded-lg bg-gray-100 p-1">
+          <button
+            onClick={() => setActiveTab('organizing')}
+            className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-colors ${
+              activeTab === 'organizing'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Organizing
+          </button>
+          <button
+            onClick={() => setActiveTab('joined')}
+            className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-colors ${
+              activeTab === 'joined'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Joined
+          </button>
+        </div>
+      </div>
+
       <div className="p-3 space-y-3">
         {isLoading ? (
           <EventListSkeleton count={3} />
-        ) : events && events.length === 0 ? (
+        ) : currentEvents && currentEvents.length === 0 ? (
           <div className="bg-white rounded-lg p-3 border text-center">
             <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-            <h2 className="text-base font-medium mb-2">No Events Yet</h2>
+            <h2 className="text-base font-medium mb-2">
+              {activeTab === 'organizing' ? 'No Events Yet' : 'No Joined Events'}
+            </h2>
             <p className="text-xs text-gray-500 mb-4">
-              Create your first event to start managing registrations
+              {activeTab === 'organizing'
+                ? 'Create your first event to start managing registrations'
+                : "You haven't joined any events yet"}
             </p>
-            <Button size="sm" className="w-full" onClick={() => navigate('/events/new')}>
-              <Plus className="h-4 w-4 mr-1" />
-              Create Event
-            </Button>
+            {activeTab === 'organizing' && (
+              <Button size="sm" className="w-full" onClick={() => navigate('/events/new')}>
+                <Plus className="h-4 w-4 mr-1" />
+                Create Event
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
-            {(events || []).map((event) => (
+            {(currentEvents || []).map((event) => (
               <div key={event.id} className="bg-white border rounded-lg overflow-hidden">
                 <button
                   onClick={() => navigate(`/events/${event.id}`)}
@@ -111,39 +171,41 @@ export function EventsPage() {
                     <Users className="h-3 w-3" />
                     <span className="font-medium">{event.participant_count || 0}</span>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2 text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/events/${event.id}/edit`);
-                      }}
-                    >
-                      <Edit className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2 text-xs"
-                      disabled={isDuplicating}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        duplicateEvent(event);
-                      }}
-                    >
-                      {isDuplicating ? (
-                        <LoadingSpinner size="sm" />
-                      ) : (
-                        <>
-                          <Copy className="h-3 w-3 mr-1" />
-                          Duplicate
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  {showDuplicateButton && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/events/${event.id}/edit`);
+                        }}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        disabled={isDuplicating}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicateEvent(event);
+                        }}
+                      >
+                        {isDuplicating ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <Copy className="h-3 w-3 mr-1" />
+                            Duplicate
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -151,13 +213,15 @@ export function EventsPage() {
         )}
       </div>
 
-      {/* New Event Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
-        <Button onClick={() => navigate('/events/new')} className="w-full text-white shadow-lg">
-          <Plus className="h-5 w-5 mr-2" />
-          New Event
-        </Button>
-      </div>
+      {/* New Event Button above navbar - only show for organizing tab */}
+      {activeTab === 'organizing' && (
+        <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
+          <Button onClick={() => navigate('/events/new')} className="w-full text-white shadow-lg">
+            <Plus className="h-5 w-5 mr-2" />
+            New Event
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
