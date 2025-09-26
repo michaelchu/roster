@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { CheckCircle, User } from 'lucide-react';
+import { CheckCircle, User, ArrowLeft } from 'lucide-react';
 import { eventService, participantService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { PageSkeleton } from '@/components/LoadingStates';
@@ -17,38 +17,78 @@ interface CustomField {
   options?: string[];
 }
 
-interface EventData {
+interface Event {
   id: string;
   name: string;
   description: string | null;
   datetime: string | null;
   location: string | null;
   custom_fields: CustomField[];
+  max_participants?: number | null;
+  participant_count?: number;
 }
 
-const QUICK_FILL_KEY = 'venu_participant_info';
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  responses: Record<string, string>;
+}
 
 export function SignupPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [event, setEvent] = useState<EventData | null>(null);
+  const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     phone: '',
-    responses: {} as Record<string, string | number | string[]>,
+    responses: {},
   });
+
+  // Auto-fill form if user is logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.user_metadata?.full_name || user.email || '',
+        email: user.email || '',
+      }));
+    }
+  }, [user]);
+
+  // Load quick-fill data from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('venu-signup-form');
+    if (saved && !user) {
+      try {
+        const parsed = JSON.parse(saved);
+        setFormData(prev => ({ ...prev, ...parsed }));
+      } catch (e) {
+        // Ignore invalid saved data
+      }
+    }
+  }, [user]);
+
+  const saveQuickFill = () => {
+    if (!user) {
+      localStorage.setItem('venu-signup-form', JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      }));
+    }
+  };
 
   useEffect(() => {
     loadEvent();
-    loadQuickFill();
-  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [eventId]);
 
   const loadEvent = async () => {
     if (!eventId) return;
@@ -62,6 +102,8 @@ export function SignupPage() {
         datetime: data.datetime || '',
         location: data.location || '',
         custom_fields: data.custom_fields || [],
+        max_participants: data.max_participants,
+        participant_count: data.participant_count,
       });
     } catch (err) {
       errorHandler.handle(err, {
@@ -73,33 +115,24 @@ export function SignupPage() {
     }
   };
 
-  const loadQuickFill = () => {
-    const saved = localStorage.getItem(QUICK_FILL_KEY);
-    if (saved) {
-      const data = JSON.parse(saved);
-      setFormData((prev) => ({
-        ...prev,
-        name: data.name || '',
-        email: data.email || '',
-        phone: data.phone || '',
-      }));
-    }
-  };
-
-  const saveQuickFill = () => {
-    localStorage.setItem(
-      QUICK_FILL_KEY,
-      JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-      })
-    );
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!event) return;
+
+    // Basic validation
+    if (!formData.name.trim()) {
+      setError('Name is required');
+      return;
+    }
+
+    // Validate required custom fields
+    for (const field of event.custom_fields) {
+      if (field.required && !formData.responses[field.id || field.label]?.trim()) {
+        setError(`${field.label} is required`);
+        return;
+      }
+    }
 
     setSubmitting(true);
     setError('');
@@ -137,10 +170,13 @@ export function SignupPage() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-lg font-semibold mb-2">Event Not Found</h1>
-          <p className="text-sm text-gray-500">This event link is invalid.</p>
+          <div className="text-sm text-gray-500 mb-4">Event not found</div>
+          <Button variant="outline" onClick={() => navigate('/')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Go Home
+          </Button>
         </div>
       </div>
     );
@@ -148,148 +184,226 @@ export function SignupPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg p-6 border text-center max-w-sm w-full">
-          <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-          <h1 className="text-lg font-semibold mb-2">Successfully Registered!</h1>
-          <p className="text-sm text-gray-600 mb-4">You have been registered for {event.name}</p>
-          <Button size="sm" className="w-full" onClick={() => navigate('/')}>
-            Done
-          </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful!</h1>
+          <p className="text-sm text-gray-600 mb-6">
+            You've successfully registered for "{event.name}". You should receive a confirmation soon.
+          </p>
+          <div className="space-y-3">
+            <Button onClick={() => navigate('/')} className="w-full">
+              Continue
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="w-full"
+            >
+              Register Another Person
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
-        <div className="px-4 py-3">
-          <h1 className="text-lg font-semibold">Event Registration</h1>
-          <p className="text-xs text-gray-500">{event.name}</p>
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header */}
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center text-blue-600 hover:text-blue-700"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back
+          </button>
+          <h1 className="text-lg font-semibold text-center flex-1 mr-16">
+            {event.name}
+          </h1>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
-        {event.description && (
-          <div className="bg-white rounded-lg p-4 border">
-            <h2 className="text-sm font-medium mb-2">About</h2>
-            <p className="text-xs text-gray-600">{event.description}</p>
-            {event.datetime && (
-              <div className="mt-2 text-xs text-gray-500">
-                Date: {new Date(event.datetime).toLocaleDateString()}
-              </div>
-            )}
-            {event.location && (
-              <div className="text-xs text-gray-500">Location: {event.location}</div>
-            )}
+      <div className="p-3 space-y-3">
+        {/* Event Info Card - Same layout as EventDetailPage */}
+        {(event.description || event.datetime || event.location) && (
+          <div className="bg-white rounded-lg border overflow-hidden">
+            <div className="p-3 space-y-2">
+              {/* Top row: Date and Registration info */}
+              {event.datetime && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-sm text-gray-600">
+                    <div className="font-medium text-gray-800">Date</div>
+                    <div>
+                      {new Date(event.datetime).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <div className="font-medium text-gray-800">Participants</div>
+                    <div>
+                      {event.participant_count || 0}
+                      {event.max_participants ? ` / ${event.max_participants}` : ''}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Location */}
+              {event.location && (
+                <div className="text-sm text-gray-600">
+                  <div className="font-medium text-gray-800">Location</div>
+                  <div>{event.location}</div>
+                </div>
+              )}
+
+              {/* Divider */}
+              {event.location && event.description && (
+                <div className="border-t border-gray-200"></div>
+              )}
+
+              {/* Description */}
+              {event.description && (
+                <div className="text-sm text-gray-700">
+                  <div className="font-medium text-gray-800 mb-1">Description</div>
+                  <p className="leading-relaxed">{event.description}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-white rounded-lg p-4 border space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b">
-              <User className="h-4 w-4 text-gray-400" />
-              <h2 className="text-sm font-medium">Your Information</h2>
+        {/* Registration Form */}
+        <div className="bg-white rounded-lg border">
+          <div className="p-3">
+            <div className="flex items-center gap-2 mb-4">
+              <User className="w-5 h-5 text-blue-600" />
+              <h2 className="text-base font-semibold">Register for this event</h2>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-xs">
-                Name *
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                required
-                className="h-9 text-sm"
-              />
-            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Name */}
+              <div>
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Name *
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Your full name"
+                  required
+                  className="mt-1"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                className="h-9 text-sm"
-              />
-            </div>
+              {/* Email */}
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="your.email@example.com"
+                  className="mt-1"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-xs">
-                Phone
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                className="h-9 text-sm"
-              />
-            </div>
+              {/* Phone */}
+              <div>
+                <Label htmlFor="phone" className="text-sm font-medium">
+                  Phone
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Your phone number"
+                  className="mt-1"
+                />
+              </div>
 
-            {event.custom_fields && event.custom_fields.length > 0 && (
-              <>
-                <div className="border-t pt-4">
-                  <h3 className="text-sm font-medium mb-3">Additional Information</h3>
-                  {event.custom_fields.map((field) => (
-                    <div key={field.id} className="space-y-2 mb-4">
-                      <Label htmlFor={field.id} className="text-xs">
-                        {field.label} {field.required && '*'}
-                      </Label>
-                      {field.type === 'select' && field.options ? (
-                        <select
-                          id={field.id}
-                          value={formData.responses[field.id || field.label] || ''}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              responses: { ...prev.responses, [field.id || field.label]: e.target.value },
-                            }))
-                          }
-                          required={field.required}
-                          className="w-full h-9 px-3 text-sm border rounded-md"
-                        >
-                          <option value="">Select...</option>
-                          {field.options.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <Input
-                          id={field.id}
-                          type={field.type}
-                          value={formData.responses[field.id || field.label] || ''}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              responses: { ...prev.responses, [field.id || field.label]: e.target.value },
-                            }))
-                          }
-                          required={field.required}
-                          className="h-9 text-sm"
-                        />
-                      )}
-                    </div>
-                  ))}
+              {/* Custom Fields */}
+              {event.custom_fields.map((field) => (
+                <div key={field.id || field.label}>
+                  <Label htmlFor={field.id} className="text-sm font-medium">
+                    {field.label}
+                    {field.required && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  {field.type === 'select' && field.options ? (
+                    <select
+                      id={field.id}
+                      value={formData.responses[field.id || field.label] || ''}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          responses: { ...prev.responses, [field.id || field.label]: e.target.value },
+                        }))
+                      }
+                      required={field.required}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select an option</option>
+                      {field.options.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      id={field.id}
+                      type={field.type}
+                      value={formData.responses[field.id || field.label] || ''}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          responses: { ...prev.responses, [field.id || field.label]: e.target.value },
+                        }))
+                      }
+                      required={field.required}
+                      className="mt-1"
+                    />
+                  )}
                 </div>
-              </>
+              ))}
+
+              {/* Error Message */}
+              {error && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  {error}
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full"
+              >
+                {submitting ? 'Registering...' : 'Register'}
+              </Button>
+            </form>
+
+            {!user && (
+              <p className="text-xs text-gray-500 mt-3 text-center">
+                Your information will be saved to make future registrations easier.
+              </p>
             )}
-
-            {error && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{error}</div>}
-
-            <Button type="submit" className="w-full" size="sm" disabled={submitting}>
-              {submitting ? 'Registering...' : 'Register'}
-            </Button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

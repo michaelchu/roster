@@ -168,7 +168,7 @@ export function EventDetailPage() {
   };
 
   const shareEvent = () => {
-    const url = `${window.location.origin}/event/${eventId}`;
+    const url = `${window.location.origin}/signup/${eventId}`;
     if (navigator.share) {
       navigator.share({
         title: event?.name,
@@ -177,7 +177,7 @@ export function EventDetailPage() {
       });
     } else {
       navigator.clipboard.writeText(url);
-      alert('Event link copied to clipboard!');
+      alert('Signup link copied to clipboard!');
     }
   };
 
