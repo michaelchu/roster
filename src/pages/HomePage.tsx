@@ -13,6 +13,7 @@ import { Calendar, Users, Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { TopNav } from '@/components/TopNav';
+import { type Participant } from '@/services/participantService';
 
 interface UpcomingEvent {
   id: string;
@@ -28,7 +29,7 @@ export function HomePage() {
   const { user } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<'week' | 'month'>('week');
+  const [timePeriod, setTimePeriod] = useState<'week' | 'month' | 'year'>('week');
 
   useEffect(() => {
     if (user) {
@@ -52,38 +53,51 @@ export function HomePage() {
         endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 6); // Saturday
         endDate.setHours(23, 59, 59, 999);
-      } else {
+      } else if (timePeriod === 'month') {
         // Get start and end of current month
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         startDate.setHours(0, 0, 0, 0);
 
         endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         endDate.setHours(23, 59, 59, 999);
+      } else {
+        // Get start and end of current year
+        startDate = new Date(now.getFullYear(), 0, 1);
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = new Date(now.getFullYear() + 1, 0, 0); // Last day of current year
+        endDate.setHours(23, 59, 59, 999);
       }
 
       const events: UpcomingEvent[] = [];
 
-      // Get events the user organized
-      const { data: organizedEvents } = await supabase
+      // Get events the user organized with participant counts in a single query
+      const { data: organizedEventsWithCounts } = await supabase
         .from('events')
-        .select('id, name, datetime, location')
+        .select(
+          `
+          id,
+          name,
+          datetime,
+          location,
+          participants!left(id)
+        `
+        )
         .eq('organizer_id', user?.id || '')
-        .gte('datetime', startDate.toISOString())
+        .gte('datetime', now.toISOString()) // Only future events
         .lte('datetime', endDate.toISOString())
         .order('datetime', { ascending: true });
 
-      if (organizedEvents) {
-        // Get participant counts for organized events
-        for (const event of organizedEvents) {
-          const { count } = await supabase
-            .from('participants')
-            .select('*', { count: 'exact', head: true })
-            .eq('event_id', event.id);
-
+      if (organizedEventsWithCounts) {
+        // Add organized events with their participant counts
+        for (const event of organizedEventsWithCounts) {
           events.push({
-            ...event,
+            id: event.id,
+            name: event.name,
+            datetime: event.datetime,
+            location: event.location,
             isOrganizer: true,
-            participantCount: count || 0,
+            participantCount: (event.participants as Participant[])?.length || 0,
           });
         }
       }
@@ -103,7 +117,7 @@ export function HomePage() {
         `
         )
         .eq('user_id', user?.id || '')
-        .gte('events.datetime', startDate.toISOString())
+        .gte('events.datetime', now.toISOString()) // Only future events
         .lte('events.datetime', endDate.toISOString());
 
       if (participantEvents) {
@@ -130,7 +144,7 @@ export function HomePage() {
         return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
       });
 
-      setUpcomingEvents(events.slice(0, 3)); // Show max 3 events
+      setUpcomingEvents(events);
     } catch (error) {
       console.error('Error loading upcoming events:', error);
     } finally {
@@ -177,7 +191,7 @@ export function HomePage() {
                   <h2 className="text-sm font-medium">Upcoming Events</h2>
                   <Select
                     value={timePeriod}
-                    onValueChange={(value: 'week' | 'month') => setTimePeriod(value)}
+                    onValueChange={(value: 'week' | 'month' | 'year') => setTimePeriod(value)}
                   >
                     <SelectTrigger className="w-32 h-7 text-xs">
                       <SelectValue />
@@ -185,6 +199,7 @@ export function HomePage() {
                     <SelectContent>
                       <SelectItem value="week">This Week</SelectItem>
                       <SelectItem value="month">This Month</SelectItem>
+                      <SelectItem value="year">This Year</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -194,7 +209,12 @@ export function HomePage() {
                 <div className="p-3 text-xs text-gray-500 text-center">Loading...</div>
               ) : upcomingEvents.length === 0 ? (
                 <div className="p-3 text-xs text-gray-500 text-center">
-                  No events {timePeriod === 'week' ? 'this week' : 'this month'}
+                  No events{' '}
+                  {timePeriod === 'week'
+                    ? 'this week'
+                    : timePeriod === 'month'
+                      ? 'this month'
+                      : 'this year'}
                 </div>
               ) : (
                 <div className="divide-y">
