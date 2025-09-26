@@ -20,9 +20,9 @@ import { SignupPage } from '@/pages/SignupPage';
 function AppContent() {
   const location = useLocation();
 
-  // Hide bottom nav on auth pages and signup pages
+  // Hide bottom nav on auth pages and event signup pages
   const hideBottomNav =
-    location.pathname.startsWith('/auth') || location.pathname.startsWith('/signup');
+    location.pathname.startsWith('/auth') || location.pathname.startsWith('/event/');
 
   return (
     <>
@@ -37,7 +37,7 @@ function AppContent() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
-        <Route path="/signup/:eventId" element={<SignupPage />} />
+        <Route path="/event/:eventId" element={<SignupPage />} />
       </Routes>
 
       {!hideBottomNav && <BottomNav />}
