@@ -88,6 +88,8 @@ export function EventDetailPage() {
   const [userRegistration, setUserRegistration] = useState<Participant | null>(null);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
+  const [isClaimingForOther, setIsClaimingForOther] = useState(false);
+  const [withdrawingParticipant, setWithdrawingParticipant] = useState<Participant | null>(null);
 
   useEffect(() => {
     if (eventId) {
@@ -244,14 +246,27 @@ export function EventDetailPage() {
     }
   };
 
-  const openSignupDrawer = () => {
+  const openSignupDrawer = (slotNumber?: number) => {
     // Redirect to login if user is not authenticated
     if (!user) {
       navigate('/auth/login');
       return;
     }
 
-    if (userRegistration) {
+    // Determine if this is for claiming a spot for someone else
+    const isClaiming = slotNumber !== undefined;
+    setIsClaimingForOther(isClaiming);
+
+    if (isClaiming) {
+      // Reset form for claiming a new spot for someone else
+      setSignupForm({
+        name: '',
+        email: '',
+        phone: '',
+        notes: '',
+        responses: {},
+      });
+    } else if (userRegistration) {
       // Pre-fill form with existing registration data
       setSignupForm({
         name: userRegistration.name || '',
@@ -281,14 +296,24 @@ export function EventDetailPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('=== FORM SUBMISSION STARTED ===');
+    console.log('isClaimingForOther:', isClaimingForOther);
+    console.log('signupForm:', signupForm);
+    console.log('user:', user);
+
     if (!event) return;
 
     setSubmitting(true);
     setSignupError('');
 
     try {
-      if (userRegistration) {
-        // Update existing registration
+      console.log('About to call participant service...');
+      console.log('userRegistration exists?', !!userRegistration);
+      console.log('userRegistration:', userRegistration);
+
+      if (userRegistration && !isClaimingForOther) {
+        console.log('Branch: Updating existing registration');
+        // Update existing registration (only when not claiming for others)
         await participantService.updateParticipant(userRegistration.id, {
           name: signupForm.name,
           email: signupForm.email,
@@ -297,16 +322,59 @@ export function EventDetailPage() {
           responses: signupForm.responses,
         });
       } else {
+        console.log('Branch: Creating new registration');
+        console.log('isClaimingForOther:', isClaimingForOther);
         // Create new registration
-        await participantService.createParticipant({
-          event_id: event.id,
-          name: signupForm.name,
-          email: signupForm.email,
-          phone: signupForm.phone,
-          notes: signupForm.notes,
-          responses: signupForm.responses,
-          user_id: user?.id || null,
-        });
+        if (isClaimingForOther) {
+          console.log('Sub-branch: Claiming for other');
+          // Creating a participant for someone else (claimed spot)
+          const participantData = {
+            event_id: event.id,
+            name: signupForm.name, // Could be empty for quick claims
+            email: signupForm.email,
+            phone: signupForm.phone,
+            notes: signupForm.notes,
+            responses: signupForm.responses,
+            user_id: null, // Will be set by service based on claiming options
+            claimed_by_user_id: null, // Will be set by the service
+          };
+          const claimingOptions = {
+            // Don't pass targetSlotNumber - let database assign next available slot
+            // targetSlotNumber: claimingSlotNumber || undefined,
+            claimingUserId: user?.id,
+            claimingUserName: user?.user_metadata?.full_name || user?.email || 'User',
+          };
+
+          console.log('Frontend - Claiming spot with data:', participantData);
+          console.log('Frontend - Claiming options:', claimingOptions);
+          console.log('User details:', {
+            id: user?.id,
+            email: user?.email,
+            metadata: user?.user_metadata,
+            fullName: user?.user_metadata?.full_name,
+          });
+
+          try {
+            console.log('About to call participantService.createParticipant...');
+            await participantService.createParticipant(participantData, claimingOptions);
+            console.log('participantService.createParticipant completed successfully');
+          } catch (serviceError) {
+            console.error('Error in participantService.createParticipant:', serviceError);
+            throw serviceError;
+          }
+        } else {
+          // Creating their own registration
+          await participantService.createParticipant({
+            event_id: event.id,
+            name: signupForm.name,
+            email: signupForm.email,
+            phone: signupForm.phone,
+            notes: signupForm.notes,
+            responses: signupForm.responses,
+            user_id: user?.id || null,
+            claimed_by_user_id: null,
+          });
+        }
       }
 
       // Reset form and close drawer
@@ -318,6 +386,7 @@ export function EventDetailPage() {
         responses: {},
       });
       setShowSignupDrawer(false);
+      setIsClaimingForOther(false);
 
       // Reload participants
       loadEventData();
@@ -350,6 +419,7 @@ export function EventDetailPage() {
       });
       setShowSignupDrawer(false);
       setShowWithdrawDialog(false);
+      setIsClaimingForOther(false);
 
       // Reload participants
       loadEventData();
@@ -373,6 +443,38 @@ export function EventDetailPage() {
   };
 
   const canQuickFill = user && (user.user_metadata?.full_name || user.email);
+
+  // Helper functions for claimed spot detection
+  const isClaimedSpot = (participant: Participant) => {
+    if (!user) return false;
+    if (participant.id === userRegistration?.id) return false; // User's main registration
+
+    // Check if this participant was claimed by the current user
+    // Use claimed_by_user_id if available, fallback to name pattern for legacy claimed spots
+    if (participant.claimed_by_user_id) {
+      return participant.claimed_by_user_id === user.id;
+    }
+
+    // Fallback: Check if name matches claim pattern "UserName - #" (for existing claimed spots)
+    const userName = user.user_metadata?.full_name || user.email || 'User';
+    const claimPattern = new RegExp(`^${userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - \\d+$`);
+    return claimPattern.test(participant.name);
+  };
+
+  const getClaimBadgeNumber = (participant: Participant) => {
+    if (!isClaimedSpot(participant)) return null;
+    const userName = user?.user_metadata?.full_name || user?.email || 'User';
+    const match = participant.name.match(
+      new RegExp(`^${userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - (\\d+)$`)
+    );
+    return match ? match[1] : null;
+  };
+
+  const getDisplayName = (participant: Participant) => {
+    if (!isClaimedSpot(participant)) return participant.name;
+    const userName = user?.user_metadata?.full_name || user?.email || 'User';
+    return userName;
+  };
 
   const filteredParticipants = participants.filter(
     (p) =>
@@ -558,30 +660,58 @@ export function EventDetailPage() {
               // Add existing participants to slots (already ordered by slot_number)
               for (let i = 0; i < Math.min(filteredParticipants.length, maxSlots); i++) {
                 const participant = filteredParticipants[i];
+                const isOwnClaimedSpot = isClaimedSpot(participant);
+                const claimNumber = getClaimBadgeNumber(participant);
+                const displayName = getDisplayName(participant);
+
                 slots.push(
-                  <button
-                    key={participant.id}
-                    onClick={() => setSelectedParticipant(participant)}
-                    className="w-full p-3 text-left hover:bg-gray-50 transition-colors"
-                  >
+                  <div key={participant.id} className="p-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start gap-3">
                       <div className="text-xs text-gray-400 font-mono flex-shrink-0 mt-1">
                         {participant.slot_number}.
                       </div>
                       <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-medium text-white">
-                          {participant.name.charAt(0).toUpperCase()}
+                          {displayName.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <div className="text-sm font-medium">{participant.name}</div>
-                          {participant.user_id === event.organizer_id &&
-                            participant.slot_number === 1 && (
-                              <Badge variant="outline" className="text-xs h-5 px-2">
-                                Organizer
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setSelectedParticipant(participant)}
+                              className="text-sm font-medium hover:text-blue-600 transition-colors"
+                            >
+                              {displayName}
+                            </button>
+                            {isOwnClaimedSpot && claimNumber && (
+                              <Badge variant="outline" className="text-xs h-5 px-1">
+                                +{claimNumber}
                               </Badge>
                             )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {participant.user_id === event.organizer_id &&
+                              participant.slot_number === 1 && (
+                                <Badge variant="outline" className="text-xs h-5 px-2">
+                                  Organizer
+                                </Badge>
+                              )}
+                            {isOwnClaimedSpot && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setWithdrawingParticipant(participant);
+                                }}
+                                className="text-xs h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <UserX className="h-3 w-3 mr-1" />
+                                Withdraw
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         <div className="text-xs text-gray-500">
                           Signed up{' '}
@@ -613,7 +743,7 @@ export function EventDetailPage() {
                         </div>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 );
               }
 
@@ -627,6 +757,9 @@ export function EventDetailPage() {
 
                 // Add empty slots for remaining capacity
                 for (let slotNum = maxUsedSlot + 1; slotNum <= event.max_participants; slotNum++) {
+                  const isFirstEmptySlot = slotNum === maxUsedSlot + 1;
+                  const canClaimSpot = user && userRegistration && isFirstEmptySlot;
+
                   slots.push(
                     <div key={`empty-${slotNum}`} className="p-3 border-dashed border-gray-200">
                       <div className="flex items-center gap-3">
@@ -636,7 +769,20 @@ export function EventDetailPage() {
                         <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-xs text-gray-400">?</span>
                         </div>
-                        <div className="text-sm text-gray-400 italic">Available slot</div>
+                        <div className="flex-1 flex items-center justify-between">
+                          <div className="text-sm text-gray-400 italic">Available slot</div>
+                          {canClaimSpot && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openSignupDrawer(slotNum)}
+                              className="text-xs h-6 px-2"
+                            >
+                              <UserPlus className="h-3 w-3 mr-1" />
+                              Claim Spot
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -663,7 +809,7 @@ export function EventDetailPage() {
       {/* Join Event Button */}
       <div className={`fixed left-0 right-0 z-40 px-4 pb-2 ${user ? 'bottom-16' : 'bottom-4'}`}>
         <Button
-          onClick={openSignupDrawer}
+          onClick={() => openSignupDrawer()}
           className={`w-full text-white shadow-lg ${
             userRegistration ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
           }`}
@@ -684,8 +830,32 @@ export function EventDetailPage() {
       </div>
 
       {/* Signup Drawer */}
-      <Drawer open={showSignupDrawer} onOpenChange={setShowSignupDrawer}>
+      <Drawer
+        open={showSignupDrawer}
+        onOpenChange={(open) => {
+          console.log('Drawer state changing to:', open);
+          if (!open) {
+            console.log('Drawer closing, resetting claiming state');
+            setIsClaimingForOther(false);
+          }
+          setShowSignupDrawer(open);
+        }}
+      >
         <DrawerContent className="max-h-[90vh] p-0">
+          <div className="border-b p-3">
+            <h2 className="text-lg font-semibold">
+              {isClaimingForOther
+                ? 'Claim Spot'
+                : userRegistration
+                  ? 'Modify Registration'
+                  : 'Join Event'}
+            </h2>
+            {isClaimingForOther && (
+              <p className="text-sm text-gray-600 mt-1">
+                Leave name empty to claim under your name
+              </p>
+            )}
+          </div>
           <div className="overflow-y-auto flex-1 px-3">
             <form id="signup-form" onSubmit={handleSignup} className="space-y-2 pb-3">
               <Tabs defaultValue="registration" className="w-full">
@@ -696,7 +866,7 @@ export function EventDetailPage() {
                 <TabsContent value="registration" className="space-y-2 mt-2">
                   <div className="space-y-1.5">
                     <Label htmlFor="signup-name" className="text-xs">
-                      Name *
+                      Name {!isClaimingForOther && '*'}
                     </Label>
                     <Input
                       id="signup-name"
@@ -708,9 +878,10 @@ export function EventDetailPage() {
                           name: e.target.value,
                         }))
                       }
-                      required
+                      required={!isClaimingForOther}
                       autoComplete="off"
                       className="h-9 text-sm"
+                      placeholder={isClaimingForOther ? 'Leave empty to claim under your name' : ''}
                     />
                   </div>
 
@@ -870,12 +1041,16 @@ export function EventDetailPage() {
                 disabled={submitting}
               >
                 {submitting
-                  ? userRegistration
-                    ? 'Updating...'
-                    : 'Joining...'
-                  : userRegistration
-                    ? 'Update Registration'
-                    : 'Join Event'}
+                  ? isClaimingForOther
+                    ? 'Claiming...'
+                    : userRegistration
+                      ? 'Updating...'
+                      : 'Joining...'
+                  : isClaimingForOther
+                    ? 'Claim Spot'
+                    : userRegistration
+                      ? 'Update Registration'
+                      : 'Join Event'}
               </Button>
             </div>
           </div>
@@ -973,6 +1148,57 @@ export function EventDetailPage() {
               className="w-full sm:w-auto"
             >
               {submitting ? 'Withdrawing...' : 'Withdraw'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Individual Participant Withdrawal Dialog */}
+      <Dialog
+        open={!!withdrawingParticipant}
+        onOpenChange={(open) => !open && setWithdrawingParticipant(null)}
+      >
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remove Participant</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove{' '}
+              {withdrawingParticipant ? getDisplayName(withdrawingParticipant) : ''} from this
+              event? This will free up their spot for others to claim.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-1.5 sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => setWithdrawingParticipant(null)}
+              disabled={submitting}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!withdrawingParticipant) return;
+
+                setSubmitting(true);
+                setSignupError('');
+
+                try {
+                  await participantService.deleteParticipant(withdrawingParticipant.id);
+                  setWithdrawingParticipant(null);
+                  loadEventData();
+                } catch (err) {
+                  const error = err as Error;
+                  setSignupError(error.message || 'Failed to remove participant');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              disabled={submitting}
+              className="w-full sm:w-auto"
+            >
+              {submitting ? 'Removing...' : 'Remove'}
             </Button>
           </DialogFooter>
         </DialogContent>

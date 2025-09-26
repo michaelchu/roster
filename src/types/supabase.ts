@@ -10,12 +10,12 @@ export type Database = {
     Tables: {
       events: {
         Row: {
-          created_at: string | null;
-          custom_fields: Json | null;
+          created_at: string;
+          custom_fields: Json;
           datetime: string | null;
           description: string | null;
           id: string;
-          is_private: boolean | null;
+          is_private: boolean;
           location: string | null;
           max_participants: number | null;
           name: string;
@@ -23,12 +23,12 @@ export type Database = {
           parent_event_id: string | null;
         };
         Insert: {
-          created_at?: string | null;
-          custom_fields?: Json | null;
+          created_at?: string;
+          custom_fields?: Json;
           datetime?: string | null;
           description?: string | null;
           id?: string;
-          is_private?: boolean | null;
+          is_private?: boolean;
           location?: string | null;
           max_participants?: number | null;
           name: string;
@@ -36,12 +36,12 @@ export type Database = {
           parent_event_id?: string | null;
         };
         Update: {
-          created_at?: string | null;
-          custom_fields?: Json | null;
+          created_at?: string;
+          custom_fields?: Json;
           datetime?: string | null;
           description?: string | null;
           id?: string;
-          is_private?: boolean | null;
+          is_private?: boolean;
           location?: string | null;
           max_participants?: number | null;
           name?: string;
@@ -102,7 +102,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string | null;
-          id: string;
+          id?: string;
           name?: string | null;
         };
         Update: {
@@ -114,19 +114,19 @@ export type Database = {
       };
       participant_labels: {
         Row: {
-          created_at: string | null;
+          created_at: string;
           id: string;
           label_id: string;
           participant_id: string;
         };
         Insert: {
-          created_at?: string | null;
+          created_at?: string;
           id?: string;
           label_id: string;
           participant_id: string;
         };
         Update: {
-          created_at?: string | null;
+          created_at?: string;
           id?: string;
           label_id?: string;
           participant_id?: string;
@@ -150,39 +150,42 @@ export type Database = {
       };
       participants: {
         Row: {
-          created_at: string | null;
+          claimed_by_user_id: string | null;
+          created_at: string;
           email: string | null;
           event_id: string;
           id: string;
           name: string;
           notes: string | null;
           phone: string | null;
-          responses: Json | null;
-          slot_number: number | null;
+          responses: Json;
+          slot_number: number;
           user_id: string | null;
         };
         Insert: {
-          created_at?: string | null;
+          claimed_by_user_id?: string | null;
+          created_at?: string;
           email?: string | null;
           event_id: string;
           id?: string;
           name: string;
           notes?: string | null;
           phone?: string | null;
-          responses?: Json | null;
-          slot_number?: number | null;
+          responses?: Json;
+          slot_number?: number;
           user_id?: string | null;
         };
         Update: {
-          created_at?: string | null;
+          claimed_by_user_id?: string | null;
+          created_at?: string;
           email?: string | null;
           event_id?: string;
           id?: string;
           name?: string;
           notes?: string | null;
           phone?: string | null;
-          responses?: Json | null;
-          slot_number?: number | null;
+          responses?: Json;
+          slot_number?: number;
           user_id?: string | null;
         };
         Relationships: [
@@ -200,7 +203,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_next_slot_number: {
+        Args: { p_event_id: string; p_user_id?: string };
+        Returns: number;
+      };
+      nanoid: {
+        Args: { size?: number };
+        Returns: string;
+      };
     };
     Enums: {
       [_ in never]: never;

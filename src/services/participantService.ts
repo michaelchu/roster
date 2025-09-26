@@ -14,6 +14,7 @@ export interface Participant extends Omit<Tables<'participants'>, 'responses' | 
   labels?: Label[];
   responses: ResponseRecord;
   slot_number: number;
+  claimed_by_user_id: string | null;
 }
 
 export type Label = Tables<'labels'>;
@@ -27,7 +28,39 @@ function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Part
     created_at: dbParticipant.created_at || new Date().toISOString(),
     responses: (dbParticipant.responses as ResponseRecord) || {},
     slot_number: dbParticipant.slot_number || 0,
+    claimed_by_user_id: dbParticipant.claimed_by_user_id || null,
   };
+}
+
+// Helper function to generate claim name for a user
+async function generateClaimName(
+  userId: string,
+  eventId: string,
+  userName: string
+): Promise<string> {
+  // Ensure userName is valid
+  const safeName = userName?.trim() || 'User';
+
+  // Count existing participants claimed by this user (excluding their main registration)
+  const { data: existingClaims } = await supabase
+    .from('participants')
+    .select('name')
+    .eq('event_id', eventId)
+    .eq('user_id', userId);
+
+  if (!existingClaims) return `${safeName} - 1`;
+
+  // Count claims that match the pattern "userName - #"
+  const claimPattern = new RegExp(`^${safeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - (\\d+)$`);
+  const claimNumbers = existingClaims
+    .map((p) => {
+      const match = p.name?.match(claimPattern);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+    .filter((num) => num > 0);
+
+  const nextClaimNumber = claimNumbers.length > 0 ? Math.max(...claimNumbers) + 1 : 1;
+  return `${safeName} - ${nextClaimNumber}`;
 }
 
 export const participantService = {
@@ -89,15 +122,48 @@ export const participantService = {
   },
 
   async createParticipant(
-    participant: Omit<Participant, 'id' | 'created_at' | 'labels' | 'slot_number'>
+    participant: Omit<Participant, 'id' | 'created_at' | 'labels' | 'slot_number'>,
+    options?: {
+      targetSlotNumber?: number;
+      claimingUserId?: string;
+      claimingUserName?: string;
+    }
   ): Promise<Participant> {
+    // Generate claim name if name is empty and claiming options are provided
+    let finalName = participant.name?.trim();
+
+    if (!finalName && options?.claimingUserId && options?.claimingUserName) {
+      finalName = await generateClaimName(
+        options.claimingUserId,
+        participant.event_id,
+        options.claimingUserName
+      );
+    }
+
+    // Ensure we always have a valid name (fallback for safety)
+    if (!finalName || finalName.trim().length === 0) {
+      if (options?.claimingUserName) {
+        finalName = `${options.claimingUserName} - Guest`;
+      } else {
+        finalName = 'Guest';
+      }
+    }
+
+    // Final safety check - ensure name is never empty
+    if (!finalName || finalName.trim().length === 0) {
+      finalName = 'Anonymous';
+    }
+
     const insertData: TablesInsert<'participants'> = {
       event_id: participant.event_id,
-      name: participant.name,
-      email: participant.email,
-      phone: participant.phone,
-      notes: participant.notes,
-      user_id: participant.user_id,
+      name: finalName,
+      email: participant.email || null,
+      phone: participant.phone || null,
+      notes: participant.notes || null,
+      // For claimed spots: user_id = null, claimed_by_user_id = claimer
+      // For self registration: user_id = user, claimed_by_user_id = null
+      user_id: options?.claimingUserId ? null : participant.user_id,
+      claimed_by_user_id: options?.claimingUserId || null,
       responses: participant.responses as Json,
     };
 
@@ -120,9 +186,9 @@ export const participantService = {
     const updateData: TablesUpdate<'participants'> = {};
 
     if (updates.name !== undefined) updateData.name = updates.name;
-    if (updates.email !== undefined) updateData.email = updates.email;
-    if (updates.phone !== undefined) updateData.phone = updates.phone;
-    if (updates.notes !== undefined) updateData.notes = updates.notes;
+    if (updates.email !== undefined) updateData.email = updates.email || null;
+    if (updates.phone !== undefined) updateData.phone = updates.phone || null;
+    if (updates.notes !== undefined) updateData.notes = updates.notes || null;
     if (updates.responses !== undefined) updateData.responses = updates.responses as Json;
 
     const { data, error } = await supabase

@@ -151,6 +151,7 @@ export function SignupPage() {
         responses: formData.responses,
         user_id: user?.id || null,
         notes: null,
+        claimed_by_user_id: null,
       });
 
       errorHandler.success(`Successfully signed up for "${event.name}"!`);

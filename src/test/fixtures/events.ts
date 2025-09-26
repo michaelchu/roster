@@ -56,6 +56,7 @@ export const mockParticipant: Participant = {
   phone: '555-1234',
   notes: 'Test notes',
   user_id: null,
+  claimed_by_user_id: null,
   responses: {
     'Dietary Restrictions': 'Vegetarian',
   },
