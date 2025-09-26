@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/app.types';
 
-export interface Organizer extends Tables<'organizers'> {}
+export type Organizer = Tables<'organizers'>;
 
 export const organizerService = {
   async getOrganizerById(organizerId: string): Promise<Organizer | null> {

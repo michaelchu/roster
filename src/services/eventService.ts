@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase';
-import type { Tables, TablesInsert, TablesUpdate, CustomField, Json } from '@/types/app.types';
+import type { Tables, TablesInsert, TablesUpdate, Json } from '@/types/app.types';
+import { errorHandler, ValidationError } from '@/lib/errorHandler';
+import {
+  safeValidateEvent,
+  validateCustomFields,
+  type CustomField
+} from '@/lib/validation';
 
 // Extended Event type with additional computed properties and properly typed custom_fields
 export interface Event extends Omit<Tables<'events'>, 'custom_fields'> {
@@ -7,50 +13,52 @@ export interface Event extends Omit<Tables<'events'>, 'custom_fields'> {
   custom_fields: CustomField[];
 }
 
-export interface Label extends Tables<'labels'> {}
+export type Label = Tables<'labels'>;
 
-// Helper function to convert database event to our Event type
+// Helper function to convert database event to our Event type with validation
 function dbEventToEvent(dbEvent: Tables<'events'>): Event {
+  const validatedCustomFields = validateCustomFields(dbEvent.custom_fields);
+
   return {
     ...dbEvent,
     is_private: dbEvent.is_private ?? false,
-    custom_fields: (dbEvent.custom_fields as unknown as CustomField[]) || [],
+    custom_fields: validatedCustomFields,
   };
 }
 
 export const eventService = {
   async getEventsByOrganizer(organizerId: string): Promise<Event[]> {
+    // Use a single query with LEFT JOIN to get events with participant counts
     const { data: eventsData, error: eventsError } = await supabase
       .from('events')
-      .select('*')
+      .select(`
+        *,
+        participants!left(id)
+      `)
       .eq('organizer_id', organizerId)
       .order('created_at', { ascending: false });
 
-    if (eventsError) throw eventsError;
+    if (eventsError) throw errorHandler.fromSupabaseError(eventsError);
 
-    if (eventsData && eventsData.length > 0) {
-      const eventIds = eventsData.map((e) => e.id);
-      const { data: participantCounts } = await supabase
-        .from('participants')
-        .select('event_id')
-        .in('event_id', eventIds);
+    if (!eventsData) return [];
 
-      const countMap =
-        participantCounts?.reduce(
-          (acc, p) => {
-            acc[p.event_id] = (acc[p.event_id] || 0) + 1;
-            return acc;
-          },
-          {} as Record<string, number>
-        ) || {};
+    return eventsData.map((event) => {
+      // Count the participants that were joined
+      const participantCount = Array.isArray(event.participants)
+        ? event.participants.filter(p => p !== null).length
+        : 0;
 
-      return eventsData.map((event) => ({
-        ...dbEventToEvent(event),
-        participant_count: countMap[event.id] || 0,
-      }));
-    }
+      // Remove the participants array from the event object before processing
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { participants: _, ...eventWithoutParticipants } = event as Tables<'events'> & {
+        participants: Array<{ id: string } | null>;
+      };
 
-    return [];
+      return {
+        ...dbEventToEvent(eventWithoutParticipants),
+        participant_count: participantCount,
+      };
+    });
   },
 
   async getEventById(eventId: string): Promise<Event> {
@@ -63,9 +71,23 @@ export const eventService = {
   },
 
   async createEvent(event: Omit<Event, 'id' | 'created_at' | 'participant_count'>): Promise<Event> {
+    // Validate input data
+    const validationResult = safeValidateEvent({
+      ...event,
+      id: '550e8400-e29b-41d4-a716-446655440999', // Add temporary UUID for validation
+      created_at: new Date().toISOString(),
+    });
+
+    if (!validationResult.success) {
+      throw new ValidationError(
+        `Invalid event data: ${validationResult.error.issues.map((e) => e.message).join(', ')}`,
+        'Please check your input and try again'
+      );
+    }
+
     const insertData: TablesInsert<'events'> = {
       organizer_id: event.organizer_id,
-      name: event.name,
+      name: event.name.trim(),
       description: event.description,
       datetime: event.datetime,
       location: event.location,

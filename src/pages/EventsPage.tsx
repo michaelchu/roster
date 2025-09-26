@@ -1,42 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Calendar, Users, Copy, Edit } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService, type Event } from '@/services';
+import { errorHandler } from '@/lib/errorHandler';
+import { useLoadingState } from '@/hooks/useLoadingState';
+import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 
 export function EventsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { isLoading, data: events, execute: loadEvents } = useLoadingState<Event[]>([]);
+  const { isLoading: isDuplicating, execute: duplicateEventAsync } = useLoadingState<Event>();
+
+  const loadEventsCallback = useCallback(async () => {
+    if (!user) return [];
+    return await eventService.getEventsByOrganizer(user.id);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
-      loadEvents();
+      loadEvents(loadEventsCallback);
     }
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadEvents = async () => {
-    try {
-      if (!user) return;
-      const eventsWithCounts = await eventService.getEventsByOrganizer(user.id);
-      setEvents(eventsWithCounts);
-    } catch (error) {
-      console.error('Error loading events:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, loadEvents, loadEventsCallback]);
 
   const duplicateEvent = async (event: Event) => {
-    try {
-      if (!user) return;
-      await eventService.duplicateEvent(event.id, user.id);
-      loadEvents();
-    } catch (error) {
-      console.error('Error duplicating event:', error);
+    if (!user) return;
+
+    const result = await duplicateEventAsync(async () => {
+      return await eventService.duplicateEvent(event.id, user.id);
+    });
+
+    if (result) {
+      errorHandler.success(`"${event.name}" has been duplicated successfully`);
+      loadEvents(loadEventsCallback);
     }
   };
 
@@ -59,9 +58,9 @@ export function EventsPage() {
       <TopNav title="My Events" sticky />
 
       <div className="p-3 space-y-3">
-        {loading ? (
-          <div className="text-sm text-gray-500 text-center py-8">Loading...</div>
-        ) : events.length === 0 ? (
+        {isLoading ? (
+          <EventListSkeleton count={3} />
+        ) : events && events.length === 0 ? (
           <div className="bg-white rounded-lg p-3 border text-center">
             <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-3" />
             <h2 className="text-base font-medium mb-2">No Events Yet</h2>
@@ -75,7 +74,7 @@ export function EventsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {events.map((event) => (
+            {(events || []).map((event) => (
               <div key={event.id} className="bg-white border rounded-lg overflow-hidden">
                 <button
                   onClick={() => navigate(`/events/${event.id}`)}
@@ -129,13 +128,20 @@ export function EventsPage() {
                       size="sm"
                       variant="ghost"
                       className="h-7 px-2 text-xs"
+                      disabled={isDuplicating}
                       onClick={(e) => {
                         e.stopPropagation();
                         duplicateEvent(event);
                       }}
                     >
-                      <Copy className="h-3 w-3 mr-1" />
-                      Duplicate
+                      {isDuplicating ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3 mr-1" />
+                          Duplicate
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

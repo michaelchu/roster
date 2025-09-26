@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
-import type { Json } from '@/types/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Trash2, Minus, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import { eventService } from '@/services';
+import { errorHandler } from '@/lib/errorHandler';
+import { LoadingSpinner } from '@/components/LoadingStates';
 
 interface CustomField {
   id: string;
@@ -73,25 +74,25 @@ export function NewEventPage() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .insert({
-          organizer_id: user.id,
-          name: formData.name,
-          description: formData.description || null,
-          datetime: formData.datetime || null,
-          location: formData.location || null,
-          max_participants: maxParticipants,
-          is_private: formData.is_private,
-          custom_fields: customFields.filter((f) => f.label) as unknown as Json,
-        })
-        .select()
-        .single();
+      const eventData = await eventService.createEvent({
+        organizer_id: user.id,
+        name: formData.name,
+        description: formData.description || null,
+        datetime: formData.datetime || null,
+        location: formData.location || null,
+        max_participants: maxParticipants,
+        is_private: formData.is_private,
+        custom_fields: customFields.filter((f) => f.label),
+        parent_event_id: null,
+      });
 
-      if (error) throw error;
-      navigate(`/events/${data.id}`);
+      errorHandler.success(`Event "${eventData.name}" created successfully!`);
+      navigate(`/events/${eventData.id}`);
     } catch (error) {
-      console.error('Error creating event:', error);
+      errorHandler.handle(error, {
+        userId: user.id,
+        action: 'createEvent',
+      });
     } finally {
       setLoading(false);
     }
@@ -331,7 +332,14 @@ export function NewEventPage() {
           size="sm"
           disabled={loading}
         >
-          {loading ? 'Creating...' : 'Create Event'}
+          {loading ? (
+            <>
+              <LoadingSpinner size="sm" />
+              <span>Creating...</span>
+            </>
+          ) : (
+            'Create Event'
+          )}
         </Button>
       </div>
     </div>

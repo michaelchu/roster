@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider } from '@/hooks/useAuth';
 import { MobileOnly } from '@/components/MobileOnly';
 import { BottomNav } from '@/components/BottomNav';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Toaster } from '@/components/ui/toaster';
 
 import { HomePage } from '@/pages/HomePage';
 import { EventsPage } from '@/pages/EventsPage';
@@ -45,13 +47,16 @@ function AppContent() {
 
 function App() {
   return (
-    <MobileOnly>
-      <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AuthProvider>
-    </MobileOnly>
+    <ErrorBoundary>
+      <MobileOnly>
+        <AuthProvider>
+          <Router>
+            <AppContent />
+            <Toaster />
+          </Router>
+        </AuthProvider>
+      </MobileOnly>
+    </ErrorBoundary>
   );
 }
 

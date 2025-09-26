@@ -14,7 +14,7 @@ export const mockSupabaseClient = {
       },
     })),
   },
-  from: vi.fn((_table: string) => ({
+  from: vi.fn(() => ({
     select: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),

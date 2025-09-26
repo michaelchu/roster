@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { User, Save } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import { errorHandler } from '@/lib/errorHandler';
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -32,11 +33,15 @@ export function ProfilePage() {
 
       if (error) throw error;
 
+      errorHandler.success('Profile updated successfully!');
       // Navigate back to settings
       // Note: User data will be automatically updated through auth state listener
       navigate('/settings');
     } catch (error) {
-      console.error('Error updating profile:', error);
+      errorHandler.handle(error, {
+        userId: user.id,
+        action: 'updateProfile',
+      });
     } finally {
       setLoading(false);
     }

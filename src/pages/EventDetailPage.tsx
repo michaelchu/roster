@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { errorHandler } from '@/lib/errorHandler';
 import {
   eventService,
   participantService,
@@ -223,12 +224,23 @@ export function EventDetailPage() {
     try {
       if (hasLabel) {
         await participantService.removeLabelFromParticipant(participant.id, label.id);
+        errorHandler.success(`Label "${label.name}" removed from ${participant.name}`);
       } else {
         await participantService.addLabelToParticipant(participant.id, label.id);
+        errorHandler.success(`Label "${label.name}" added to ${participant.name}`);
       }
       loadEventData();
     } catch (error) {
-      console.error('Error toggling label:', error);
+      errorHandler.handle(error, {
+        userId: user?.id,
+        action: hasLabel ? 'removeLabelFromParticipant' : 'addLabelToParticipant',
+        metadata: {
+          participantId: participant.id,
+          participantName: participant.name,
+          labelId: label.id,
+          labelName: label.name
+        },
+      });
     }
   };
 

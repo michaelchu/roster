@@ -31,28 +31,31 @@ describe('eventService', () => {
   describe('getEventsByOrganizer', () => {
     it('should fetch events for an organizer with participant counts', async () => {
       const { supabase } = await import('@/lib/supabase');
-      const mockFromEvents = vi.fn().mockReturnValue({
+
+      // Mock events with joined participants data
+      const eventsWithParticipants = [
+        {
+          ...mockEventsList[0],
+          participants: [{ id: 'p1' }, { id: 'p2' }], // 2 participants
+        },
+        {
+          ...mockEventsList[1],
+          participants: [{ id: 'p3' }], // 1 participant
+        },
+        {
+          ...mockEventsList[2],
+          participants: [], // 0 participants
+        },
+      ];
+
+      vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({
-          data: mockEventsList,
+          data: eventsWithParticipants,
           error: null,
         }),
-      });
-
-      const mockFromParticipants = vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        in: vi.fn().mockResolvedValue({
-          data: [{ event_id: 'event-123' }, { event_id: 'event-123' }, { event_id: 'event-789' }],
-          error: null,
-        }),
-      });
-
-      vi.mocked(supabase.from)
-        .mockImplementationOnce(() => mockFromEvents() as unknown as MockSupabaseQueryBuilder)
-        .mockImplementationOnce(
-          () => mockFromParticipants() as unknown as MockSupabaseQueryBuilder
-        );
+      } as unknown as MockSupabaseQueryBuilder);
 
       const result = await eventService.getEventsByOrganizer('org-123');
 
@@ -105,8 +108,8 @@ describe('eventService', () => {
         }),
       } as unknown as MockSupabaseQueryBuilder);
 
-      const result = await eventService.getEventById('event-123');
-      expect(result.id).toBe('event-123');
+      const result = await eventService.getEventById('550e8400-e29b-41d4-a716-446655440001');
+      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440001');
       expect(result.name).toBe('Test Event');
     });
 
@@ -144,7 +147,7 @@ describe('eventService', () => {
       } as unknown as MockSupabaseQueryBuilder);
 
       const result = await eventService.createEvent(newEvent);
-      expect(result.id).toBe('event-123');
+      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440001');
     });
   });
 

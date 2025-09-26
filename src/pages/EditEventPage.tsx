@@ -11,14 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { supabase } from '@/lib/supabase';
-import type { Json } from '@/types/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Trash2, Minus, Save, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import { eventService } from '@/services';
+import { errorHandler } from '@/lib/errorHandler';
+import { LoadingSpinner } from '@/components/LoadingStates';
 
 interface CustomField {
-  id: string;
+  id?: string;
   label: string;
   type: 'text' | 'email' | 'tel' | 'number' | 'select';
   required: boolean;
@@ -61,21 +62,24 @@ export function EditEventPage() {
   }, [eventId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEvent = async () => {
-    if (!eventId) return;
+    if (!eventId || !user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', eventId)
-        .eq('organizer_id', user?.id || '')
-        .single();
+      const data = await eventService.getEventById(eventId);
 
-      if (error) throw error;
+      // Verify ownership
+      if (data.organizer_id !== user.id) {
+        errorHandler.handle(new Error('Unauthorized'), {
+          userId: user.id,
+          action: 'loadEventForEdit',
+        });
+        navigate('/events');
+        return;
+      }
 
       setEvent({
         ...data,
-        custom_fields: (data.custom_fields as unknown as CustomField[]) || [],
+        custom_fields: data.custom_fields || [],
       });
       setFormData({
         name: data.name,
@@ -84,10 +88,13 @@ export function EditEventPage() {
         location: data.location || '',
         is_private: data.is_private ?? false,
       });
-      setCustomFields((data.custom_fields as unknown as CustomField[]) || []);
+      setCustomFields(data.custom_fields || []);
       setMaxParticipants(data.max_participants || 50);
     } catch (error) {
-      console.error('Error loading event:', error);
+      errorHandler.handle(error, {
+        userId: user?.id,
+        action: 'loadEventForEdit',
+      });
       navigate('/events');
     } finally {
       setInitialLoading(false);
@@ -135,24 +142,24 @@ export function EditEventPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('events')
-        .update({
-          name: formData.name,
-          description: formData.description || null,
-          datetime: formData.datetime || null,
-          location: formData.location || null,
-          max_participants: maxParticipants,
-          is_private: formData.is_private,
-          custom_fields: customFields.filter((f) => f.label) as unknown as Json,
-        })
-        .eq('id', event.id)
-        .eq('organizer_id', user.id);
+      await eventService.updateEvent(event.id, {
+        name: formData.name,
+        description: formData.description || null,
+        datetime: formData.datetime || null,
+        location: formData.location || null,
+        max_participants: maxParticipants,
+        is_private: formData.is_private,
+        custom_fields: customFields.filter((f) => f.label),
+      });
 
-      if (error) throw error;
+      errorHandler.success('Event updated successfully!');
       navigate(`/events/${event.id}`);
     } catch (error) {
-      console.error('Error updating event:', error);
+      errorHandler.handle(error, {
+        userId: user.id,
+        action: 'updateEvent',
+        metadata: { eventId: event.id },
+      });
     } finally {
       setLoading(false);
     }
@@ -163,16 +170,16 @@ export function EditEventPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', event.id)
-        .eq('organizer_id', user.id);
+      await eventService.deleteEvent(event.id);
 
-      if (error) throw error;
+      errorHandler.success('Event deleted successfully');
       navigate('/events');
     } catch (error) {
-      console.error('Error deleting event:', error);
+      errorHandler.handle(error, {
+        userId: user.id,
+        action: 'deleteEvent',
+        metadata: { eventId: event.id, eventName: event.name },
+      });
     } finally {
       setLoading(false);
       setShowDeleteDialog(false);
@@ -360,13 +367,13 @@ export function EditEventPage() {
                     <Input
                       type="text"
                       value={field.label}
-                      onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
+                      onChange={(e) => field.id && updateCustomField(field.id, { label: e.target.value })}
                       placeholder="Field label"
                       className="flex-1 h-9 text-sm"
                     />
                     <button
                       type="button"
-                      onClick={() => removeCustomField(field.id)}
+                      onClick={() => field.id && removeCustomField(field.id)}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -376,7 +383,7 @@ export function EditEventPage() {
                     <select
                       value={field.type}
                       onChange={(e) =>
-                        updateCustomField(field.id, {
+                        field.id && updateCustomField(field.id, {
                           type: e.target.value as CustomField['type'],
                           options: e.target.value === 'select' ? [''] : undefined,
                         })
@@ -394,7 +401,7 @@ export function EditEventPage() {
                         type="checkbox"
                         checked={field.required}
                         onChange={(e) =>
-                          updateCustomField(field.id, {
+                          field.id && updateCustomField(field.id, {
                             required: e.target.checked,
                           })
                         }
@@ -408,7 +415,7 @@ export function EditEventPage() {
                       <textarea
                         value={field.options?.join('\n') || ''}
                         onChange={(e) =>
-                          updateCustomField(field.id, {
+                          field.id && updateCustomField(field.id, {
                             options: e.target.value.split('\n').filter(Boolean),
                           })
                         }
@@ -436,8 +443,17 @@ export function EditEventPage() {
           size="sm"
           disabled={loading}
         >
-          <Save className="h-5 w-5 mr-2" />
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? (
+            <>
+              <LoadingSpinner size="sm" />
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
         </Button>
       </div>
 

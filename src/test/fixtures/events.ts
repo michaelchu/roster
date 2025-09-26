@@ -4,14 +4,14 @@ import type { Label } from '@/services/labelService';
 import type { Organizer } from '@/services/organizerService';
 
 export const mockOrganizer: Organizer = {
-  id: 'org-123',
+  id: '550e8400-e29b-41d4-a716-446655440000',
   name: 'John Organizer',
   created_at: '2024-01-01T00:00:00Z',
 };
 
 export const mockEvent: Event = {
-  id: 'event-123',
-  organizer_id: 'org-123',
+  id: '550e8400-e29b-41d4-a716-446655440001',
+  organizer_id: '550e8400-e29b-41d4-a716-446655440000',
   name: 'Test Event',
   description: 'A test event description',
   datetime: '2024-12-01T14:00:00Z',
@@ -35,13 +35,13 @@ export const mockEventsList: Event[] = [
   mockEvent,
   {
     ...mockEvent,
-    id: 'event-456',
+    id: '550e8400-e29b-41d4-a716-446655440002',
     name: 'Another Event',
     participant_count: 0,
   },
   {
     ...mockEvent,
-    id: 'event-789',
+    id: '550e8400-e29b-41d4-a716-446655440003',
     name: 'Third Event',
     is_private: true,
     participant_count: 0,
@@ -49,8 +49,8 @@ export const mockEventsList: Event[] = [
 ];
 
 export const mockParticipant: Participant = {
-  id: 'participant-123',
-  event_id: 'event-123',
+  id: '550e8400-e29b-41d4-a716-446655440010',
+  event_id: '550e8400-e29b-41d4-a716-446655440001',
   name: 'John Doe',
   email: 'john@example.com',
   phone: '555-1234',
@@ -67,14 +67,14 @@ export const mockParticipantsList: Participant[] = [
   mockParticipant,
   {
     ...mockParticipant,
-    id: 'participant-456',
+    id: '550e8400-e29b-41d4-a716-446655440011',
     name: 'Jane Doe',
     email: 'jane@example.com',
     labels: [],
   },
   {
     ...mockParticipant,
-    id: 'participant-789',
+    id: '550e8400-e29b-41d4-a716-446655440012',
     name: 'Bob Smith',
     email: 'bob@example.com',
     labels: [],
@@ -82,8 +82,8 @@ export const mockParticipantsList: Participant[] = [
 ];
 
 export const mockLabel: Label = {
-  id: 'label-123',
-  event_id: 'event-123',
+  id: '550e8400-e29b-41d4-a716-446655440020',
+  event_id: '550e8400-e29b-41d4-a716-446655440001',
   name: 'VIP',
   color: '#gold',
 };

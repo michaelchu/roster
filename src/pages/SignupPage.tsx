@@ -3,12 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { CheckCircle, User } from 'lucide-react';
+import { eventService, participantService } from '@/services';
+import { errorHandler } from '@/lib/errorHandler';
+import { PageSkeleton } from '@/components/LoadingStates';
 
 interface CustomField {
-  id: string;
+  id?: string;
   label: string;
   type: 'text' | 'email' | 'tel' | 'number' | 'select';
   required?: boolean;
@@ -52,17 +54,19 @@ export function SignupPage() {
     if (!eventId) return;
 
     try {
-      const { data, error } = await supabase.from('events').select('*').eq('id', eventId).single();
-
-      if (error) throw error;
+      const data = await eventService.getEventById(eventId);
       setEvent({
-        ...data,
+        id: data.id,
+        name: data.name,
         description: data.description || '',
         datetime: data.datetime || '',
         location: data.location || '',
-        custom_fields: (data.custom_fields as unknown as CustomField[]) || [],
+        custom_fields: data.custom_fields || [],
       });
     } catch (err) {
+      errorHandler.handle(err, {
+        action: 'loadEventForSignup',
+      });
       setError('Event not found');
     } finally {
       setLoading(false);
@@ -103,18 +107,23 @@ export function SignupPage() {
     try {
       saveQuickFill();
 
-      const { error } = await supabase.from('participants').insert({
+      await participantService.createParticipant({
         event_id: event.id,
         name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
+        email: formData.email || null,
+        phone: formData.phone || null,
         responses: formData.responses,
-        user_id: user?.id || null, // Store user ID if signed in
+        user_id: user?.id || null,
+        notes: null,
       });
 
-      if (error) throw error;
+      errorHandler.success(`Successfully signed up for "${event.name}"!`);
       setSubmitted(true);
     } catch (err) {
+      errorHandler.handle(err, {
+        action: 'signupForEvent',
+        metadata: { eventId: event.id, eventName: event.name },
+      });
       const error = err as Error;
       setError(error.message || 'Failed to sign up');
     } finally {
@@ -123,11 +132,7 @@ export function SignupPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-sm text-gray-500">Loading...</div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (!event) {
@@ -240,11 +245,11 @@ export function SignupPage() {
                       {field.type === 'select' && field.options ? (
                         <select
                           id={field.id}
-                          value={formData.responses[field.id] || ''}
+                          value={formData.responses[field.id || field.label] || ''}
                           onChange={(e) =>
                             setFormData((prev) => ({
                               ...prev,
-                              responses: { ...prev.responses, [field.id]: e.target.value },
+                              responses: { ...prev.responses, [field.id || field.label]: e.target.value },
                             }))
                           }
                           required={field.required}
@@ -261,11 +266,11 @@ export function SignupPage() {
                         <Input
                           id={field.id}
                           type={field.type}
-                          value={formData.responses[field.id] || ''}
+                          value={formData.responses[field.id || field.label] || ''}
                           onChange={(e) =>
                             setFormData((prev) => ({
                               ...prev,
-                              responses: { ...prev.responses, [field.id]: e.target.value },
+                              responses: { ...prev.responses, [field.id || field.label]: e.target.value },
                             }))
                           }
                           required={field.required}

@@ -32,33 +32,30 @@ describe('participantService', () => {
     it('should fetch participants for an event with labels', async () => {
       const { supabase } = await import('@/lib/supabase');
 
-      // Mock for fetching participants
-      const mockFromParticipants = vi.fn().mockReturnValue({
+      // Mock participants with joined participant_labels data
+      const participantsWithLabels = [
+        {
+          ...mockParticipantsList[0],
+          participant_labels: [{ labels: mockLabel }], // 1 label
+        },
+        {
+          ...mockParticipantsList[1],
+          participant_labels: [{ labels: mockLabel }], // 1 label
+        },
+        {
+          ...mockParticipantsList[2],
+          participant_labels: [], // 0 labels
+        },
+      ];
+
+      vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({
-          data: mockParticipantsList,
+          data: participantsWithLabels,
           error: null,
         }),
-      });
-
-      // Mock for fetching participant labels
-      const mockFromParticipantLabels = vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        in: vi.fn().mockResolvedValue({
-          data: [
-            { participant_id: 'participant-123', labels: mockLabel },
-            { participant_id: 'participant-456', labels: mockLabel },
-          ],
-          error: null,
-        }),
-      });
-
-      vi.mocked(supabase.from)
-        .mockImplementationOnce(() => mockFromParticipants() as unknown as MockSupabaseQueryBuilder)
-        .mockImplementationOnce(
-          () => mockFromParticipantLabels() as unknown as MockSupabaseQueryBuilder
-        );
+      } as unknown as MockSupabaseQueryBuilder);
 
       const result = await participantService.getParticipantsByEventId('event-123');
 
@@ -116,8 +113,8 @@ describe('participantService', () => {
         }),
       } as unknown as MockSupabaseQueryBuilder);
 
-      const result = await participantService.getParticipantById('participant-123');
-      expect(result.id).toBe('participant-123');
+      const result = await participantService.getParticipantById('550e8400-e29b-41d4-a716-446655440010');
+      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440010');
       expect(result.name).toBe('John Doe');
     });
   });
@@ -140,7 +137,7 @@ describe('participantService', () => {
       } as unknown as MockSupabaseQueryBuilder);
 
       const result = await participantService.createParticipant(newParticipant);
-      expect(result.id).toBe('participant-123');
+      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440010');
     });
   });
 
@@ -206,9 +203,9 @@ describe('participantService', () => {
         }),
       } as unknown as MockSupabaseQueryBuilder);
 
-      const result = await participantService.getParticipantByUserAndEvent('user-123', 'event-123');
+      const result = await participantService.getParticipantByUserAndEvent('550e8400-e29b-41d4-a716-446655440100', '550e8400-e29b-41d4-a716-446655440001');
       expect(result).toBeTruthy();
-      expect(result?.id).toBe('participant-123');
+      expect(result?.id).toBe('550e8400-e29b-41d4-a716-446655440010');
     });
 
     it('should return null when participant not found', async () => {
@@ -274,10 +271,13 @@ describe('participantService', () => {
   describe('removeLabelFromParticipant', () => {
     it('should remove label from participant', async () => {
       const { supabase } = await import('@/lib/supabase');
+
+      const mockEq = vi.fn();
+      mockEq.mockReturnValueOnce({ eq: vi.fn().mockResolvedValue({ error: null }) });
+
       vi.mocked(supabase.from).mockReturnValue({
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({
-          error: null,
+        delete: vi.fn().mockReturnValue({
+          eq: mockEq,
         }),
       } as unknown as MockSupabaseQueryBuilder);
 

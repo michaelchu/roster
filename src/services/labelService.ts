@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/app.types';
 
-export interface Label extends Tables<'labels'> {}
+export type Label = Tables<'labels'>;
 
 export const labelService = {
   async getLabelsByEventId(eventId: string): Promise<Label[]> {

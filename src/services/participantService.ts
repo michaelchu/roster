@@ -7,6 +7,7 @@ import type {
   CustomField,
   Json,
 } from '@/types/app.types';
+import { errorHandler } from '@/lib/errorHandler';
 
 export interface Participant extends Omit<Tables<'participants'>, 'responses' | 'created_at'> {
   created_at: string;
@@ -14,9 +15,9 @@ export interface Participant extends Omit<Tables<'participants'>, 'responses' | 
   responses: ResponseRecord;
 }
 
-export interface Label extends Tables<'labels'> {}
+export type Label = Tables<'labels'>;
 
-export interface ParticipantLabel extends Tables<'participant_labels'> {}
+export type ParticipantLabel = Tables<'participant_labels'>;
 
 // Helper function to convert database participant to our Participant type
 function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Participant {
@@ -29,41 +30,45 @@ function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Part
 
 export const participantService = {
   async getParticipantsByEventId(eventId: string): Promise<Participant[]> {
+    // Use a single query with JOIN to get participants with their labels
     const { data: participants, error: participantsError } = await supabase
       .from('participants')
-      .select('*')
+      .select(`
+        *,
+        participant_labels!left(
+          labels!inner(*)
+        )
+      `)
       .eq('event_id', eventId)
       .order('created_at', { ascending: false });
 
-    if (participantsError) throw participantsError;
+    if (participantsError) throw errorHandler.fromSupabaseError(participantsError);
 
     if (!participants || participants.length === 0) return [];
 
-    const participantIds = participants.map((p) => p.id);
-    const { data: participantLabels } = await supabase
-      .from('participant_labels')
-      .select('*, labels(*)')
-      .in('participant_id', participantIds);
-
-    const labelMap =
-      participantLabels?.reduce(
-        (acc, pl) => {
-          if (!acc[pl.participant_id]) {
-            acc[pl.participant_id] = [];
-          }
+    return participants.map((p) => {
+      // Extract labels from the joined data
+      const labels: Label[] = [];
+      if (Array.isArray(p.participant_labels)) {
+        for (const pl of p.participant_labels) {
           if (pl.labels) {
-            acc[pl.participant_id].push(pl.labels as Label);
+            labels.push(pl.labels as Label);
           }
-          return acc;
-        },
-        {} as Record<string, Label[]>
-      ) || {};
+        }
+      }
 
-    return participants.map((p) => ({
-      ...dbParticipantToParticipant(p),
-      labels: labelMap[p.id] || [],
-      responses: (p.responses as ResponseRecord) || {},
-    }));
+      // Remove the joined data from the participant object
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { participant_labels: _, ...participantWithoutLabels } = p as Tables<'participants'> & {
+        participant_labels: Array<{ labels: Label } | null>;
+      };
+
+      return {
+        ...dbParticipantToParticipant(participantWithoutLabels),
+        labels,
+        responses: (participantWithoutLabels.responses as ResponseRecord) || {},
+      };
+    });
   },
 
   async getParticipantById(participantId: string): Promise<Participant> {

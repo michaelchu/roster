@@ -44,11 +44,14 @@ describe('useAuth Hook', () => {
     <AuthProvider>{children}</AuthProvider>
   );
 
-  it('initializes with loading state', () => {
+  it('initializes with loading state', async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
-    expect(result.current.loading).toBe(true);
-    expect(result.current.user).toBe(null);
-    expect(result.current.session).toBe(null);
+
+    await act(async () => {
+      expect(result.current.loading).toBe(true);
+      expect(result.current.user).toBe(null);
+      expect(result.current.session).toBe(null);
+    });
   });
 
   it('loads existing session on mount', async () => {
@@ -99,9 +102,11 @@ describe('useAuth Hook', () => {
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
-      await expect(result.current.signIn('test@example.com', 'wrongpassword')).rejects.toThrow(
-        'Invalid credentials'
-      );
+      await act(async () => {
+        await expect(result.current.signIn('test@example.com', 'wrongpassword')).rejects.toThrow(
+          'Invalid credentials'
+        );
+      });
     });
   });
 
@@ -139,9 +144,11 @@ describe('useAuth Hook', () => {
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
-      await expect(
-        result.current.signUp('existing@example.com', 'password123', 'John Doe')
-      ).rejects.toThrow('Email already exists');
+      await act(async () => {
+        await expect(
+          result.current.signUp('existing@example.com', 'password123', 'John Doe')
+        ).rejects.toThrow('Email already exists');
+      });
     });
   });
 
@@ -168,7 +175,9 @@ describe('useAuth Hook', () => {
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
-      await expect(result.current.signOut()).rejects.toThrow('Sign out failed');
+      await act(async () => {
+        await expect(result.current.signOut()).rejects.toThrow('Sign out failed');
+      });
     });
   });
 
