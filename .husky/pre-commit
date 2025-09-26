@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🎨 Running Prettier formatter..."
+npm run format
+
+echo "📋 Adding formatted files to commit..."
+git add .
