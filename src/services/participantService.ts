@@ -33,12 +33,14 @@ export const participantService = {
     // Use a single query with JOIN to get participants with their labels
     const { data: participants, error: participantsError } = await supabase
       .from('participants')
-      .select(`
+      .select(
+        `
         *,
         participant_labels!left(
           labels!inner(*)
         )
-      `)
+      `
+      )
       .eq('event_id', eventId)
       .order('created_at', { ascending: false });
 

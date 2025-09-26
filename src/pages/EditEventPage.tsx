@@ -367,7 +367,9 @@ export function EditEventPage() {
                     <Input
                       type="text"
                       value={field.label}
-                      onChange={(e) => field.id && updateCustomField(field.id, { label: e.target.value })}
+                      onChange={(e) =>
+                        field.id && updateCustomField(field.id, { label: e.target.value })
+                      }
                       placeholder="Field label"
                       className="flex-1 h-9 text-sm"
                     />
@@ -383,7 +385,8 @@ export function EditEventPage() {
                     <select
                       value={field.type}
                       onChange={(e) =>
-                        field.id && updateCustomField(field.id, {
+                        field.id &&
+                        updateCustomField(field.id, {
                           type: e.target.value as CustomField['type'],
                           options: e.target.value === 'select' ? [''] : undefined,
                         })
@@ -401,7 +404,8 @@ export function EditEventPage() {
                         type="checkbox"
                         checked={field.required}
                         onChange={(e) =>
-                          field.id && updateCustomField(field.id, {
+                          field.id &&
+                          updateCustomField(field.id, {
                             required: e.target.checked,
                           })
                         }
@@ -415,7 +419,8 @@ export function EditEventPage() {
                       <textarea
                         value={field.options?.join('\n') || ''}
                         onChange={(e) =>
-                          field.id && updateCustomField(field.id, {
+                          field.id &&
+                          updateCustomField(field.id, {
                             options: e.target.value.split('\n').filter(Boolean),
                           })
                         }

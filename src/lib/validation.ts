@@ -3,9 +3,12 @@ import { z } from 'zod';
 // Custom field validation
 export const customFieldSchema = z.object({
   id: z.string().optional(),
-  label: z.string().min(1, 'Field label is required').max(100, 'Field label must be less than 100 characters'),
+  label: z
+    .string()
+    .min(1, 'Field label is required')
+    .max(100, 'Field label must be less than 100 characters'),
   type: z.enum(['text', 'email', 'tel', 'number', 'select'], {
-    message: 'Invalid field type'
+    message: 'Invalid field type',
   }),
   required: z.boolean(),
   options: z.array(z.string()).optional(),
@@ -15,24 +18,32 @@ export const customFieldSchema = z.object({
 export const responseValueSchema = z.union([
   z.string().max(1000, 'Response must be less than 1000 characters'),
   z.number(),
-  z.array(z.string().max(100, 'Option must be less than 100 characters'))
+  z.array(z.string().max(100, 'Option must be less than 100 characters')),
 ]);
 
 export const responseRecordSchema = z.record(z.string(), responseValueSchema);
 
 // Event validation
 export const eventSchema = z.object({
-  id: z.string().min(8).max(12).regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format').optional(), // Only nanoid format
+  id: z
+    .string()
+    .min(8)
+    .max(12)
+    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format')
+    .optional(), // Only nanoid format
   organizer_id: z.string().uuid('Invalid organizer ID'), // Keep UUID for organizer (from Supabase auth)
-  name: z.string()
+  name: z
+    .string()
     .min(1, 'Event name is required')
     .max(200, 'Event name must be less than 200 characters')
     .trim(),
-  description: z.string()
+  description: z
+    .string()
     .max(2000, 'Description must be less than 2000 characters')
     .nullable()
     .optional(),
-  datetime: z.string()
+  datetime: z
+    .string()
     .refine((val) => {
       if (!val) return true; // Allow empty/null values
       // Accept ISO datetime strings (with or without timezone)
@@ -41,19 +52,23 @@ export const eventSchema = z.object({
     }, 'Invalid date format')
     .nullable()
     .optional(),
-  location: z.string()
-    .max(500, 'Location must be less than 500 characters')
-    .nullable()
-    .optional(),
+  location: z.string().max(500, 'Location must be less than 500 characters').nullable().optional(),
   is_private: z.boolean().default(false),
   custom_fields: z.array(customFieldSchema).default([]),
-  max_participants: z.number()
+  max_participants: z
+    .number()
     .int('Max participants must be a whole number')
     .min(1, 'Must allow at least 1 participant')
     .max(10000, 'Maximum 10,000 participants allowed')
     .nullable()
     .optional(),
-  parent_event_id: z.string().min(8).max(12).regex(/^[A-Za-z0-9_-]+$/, 'Invalid parent event ID format').nullable().optional(), // Only nanoid format
+  parent_event_id: z
+    .string()
+    .min(8)
+    .max(12)
+    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid parent event ID format')
+    .nullable()
+    .optional(), // Only nanoid format
   created_at: z.string().datetime().optional(),
   participant_count: z.number().int().min(0).optional(),
 });
@@ -61,25 +76,29 @@ export const eventSchema = z.object({
 // Participant validation
 export const participantSchema = z.object({
   id: z.string().uuid().optional(), // Participants still use UUID from Supabase
-  event_id: z.string().min(8).max(12).regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'), // Only nanoid format for events
-  name: z.string()
+  event_id: z
+    .string()
+    .min(8)
+    .max(12)
+    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'), // Only nanoid format for events
+  name: z
+    .string()
     .min(1, 'Name is required')
     .max(100, 'Name must be less than 100 characters')
     .trim(),
-  email: z.string()
+  email: z
+    .string()
     .email('Invalid email format')
     .max(254, 'Email must be less than 254 characters')
     .nullable()
     .optional(),
-  phone: z.string()
+  phone: z
+    .string()
     .regex(/^[+]?[0-9\s\-()]{0,20}$/, 'Invalid phone number format')
     .max(20, 'Phone number must be less than 20 characters')
     .nullable()
     .optional(),
-  notes: z.string()
-    .max(1000, 'Notes must be less than 1000 characters')
-    .nullable()
-    .optional(),
+  notes: z.string().max(1000, 'Notes must be less than 1000 characters').nullable().optional(),
   user_id: z.string().uuid().nullable().optional(),
   responses: responseRecordSchema.default({}),
   created_at: z.string().datetime().optional(),
@@ -88,12 +107,18 @@ export const participantSchema = z.object({
 // Label validation
 export const labelSchema = z.object({
   id: z.string().uuid().optional(), // Labels still use UUID from Supabase
-  event_id: z.string().min(8).max(12).regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'), // Only nanoid format for events
-  name: z.string()
+  event_id: z
+    .string()
+    .min(8)
+    .max(12)
+    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'), // Only nanoid format for events
+  name: z
+    .string()
     .min(1, 'Label name is required')
     .max(50, 'Label name must be less than 50 characters')
     .trim(),
-  color: z.string()
+  color: z
+    .string()
     .regex(/^#[0-9a-fA-F]{6}$|^[a-z]+$/, 'Invalid color format')
     .default('#gray'),
 });
@@ -101,10 +126,7 @@ export const labelSchema = z.object({
 // Organizer validation
 export const organizerSchema = z.object({
   id: z.string().uuid('Invalid organizer ID'),
-  name: z.string()
-    .max(100, 'Name must be less than 100 characters')
-    .nullable()
-    .optional(),
+  name: z.string().max(100, 'Name must be less than 100 characters').nullable().optional(),
   created_at: z.string().datetime().optional(),
 });
 
@@ -112,20 +134,24 @@ export const organizerSchema = z.object({
 export const createEventFormSchema = eventSchema.omit({
   id: true,
   created_at: true,
-  participant_count: true
+  participant_count: true,
 });
 
 export const updateEventFormSchema = createEventFormSchema.partial().extend({
-  id: z.string().min(8).max(12).regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format')
+  id: z
+    .string()
+    .min(8)
+    .max(12)
+    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'),
 });
 
 export const createParticipantFormSchema = participantSchema.omit({
   id: true,
-  created_at: true
+  created_at: true,
 });
 
 export const updateParticipantFormSchema = createParticipantFormSchema.partial().extend({
-  id: z.string().uuid('Invalid participant ID')
+  id: z.string().uuid('Invalid participant ID'),
 });
 
 // Type exports for use in components

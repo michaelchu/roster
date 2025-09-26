@@ -54,11 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Try Again
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="w-full"
-              >
+              <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
                 Refresh Page
               </Button>
             </div>

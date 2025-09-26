@@ -88,10 +88,7 @@ export function useMultipleLoadingStates<T extends Record<string, unknown>>(
 }
 
 // Hook for async operations with automatic loading state management
-export function useAsyncOperation<T>(
-  operation: () => Promise<T>,
-  dependencies: unknown[] = []
-) {
+export function useAsyncOperation<T>(operation: () => Promise<T>, dependencies: unknown[] = []) {
   const { isLoading, error, data, execute } = useLoadingState<T>();
 
   const run = useCallback(() => {

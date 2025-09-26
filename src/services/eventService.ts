@@ -1,11 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate, Json } from '@/types/app.types';
 import { errorHandler, ValidationError } from '@/lib/errorHandler';
-import {
-  safeValidateEvent,
-  validateCustomFields,
-  type CustomField
-} from '@/lib/validation';
+import { safeValidateEvent, validateCustomFields, type CustomField } from '@/lib/validation';
 
 // Extended Event type with additional computed properties and properly typed custom_fields
 export interface Event extends Omit<Tables<'events'>, 'custom_fields'> {
@@ -31,10 +27,12 @@ export const eventService = {
     // Use a single query with LEFT JOIN to get events with participant counts
     const { data: eventsData, error: eventsError } = await supabase
       .from('events')
-      .select(`
+      .select(
+        `
         *,
         participants!left(id)
-      `)
+      `
+      )
       .eq('organizer_id', organizerId)
       .order('created_at', { ascending: false });
 
@@ -45,7 +43,7 @@ export const eventService = {
     return eventsData.map((event) => {
       // Count the participants that were joined
       const participantCount = Array.isArray(event.participants)
-        ? event.participants.filter(p => p !== null).length
+        ? event.participants.filter((p) => p !== null).length
         : 0;
 
       // Remove the participants array from the event object before processing
@@ -80,7 +78,10 @@ export const eventService = {
     });
 
     if (!validationResult.success) {
-      const errorMessages = validationResult.error?.issues?.map((e) => `${e.path?.join('.')}: ${e.message}`).join(', ') || 'Unknown validation error';
+      const errorMessages =
+        validationResult.error?.issues
+          ?.map((e) => `${e.path?.join('.')}: ${e.message}`)
+          .join(', ') || 'Unknown validation error';
       throw new ValidationError(
         `Invalid event data: ${errorMessages}`,
         'Please check your input and try again'

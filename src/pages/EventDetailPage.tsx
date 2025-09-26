@@ -238,7 +238,7 @@ export function EventDetailPage() {
           participantId: participant.id,
           participantName: participant.name,
           labelId: label.id,
-          labelName: label.name
+          labelName: label.name,
         },
       });
     }

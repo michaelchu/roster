@@ -113,7 +113,9 @@ describe('participantService', () => {
         }),
       } as unknown as MockSupabaseQueryBuilder);
 
-      const result = await participantService.getParticipantById('550e8400-e29b-41d4-a716-446655440010');
+      const result = await participantService.getParticipantById(
+        '550e8400-e29b-41d4-a716-446655440010'
+      );
       expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440010');
       expect(result.name).toBe('John Doe');
     });
@@ -203,7 +205,10 @@ describe('participantService', () => {
         }),
       } as unknown as MockSupabaseQueryBuilder);
 
-      const result = await participantService.getParticipantByUserAndEvent('550e8400-e29b-41d4-a716-446655440100', '550e8400-e29b-41d4-a716-446655440001');
+      const result = await participantService.getParticipantByUserAndEvent(
+        '550e8400-e29b-41d4-a716-446655440100',
+        '550e8400-e29b-41d4-a716-446655440001'
+      );
       expect(result).toBeTruthy();
       expect(result?.id).toBe('550e8400-e29b-41d4-a716-446655440010');
     });

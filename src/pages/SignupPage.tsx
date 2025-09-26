@@ -55,7 +55,7 @@ export function SignupPage() {
   // Auto-fill form if user is logged in
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         name: user.user_metadata?.full_name || user.email || '',
         email: user.email || '',
@@ -69,7 +69,7 @@ export function SignupPage() {
     if (saved && !user) {
       try {
         const parsed = JSON.parse(saved);
-        setFormData(prev => ({ ...prev, ...parsed }));
+        setFormData((prev) => ({ ...prev, ...parsed }));
       } catch {
         // Ignore invalid saved data
       }
@@ -78,11 +78,14 @@ export function SignupPage() {
 
   const saveQuickFill = () => {
     if (!user) {
-      localStorage.setItem('venu-signup-form', JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-      }));
+      localStorage.setItem(
+        'venu-signup-form',
+        JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+        })
+      );
     }
   };
 
@@ -189,17 +192,14 @@ export function SignupPage() {
           <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful!</h1>
           <p className="text-sm text-gray-600 mb-6">
-            You've successfully registered for "{event.name}". You should receive a confirmation soon.
+            You've successfully registered for "{event.name}". You should receive a confirmation
+            soon.
           </p>
           <div className="space-y-3">
             <Button onClick={() => navigate('/')} className="w-full">
               Continue
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.location.reload()}
-              className="w-full"
-            >
+            <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
               Register Another Person
             </Button>
           </div>
@@ -220,9 +220,7 @@ export function SignupPage() {
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back
           </button>
-          <h1 className="text-lg font-semibold text-center flex-1 mr-16">
-            {event.name}
-          </h1>
+          <h1 className="text-lg font-semibold text-center flex-1 mr-16">{event.name}</h1>
         </div>
       </div>
 
@@ -298,7 +296,7 @@ export function SignupPage() {
                   id="name"
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Your full name"
                   required
                   className="mt-1"
@@ -314,7 +312,7 @@ export function SignupPage() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="your.email@example.com"
                   className="mt-1"
                 />
@@ -329,7 +327,7 @@ export function SignupPage() {
                   id="phone"
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                   placeholder="Your phone number"
                   className="mt-1"
                 />
@@ -349,7 +347,10 @@ export function SignupPage() {
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          responses: { ...prev.responses, [field.id || field.label]: e.target.value },
+                          responses: {
+                            ...prev.responses,
+                            [field.id || field.label]: e.target.value,
+                          },
                         }))
                       }
                       required={field.required}
@@ -370,7 +371,10 @@ export function SignupPage() {
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          responses: { ...prev.responses, [field.id || field.label]: e.target.value },
+                          responses: {
+                            ...prev.responses,
+                            [field.id || field.label]: e.target.value,
+                          },
                         }))
                       }
                       required={field.required}
@@ -381,18 +385,10 @@ export function SignupPage() {
               ))}
 
               {/* Error Message */}
-              {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                  {error}
-                </div>
-              )}
+              {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</div>}
 
               {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="w-full"
-              >
+              <Button type="submit" disabled={submitting} className="w-full">
                 {submitting ? 'Registering...' : 'Register'}
               </Button>
             </form>
