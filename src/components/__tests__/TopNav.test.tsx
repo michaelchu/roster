@@ -1,6 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@/test/utils/test-utils';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { TopNav } from '../TopNav';
+
+// Mock useAuth to avoid Supabase dependencies
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: null,
+    loading: false,
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -11,27 +21,34 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+// Custom render function with BrowserRouter
+const customRender = (ui: React.ReactElement) => {
+  return render(ui, {
+    wrapper: ({ children }) => <BrowserRouter>{children}</BrowserRouter>,
+  });
+};
+
 describe('TopNav', () => {
   it('renders title correctly', () => {
-    render(<TopNav title="Test Title" />);
+    customRender(<TopNav title="Test Title" />);
     expect(screen.getByText('Test Title')).toBeInTheDocument();
   });
 
   it('shows back button when showBackButton is true', () => {
-    render(<TopNav title="Test" showBackButton />);
+    customRender(<TopNav title="Test" showBackButton />);
     const backButton = screen.getByLabelText(/go back/i);
     expect(backButton).toBeInTheDocument();
   });
 
   it('navigates back when back button is clicked', () => {
-    render(<TopNav title="Test" showBackButton />);
+    customRender(<TopNav title="Test" showBackButton />);
     const backButton = screen.getByLabelText(/go back/i);
     fireEvent.click(backButton);
     expect(mockNavigate).toHaveBeenCalledWith(-1);
   });
 
   it('applies sticky class when sticky prop is true', () => {
-    const { container } = render(<TopNav title="Test" sticky />);
+    const { container } = customRender(<TopNav title="Test" sticky />);
     const stickyDiv = container.querySelector('.sticky');
     expect(stickyDiv).toBeInTheDocument();
   });
