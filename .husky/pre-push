@@ -1,5 +1,8 @@
 echo "🔍 Running pre-push checks..."
 
+echo "🧪 Running tests..."
+npm run test
+
 echo "📋 Running ESLint..."
 npm run lint
 
