@@ -29,7 +29,7 @@ export function HomePage() {
   const { user } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<'week' | 'month' | 'year'>('week');
+  const [timePeriod, setTimePeriod] = useState<'all' | 'week' | 'month' | 'year'>('all');
 
   useEffect(() => {
     if (user) {
@@ -44,7 +44,11 @@ export function HomePage() {
       let startDate: Date;
       let endDate: Date;
 
-      if (timePeriod === 'week') {
+      if (timePeriod === 'all') {
+        // For 'all', just use current time as start date and far future as end date
+        startDate = new Date(now);
+        endDate = new Date('2099-12-31'); // Far future date
+      } else if (timePeriod === 'week') {
         // Get start and end of current week
         startDate = new Date(now);
         startDate.setDate(now.getDate() - now.getDay()); // Sunday
@@ -191,15 +195,26 @@ export function HomePage() {
                   <h2 className="text-sm font-medium">Upcoming Events</h2>
                   <Select
                     value={timePeriod}
-                    onValueChange={(value: 'week' | 'month' | 'year') => setTimePeriod(value)}
+                    onValueChange={(value: 'all' | 'week' | 'month' | 'year') =>
+                      setTimePeriod(value)
+                    }
                   >
-                    <SelectTrigger className="w-32 h-7 text-xs">
+                    <SelectTrigger className="w-20 h-7 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="week">This Week</SelectItem>
-                      <SelectItem value="month">This Month</SelectItem>
-                      <SelectItem value="year">This Year</SelectItem>
+                    <SelectContent className="min-w-0 w-20">
+                      <SelectItem value="all" className="text-xs py-1 px-2">
+                        All
+                      </SelectItem>
+                      <SelectItem value="week" className="text-xs py-1 px-2">
+                        Week
+                      </SelectItem>
+                      <SelectItem value="month" className="text-xs py-1 px-2">
+                        Month
+                      </SelectItem>
+                      <SelectItem value="year" className="text-xs py-1 px-2">
+                        Year
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -210,11 +225,13 @@ export function HomePage() {
               ) : upcomingEvents.length === 0 ? (
                 <div className="p-3 text-xs text-gray-500 text-center">
                   No events{' '}
-                  {timePeriod === 'week'
-                    ? 'this week'
-                    : timePeriod === 'month'
-                      ? 'this month'
-                      : 'this year'}
+                  {timePeriod === 'all'
+                    ? 'found'
+                    : timePeriod === 'week'
+                      ? 'this week'
+                      : timePeriod === 'month'
+                        ? 'this month'
+                        : 'this year'}
                 </div>
               ) : (
                 <div className="divide-y">
