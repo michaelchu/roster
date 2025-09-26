@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
+import type { Json } from '@/types/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Trash2, Minus, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
@@ -82,7 +83,7 @@ export function NewEventPage() {
           location: formData.location || null,
           max_participants: maxParticipants,
           is_private: formData.is_private,
-          custom_fields: customFields.filter((f) => f.label),
+          custom_fields: customFields.filter((f) => f.label) as unknown as Json,
         })
         .select()
         .single();

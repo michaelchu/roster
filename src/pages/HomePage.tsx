@@ -67,7 +67,7 @@ export function HomePage() {
       const { data: organizedEvents } = await supabase
         .from('events')
         .select('id, name, datetime, location')
-        .eq('organizer_id', user?.id)
+        .eq('organizer_id', user?.id || '')
         .gte('datetime', startDate.toISOString())
         .lte('datetime', endDate.toISOString())
         .order('datetime', { ascending: true });
@@ -102,7 +102,7 @@ export function HomePage() {
           )
         `
         )
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.id || '')
         .gte('events.datetime', startDate.toISOString())
         .lte('events.datetime', endDate.toISOString());
 

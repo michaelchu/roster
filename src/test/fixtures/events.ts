@@ -1,7 +1,7 @@
-import { Event } from '@/services/eventService';
-import { Participant } from '@/services/participantService';
-import { Label } from '@/services/labelService';
-import { Organizer } from '@/services/organizerService';
+import type { Event } from '@/services/eventService';
+import type { Participant } from '@/services/participantService';
+import type { Label } from '@/services/labelService';
+import type { Organizer } from '@/services/organizerService';
 
 export const mockOrganizer: Organizer = {
   id: 'org-123',
@@ -13,64 +13,77 @@ export const mockEvent: Event = {
   id: 'event-123',
   organizer_id: 'org-123',
   name: 'Test Event',
-  description: 'This is a test event',
-  datetime: '2024-12-25T18:00:00Z',
+  description: 'A test event description',
+  datetime: '2024-12-01T14:00:00Z',
   location: 'Test Location',
   is_private: false,
   custom_fields: [
     {
       id: 'field-1',
-      label: 'Dietary Preferences',
+      label: 'Dietary Restrictions',
       type: 'text',
       required: false,
     },
   ],
   created_at: '2024-01-01T00:00:00Z',
   parent_event_id: null,
-  participant_count: 5,
-  max_participants: 100,
-};
-
-export const mockPrivateEvent: Event = {
-  ...mockEvent,
-  id: 'event-456',
-  is_private: true,
-};
-
-export const mockLabel: Label = {
-  id: 'label-123',
-  event_id: 'event-123',
-  name: 'VIP',
-  color: '#FF0000',
-};
-
-export const mockParticipant: Participant = {
-  id: 'participant-123',
-  event_id: 'event-123',
-  name: 'Jane Doe',
-  email: 'jane@example.com',
-  phone: '+1234567890',
-  notes: 'Special requirements',
-  user_id: 'user-123',
-  responses: {
-    'field-1': 'Vegetarian',
-  },
-  created_at: '2024-01-15T00:00:00Z',
-  labels: [mockLabel],
+  max_participants: 50,
+  participant_count: 1,
 };
 
 export const mockEventsList: Event[] = [
   mockEvent,
   {
     ...mockEvent,
-    id: 'event-789',
+    id: 'event-456',
     name: 'Another Event',
-    participant_count: 10,
+    participant_count: 0,
   },
   {
     ...mockEvent,
-    id: 'event-101',
+    id: 'event-789',
     name: 'Third Event',
+    is_private: true,
     participant_count: 0,
   },
 ];
+
+export const mockParticipant: Participant = {
+  id: 'participant-123',
+  event_id: 'event-123',
+  name: 'John Doe',
+  email: 'john@example.com',
+  phone: '555-1234',
+  notes: 'Test notes',
+  user_id: null,
+  responses: {
+    'Dietary Restrictions': 'Vegetarian',
+  },
+  created_at: '2024-01-01T00:00:00Z',
+  labels: [],
+};
+
+export const mockParticipantsList: Participant[] = [
+  mockParticipant,
+  {
+    ...mockParticipant,
+    id: 'participant-456',
+    name: 'Jane Doe',
+    email: 'jane@example.com',
+    labels: [],
+  },
+  {
+    ...mockParticipant,
+    id: 'participant-789',
+    name: 'Bob Smith',
+    email: 'bob@example.com',
+    labels: [],
+  },
+];
+
+export const mockLabel: Label = {
+  id: 'label-123',
+  event_id: 'event-123',
+  name: 'VIP',
+  color: '#gold',
+};

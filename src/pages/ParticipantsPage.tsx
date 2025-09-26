@@ -40,7 +40,7 @@ export function ParticipantsPage() {
       const { data: events } = await supabase
         .from('events')
         .select('id')
-        .eq('organizer_id', user?.id);
+        .eq('organizer_id', user?.id || '');
 
       if (!events || events.length === 0) {
         setParticipants([]);

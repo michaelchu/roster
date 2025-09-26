@@ -1,12 +1,12 @@
 -- Create organizers table (extends Supabase Auth users)
-CREATE TABLE organizers (
+CREATE TABLE IF NOT EXISTS organizers (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create events table
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organizer_id UUID NOT NULL REFERENCES organizers(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE events (
 );
 
 -- Create participants table
-CREATE TABLE participants (
+CREATE TABLE IF NOT EXISTS participants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE participants (
 );
 
 -- Create labels table
-CREATE TABLE labels (
+CREATE TABLE IF NOT EXISTS labels (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE labels (
 );
 
 -- Create participant_labels junction table
-CREATE TABLE participant_labels (
+CREATE TABLE IF NOT EXISTS participant_labels (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   participant_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
   label_id UUID NOT NULL REFERENCES labels(id) ON DELETE CASCADE,
@@ -49,12 +49,12 @@ CREATE TABLE participant_labels (
 );
 
 -- Create indexes for performance
-CREATE INDEX idx_events_organizer ON events(organizer_id);
-CREATE INDEX idx_events_parent ON events(parent_event_id);
-CREATE INDEX idx_participants_event ON participants(event_id);
-CREATE INDEX idx_labels_event ON labels(event_id);
-CREATE INDEX idx_participant_labels_participant ON participant_labels(participant_id);
-CREATE INDEX idx_participant_labels_label ON participant_labels(label_id);
+CREATE INDEX IF NOT EXISTS idx_events_organizer ON events(organizer_id);
+CREATE INDEX IF NOT EXISTS idx_events_parent ON events(parent_event_id);
+CREATE INDEX IF NOT EXISTS idx_participants_event ON participants(event_id);
+CREATE INDEX IF NOT EXISTS idx_labels_event ON labels(event_id);
+CREATE INDEX IF NOT EXISTS idx_participant_labels_participant ON participant_labels(participant_id);
+CREATE INDEX IF NOT EXISTS idx_participant_labels_label ON participant_labels(label_id);
 
 -- Enable Row Level Security
 ALTER TABLE organizers ENABLE ROW LEVEL SECURITY;
@@ -64,45 +64,46 @@ ALTER TABLE labels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE participant_labels ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for organizers table
--- Allow users to view their own organizer profile
+-- Drop existing policies if they exist and recreate
+DROP POLICY IF EXISTS "Users can view own organizer profile" ON organizers;
 CREATE POLICY "Users can view own organizer profile" ON organizers
   FOR SELECT USING (auth.uid() = id);
 
--- Allow users to update their own organizer profile
+DROP POLICY IF EXISTS "Users can update own organizer profile" ON organizers;
 CREATE POLICY "Users can update own organizer profile" ON organizers
   FOR UPDATE USING (auth.uid() = id);
 
--- Allow authenticated users to insert their organizer profile
+DROP POLICY IF EXISTS "Users can insert own organizer profile" ON organizers;
 CREATE POLICY "Users can insert own organizer profile" ON organizers
   FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- RLS Policies for events table
--- Allow organizers to view their own events
+DROP POLICY IF EXISTS "Organizers can view own events" ON events;
 CREATE POLICY "Organizers can view own events" ON events
   FOR SELECT USING (auth.uid() = organizer_id);
 
--- Allow organizers to create events
+DROP POLICY IF EXISTS "Organizers can create events" ON events;
 CREATE POLICY "Organizers can create events" ON events
   FOR INSERT WITH CHECK (auth.uid() = organizer_id);
 
--- Allow organizers to update their own events
+DROP POLICY IF EXISTS "Organizers can update own events" ON events;
 CREATE POLICY "Organizers can update own events" ON events
   FOR UPDATE USING (auth.uid() = organizer_id);
 
--- Allow organizers to delete their own events
+DROP POLICY IF EXISTS "Organizers can delete own events" ON events;
 CREATE POLICY "Organizers can delete own events" ON events
   FOR DELETE USING (auth.uid() = organizer_id);
 
--- Public can view event details (for signup pages)
+DROP POLICY IF EXISTS "Public can view event details" ON events;
 CREATE POLICY "Public can view event details" ON events
   FOR SELECT USING (true);
 
 -- RLS Policies for participants table
--- Allow anyone to insert participants (for public signup)
+DROP POLICY IF EXISTS "Anyone can signup as participant" ON participants;
 CREATE POLICY "Anyone can signup as participant" ON participants
   FOR INSERT WITH CHECK (true);
 
--- Allow organizers to view participants for their events
+DROP POLICY IF EXISTS "Organizers can view event participants" ON participants;
 CREATE POLICY "Organizers can view event participants" ON participants
   FOR SELECT USING (
     EXISTS (
@@ -112,7 +113,7 @@ CREATE POLICY "Organizers can view event participants" ON participants
     )
   );
 
--- Allow organizers to update participants for their events
+DROP POLICY IF EXISTS "Organizers can update event participants" ON participants;
 CREATE POLICY "Organizers can update event participants" ON participants
   FOR UPDATE USING (
     EXISTS (
@@ -122,7 +123,7 @@ CREATE POLICY "Organizers can update event participants" ON participants
     )
   );
 
--- Allow organizers to delete participants for their events
+DROP POLICY IF EXISTS "Organizers can delete event participants" ON participants;
 CREATE POLICY "Organizers can delete event participants" ON participants
   FOR DELETE USING (
     EXISTS (
@@ -133,7 +134,7 @@ CREATE POLICY "Organizers can delete event participants" ON participants
   );
 
 -- RLS Policies for labels table
--- Allow organizers to manage labels for their events
+DROP POLICY IF EXISTS "Organizers can view event labels" ON labels;
 CREATE POLICY "Organizers can view event labels" ON labels
   FOR SELECT USING (
     EXISTS (
@@ -143,6 +144,7 @@ CREATE POLICY "Organizers can view event labels" ON labels
     )
   );
 
+DROP POLICY IF EXISTS "Organizers can create event labels" ON labels;
 CREATE POLICY "Organizers can create event labels" ON labels
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -152,6 +154,7 @@ CREATE POLICY "Organizers can create event labels" ON labels
     )
   );
 
+DROP POLICY IF EXISTS "Organizers can update event labels" ON labels;
 CREATE POLICY "Organizers can update event labels" ON labels
   FOR UPDATE USING (
     EXISTS (
@@ -161,6 +164,7 @@ CREATE POLICY "Organizers can update event labels" ON labels
     )
   );
 
+DROP POLICY IF EXISTS "Organizers can delete event labels" ON labels;
 CREATE POLICY "Organizers can delete event labels" ON labels
   FOR DELETE USING (
     EXISTS (
@@ -171,7 +175,7 @@ CREATE POLICY "Organizers can delete event labels" ON labels
   );
 
 -- RLS Policies for participant_labels table
--- Allow organizers to manage participant labels for their events
+DROP POLICY IF EXISTS "Organizers can view participant labels" ON participant_labels;
 CREATE POLICY "Organizers can view participant labels" ON participant_labels
   FOR SELECT USING (
     EXISTS (
@@ -182,6 +186,7 @@ CREATE POLICY "Organizers can view participant labels" ON participant_labels
     )
   );
 
+DROP POLICY IF EXISTS "Organizers can create participant labels" ON participant_labels;
 CREATE POLICY "Organizers can create participant labels" ON participant_labels
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -192,6 +197,7 @@ CREATE POLICY "Organizers can create participant labels" ON participant_labels
     )
   );
 
+DROP POLICY IF EXISTS "Organizers can delete participant labels" ON participant_labels;
 CREATE POLICY "Organizers can delete participant labels" ON participant_labels
   FOR DELETE USING (
     EXISTS (
@@ -207,12 +213,14 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
   INSERT INTO public.organizers (id, name)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name');
+  VALUES (new.id, new.raw_user_meta_data->>'full_name')
+  ON CONFLICT (id) DO NOTHING;
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger to create organizer profile on signup
+-- Drop trigger if exists and recreate
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

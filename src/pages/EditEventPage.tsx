@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { supabase } from '@/lib/supabase';
+import type { Json } from '@/types/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Trash2, Minus, Save, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
@@ -31,7 +32,7 @@ interface EventData {
   datetime: string | null;
   location: string | null;
   max_participants: number | null;
-  is_private: boolean;
+  is_private: boolean | null;
   custom_fields: CustomField[];
 }
 
@@ -67,20 +68,23 @@ export function EditEventPage() {
         .from('events')
         .select('*')
         .eq('id', eventId)
-        .eq('organizer_id', user?.id)
+        .eq('organizer_id', user?.id || '')
         .single();
 
       if (error) throw error;
 
-      setEvent(data);
+      setEvent({
+        ...data,
+        custom_fields: (data.custom_fields as unknown as CustomField[]) || [],
+      });
       setFormData({
         name: data.name,
         description: data.description || '',
         datetime: data.datetime ? new Date(data.datetime).toISOString().slice(0, 16) : '',
         location: data.location || '',
-        is_private: data.is_private,
+        is_private: data.is_private ?? false,
       });
-      setCustomFields(data.custom_fields || []);
+      setCustomFields((data.custom_fields as unknown as CustomField[]) || []);
       setMaxParticipants(data.max_participants || 50);
     } catch (error) {
       console.error('Error loading event:', error);
@@ -140,7 +144,7 @@ export function EditEventPage() {
           location: formData.location || null,
           max_participants: maxParticipants,
           is_private: formData.is_private,
-          custom_fields: customFields.filter((f) => f.label),
+          custom_fields: customFields.filter((f) => f.label) as unknown as Json,
         })
         .eq('id', event.id)
         .eq('organizer_id', user.id);

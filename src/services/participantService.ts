@@ -1,34 +1,34 @@
 import { supabase } from '@/lib/supabase';
+import type {
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+  ResponseRecord,
+  CustomField,
+  Json,
+} from '@/types/app.types';
 
-export interface Participant {
-  id: string;
-  event_id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  notes?: string | null;
-  user_id?: string | null;
-  responses: Record<string, any>;
+export interface Participant extends Omit<Tables<'participants'>, 'responses' | 'created_at'> {
   created_at: string;
   labels?: Label[];
+  responses: ResponseRecord;
 }
 
-export interface Label {
-  id: string;
-  event_id?: string;
-  name: string;
-  color: string;
-}
+export interface Label extends Tables<'labels'> {}
 
-export interface ParticipantLabel {
-  id: string;
-  participant_id: string;
-  label_id: string;
-  created_at: string;
+export interface ParticipantLabel extends Tables<'participant_labels'> {}
+
+// Helper function to convert database participant to our Participant type
+function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Participant {
+  return {
+    ...dbParticipant,
+    created_at: dbParticipant.created_at || new Date().toISOString(),
+    responses: (dbParticipant.responses as ResponseRecord) || {},
+  };
 }
 
 export const participantService = {
-  async getParticipantsByEventId(eventId: string) {
+  async getParticipantsByEventId(eventId: string): Promise<Participant[]> {
     const { data: participants, error: participantsError } = await supabase
       .from('participants')
       .select('*')
@@ -52,7 +52,7 @@ export const participantService = {
             acc[pl.participant_id] = [];
           }
           if (pl.labels) {
-            acc[pl.participant_id].push(pl.labels);
+            acc[pl.participant_id].push(pl.labels as Label);
           }
           return acc;
         },
@@ -60,12 +60,13 @@ export const participantService = {
       ) || {};
 
     return participants.map((p) => ({
-      ...p,
+      ...dbParticipantToParticipant(p),
       labels: labelMap[p.id] || [],
+      responses: (p.responses as ResponseRecord) || {},
     }));
   },
 
-  async getParticipantById(participantId: string) {
+  async getParticipantById(participantId: string): Promise<Participant> {
     const { data, error } = await supabase
       .from('participants')
       .select('*')
@@ -73,45 +74,74 @@ export const participantService = {
       .single();
 
     if (error) throw error;
-    return data;
+    if (!data) throw new Error('Participant not found');
+
+    return dbParticipantToParticipant(data);
   },
 
-  async createParticipant(participant: Omit<Participant, 'id' | 'created_at' | 'labels'>) {
+  async createParticipant(
+    participant: Omit<Participant, 'id' | 'created_at' | 'labels'>
+  ): Promise<Participant> {
+    const insertData: TablesInsert<'participants'> = {
+      event_id: participant.event_id,
+      name: participant.name,
+      email: participant.email,
+      phone: participant.phone,
+      notes: participant.notes,
+      user_id: participant.user_id,
+      responses: participant.responses as Json,
+    };
+
     const { data, error } = await supabase
       .from('participants')
-      .insert(participant)
+      .insert(insertData)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    if (!data) throw new Error('Failed to create participant');
+
+    return dbParticipantToParticipant(data);
   },
 
-  async updateParticipant(participantId: string, updates: Partial<Participant>) {
+  async updateParticipant(
+    participantId: string,
+    updates: Partial<Participant>
+  ): Promise<Participant> {
+    const updateData: TablesUpdate<'participants'> = {};
+
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.email !== undefined) updateData.email = updates.email;
+    if (updates.phone !== undefined) updateData.phone = updates.phone;
+    if (updates.notes !== undefined) updateData.notes = updates.notes;
+    if (updates.responses !== undefined) updateData.responses = updates.responses as Json;
+
     const { data, error } = await supabase
       .from('participants')
-      .update(updates)
+      .update(updateData)
       .eq('id', participantId)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    if (!data) throw new Error('Failed to update participant');
+
+    return dbParticipantToParticipant(data);
   },
 
-  async deleteParticipant(participantId: string) {
+  async deleteParticipant(participantId: string): Promise<void> {
     const { error } = await supabase.from('participants').delete().eq('id', participantId);
 
     if (error) throw error;
   },
 
-  async bulkDeleteParticipants(participantIds: string[]) {
+  async bulkDeleteParticipants(participantIds: string[]): Promise<void> {
     const { error } = await supabase.from('participants').delete().in('id', participantIds);
 
     if (error) throw error;
   },
 
-  async getParticipantByUserAndEvent(userId: string, eventId: string) {
+  async getParticipantByUserAndEvent(userId: string, eventId: string): Promise<Participant | null> {
     const { data } = await supabase
       .from('participants')
       .select('*')
@@ -119,10 +149,12 @@ export const participantService = {
       .eq('event_id', eventId)
       .single();
 
-    return data;
+    if (!data) return null;
+
+    return dbParticipantToParticipant(data);
   },
 
-  async addLabelToParticipant(participantId: string, labelId: string) {
+  async addLabelToParticipant(participantId: string, labelId: string): Promise<void> {
     const { data: existing } = await supabase
       .from('participant_labels')
       .select('id')
@@ -140,7 +172,7 @@ export const participantService = {
     if (error) throw error;
   },
 
-  async removeLabelFromParticipant(participantId: string, labelId: string) {
+  async removeLabelFromParticipant(participantId: string, labelId: string): Promise<void> {
     const { error } = await supabase
       .from('participant_labels')
       .delete()
@@ -153,8 +185,8 @@ export const participantService = {
   async exportParticipantsToCSV(
     participants: Participant[],
     eventName: string,
-    customFields: any[]
-  ) {
+    customFields: CustomField[]
+  ): Promise<void> {
     const headers = ['Name', 'Email', 'Phone', 'Notes', 'Labels'];
 
     customFields?.forEach((field) => {
@@ -175,7 +207,7 @@ export const participantService = {
         if (Array.isArray(response)) {
           row.push(response.join(', '));
         } else {
-          row.push(response || '');
+          row.push(String(response || ''));
         }
       });
 

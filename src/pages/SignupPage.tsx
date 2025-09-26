@@ -18,9 +18,9 @@ interface CustomField {
 interface EventData {
   id: string;
   name: string;
-  description: string;
-  datetime: string;
-  location: string;
+  description: string | null;
+  datetime: string | null;
+  location: string | null;
   custom_fields: CustomField[];
 }
 
@@ -40,7 +40,7 @@ export function SignupPage() {
     name: '',
     email: '',
     phone: '',
-    responses: {} as Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+    responses: {} as Record<string, string | number | string[]>,
   });
 
   useEffect(() => {
@@ -55,9 +55,14 @@ export function SignupPage() {
       const { data, error } = await supabase.from('events').select('*').eq('id', eventId).single();
 
       if (error) throw error;
-      setEvent(data);
-    } catch (err: any) {
-      // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+      setEvent({
+        ...data,
+        description: data.description || '',
+        datetime: data.datetime || '',
+        location: data.location || '',
+        custom_fields: (data.custom_fields as unknown as CustomField[]) || [],
+      });
+    } catch (err) {
       setError('Event not found');
     } finally {
       setLoading(false);
@@ -109,9 +114,9 @@ export function SignupPage() {
 
       if (error) throw error;
       setSubmitted(true);
-    } catch (err: any) {
-      // eslint-disable-line @typescript-eslint/no-explicit-any
-      setError(err.message || 'Failed to sign up');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to sign up');
     } finally {
       setSubmitting(false);
     }

@@ -22,9 +22,9 @@ export function RegisterPage() {
     try {
       await signUp(email, password, name);
       navigate('/');
-    } catch (err: any) {
-      // eslint-disable-line @typescript-eslint/no-explicit-any
-      setError(err.message || 'Failed to sign up');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to sign up');
     } finally {
       setLoading(false);
     }

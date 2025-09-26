@@ -13,8 +13,13 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+interface MockUser {
+  id: string;
+  email: string;
+}
+
 const mockUseAuth = vi.fn(() => ({
-  user: { id: 'user-123', email: 'test@example.com' },
+  user: { id: 'user-123', email: 'test@example.com' } as MockUser,
   loading: false,
 }));
 
@@ -149,7 +154,7 @@ describe('EventsPage', () => {
 
   it('displays sign in prompt when user is not authenticated', () => {
     mockUseAuth.mockReturnValue({
-      user: null,
+      user: null as any,
       loading: false,
     });
 

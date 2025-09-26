@@ -21,9 +21,9 @@ export function LoginPage() {
     try {
       await signIn(email, password);
       navigate('/');
-    } catch (err: any) {
-      // eslint-disable-line @typescript-eslint/no-explicit-any
-      setError(err.message || 'Failed to sign in');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to sign in');
     } finally {
       setLoading(false);
     }

@@ -24,6 +24,7 @@ import {
   type Participant as ServiceParticipant,
   type Label as LabelType,
 } from '@/services';
+import type { CustomField } from '@/types/app.types';
 import {
   Users,
   Share2,
@@ -59,8 +60,8 @@ interface EventData {
   location: string | null;
   max_participants: number | null;
   organizer_id: string;
-  is_private: boolean;
-  custom_fields: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  is_private: boolean | null;
+  custom_fields: CustomField[];
 }
 
 export function EventDetailPage() {
@@ -123,7 +124,10 @@ export function EventDetailPage() {
         }
       }
 
-      setEvent(eventData);
+      setEvent({
+        ...eventData,
+        custom_fields: eventData.custom_fields as CustomField[],
+      });
 
       // Load labels
       const labelsData = await labelService.getLabelsByEventId(eventId);
@@ -194,7 +198,7 @@ export function EventDetailPage() {
       ];
       if (event?.custom_fields) {
         event.custom_fields.forEach((field) => {
-          row.push(p.responses[field.id] || '');
+          row.push(String(p.responses[field.id || ''] || ''));
         });
       }
       return row;
@@ -242,7 +246,13 @@ export function EventDetailPage() {
         email: userRegistration.email || '',
         phone: userRegistration.phone || '',
         notes: userRegistration.notes || '',
-        responses: userRegistration.responses || {},
+        responses: Object.entries(userRegistration.responses || {}).reduce(
+          (acc, [key, val]) => {
+            acc[key] = String(val);
+            return acc;
+          },
+          {} as Record<string, string>
+        ),
       });
     } else {
       // Reset form for new registration
@@ -299,10 +309,10 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
-    } catch (err: any) {
-      // eslint-disable-line @typescript-eslint/no-explicit-any
+    } catch (err) {
+      const error = err as Error;
       setSignupError(
-        err.message || 'Failed to ' + (userRegistration ? 'update registration' : 'sign up')
+        error.message || 'Failed to ' + (userRegistration ? 'update registration' : 'sign up')
       );
     } finally {
       setSubmitting(false);
@@ -331,9 +341,9 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
-    } catch (err: any) {
-      // eslint-disable-line @typescript-eslint/no-explicit-any
-      setSignupError(err.message || 'Failed to withdraw from event');
+    } catch (err) {
+      const error = err as Error;
+      setSignupError(error.message || 'Failed to withdraw from event');
     } finally {
       setSubmitting(false);
     }
@@ -732,13 +742,13 @@ export function EventDetailPage() {
                           </Label>
                           {field.type === 'select' && field.options ? (
                             <Select
-                              value={signupForm.responses[field.id] || ''}
+                              value={signupForm.responses[field.id || ''] || ''}
                               onValueChange={(value) =>
                                 setSignupForm((prev) => ({
                                   ...prev,
                                   responses: {
                                     ...prev.responses,
-                                    [field.id]: value,
+                                    [field.id || '']: value,
                                   },
                                 }))
                               }
@@ -758,13 +768,13 @@ export function EventDetailPage() {
                             <Input
                               id={`signup-${field.id}`}
                               type={field.type}
-                              value={signupForm.responses[field.id] || ''}
+                              value={signupForm.responses[field.id || ''] || ''}
                               onChange={(e) =>
                                 setSignupForm((prev) => ({
                                   ...prev,
                                   responses: {
                                     ...prev.responses,
-                                    [field.id]: e.target.value,
+                                    [field.id || '']: e.target.value,
                                   },
                                 }))
                               }
@@ -881,7 +891,8 @@ export function EventDetailPage() {
                     <div className="text-sm space-y-0.5">
                       {event.custom_fields.map((field) => (
                         <div key={field.id}>
-                          {field.label}: {selectedParticipant.responses[field.id] || 'Not provided'}
+                          {field.label}:{' '}
+                          {selectedParticipant.responses[field.id || ''] || 'Not provided'}
                         </div>
                       ))}
                     </div>

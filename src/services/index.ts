@@ -1,4 +1,11 @@
-export { eventService, type Event } from './eventService';
-export { participantService, type Participant, type ParticipantLabel } from './participantService';
-export { labelService, type Label } from './labelService';
-export { organizerService, type Organizer } from './organizerService';
+export { eventService } from './eventService';
+export type { Event, Label as EventLabel } from './eventService';
+
+export { participantService } from './participantService';
+export type { Participant, Label as ParticipantLabel } from './participantService';
+
+export { labelService } from './labelService';
+export type { Label } from './labelService';
+
+export { organizerService } from './organizerService';
+export type { Organizer } from './organizerService';
