@@ -296,10 +296,6 @@ export function EventDetailPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('=== FORM SUBMISSION STARTED ===');
-    console.log('isClaimingForOther:', isClaimingForOther);
-    console.log('signupForm:', signupForm);
-    console.log('user:', user);
 
     if (!event) return;
 
@@ -307,12 +303,7 @@ export function EventDetailPage() {
     setSignupError('');
 
     try {
-      console.log('About to call participant service...');
-      console.log('userRegistration exists?', !!userRegistration);
-      console.log('userRegistration:', userRegistration);
-
       if (userRegistration && !isClaimingForOther) {
-        console.log('Branch: Updating existing registration');
         // Update existing registration (only when not claiming for others)
         await participantService.updateParticipant(userRegistration.id, {
           name: signupForm.name,
@@ -322,11 +313,8 @@ export function EventDetailPage() {
           responses: signupForm.responses,
         });
       } else {
-        console.log('Branch: Creating new registration');
-        console.log('isClaimingForOther:', isClaimingForOther);
         // Create new registration
         if (isClaimingForOther) {
-          console.log('Sub-branch: Claiming for other');
           // Creating a participant for someone else (claimed spot)
           const participantData = {
             event_id: event.id,
@@ -345,19 +333,8 @@ export function EventDetailPage() {
             claimingUserName: user?.user_metadata?.full_name || user?.email || 'User',
           };
 
-          console.log('Frontend - Claiming spot with data:', participantData);
-          console.log('Frontend - Claiming options:', claimingOptions);
-          console.log('User details:', {
-            id: user?.id,
-            email: user?.email,
-            metadata: user?.user_metadata,
-            fullName: user?.user_metadata?.full_name,
-          });
-
           try {
-            console.log('About to call participantService.createParticipant...');
             await participantService.createParticipant(participantData, claimingOptions);
-            console.log('participantService.createParticipant completed successfully');
           } catch (serviceError) {
             console.error('Error in participantService.createParticipant:', serviceError);
             throw serviceError;
@@ -833,9 +810,7 @@ export function EventDetailPage() {
       <Drawer
         open={showSignupDrawer}
         onOpenChange={(open) => {
-          console.log('Drawer state changing to:', open);
           if (!open) {
-            console.log('Drawer closing, resetting claiming state');
             setIsClaimingForOther(false);
           }
           setShowSignupDrawer(open);
