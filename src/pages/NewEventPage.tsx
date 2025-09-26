@@ -1,75 +1,76 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
-import { ArrowLeft, Plus, Trash2, Minus, Lock, Unlock } from 'lucide-react'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { Plus, Trash2, Minus, Lock, Unlock } from 'lucide-react';
+import { TopNav } from '@/components/TopNav';
 
 interface CustomField {
-  id: string
-  label: string
-  type: 'text' | 'email' | 'tel' | 'number' | 'select'
-  required: boolean
-  options?: string[]
+  id: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'number' | 'select';
+  required: boolean;
+  options?: string[];
 }
 
 export function NewEventPage() {
-  const navigate = useNavigate()
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     datetime: '',
     location: '',
     max_participants: null as number | null,
-    is_private: false
-  })
-  const [customFields, setCustomFields] = useState<CustomField[]>([])
-  const [maxParticipants, setMaxParticipants] = useState<number>(50)
+    is_private: false,
+  });
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [maxParticipants, setMaxParticipants] = useState<number>(50);
 
   const addCustomField = () => {
     const newField: CustomField = {
       id: Date.now().toString(),
       label: '',
       type: 'text',
-      required: false
-    }
-    setCustomFields([...customFields, newField])
-  }
+      required: false,
+    };
+    setCustomFields([...customFields, newField]);
+  };
 
   const updateCustomField = (id: string, updates: Partial<CustomField>) => {
-    setCustomFields(customFields.map(field =>
-      field.id === id ? { ...field, ...updates } : field
-    ))
-  }
+    setCustomFields(
+      customFields.map((field) => (field.id === id ? { ...field, ...updates } : field))
+    );
+  };
 
   const removeCustomField = (id: string) => {
-    setCustomFields(customFields.filter(field => field.id !== id))
-  }
+    setCustomFields(customFields.filter((field) => field.id !== id));
+  };
 
   const incrementMaxParticipants = () => {
-    setMaxParticipants(prev => Math.min(prev + 1, 999))
-  }
+    setMaxParticipants((prev) => Math.min(prev + 1, 999));
+  };
 
   const decrementMaxParticipants = () => {
-    setMaxParticipants(prev => Math.max(prev - 1, 1))
-  }
+    setMaxParticipants((prev) => Math.max(prev - 1, 1));
+  };
 
   const handleMaxParticipantsChange = (value: string) => {
-    const num = parseInt(value)
+    const num = parseInt(value);
     if (!isNaN(num) && num >= 1 && num <= 999) {
-      setMaxParticipants(num)
+      setMaxParticipants(num);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
+    e.preventDefault();
+    if (!user) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('events')
@@ -81,77 +82,80 @@ export function NewEventPage() {
           location: formData.location || null,
           max_participants: maxParticipants,
           is_private: formData.is_private,
-          custom_fields: customFields.filter(f => f.label)
+          custom_fields: customFields.filter((f) => f.label),
         })
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
-      navigate(`/events/${data.id}`)
+      if (error) throw error;
+      navigate(`/events/${data.id}`);
     } catch (error) {
-      console.error('Error creating event:', error)
+      console.error('Error creating event:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center justify-center px-4 py-2 relative">
-          <button
-            onClick={() => navigate('/events')}
-            className="absolute left-4"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-lg font-semibold">Create Event</h1>
-        </div>
-      </div>
+      <TopNav title="Create Event" showBackButton backPath="/events" sticky />
 
       <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-3">
         <div className="bg-white rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm">Event Name *</Label>
+            <Label htmlFor="name" className="text-sm">
+              Event Name *
+            </Label>
             <Input
               id="name"
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               required
               className="h-10 text-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm">Description</Label>
+            <Label htmlFor="description" className="text-sm">
+              Description
+            </Label>
             <textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
               className="w-full px-3 py-2 text-sm border rounded-md resize-none"
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="datetime" className="text-sm">Date & Time</Label>
+            <Label htmlFor="datetime" className="text-sm">
+              Date & Time
+            </Label>
             <Input
               id="datetime"
               type="datetime-local"
               value={formData.datetime}
-              onChange={(e) => setFormData(prev => ({ ...prev, datetime: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
               className="h-10 text-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location" className="text-sm">Location</Label>
+            <Label htmlFor="location" className="text-sm">
+              Location
+            </Label>
             <Input
               id="location"
               type="text"
               value={formData.location}
-              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
               className="h-10 text-sm"
             />
           </div>
@@ -192,11 +196,14 @@ export function NewEventPage() {
             <Label className="text-sm">Event Privacy</Label>
             <button
               type="button"
-              onClick={() => setFormData(prev => ({ ...prev, is_private: !prev.is_private }))}
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_private: !prev.is_private,
+                }))
+              }
               className={`flex items-center justify-between w-full p-3 rounded-lg border-2 transition-colors ${
-                formData.is_private
-                  ? 'border-red-200 bg-red-50'
-                  : 'border-green-200 bg-green-50'
+                formData.is_private ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
               }`}
             >
               <div className="flex items-center space-x-2">
@@ -205,9 +212,11 @@ export function NewEventPage() {
                 ) : (
                   <Unlock className="h-4 w-4 text-green-600" />
                 )}
-                <span className={`font-medium ${
-                  formData.is_private ? 'text-red-700' : 'text-green-700'
-                }`}>
+                <span
+                  className={`font-medium ${
+                    formData.is_private ? 'text-red-700' : 'text-green-700'
+                  }`}
+                >
                   {formData.is_private ? 'Private Event' : 'Public Event'}
                 </span>
               </div>
@@ -215,8 +224,7 @@ export function NewEventPage() {
             <p className="text-xs text-gray-500">
               {formData.is_private
                 ? 'Only people you invite can view and sign up for this event'
-                : 'Anyone with the link can view and sign up for this event'
-              }
+                : 'Anyone with the link can view and sign up for this event'}
             </p>
           </div>
         </div>
@@ -263,10 +271,12 @@ export function NewEventPage() {
                   <div className="flex items-center gap-2">
                     <select
                       value={field.type}
-                      onChange={(e) => updateCustomField(field.id, {
-                        type: e.target.value as CustomField['type'],
-                        options: e.target.value === 'select' ? [''] : undefined
-                      })}
+                      onChange={(e) =>
+                        updateCustomField(field.id, {
+                          type: e.target.value as CustomField['type'],
+                          options: e.target.value === 'select' ? [''] : undefined,
+                        })
+                      }
                       className="flex-1 h-9 px-2 text-sm border rounded"
                     >
                       <option value="text">Text</option>
@@ -279,7 +289,11 @@ export function NewEventPage() {
                       <input
                         type="checkbox"
                         checked={field.required}
-                        onChange={(e) => updateCustomField(field.id, { required: e.target.checked })}
+                        onChange={(e) =>
+                          updateCustomField(field.id, {
+                            required: e.target.checked,
+                          })
+                        }
                       />
                       Required
                     </label>
@@ -289,9 +303,11 @@ export function NewEventPage() {
                       <Label className="text-xs">Options (one per line)</Label>
                       <textarea
                         value={field.options?.join('\n') || ''}
-                        onChange={(e) => updateCustomField(field.id, {
-                          options: e.target.value.split('\n').filter(Boolean)
-                        })}
+                        onChange={(e) =>
+                          updateCustomField(field.id, {
+                            options: e.target.value.split('\n').filter(Boolean),
+                          })
+                        }
                         placeholder="Option 1&#10;Option 2&#10;Option 3"
                         className="w-full px-2 py-1 text-sm border rounded resize-none"
                         rows={3}
@@ -303,7 +319,6 @@ export function NewEventPage() {
             </div>
           )}
         </div>
-
       </form>
 
       {/* Create Event Button */}
@@ -319,5 +334,5 @@ export function NewEventPage() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

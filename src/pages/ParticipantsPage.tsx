@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/hooks/useAuth";
-import { Users, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { Users, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { TopNav } from '@/components/TopNav';
 
 interface Participant {
   id: string;
@@ -25,7 +26,7 @@ export function ParticipantsPage() {
   const { user } = useAuth();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -37,9 +38,9 @@ export function ParticipantsPage() {
     try {
       // First get all events for this organizer
       const { data: events } = await supabase
-        .from("events")
-        .select("id")
-        .eq("organizer_id", user?.id);
+        .from('events')
+        .select('id')
+        .eq('organizer_id', user?.id);
 
       if (!events || events.length === 0) {
         setParticipants([]);
@@ -51,7 +52,7 @@ export function ParticipantsPage() {
 
       // Get all participants for these events
       const { data: participantsData } = await supabase
-        .from("participants")
+        .from('participants')
         .select(
           `
           *,
@@ -59,31 +60,31 @@ export function ParticipantsPage() {
             id,
             name
           )
-        `,
+        `
         )
-        .in("event_id", eventIds)
-        .order("created_at", { ascending: false });
+        .in('event_id', eventIds)
+        .order('created_at', { ascending: false });
 
       if (participantsData) {
         // Get labels for each participant
         const participantsWithLabels = await Promise.all(
           participantsData.map(async (p) => {
             const { data: labelData } = await supabase
-              .from("participant_labels")
-              .select("labels!inner(*)")
-              .eq("participant_id", p.id);
+              .from('participant_labels')
+              .select('labels!inner(*)')
+              .eq('participant_id', p.id);
 
             return {
               ...p,
               event: p.events,
               labels: labelData?.map((l) => l.labels) || [],
             };
-          }),
+          })
         );
         setParticipants(participantsWithLabels as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       }
     } catch (error) {
-      console.error("Error loading participants:", error);
+      console.error('Error loading participants:', error);
     } finally {
       setLoading(false);
     }
@@ -94,7 +95,7 @@ export function ParticipantsPage() {
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.phone?.includes(searchQuery) ||
-      p.event.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      p.event.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (!user) {
@@ -102,10 +103,8 @@ export function ParticipantsPage() {
       <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-gray-500 mb-4">
-            Please sign in to view participants
-          </p>
-          <Button size="sm" onClick={() => navigate("/auth/login")}>
+          <p className="text-sm text-gray-500 mb-4">Please sign in to view participants</p>
+          <Button size="sm" onClick={() => navigate('/auth/login')}>
             Sign In
           </Button>
         </div>
@@ -115,17 +114,11 @@ export function ParticipantsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="px-4 py-2">
-          <h1 className="text-lg font-semibold text-center">All Participants</h1>
-        </div>
-      </div>
+      <TopNav title="All Participants" sticky />
 
       <div className="p-3 space-y-3">
         {loading ? (
-          <div className="text-sm text-gray-500 text-center py-8">
-            Loading...
-          </div>
+          <div className="text-sm text-gray-500 text-center py-8">Loading...</div>
         ) : participants.length === 0 ? (
           <div className="bg-white rounded-lg p-6 border text-center">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
@@ -158,19 +151,12 @@ export function ParticipantsPage() {
                 </div>
               ) : (
                 filteredParticipants.map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="p-3 hover:bg-gray-50 transition-colors"
-                  >
+                  <div key={participant.id} className="p-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium">
-                          {participant.name}
-                        </div>
+                        <div className="text-sm font-medium">{participant.name}</div>
                         <div className="text-xs text-gray-500">
-                          {participant.email ||
-                            participant.phone ||
-                            "No contact info"}
+                          {participant.email || participant.phone || 'No contact info'}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
                           Event: {participant.event.name}
@@ -178,11 +164,7 @@ export function ParticipantsPage() {
                         {participant.labels.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {participant.labels.map((label) => (
-                              <Badge
-                                key={label.id}
-                                variant="outline"
-                                className="text-xs h-5"
-                              >
+                              <Badge key={label.id} variant="outline" className="text-xs h-5">
                                 {label.name}
                               </Badge>
                             ))}

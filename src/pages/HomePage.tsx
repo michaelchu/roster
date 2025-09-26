@@ -1,17 +1,18 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Calendar, Users, Plus } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/lib/supabase";
+} from '@/components/ui/select';
+import { Calendar, Users, Plus } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
+import { TopNav } from '@/components/TopNav';
 
 interface UpcomingEvent {
   id: string;
@@ -27,7 +28,7 @@ export function HomePage() {
   const { user } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<"week" | "month">("week");
+  const [timePeriod, setTimePeriod] = useState<'week' | 'month'>('week');
 
   useEffect(() => {
     if (user) {
@@ -42,7 +43,7 @@ export function HomePage() {
       let startDate: Date;
       let endDate: Date;
 
-      if (timePeriod === "week") {
+      if (timePeriod === 'week') {
         // Get start and end of current week
         startDate = new Date(now);
         startDate.setDate(now.getDate() - now.getDay()); // Sunday
@@ -64,20 +65,20 @@ export function HomePage() {
 
       // Get events the user organized
       const { data: organizedEvents } = await supabase
-        .from("events")
-        .select("id, name, datetime, location")
-        .eq("organizer_id", user?.id)
-        .gte("datetime", startDate.toISOString())
-        .lte("datetime", endDate.toISOString())
-        .order("datetime", { ascending: true });
+        .from('events')
+        .select('id, name, datetime, location')
+        .eq('organizer_id', user?.id)
+        .gte('datetime', startDate.toISOString())
+        .lte('datetime', endDate.toISOString())
+        .order('datetime', { ascending: true });
 
       if (organizedEvents) {
         // Get participant counts for organized events
         for (const event of organizedEvents) {
           const { count } = await supabase
-            .from("participants")
-            .select("*", { count: "exact", head: true })
-            .eq("event_id", event.id);
+            .from('participants')
+            .select('*', { count: 'exact', head: true })
+            .eq('event_id', event.id);
 
           events.push({
             ...event,
@@ -89,7 +90,7 @@ export function HomePage() {
 
       // Get events the user signed up for as a participant (if they have user_id stored)
       const { data: participantEvents } = await supabase
-        .from("participants")
+        .from('participants')
         .select(
           `
           events!inner (
@@ -99,11 +100,11 @@ export function HomePage() {
             location,
             organizer_id
           )
-        `,
+        `
         )
-        .eq("user_id", user?.id)
-        .gte("events.datetime", startDate.toISOString())
-        .lte("events.datetime", endDate.toISOString());
+        .eq('user_id', user?.id)
+        .gte('events.datetime', startDate.toISOString())
+        .lte('events.datetime', endDate.toISOString());
 
       if (participantEvents) {
         for (const participantEvent of participantEvents) {
@@ -131,7 +132,7 @@ export function HomePage() {
 
       setUpcomingEvents(events.slice(0, 3)); // Show max 3 events
     } catch (error) {
-      console.error("Error loading upcoming events:", error);
+      console.error('Error loading upcoming events:', error);
     } finally {
       setLoading(false);
     }
@@ -139,11 +140,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
-      <div className="bg-white border-b">
-        <div className="px-4 py-2">
-          <h1 className="text-lg font-semibold text-center">Venu</h1>
-        </div>
-      </div>
+      <TopNav title="Venu" />
 
       <div className="p-3 space-y-3">
         {user ? (
@@ -157,7 +154,7 @@ export function HomePage() {
                   variant="outline"
                   size="sm"
                   className="h-20 flex-col gap-2"
-                  onClick={() => navigate("/events/new")}
+                  onClick={() => navigate('/events/new')}
                 >
                   <Plus className="h-5 w-5" />
                   <span className="text-xs">Create Event</span>
@@ -166,7 +163,7 @@ export function HomePage() {
                   variant="outline"
                   size="sm"
                   className="h-20 flex-col gap-2"
-                  onClick={() => navigate("/events")}
+                  onClick={() => navigate('/events')}
                 >
                   <Calendar className="h-5 w-5" />
                   <span className="text-xs">My Events</span>
@@ -180,9 +177,7 @@ export function HomePage() {
                   <h2 className="text-sm font-medium">Upcoming Events</h2>
                   <Select
                     value={timePeriod}
-                    onValueChange={(value: "week" | "month") =>
-                      setTimePeriod(value)
-                    }
+                    onValueChange={(value: 'week' | 'month') => setTimePeriod(value)}
                   >
                     <SelectTrigger className="w-32 h-7 text-xs">
                       <SelectValue />
@@ -196,12 +191,10 @@ export function HomePage() {
               </div>
 
               {loading ? (
-                <div className="p-3 text-xs text-gray-500 text-center">
-                  Loading...
-                </div>
+                <div className="p-3 text-xs text-gray-500 text-center">Loading...</div>
               ) : upcomingEvents.length === 0 ? (
                 <div className="p-3 text-xs text-gray-500 text-center">
-                  No events {timePeriod === "week" ? "this week" : "this month"}
+                  No events {timePeriod === 'week' ? 'this week' : 'this month'}
                 </div>
               ) : (
                 <div className="divide-y">
@@ -217,12 +210,10 @@ export function HomePage() {
                             {event.name}
                           </h3>
                           <Badge
-                            variant={
-                              event.isOrganizer ? "default" : "secondary"
-                            }
+                            variant={event.isOrganizer ? 'default' : 'secondary'}
                             className="text-xs h-5 px-2 flex-shrink-0"
                           >
-                            {event.isOrganizer ? "Organizer" : "Attending"}
+                            {event.isOrganizer ? 'Organizer' : 'Attending'}
                           </Badge>
                         </div>
                         <div className="flex items-end justify-between">
@@ -231,16 +222,13 @@ export function HomePage() {
                               <div className="flex items-center gap-1.5 text-xs text-gray-600">
                                 <Calendar className="h-3 w-3 flex-shrink-0" />
                                 <span>
-                                  {new Date(event.datetime).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      weekday: "short",
-                                      month: "short",
-                                      day: "numeric",
-                                      hour: "numeric",
-                                      minute: "2-digit",
-                                    },
-                                  )}
+                                  {new Date(event.datetime).toLocaleDateString('en-US', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                  })}
                                 </span>
                               </div>
                             )}
@@ -250,15 +238,12 @@ export function HomePage() {
                               </div>
                             )}
                           </div>
-                          {event.isOrganizer &&
-                            event.participantCount !== undefined && (
-                              <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                                <Users className="h-3 w-3" />
-                                <span className="font-medium">
-                                  {event.participantCount}
-                                </span>
-                              </div>
-                            )}
+                          {event.isOrganizer && event.participantCount !== undefined && (
+                            <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                              <Users className="h-3 w-3" />
+                              <span className="font-medium">{event.participantCount}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </button>
@@ -271,14 +256,8 @@ export function HomePage() {
           <div className="bg-white rounded-lg p-6 border text-center">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
             <h2 className="text-base font-medium mb-2">Welcome to Venu</h2>
-            <p className="text-xs text-gray-500 mb-4">
-              Sign in to create and manage your events
-            </p>
-            <Button
-              size="sm"
-              className="w-full"
-              onClick={() => navigate("/auth/login")}
-            >
+            <p className="text-xs text-gray-500 mb-4">Sign in to create and manage your events</p>
+            <Button size="sm" className="w-full" onClick={() => navigate('/auth/login')}>
               Sign In
             </Button>
           </div>

@@ -1,43 +1,35 @@
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/hooks/useAuth'
-import { User, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { User, LogOut } from 'lucide-react';
+import { TopNav } from '@/components/TopNav';
 
 export function SettingsPage() {
-  const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
-  }
+    await signOut();
+    navigate('/');
+  };
 
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-gray-500 mb-4">
-            Please sign in to access settings
-          </p>
-          <Button
-            size="sm"
-            onClick={() => navigate('/auth/login')}
-          >
+          <p className="text-sm text-gray-500 mb-4">Please sign in to access settings</p>
+          <Button size="sm" onClick={() => navigate('/auth/login')}>
             Sign In
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
-      <div className="bg-white border-b">
-        <div className="px-4 py-2">
-          <h1 className="text-lg font-semibold text-center">Settings</h1>
-        </div>
-      </div>
+      <TopNav title="Settings" />
 
       <div className="p-3 space-y-3">
         <div className="bg-white rounded-lg border overflow-hidden">
@@ -64,17 +56,11 @@ export function SettingsPage() {
                 <div className="text-xs text-gray-500">Update your information</div>
               </div>
             </button>
-
           </div>
         </div>
 
         <div className="bg-white rounded-lg border p-3">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="w-full"
-            onClick={handleSignOut}
-          >
+          <Button variant="destructive" size="sm" className="w-full" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
@@ -95,5 +81,5 @@ export function SettingsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

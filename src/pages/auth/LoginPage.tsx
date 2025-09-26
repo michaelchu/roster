@@ -1,32 +1,33 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useAuth } from '@/hooks/useAuth'
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/useAuth';
 
 export function LoginPage() {
-  const navigate = useNavigate()
-  const { signIn } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      await signIn(email, password)
-      navigate('/')
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      setError(err.message || 'Failed to sign in')
+      await signIn(email, password);
+      navigate('/');
+    } catch (err: any) {
+      // eslint-disable-line @typescript-eslint/no-explicit-any
+      setError(err.message || 'Failed to sign in');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,7 +40,9 @@ export function LoginPage() {
       <form onSubmit={handleSubmit} className="p-3 space-y-3">
         <div className="bg-white rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm">Email</Label>
+            <Label htmlFor="email" className="text-sm">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -52,7 +55,9 @@ export function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm">Password</Label>
+            <Label htmlFor="password" className="text-sm">
+              Password
+            </Label>
             <Input
               id="password"
               type="password"
@@ -64,18 +69,9 @@ export function LoginPage() {
             />
           </div>
 
-          {error && (
-            <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{error}</div>}
 
-          <Button
-            type="submit"
-            className="w-full"
-            size="sm"
-            disabled={loading}
-          >
+          <Button type="submit" className="w-full" size="sm" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
 
@@ -88,5 +84,5 @@ export function LoginPage() {
         </div>
       </form>
     </div>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -10,15 +10,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Plus, Trash2, Minus, Save, Lock, Unlock } from "lucide-react";
+} from '@/components/ui/dialog';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { Plus, Trash2, Minus, Save, Lock, Unlock } from 'lucide-react';
+import { TopNav } from '@/components/TopNav';
 
 interface CustomField {
   id: string;
   label: string;
-  type: "text" | "email" | "tel" | "number" | "select";
+  type: 'text' | 'email' | 'tel' | 'number' | 'select';
   required: boolean;
   options?: string[];
 }
@@ -42,10 +43,10 @@ export function EditEventPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [event, setEvent] = useState<EventData | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    datetime: "",
-    location: "",
+    name: '',
+    description: '',
+    datetime: '',
+    location: '',
     is_private: false,
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
@@ -63,10 +64,10 @@ export function EditEventPage() {
 
     try {
       const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
-        .eq("organizer_id", user?.id)
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
+        .eq('organizer_id', user?.id)
         .single();
 
       if (error) throw error;
@@ -74,18 +75,16 @@ export function EditEventPage() {
       setEvent(data);
       setFormData({
         name: data.name,
-        description: data.description || "",
-        datetime: data.datetime
-          ? new Date(data.datetime).toISOString().slice(0, 16)
-          : "",
-        location: data.location || "",
+        description: data.description || '',
+        datetime: data.datetime ? new Date(data.datetime).toISOString().slice(0, 16) : '',
+        location: data.location || '',
         is_private: data.is_private,
       });
       setCustomFields(data.custom_fields || []);
       setMaxParticipants(data.max_participants || 50);
     } catch (error) {
-      console.error("Error loading event:", error);
-      navigate("/events");
+      console.error('Error loading event:', error);
+      navigate('/events');
     } finally {
       setInitialLoading(false);
     }
@@ -109,8 +108,8 @@ export function EditEventPage() {
   const addCustomField = () => {
     const newField: CustomField = {
       id: Date.now().toString(),
-      label: "",
-      type: "text",
+      label: '',
+      type: 'text',
       required: false,
     };
     setCustomFields([...customFields, newField]);
@@ -118,9 +117,7 @@ export function EditEventPage() {
 
   const updateCustomField = (id: string, updates: Partial<CustomField>) => {
     setCustomFields(
-      customFields.map((field) =>
-        field.id === id ? { ...field, ...updates } : field,
-      ),
+      customFields.map((field) => (field.id === id ? { ...field, ...updates } : field))
     );
   };
 
@@ -135,7 +132,7 @@ export function EditEventPage() {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from("events")
+        .from('events')
         .update({
           name: formData.name,
           description: formData.description || null,
@@ -145,13 +142,13 @@ export function EditEventPage() {
           is_private: formData.is_private,
           custom_fields: customFields.filter((f) => f.label),
         })
-        .eq("id", event.id)
-        .eq("organizer_id", user.id);
+        .eq('id', event.id)
+        .eq('organizer_id', user.id);
 
       if (error) throw error;
       navigate(`/events/${event.id}`);
     } catch (error) {
-      console.error("Error updating event:", error);
+      console.error('Error updating event:', error);
     } finally {
       setLoading(false);
     }
@@ -163,15 +160,15 @@ export function EditEventPage() {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from("events")
+        .from('events')
         .delete()
-        .eq("id", event.id)
-        .eq("organizer_id", user.id);
+        .eq('id', event.id)
+        .eq('organizer_id', user.id);
 
       if (error) throw error;
-      navigate("/events");
+      navigate('/events');
     } catch (error) {
-      console.error("Error deleting event:", error);
+      console.error('Error deleting event:', error);
     } finally {
       setLoading(false);
       setShowDeleteDialog(false);
@@ -201,25 +198,7 @@ export function EditEventPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center justify-center px-4 py-2 relative">
-          <button
-            onClick={() => navigate(`/events/${event.id}`)}
-            className="absolute left-4"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-lg font-semibold">Edit Event</h1>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="h-8 px-3 text-xs absolute right-4"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
+      <TopNav title="Edit Event" showBackButton backPath={`/events/${event.id}`} sticky />
 
       <div className="p-3 space-y-3">
         <div className="bg-white rounded-lg p-3 border space-y-3">
@@ -231,9 +210,7 @@ export function EditEventPage() {
               id="name"
               type="text"
               value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               required
               className="h-10 text-sm"
             />
@@ -265,9 +242,7 @@ export function EditEventPage() {
               id="datetime"
               type="datetime-local"
               value={formData.datetime}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, datetime: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
               className="h-10 text-sm"
             />
           </div>
@@ -280,9 +255,7 @@ export function EditEventPage() {
               id="location"
               type="text"
               value={formData.location}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, location: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
               className="h-10 text-sm"
             />
           </div>
@@ -323,11 +296,14 @@ export function EditEventPage() {
             <Label className="text-sm">Event Privacy</Label>
             <button
               type="button"
-              onClick={() => setFormData(prev => ({ ...prev, is_private: !prev.is_private }))}
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_private: !prev.is_private,
+                }))
+              }
               className={`flex items-center justify-between w-full p-3 rounded-lg border-2 transition-colors ${
-                formData.is_private
-                  ? 'border-red-200 bg-red-50'
-                  : 'border-green-200 bg-green-50'
+                formData.is_private ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
               }`}
             >
               <div className="flex items-center space-x-2">
@@ -336,9 +312,11 @@ export function EditEventPage() {
                 ) : (
                   <Unlock className="h-4 w-4 text-green-600" />
                 )}
-                <span className={`font-medium ${
-                  formData.is_private ? 'text-red-700' : 'text-green-700'
-                }`}>
+                <span
+                  className={`font-medium ${
+                    formData.is_private ? 'text-red-700' : 'text-green-700'
+                  }`}
+                >
                   {formData.is_private ? 'Private Event' : 'Public Event'}
                 </span>
               </div>
@@ -346,8 +324,7 @@ export function EditEventPage() {
             <p className="text-xs text-gray-500">
               {formData.is_private
                 ? 'Only people you invite can view and sign up for this event'
-                : 'Anyone with the link can view and sign up for this event'
-              }
+                : 'Anyone with the link can view and sign up for this event'}
             </p>
           </div>
         </div>
@@ -369,23 +346,17 @@ export function EditEventPage() {
 
           {customFields.length === 0 ? (
             <p className="text-xs text-gray-500">
-              No custom fields. Add fields to collect additional information
-              from participants.
+              No custom fields. Add fields to collect additional information from participants.
             </p>
           ) : (
             <div className="space-y-3">
               {customFields.map((field) => (
-                <div
-                  key={field.id}
-                  className="p-3 bg-gray-50 rounded space-y-2"
-                >
+                <div key={field.id} className="p-3 bg-gray-50 rounded space-y-2">
                   <div className="flex items-center gap-2">
                     <Input
                       type="text"
                       value={field.label}
-                      onChange={(e) =>
-                        updateCustomField(field.id, { label: e.target.value })
-                      }
+                      onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
                       placeholder="Field label"
                       className="flex-1 h-9 text-sm"
                     />
@@ -402,9 +373,8 @@ export function EditEventPage() {
                       value={field.type}
                       onChange={(e) =>
                         updateCustomField(field.id, {
-                          type: e.target.value as CustomField["type"],
-                          options:
-                            e.target.value === "select" ? [""] : undefined,
+                          type: e.target.value as CustomField['type'],
+                          options: e.target.value === 'select' ? [''] : undefined,
                         })
                       }
                       className="flex-1 h-9 px-2 text-sm border rounded"
@@ -428,14 +398,14 @@ export function EditEventPage() {
                       Required
                     </label>
                   </div>
-                  {field.type === "select" && (
+                  {field.type === 'select' && (
                     <div className="space-y-2">
                       <Label className="text-xs">Options (one per line)</Label>
                       <textarea
-                        value={field.options?.join("\n") || ""}
+                        value={field.options?.join('\n') || ''}
                         onChange={(e) =>
                           updateCustomField(field.id, {
-                            options: e.target.value.split("\n").filter(Boolean),
+                            options: e.target.value.split('\n').filter(Boolean),
                           })
                         }
                         placeholder="Option 1&#10;Option 2&#10;Option 3"
@@ -463,7 +433,7 @@ export function EditEventPage() {
           disabled={loading}
         >
           <Save className="h-5 w-5 mr-2" />
-          {loading ? "Saving..." : "Save Changes"}
+          {loading ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
 
@@ -473,7 +443,8 @@ export function EditEventPage() {
           <DialogHeader>
             <DialogTitle>Delete Event</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this event? All participants and data will be permanently removed. This action cannot be undone.
+              Are you sure you want to delete this event? All participants and data will be
+              permanently removed. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row">
@@ -491,7 +462,7 @@ export function EditEventPage() {
               disabled={loading}
               className="w-full sm:w-auto"
             >
-              {loading ? "Deleting..." : "Delete Event"}
+              {loading ? 'Deleting...' : 'Delete Event'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,33 +1,34 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useAuth } from '@/hooks/useAuth'
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/useAuth';
 
 export function RegisterPage() {
-  const navigate = useNavigate()
-  const { signUp } = useAuth()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      await signUp(email, password, name)
-      navigate('/')
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      setError(err.message || 'Failed to sign up')
+      await signUp(email, password, name);
+      navigate('/');
+    } catch (err: any) {
+      // eslint-disable-line @typescript-eslint/no-explicit-any
+      setError(err.message || 'Failed to sign up');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -40,7 +41,9 @@ export function RegisterPage() {
       <form onSubmit={handleSubmit} className="p-3 space-y-3">
         <div className="bg-white rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm">Name</Label>
+            <Label htmlFor="name" className="text-sm">
+              Name
+            </Label>
             <Input
               id="name"
               type="text"
@@ -53,7 +56,9 @@ export function RegisterPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm">Email</Label>
+            <Label htmlFor="email" className="text-sm">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -66,7 +71,9 @@ export function RegisterPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm">Password</Label>
+            <Label htmlFor="password" className="text-sm">
+              Password
+            </Label>
             <Input
               id="password"
               type="password"
@@ -78,18 +85,9 @@ export function RegisterPage() {
             />
           </div>
 
-          {error && (
-            <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{error}</div>}
 
-          <Button
-            type="submit"
-            className="w-full"
-            size="sm"
-            disabled={loading}
-          >
+          <Button type="submit" className="w-full" size="sm" disabled={loading}>
             {loading ? 'Creating account...' : 'Sign Up'}
           </Button>
 
@@ -102,5 +100,5 @@ export function RegisterPage() {
         </div>
       </form>
     </div>
-  )
+  );
 }

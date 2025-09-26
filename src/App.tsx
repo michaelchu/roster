@@ -1,25 +1,26 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
-import { AuthProvider } from '@/hooks/useAuth'
-import { MobileOnly } from '@/components/MobileOnly'
-import { BottomNav } from '@/components/BottomNav'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider } from '@/hooks/useAuth';
+import { MobileOnly } from '@/components/MobileOnly';
+import { BottomNav } from '@/components/BottomNav';
 
-import { HomePage } from '@/pages/HomePage'
-import { EventsPage } from '@/pages/EventsPage'
-import { NewEventPage } from '@/pages/NewEventPage'
-import { EditEventPage } from '@/pages/EditEventPage'
-import { EventDetailPage } from '@/pages/EventDetailPage'
-import { ParticipantsPage } from '@/pages/ParticipantsPage'
-import { SettingsPage } from '@/pages/SettingsPage'
-import { ProfilePage } from '@/pages/ProfilePage'
-import { LoginPage } from '@/pages/auth/LoginPage'
-import { RegisterPage } from '@/pages/auth/RegisterPage'
-import { SignupPage } from '@/pages/SignupPage'
+import { HomePage } from '@/pages/HomePage';
+import { EventsPage } from '@/pages/EventsPage';
+import { NewEventPage } from '@/pages/NewEventPage';
+import { EditEventPage } from '@/pages/EditEventPage';
+import { EventDetailPage } from '@/pages/EventDetailPage';
+import { ParticipantsPage } from '@/pages/ParticipantsPage';
+import { SettingsPage } from '@/pages/SettingsPage';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { LoginPage } from '@/pages/auth/LoginPage';
+import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { SignupPage } from '@/pages/SignupPage';
 
 function AppContent() {
-  const location = useLocation()
+  const location = useLocation();
 
   // Hide bottom nav on auth pages and signup pages
-  const hideBottomNav = location.pathname.startsWith('/auth') || location.pathname.startsWith('/signup')
+  const hideBottomNav =
+    location.pathname.startsWith('/auth') || location.pathname.startsWith('/signup');
 
   return (
     <>
@@ -39,7 +40,7 @@ function AppContent() {
 
       {!hideBottomNav && <BottomNav />}
     </>
-  )
+  );
 }
 
 function App() {
@@ -51,7 +52,7 @@ function App() {
         </Router>
       </AuthProvider>
     </MobileOnly>
-  )
+  );
 }
 
-export default App
+export default App;

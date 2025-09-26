@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -12,18 +12,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/hooks/useAuth";
-import {
-  ArrowLeft,
   Users,
   Share2,
   Download,
@@ -34,15 +28,16 @@ import {
   UserX,
   ArrowUpDown,
   Zap,
-} from "lucide-react";
-import { Label } from "@/components/ui/label";
+} from 'lucide-react';
+import { TopNav } from '@/components/TopNav';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface Participant {
   id: string;
@@ -82,22 +77,19 @@ export function EventDetailPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [labels, setLabels] = useState<Label[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedParticipant, setSelectedParticipant] =
-    useState<Participant | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [showSignupDrawer, setShowSignupDrawer] = useState(false);
   const [signupForm, setSignupForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    notes: "",
+    name: '',
+    email: '',
+    phone: '',
+    notes: '',
     responses: {} as Record<string, string>,
   });
   const [submitting, setSubmitting] = useState(false);
-  const [signupError, setSignupError] = useState("");
-  const [userRegistration, setUserRegistration] = useState<Participant | null>(
-    null,
-  );
+  const [signupError, setSignupError] = useState('');
+  const [userRegistration, setUserRegistration] = useState<Participant | null>(null);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
 
@@ -113,16 +105,16 @@ export function EventDetailPage() {
     try {
       // Load event
       const { data: eventData, error: eventError } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
         .single();
 
       if (eventError) throw eventError;
 
       // If event is private and user is not authenticated, deny access
       if (eventData.is_private && !user) {
-        navigate("/auth/login");
+        navigate('/auth/login');
         return;
       }
 
@@ -130,15 +122,15 @@ export function EventDetailPage() {
       if (eventData.is_private && user && eventData.organizer_id !== user.id) {
         // Check if user is a participant
         const { data: participantCheck } = await supabase
-          .from("participants")
-          .select("id")
-          .eq("event_id", eventId)
-          .eq("user_id", user.id)
+          .from('participants')
+          .select('id')
+          .eq('event_id', eventId)
+          .eq('user_id', user.id)
           .single();
 
         // If not organizer and not participant, deny access
         if (!participantCheck) {
-          navigate("/");
+          navigate('/');
           return;
         }
       }
@@ -147,19 +139,19 @@ export function EventDetailPage() {
 
       // Load labels
       const { data: labelsData } = await supabase
-        .from("labels")
-        .select("*")
-        .eq("event_id", eventId)
-        .order("name");
+        .from('labels')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('name');
 
       setLabels(labelsData || []);
 
       // Load participants
       const { data: participantsData } = await supabase
-        .from("participants")
-        .select("*")
-        .eq("event_id", eventId)
-        .order("created_at", { ascending: false });
+        .from('participants')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false });
 
       if (participantsData) {
         // Add empty labels array since we removed labels functionality
@@ -171,22 +163,20 @@ export function EventDetailPage() {
 
         // Check if current user is already registered
         let currentUserRegistration = participantsWithLabels.find(
-          (p) =>
-            (user?.id && p.user_id === user.id) ||
-            (user?.email && p.email === user.email),
+          (p) => (user?.id && p.user_id === user.id) || (user?.email && p.email === user.email)
         );
 
         // If not found by user_id but found by email, update the participant record to link to user
         if (!currentUserRegistration && user?.email) {
           const emailMatch = participantsWithLabels.find(
-            (p) => p.email === user.email && !p.user_id,
+            (p) => p.email === user.email && !p.user_id
           );
           if (emailMatch) {
             // Update participant to link to current user
             supabase
-              .from("participants")
+              .from('participants')
               .update({ user_id: user.id })
-              .eq("id", emailMatch.id)
+              .eq('id', emailMatch.id)
               .then(() => {
                 // Reload data to reflect the update
                 loadEventData();
@@ -198,7 +188,7 @@ export function EventDetailPage() {
         setUserRegistration(currentUserRegistration || null);
       }
     } catch (error) {
-      console.error("Error loading event data:", error);
+      console.error('Error loading event data:', error);
     } finally {
       setLoading(false);
     }
@@ -214,14 +204,14 @@ export function EventDetailPage() {
       });
     } else {
       navigator.clipboard.writeText(url);
-      alert("Signup link copied to clipboard!");
+      alert('Signup link copied to clipboard!');
     }
   };
 
   const exportToCSV = () => {
     if (!participants.length) return;
 
-    const headers = ["Name", "Email", "Phone", "Labels", "Sign Up Date"];
+    const headers = ['Name', 'Email', 'Phone', 'Labels', 'Sign Up Date'];
     if (event?.custom_fields) {
       event.custom_fields.forEach((field) => headers.push(field.label));
     }
@@ -229,78 +219,75 @@ export function EventDetailPage() {
     const rows = participants.map((p) => {
       const row = [
         p.name,
-        p.email || "",
-        p.phone || "",
-        p.labels.map((l) => l.name).join("; "),
+        p.email || '',
+        p.phone || '',
+        p.labels.map((l) => l.name).join('; '),
         new Date(p.created_at).toLocaleDateString(),
       ];
       if (event?.custom_fields) {
         event.custom_fields.forEach((field) => {
-          row.push(p.responses[field.id] || "");
+          row.push(p.responses[field.id] || '');
         });
       }
       return row;
     });
 
     const csvContent = [
-      headers.join(","),
-      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
-    ].join("\n");
+      headers.join(','),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+    ].join('\n');
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
+    const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = `${event?.name || "participants"}.csv`;
+    a.download = `${event?.name || 'participants'}.csv`;
     a.click();
   };
 
-  const toggleParticipantLabel = async (
-    participant: Participant,
-    label: Label,
-  ) => {
+  const toggleParticipantLabel = async (participant: Participant, label: Label) => {
     const hasLabel = participant.labels.some((l) => l.id === label.id);
 
     try {
       if (hasLabel) {
         await supabase
-          .from("participant_labels")
+          .from('participant_labels')
           .delete()
           .match({ participant_id: participant.id, label_id: label.id });
       } else {
         await supabase
-          .from("participant_labels")
+          .from('participant_labels')
           .insert({ participant_id: participant.id, label_id: label.id });
       }
       loadEventData();
     } catch (error) {
-      console.error("Error toggling label:", error);
+      console.error('Error toggling label:', error);
     }
   };
 
   const openSignupDrawer = () => {
     // Redirect to login if user is not authenticated
     if (!user) {
-      navigate("/auth/login");
+      navigate('/auth/login');
       return;
     }
 
     if (userRegistration) {
       // Pre-fill form with existing registration data
       setSignupForm({
-        name: userRegistration.name || "",
-        email: userRegistration.email || "",
-        phone: userRegistration.phone || "",
-        notes: userRegistration.notes || "",
+        name: userRegistration.name || '',
+        email: userRegistration.email || '',
+        phone: userRegistration.phone || '',
+        notes: userRegistration.notes || '',
         responses: userRegistration.responses || {},
       });
     } else {
       // Reset form for new registration
       setSignupForm({
-        name: "",
-        email: "",
-        phone: "",
-        notes: "",
+        name: '',
+        email: '',
+        phone: '',
+        notes: '',
         responses: {},
       });
     }
@@ -312,13 +299,13 @@ export function EventDetailPage() {
     if (!event) return;
 
     setSubmitting(true);
-    setSignupError("");
+    setSignupError('');
 
     try {
       if (userRegistration) {
         // Update existing registration
         const { error } = await supabase
-          .from("participants")
+          .from('participants')
           .update({
             name: signupForm.name,
             email: signupForm.email,
@@ -326,12 +313,12 @@ export function EventDetailPage() {
             notes: signupForm.notes,
             responses: signupForm.responses,
           })
-          .eq("id", userRegistration.id);
+          .eq('id', userRegistration.id);
 
         if (error) throw error;
       } else {
         // Create new registration
-        const { error } = await supabase.from("participants").insert({
+        const { error } = await supabase.from('participants').insert({
           event_id: event.id,
           name: signupForm.name,
           email: signupForm.email,
@@ -346,20 +333,20 @@ export function EventDetailPage() {
 
       // Reset form and close drawer
       setSignupForm({
-        name: "",
-        email: "",
-        phone: "",
-        notes: "",
+        name: '',
+        email: '',
+        phone: '',
+        notes: '',
         responses: {},
       });
       setShowSignupDrawer(false);
 
       // Reload participants
       loadEventData();
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      // eslint-disable-line @typescript-eslint/no-explicit-any
       setSignupError(
-        err.message ||
-          "Failed to " + (userRegistration ? "update registration" : "sign up"),
+        err.message || 'Failed to ' + (userRegistration ? 'update registration' : 'sign up')
       );
     } finally {
       setSubmitting(false);
@@ -370,22 +357,19 @@ export function EventDetailPage() {
     if (!userRegistration || !user) return;
 
     setSubmitting(true);
-    setSignupError("");
+    setSignupError('');
 
     try {
-      const { error } = await supabase
-        .from("participants")
-        .delete()
-        .eq("id", userRegistration.id);
+      const { error } = await supabase.from('participants').delete().eq('id', userRegistration.id);
 
       if (error) throw error;
 
       // Reset form and close drawer
       setSignupForm({
-        name: "",
-        email: "",
-        phone: "",
-        notes: "",
+        name: '',
+        email: '',
+        phone: '',
+        notes: '',
         responses: {},
       });
       setShowSignupDrawer(false);
@@ -393,8 +377,9 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      setSignupError(err.message || "Failed to withdraw from event");
+    } catch (err: any) {
+      // eslint-disable-line @typescript-eslint/no-explicit-any
+      setSignupError(err.message || 'Failed to withdraw from event');
     } finally {
       setSubmitting(false);
     }
@@ -417,7 +402,7 @@ export function EventDetailPage() {
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.phone?.includes(searchQuery),
+      p.phone?.includes(searchQuery)
   );
 
   if (loading) {
@@ -438,25 +423,11 @@ export function EventDetailPage() {
 
   return (
     <div className={`min-h-screen bg-gray-50 ${user ? 'pb-32' : 'pb-20'}`}>
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center px-4 py-2">
-          {user && (
-            <button onClick={() => navigate("/events")} className="absolute">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-          )}
-          <div className="flex-1 text-center">
-            <h1 className="text-lg font-semibold truncate">{event.name}</h1>
-          </div>
-        </div>
-      </div>
+      <TopNav title={event.name} showBackButton={!!user} backPath="/events" sticky />
 
       <div className="p-3 space-y-3">
         {/* Event Info */}
-        {(event.description ||
-          event.datetime ||
-          event.location ||
-          event.max_participants) && (
+        {(event.description || event.datetime || event.location || event.max_participants) && (
           <div className="bg-white rounded-lg border overflow-hidden">
             <div className="p-3 space-y-2">
               {/* Top row: Date and Registration Deadline */}
@@ -467,19 +438,17 @@ export function EventDetailPage() {
                       <div className="font-medium text-gray-800">Date</div>
                       <div>
                         {new Date(event.datetime).toLocaleString(undefined, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
                         })}
                       </div>
                     </div>
                   )}
                   <div className="text-sm text-gray-600">
-                    <div className="font-medium text-gray-800">
-                      Registration Deadline
-                    </div>
+                    <div className="font-medium text-gray-800">Registration Deadline</div>
                     <div>None</div>
                   </div>
                 </div>
@@ -501,9 +470,7 @@ export function EventDetailPage() {
               {/* Description */}
               {event.description && (
                 <div className="text-sm text-gray-700">
-                  <div className="font-medium text-gray-800 mb-1">
-                    Description
-                  </div>
+                  <div className="font-medium text-gray-800 mb-1">Description</div>
                   <p className="leading-relaxed">{event.description}</p>
                 </div>
               )}
@@ -560,9 +527,9 @@ export function EventDetailPage() {
                   const uniqueUserCount = uniqueUsers.size;
 
                   if (event.max_participants) {
-                    return `${participants.length}/${event.max_participants} participants, ${uniqueUserCount} ${uniqueUserCount === 1 ? "person" : "persons"} signed up`;
+                    return `${participants.length}/${event.max_participants} participants, ${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
                   } else {
-                    return `${uniqueUserCount} ${uniqueUserCount === 1 ? "person" : "persons"} signed up`;
+                    return `${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
                   }
                 })()}
               </p>
@@ -572,7 +539,7 @@ export function EventDetailPage() {
                 size="sm"
                 variant="ghost"
                 className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
-                  showSearchBar ? "bg-gray-200" : ""
+                  showSearchBar ? 'bg-gray-200' : ''
                 }`}
                 onClick={() => setShowSearchBar(!showSearchBar)}
                 disabled={participants.length === 0}
@@ -609,16 +576,11 @@ export function EventDetailPage() {
 
           <div className="divide-y">
             {(() => {
-              const maxSlots =
-                event.max_participants || filteredParticipants.length;
+              const maxSlots = event.max_participants || filteredParticipants.length;
               const slots = [];
 
               // Add existing participants to slots
-              for (
-                let i = 0;
-                i < Math.min(filteredParticipants.length, maxSlots);
-                i++
-              ) {
+              for (let i = 0; i < Math.min(filteredParticipants.length, maxSlots); i++) {
                 const participant = filteredParticipants[i];
                 slots.push(
                   <button
@@ -637,36 +599,25 @@ export function EventDetailPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <div className="text-sm font-medium">
-                            {participant.name}
-                          </div>
+                          <div className="text-sm font-medium">{participant.name}</div>
                           {participant.user_id === event.organizer_id && (
-                            <Badge
-                              variant="outline"
-                              className="text-xs h-5 px-2"
-                            >
+                            <Badge variant="outline" className="text-xs h-5 px-2">
                               Organizer
                             </Badge>
                           )}
                         </div>
                         <div className="text-xs text-gray-500">
-                          Signed up{" "}
+                          Signed up{' '}
                           {(() => {
                             const now = new Date();
                             const signupTime = new Date(participant.created_at);
                             const diffMs = now.getTime() - signupTime.getTime();
                             const diffMins = Math.floor(diffMs / (1000 * 60));
-                            const diffHours = Math.floor(
-                              diffMs / (1000 * 60 * 60),
-                            );
-                            const diffDays = Math.floor(
-                              diffMs / (1000 * 60 * 60 * 24),
-                            );
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
                             if (diffMins < 60) {
-                              return diffMins <= 1
-                                ? "just now"
-                                : `${diffMins}m ago`;
+                              return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
                             } else if (diffHours < 24) {
                               return `${diffHours}h ago`;
                             } else if (diffDays < 7) {
@@ -678,36 +629,22 @@ export function EventDetailPage() {
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {participant.labels.map((label) => (
-                            <Badge
-                              key={label.id}
-                              variant="outline"
-                              className="text-xs h-5"
-                            >
+                            <Badge key={label.id} variant="outline" className="text-xs h-5">
                               {label.name}
                             </Badge>
                           ))}
                         </div>
                       </div>
                     </div>
-                  </button>,
+                  </button>
                 );
               }
 
               // Add empty slots if we have max_participants set
-              if (
-                event.max_participants &&
-                filteredParticipants.length < event.max_participants
-              ) {
-                for (
-                  let i = filteredParticipants.length;
-                  i < event.max_participants;
-                  i++
-                ) {
+              if (event.max_participants && filteredParticipants.length < event.max_participants) {
+                for (let i = filteredParticipants.length; i < event.max_participants; i++) {
                   slots.push(
-                    <div
-                      key={`empty-${i}`}
-                      className="p-3 border-dashed border-gray-200"
-                    >
+                    <div key={`empty-${i}`} className="p-3 border-dashed border-gray-200">
                       <div className="flex items-center gap-3">
                         <div className="text-xs text-gray-400 font-mono flex-shrink-0">
                           {i + 1}.
@@ -715,11 +652,9 @@ export function EventDetailPage() {
                         <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-xs text-gray-400">?</span>
                         </div>
-                        <div className="text-sm text-gray-400 italic">
-                          Available slot
-                        </div>
+                        <div className="text-sm text-gray-400 italic">Available slot</div>
                       </div>
-                    </div>,
+                    </div>
                   );
                 }
               }
@@ -729,9 +664,7 @@ export function EventDetailPage() {
                   <div className="p-6 text-center">
                     <Users className="h-10 w-10 mx-auto text-gray-400 mb-2" />
                     <p className="text-sm text-gray-500">
-                      {searchQuery
-                        ? "No participants found"
-                        : "No participants yet"}
+                      {searchQuery ? 'No participants found' : 'No participants yet'}
                     </p>
                   </div>
                 );
@@ -748,9 +681,7 @@ export function EventDetailPage() {
         <Button
           onClick={openSignupDrawer}
           className={`w-full text-white shadow-lg ${
-            userRegistration
-              ? "bg-blue-600 hover:bg-blue-700"
-              : "bg-green-600 hover:bg-green-700"
+            userRegistration ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
           }`}
           size="default"
         >
@@ -772,11 +703,7 @@ export function EventDetailPage() {
       <Drawer open={showSignupDrawer} onOpenChange={setShowSignupDrawer}>
         <DrawerContent className="max-h-[90vh] p-0">
           <div className="overflow-y-auto flex-1 px-3">
-            <form
-              id="signup-form"
-              onSubmit={handleSignup}
-              className="space-y-2 pb-3"
-            >
+            <form id="signup-form" onSubmit={handleSignup} className="space-y-2 pb-3">
               <Tabs defaultValue="registration" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="registration">Registration</TabsTrigger>
@@ -843,20 +770,15 @@ export function EventDetailPage() {
 
                   {event?.custom_fields && event.custom_fields.length > 0 && (
                     <div className="border-t pt-4">
-                      <h3 className="text-sm font-medium mb-2">
-                        Additional Information
-                      </h3>
+                      <h3 className="text-sm font-medium mb-2">Additional Information</h3>
                       {event.custom_fields.map((field) => (
                         <div key={field.id} className="space-y-1.5 mb-2">
-                          <Label
-                            htmlFor={`signup-${field.id}`}
-                            className="text-xs"
-                          >
-                            {field.label} {field.required && "*"}
+                          <Label htmlFor={`signup-${field.id}`} className="text-xs">
+                            {field.label} {field.required && '*'}
                           </Label>
-                          {field.type === "select" && field.options ? (
+                          {field.type === 'select' && field.options ? (
                             <Select
-                              value={signupForm.responses[field.id] || ""}
+                              value={signupForm.responses[field.id] || ''}
                               onValueChange={(value) =>
                                 setSignupForm((prev) => ({
                                   ...prev,
@@ -882,7 +804,7 @@ export function EventDetailPage() {
                             <Input
                               id={`signup-${field.id}`}
                               type={field.type}
-                              value={signupForm.responses[field.id] || ""}
+                              value={signupForm.responses[field.id] || ''}
                               onChange={(e) =>
                                 setSignupForm((prev) => ({
                                   ...prev,
@@ -925,9 +847,7 @@ export function EventDetailPage() {
               </Tabs>
 
               {signupError && (
-                <div className="text-xs text-red-600 bg-red-50 p-1.5 rounded">
-                  {signupError}
-                </div>
+                <div className="text-xs text-red-600 bg-red-50 p-1.5 rounded">{signupError}</div>
               )}
             </form>
           </div>
@@ -967,11 +887,11 @@ export function EventDetailPage() {
               >
                 {submitting
                   ? userRegistration
-                    ? "Updating..."
-                    : "Joining..."
+                    ? 'Updating...'
+                    : 'Joining...'
                   : userRegistration
-                    ? "Update Registration"
-                    : "Join Event"}
+                    ? 'Update Registration'
+                    : 'Join Event'}
               </Button>
             </div>
           </div>
@@ -993,32 +913,21 @@ export function EventDetailPage() {
                 <div className="space-y-1.5">
                   <h3 className="text-sm font-medium">Contact Information</h3>
                   <div className="text-sm space-y-0.5">
+                    <div>Email: {selectedParticipant.email || 'Not provided'}</div>
+                    <div>Phone: {selectedParticipant.phone || 'Not provided'}</div>
                     <div>
-                      Email: {selectedParticipant.email || "Not provided"}
-                    </div>
-                    <div>
-                      Phone: {selectedParticipant.phone || "Not provided"}
-                    </div>
-                    <div>
-                      Registered:{" "}
-                      {new Date(
-                        selectedParticipant.created_at,
-                      ).toLocaleString()}
+                      Registered: {new Date(selectedParticipant.created_at).toLocaleString()}
                     </div>
                   </div>
                 </div>
 
                 {event.custom_fields && event.custom_fields.length > 0 && (
                   <div className="space-y-1.5">
-                    <h3 className="text-sm font-medium">
-                      Additional Information
-                    </h3>
+                    <h3 className="text-sm font-medium">Additional Information</h3>
                     <div className="text-sm space-y-0.5">
                       {event.custom_fields.map((field) => (
                         <div key={field.id}>
-                          {field.label}:{" "}
-                          {selectedParticipant.responses[field.id] ||
-                            "Not provided"}
+                          {field.label}: {selectedParticipant.responses[field.id] || 'Not provided'}
                         </div>
                       ))}
                     </div>
@@ -1029,19 +938,15 @@ export function EventDetailPage() {
                   <h3 className="text-sm font-medium">Labels</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {labels.map((label) => {
-                      const hasLabel = selectedParticipant.labels.some(
-                        (l) => l.id === label.id,
-                      );
+                      const hasLabel = selectedParticipant.labels.some((l) => l.id === label.id);
                       return (
                         <button
                           key={label.id}
-                          onClick={() =>
-                            toggleParticipantLabel(selectedParticipant, label)
-                          }
+                          onClick={() => toggleParticipantLabel(selectedParticipant, label)}
                           className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
                             hasLabel
-                              ? "bg-primary text-white border-primary"
-                              : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                              ? 'bg-primary text-white border-primary'
+                              : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                           }`}
                         >
                           {label.name}
@@ -1062,9 +967,8 @@ export function EventDetailPage() {
           <DialogHeader>
             <DialogTitle>Withdraw from Event</DialogTitle>
             <DialogDescription>
-              Are you sure you want to withdraw from this event? This action
-              cannot be undone and you'll need to register again if you change
-              your mind.
+              Are you sure you want to withdraw from this event? This action cannot be undone and
+              you'll need to register again if you change your mind.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-1.5 sm:flex-row">
@@ -1082,7 +986,7 @@ export function EventDetailPage() {
               disabled={submitting}
               className="w-full sm:w-auto"
             >
-              {submitting ? "Withdrawing..." : "Withdraw"}
+              {submitting ? 'Withdrawing...' : 'Withdraw'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,129 +1,128 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
-import { CheckCircle, User } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { CheckCircle, User } from 'lucide-react';
 
 interface CustomField {
-  id: string
-  label: string
-  type: 'text' | 'email' | 'tel' | 'number' | 'select'
-  required?: boolean
-  options?: string[]
+  id: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'number' | 'select';
+  required?: boolean;
+  options?: string[];
 }
 
 interface EventData {
-  id: string
-  name: string
-  description: string
-  datetime: string
-  location: string
-  custom_fields: CustomField[]
+  id: string;
+  name: string;
+  description: string;
+  datetime: string;
+  location: string;
+  custom_fields: CustomField[];
 }
 
-const QUICK_FILL_KEY = 'venu_participant_info'
+const QUICK_FILL_KEY = 'venu_participant_info';
 
 export function SignupPage() {
-  const { eventId } = useParams<{ eventId: string }>()
-  const navigate = useNavigate()
-  const { user } = useAuth()
-  const [event, setEvent] = useState<EventData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState('')
+  const { eventId } = useParams<{ eventId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    responses: {} as Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
-  })
+    responses: {} as Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  });
 
   useEffect(() => {
-    loadEvent()
-    loadQuickFill()
-  }, [eventId]) // eslint-disable-line react-hooks/exhaustive-deps
+    loadEvent();
+    loadQuickFill();
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEvent = async () => {
-    if (!eventId) return
+    if (!eventId) return;
 
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', eventId)
-        .single()
+      const { data, error } = await supabase.from('events').select('*').eq('id', eventId).single();
 
-      if (error) throw error
-      setEvent(data)
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-      setError('Event not found')
+      if (error) throw error;
+      setEvent(data);
+    } catch (err: any) {
+      // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+      setError('Event not found');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const loadQuickFill = () => {
-    const saved = localStorage.getItem(QUICK_FILL_KEY)
+    const saved = localStorage.getItem(QUICK_FILL_KEY);
     if (saved) {
-      const data = JSON.parse(saved)
-      setFormData(prev => ({
+      const data = JSON.parse(saved);
+      setFormData((prev) => ({
         ...prev,
         name: data.name || '',
         email: data.email || '',
-        phone: data.phone || ''
-      }))
+        phone: data.phone || '',
+      }));
     }
-  }
+  };
 
   const saveQuickFill = () => {
-    localStorage.setItem(QUICK_FILL_KEY, JSON.stringify({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone
-    }))
-  }
+    localStorage.setItem(
+      QUICK_FILL_KEY,
+      JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      })
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!event) return
+    e.preventDefault();
+    if (!event) return;
 
-    setSubmitting(true)
-    setError('')
+    setSubmitting(true);
+    setError('');
 
     try {
-      saveQuickFill()
+      saveQuickFill();
 
-      const { error } = await supabase
-        .from('participants')
-        .insert({
-          event_id: event.id,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          responses: formData.responses,
-          user_id: user?.id || null // Store user ID if signed in
-        })
+      const { error } = await supabase.from('participants').insert({
+        event_id: event.id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        responses: formData.responses,
+        user_id: user?.id || null, // Store user ID if signed in
+      });
 
-      if (error) throw error
-      setSubmitted(true)
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-      setError(err.message || 'Failed to sign up')
+      if (error) throw error;
+      setSubmitted(true);
+    } catch (err: any) {
+      // eslint-disable-line @typescript-eslint/no-explicit-any
+      setError(err.message || 'Failed to sign up');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-sm text-gray-500">Loading...</div>
       </div>
-    )
+    );
   }
 
   if (!event) {
@@ -134,7 +133,7 @@ export function SignupPage() {
           <p className="text-sm text-gray-500">This event link is invalid.</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (submitted) {
@@ -143,19 +142,13 @@ export function SignupPage() {
         <div className="bg-white rounded-lg p-6 border text-center max-w-sm w-full">
           <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
           <h1 className="text-lg font-semibold mb-2">Successfully Registered!</h1>
-          <p className="text-sm text-gray-600 mb-4">
-            You have been registered for {event.name}
-          </p>
-          <Button
-            size="sm"
-            className="w-full"
-            onClick={() => navigate('/')}
-          >
+          <p className="text-sm text-gray-600 mb-4">You have been registered for {event.name}</p>
+          <Button size="sm" className="w-full" onClick={() => navigate('/')}>
             Done
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -178,9 +171,7 @@ export function SignupPage() {
               </div>
             )}
             {event.location && (
-              <div className="text-xs text-gray-500">
-                Location: {event.location}
-              </div>
+              <div className="text-xs text-gray-500">Location: {event.location}</div>
             )}
           </div>
         )}
@@ -193,35 +184,41 @@ export function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-xs">Name *</Label>
+              <Label htmlFor="name" className="text-xs">
+                Name *
+              </Label>
               <Input
                 id="name"
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                 required
                 className="h-9 text-sm"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs">Email</Label>
+              <Label htmlFor="email" className="text-xs">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                 className="h-9 text-sm"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-xs">Phone</Label>
+              <Label htmlFor="phone" className="text-xs">
+                Phone
+              </Label>
               <Input
                 id="phone"
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                 className="h-9 text-sm"
               />
             </div>
@@ -239,16 +236,20 @@ export function SignupPage() {
                         <select
                           id={field.id}
                           value={formData.responses[field.id] || ''}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            responses: { ...prev.responses, [field.id]: e.target.value }
-                          }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              responses: { ...prev.responses, [field.id]: e.target.value },
+                            }))
+                          }
                           required={field.required}
                           className="w-full h-9 px-3 text-sm border rounded-md"
                         >
                           <option value="">Select...</option>
-                          {field.options.map(option => (
-                            <option key={option} value={option}>{option}</option>
+                          {field.options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
                           ))}
                         </select>
                       ) : (
@@ -256,10 +257,12 @@ export function SignupPage() {
                           id={field.id}
                           type={field.type}
                           value={formData.responses[field.id] || ''}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            responses: { ...prev.responses, [field.id]: e.target.value }
-                          }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              responses: { ...prev.responses, [field.id]: e.target.value },
+                            }))
+                          }
                           required={field.required}
                           className="h-9 text-sm"
                         />
@@ -270,23 +273,14 @@ export function SignupPage() {
               </>
             )}
 
-            {error && (
-              <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                {error}
-              </div>
-            )}
+            {error && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{error}</div>}
 
-            <Button
-              type="submit"
-              className="w-full"
-              size="sm"
-              disabled={submitting}
-            >
+            <Button type="submit" className="w-full" size="sm" disabled={submitting}>
               {submitting ? 'Registering...' : 'Register'}
             </Button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
