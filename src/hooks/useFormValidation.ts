@@ -29,7 +29,7 @@ export function useFormValidation<T>(
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const validationErrors: ValidationError[] = (error as any).errors.map((err: any) => ({
+        const validationErrors: ValidationError[] = error.issues.map((err: z.ZodIssue) => ({
           field: err.path.join('.'),
           message: err.message,
         }));
@@ -44,13 +44,13 @@ export function useFormValidation<T>(
 
   const validateField = useCallback((field: keyof T, value: unknown): boolean => {
     try {
-      const fieldSchema = (schema as any).shape?.[field as string];
+      const fieldSchema = (schema as z.ZodObject<z.ZodRawShape>).shape?.[field as string];
       if (!fieldSchema) {
         // If we can't find the field schema, assume it's valid
         return true;
       }
 
-      fieldSchema.parse(value);
+      (fieldSchema as z.ZodType).parse(value);
 
       // Remove any existing errors for this field
       setErrors(prev => prev.filter(error => error.field !== String(field)));
@@ -59,7 +59,7 @@ export function useFormValidation<T>(
       if (error instanceof z.ZodError) {
         const fieldError: ValidationError = {
           field: String(field),
-          message: (error as any).errors[0]?.message || 'Invalid value',
+          message: (error as z.ZodError).issues[0]?.message || 'Invalid value',
         };
 
         setErrors(prev => [

@@ -70,7 +70,7 @@ export function SignupPage() {
       try {
         const parsed = JSON.parse(saved);
         setFormData(prev => ({ ...prev, ...parsed }));
-      } catch (e) {
+      } catch {
         // Ignore invalid saved data
       }
     }
@@ -87,33 +87,33 @@ export function SignupPage() {
   };
 
   useEffect(() => {
+    const loadEvent = async () => {
+      if (!eventId) return;
+
+      try {
+        const data = await eventService.getEventById(eventId);
+        setEvent({
+          id: data.id,
+          name: data.name,
+          description: data.description || '',
+          datetime: data.datetime || '',
+          location: data.location || '',
+          custom_fields: data.custom_fields || [],
+          max_participants: data.max_participants,
+          participant_count: data.participant_count,
+        });
+      } catch (err) {
+        errorHandler.handle(err, {
+          action: 'loadEventForSignup',
+        });
+        setError('Event not found');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadEvent();
   }, [eventId]);
-
-  const loadEvent = async () => {
-    if (!eventId) return;
-
-    try {
-      const data = await eventService.getEventById(eventId);
-      setEvent({
-        id: data.id,
-        name: data.name,
-        description: data.description || '',
-        datetime: data.datetime || '',
-        location: data.location || '',
-        custom_fields: data.custom_fields || [],
-        max_participants: data.max_participants,
-        participant_count: data.participant_count,
-      });
-    } catch (err) {
-      errorHandler.handle(err, {
-        action: 'loadEventForSignup',
-      });
-      setError('Event not found');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

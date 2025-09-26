@@ -19,7 +19,7 @@ interface MockUser {
 }
 
 const mockUseAuth = vi.fn(() => ({
-  user: { id: 'user-123', email: 'test@example.com' } as MockUser,
+  user: { id: 'user-123', email: 'test@example.com' } as MockUser | null,
   loading: false,
 }));
 
@@ -49,7 +49,11 @@ describe('EventsPage', () => {
 
   it('displays loading state initially', () => {
     render(<EventsPage />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    // EventsPage shows skeleton loading state, not text
+    expect(screen.getAllByText('My Events')).toHaveLength(1);
+    // Check for skeleton elements (they have animate-pulse class)
+    const skeletonElements = document.querySelectorAll('.animate-pulse');
+    expect(skeletonElements.length).toBeGreaterThan(0);
   });
 
   it('displays events list when loaded', async () => {
@@ -121,7 +125,7 @@ describe('EventsPage', () => {
     });
 
     await waitFor(() => {
-      expect(eventService.duplicateEvent).toHaveBeenCalledWith('event-123', 'user-123');
+      expect(eventService.duplicateEvent).toHaveBeenCalledWith('V1StGXR8_Z', 'user-123');
     });
   });
 
@@ -153,7 +157,7 @@ describe('EventsPage', () => {
 
   it('displays sign in prompt when user is not authenticated', () => {
     mockUseAuth.mockReturnValue({
-      user: null as any,
+      user: null as MockUser | null,
       loading: false,
     });
 

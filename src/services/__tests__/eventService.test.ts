@@ -108,8 +108,8 @@ describe('eventService', () => {
         }),
       } as unknown as MockSupabaseQueryBuilder);
 
-      const result = await eventService.getEventById('550e8400-e29b-41d4-a716-446655440001');
-      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440001');
+      const result = await eventService.getEventById('V1StGXR8_Z');
+      expect(result.id).toBe('V1StGXR8_Z');
       expect(result.name).toBe('Test Event');
     });
 
@@ -147,7 +147,7 @@ describe('eventService', () => {
       } as unknown as MockSupabaseQueryBuilder);
 
       const result = await eventService.createEvent(newEvent);
-      expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440001');
+      expect(result.id).toBe('V1StGXR8_Z');
     });
   });
 

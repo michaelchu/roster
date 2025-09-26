@@ -35,13 +35,13 @@ export const mockEventsList: Event[] = [
   mockEvent,
   {
     ...mockEvent,
-    id: 'K1LoGXR8_A', // Using nanoid format
+    id: 'K1LoGXR8_A', // 10-character nanoid format
     name: 'Another Event',
     participant_count: 0,
   },
   {
     ...mockEvent,
-    id: 'M2JhGXR8_B', // Using nanoid format
+    id: 'M2JhGXR8_B', // 10-character nanoid format
     name: 'Third Event',
     is_private: true,
     participant_count: 0,
@@ -83,7 +83,7 @@ export const mockParticipantsList: Participant[] = [
 
 export const mockLabel: Label = {
   id: '550e8400-e29b-41d4-a716-446655440020',
-  event_id: 'V1StGXR8_Z', // Using nanoid format for event reference
+  event_id: 'V1StGXR8_Z', // 10-character nanoid format for event reference
   name: 'VIP',
   color: '#gold',
 };

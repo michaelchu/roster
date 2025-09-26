@@ -14,10 +14,10 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: () => mockGetSession(),
-      signInWithPassword: (credentials: any) => mockSignInWithPassword(credentials),
-      signUp: (credentials: any) => mockSignUp(credentials),
+      signInWithPassword: (credentials: { email: string; password: string }) => mockSignInWithPassword(credentials),
+      signUp: (credentials: { email: string; password: string }) => mockSignUp(credentials),
       signOut: () => mockSignOut(),
-      onAuthStateChange: (callback: any) => {
+      onAuthStateChange: (callback: (event: string, session: unknown) => void) => {
         mockAuthStateChange(callback);
         return {
           data: {
