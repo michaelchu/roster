@@ -42,13 +42,14 @@ export function FontSizeProvider({ children }: { children: ReactNode }) {
   const [fontSize, setFontSizeState] = useState<FontSize>('md');
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
-      const savedFontSize = localStorage.getItem(STORAGE_KEY) as FontSize | null;
+      const savedFontSize = window.localStorage.getItem(STORAGE_KEY) as FontSize | null;
       if (savedFontSize && Object.hasOwn(FONT_SIZE_CONFIG, savedFontSize)) {
         setFontSizeState(savedFontSize);
       }
-    } catch (error) {
-      console.warn('font-size preference unavailable', error);
+    } catch {
+      // localStorage may be unavailable (e.g., Safari private mode); fall back to defaults.
     }
   }, []);
 
@@ -68,10 +69,11 @@ export function FontSizeProvider({ children }: { children: ReactNode }) {
 
   const setFontSize = (size: FontSize) => {
     setFontSizeState(size);
+    if (typeof window === 'undefined') return;
     try {
-      localStorage.setItem(STORAGE_KEY, size);
-    } catch (error) {
-      console.warn('unable to persist font-size preference', error);
+      window.localStorage.setItem(STORAGE_KEY, size);
+    } catch {
+      // Ignore write failures so UI updates still succeed when storage is blocked.
     }
   };
 
