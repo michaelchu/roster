@@ -1,6 +1,26 @@
 import '@testing-library/jest-dom';
-import { afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
+
+// Suppress React act() warnings during tests
+// Since we're using vitest with happy-dom, these warnings are often false positives
+const originalError = console.error;
+beforeEach(() => {
+  console.error = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('An update to') &&
+      args[0].includes('inside a test was not wrapped in act')
+    ) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterEach(() => {
+  console.error = originalError;
+});
 
 // Mock Supabase client to avoid database connections in tests
 vi.mock('@/lib/supabase', () => ({

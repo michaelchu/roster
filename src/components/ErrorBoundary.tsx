@@ -42,19 +42,32 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div
+          className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
+          role="alert"
+          aria-live="assertive"
+        >
           <div className="text-center max-w-md">
-            <AlertTriangle className="w-16 h-16 mx-auto text-red-500 mb-4" />
+            <AlertTriangle className="w-16 h-16 mx-auto text-red-500 mb-4" aria-hidden="true" />
             <h1 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
             <p className="text-sm text-gray-600 mb-6">
               We encountered an unexpected error. Please try refreshing the page.
             </p>
             <div className="space-y-3">
-              <Button onClick={this.handleReset} className="w-full">
-                <RefreshCw className="w-4 h-4 mr-2" />
+              <Button
+                onClick={this.handleReset}
+                className="w-full"
+                aria-label="Try to recover from error"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
                 Try Again
               </Button>
-              <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="w-full"
+                aria-label="Refresh the entire page"
+              >
                 Refresh Page
               </Button>
             </div>
@@ -63,7 +76,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 <summary className="cursor-pointer text-sm font-medium text-red-800">
                   Error Details (Development)
                 </summary>
-                <pre className="mt-2 text-xs text-red-700 whitespace-pre-wrap">
+                <pre
+                  className="mt-2 text-xs text-red-700 whitespace-pre-wrap"
+                  aria-label="Error stack trace"
+                >
                   {this.state.error.stack}
                 </pre>
               </details>
