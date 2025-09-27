@@ -261,78 +261,76 @@ export function ParticipantsPage() {
       {/* Sort Drawer */}
       <Drawer open={showSortDrawer} onOpenChange={setShowSortDrawer}>
         <DrawerContent className="p-0">
-          <div className="p-3">
-            <div>
+          <div className="py-4">
+            <button
+              className={`w-full text-center py-4 text-sm border-b border-gray-200 ${
+                sortOption === 'latest' ? 'bg-blue-100 text-blue-600 rounded-lg mx-4' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => {
+                setSortOption('latest');
+                setShowSortDrawer(false);
+              }}
+            >
+              Latest Registration
+            </button>
+            <button
+              className={`w-full text-center py-4 text-sm border-b border-gray-200 ${
+                sortOption === 'earliest' ? 'bg-blue-100 text-blue-600 rounded-lg mx-4' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => {
+                setSortOption('earliest');
+                setShowSortDrawer(false);
+              }}
+            >
+              Earliest Registration
+            </button>
+            <button
+              className={`w-full text-center py-4 text-sm border-b border-gray-200 ${
+                sortOption === 'nameAsc' ? 'bg-blue-100 text-blue-600 rounded-lg mx-4' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => {
+                setSortOption('nameAsc');
+                setShowSortDrawer(false);
+              }}
+            >
+              Name A-Z
+            </button>
+            <button
+              className={`w-full text-center py-4 text-sm border-b border-gray-200 ${
+                sortOption === 'nameDesc' ? 'bg-blue-100 text-blue-600 rounded-lg mx-4' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => {
+                setSortOption('nameDesc');
+                setShowSortDrawer(false);
+              }}
+            >
+              Name Z-A
+            </button>
+            <button
+              className={`w-full text-center py-4 text-sm border-b border-gray-200 ${
+                sortOption === 'eventAsc' ? 'bg-blue-100 text-blue-600 rounded-lg mx-4' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => {
+                setSortOption('eventAsc');
+                setShowSortDrawer(false);
+              }}
+            >
+              Event A-Z
+            </button>
+            <button
+              className={`w-full text-center py-4 text-sm ${
+                sortOption === 'eventDesc' ? 'bg-blue-100 text-blue-600 rounded-lg mx-4' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => {
+                setSortOption('eventDesc');
+                setShowSortDrawer(false);
+              }}
+            >
+              Event Z-A
+            </button>
+            <div className="border-t border-gray-200">
               <button
-                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
-                  sortOption === 'latest' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  setSortOption('latest');
-                  setShowSortDrawer(false);
-                }}
-              >
-                Latest Registration
-              </button>
-              <button
-                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
-                  sortOption === 'earliest' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  setSortOption('earliest');
-                  setShowSortDrawer(false);
-                }}
-              >
-                Earliest Registration
-              </button>
-              <button
-                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
-                  sortOption === 'nameAsc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  setSortOption('nameAsc');
-                  setShowSortDrawer(false);
-                }}
-              >
-                Name A-Z
-              </button>
-              <button
-                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
-                  sortOption === 'nameDesc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  setSortOption('nameDesc');
-                  setShowSortDrawer(false);
-                }}
-              >
-                Name Z-A
-              </button>
-              <button
-                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
-                  sortOption === 'eventAsc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  setSortOption('eventAsc');
-                  setShowSortDrawer(false);
-                }}
-              >
-                Event A-Z
-              </button>
-              <button
-                className={`w-full text-left py-3 text-sm ${
-                  sortOption === 'eventDesc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  setSortOption('eventDesc');
-                  setShowSortDrawer(false);
-                }}
-              >
-                Event Z-A
-              </button>
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <button
-                className="w-full text-center py-3 text-sm text-gray-600 hover:bg-gray-50"
+                className="w-full text-center py-4 text-sm text-gray-600 hover:bg-gray-50"
                 onClick={() => setShowSortDrawer(false)}
               >
                 Cancel
