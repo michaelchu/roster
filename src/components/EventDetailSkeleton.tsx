@@ -15,7 +15,11 @@ export function EventDetailSkeleton() {
       {/* Header with skeleton */}
       <div className="bg-white border-b sticky top-0 z-10 pointer-events-none select-none">
         <div className="flex items-center justify-center px-4 py-2 relative">
-          <button className="absolute left-4" aria-label="Go back">
+          <button
+            className="absolute left-4 pointer-events-auto"
+            aria-label="Go back"
+            onClick={() => window.history.back()}
+          >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <Skeleton className="h-6 w-32" />
