@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/TopNav';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { Tables } from '@/types/database.types';
 
 interface Participant {
   id: string;
@@ -20,7 +21,7 @@ interface Participant {
     id: string;
     name: string;
   };
-  labels: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  labels: Tables<'labels'>[];
 }
 
 /**
@@ -88,7 +89,7 @@ export function ParticipantsPage() {
           .in('participant_id', participantIds);
 
         // Group labels by participant_id for efficient lookup
-        const labelsByParticipant = new Map<string, any[]>();
+        const labelsByParticipant = new Map<string, Tables<'labels'>[]>();
         allLabelData?.forEach((item) => {
           const participantId = item.participant_id;
           if (!labelsByParticipant.has(participantId)) {
@@ -104,7 +105,7 @@ export function ParticipantsPage() {
           labels: labelsByParticipant.get(p.id) || [],
         }));
 
-        setParticipants(participantsWithLabels as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        setParticipants(participantsWithLabels as Participant[]);
       }
     } catch (error) {
       console.error('Error loading participants:', error);
