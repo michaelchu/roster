@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Trash2, Minus, Lock, Unlock } from 'lucide-react';
+import { Plus, Trash2, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
+import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 
 interface CustomField {
   id: string;
@@ -31,7 +32,7 @@ export function NewEventPage() {
     is_private: false,
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
-  const [maxParticipants, setMaxParticipants] = useState<number>(50);
+  const [maxParticipants, setMaxParticipants] = useState<number>(10);
 
   const addCustomField = () => {
     const newField: CustomField = {
@@ -51,21 +52,6 @@ export function NewEventPage() {
 
   const removeCustomField = (id: string) => {
     setCustomFields(customFields.filter((field) => field.id !== id));
-  };
-
-  const incrementMaxParticipants = () => {
-    setMaxParticipants((prev) => Math.min(prev + 1, 999));
-  };
-
-  const decrementMaxParticipants = () => {
-    setMaxParticipants((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleMaxParticipantsChange = (value: string) => {
-    const num = parseInt(value);
-    if (!isNaN(num) && num >= 1 && num <= 999) {
-      setMaxParticipants(num);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -162,37 +148,7 @@ export function NewEventPage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm">Max Participants</Label>
-            <div className="flex items-center space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-10 w-10 p-0"
-                onClick={decrementMaxParticipants}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <Input
-                type="number"
-                value={maxParticipants}
-                onChange={(e) => handleMaxParticipantsChange(e.target.value)}
-                className="h-10 text-sm text-center"
-                min="1"
-                max="999"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-10 w-10 p-0"
-                onClick={incrementMaxParticipants}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
 
           <div className="space-y-2">
             <Label className="text-sm">Event Privacy</Label>
