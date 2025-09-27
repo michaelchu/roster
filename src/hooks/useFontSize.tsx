@@ -42,9 +42,13 @@ export function FontSizeProvider({ children }: { children: ReactNode }) {
   const [fontSize, setFontSizeState] = useState<FontSize>('md');
 
   useEffect(() => {
-    const savedFontSize = localStorage.getItem(STORAGE_KEY) as FontSize;
-    if (savedFontSize && Object.keys(FONT_SIZE_CONFIG).includes(savedFontSize)) {
-      setFontSizeState(savedFontSize);
+    try {
+      const savedFontSize = localStorage.getItem(STORAGE_KEY) as FontSize | null;
+      if (savedFontSize && Object.hasOwn(FONT_SIZE_CONFIG, savedFontSize)) {
+        setFontSizeState(savedFontSize);
+      }
+    } catch (error) {
+      console.warn('font-size preference unavailable', error);
     }
   }, []);
 
@@ -64,7 +68,11 @@ export function FontSizeProvider({ children }: { children: ReactNode }) {
 
   const setFontSize = (size: FontSize) => {
     setFontSizeState(size);
-    localStorage.setItem(STORAGE_KEY, size);
+    try {
+      localStorage.setItem(STORAGE_KEY, size);
+    } catch (error) {
+      console.warn('unable to persist font-size preference', error);
+    }
   };
 
   const getFontSizeValue = (size: FontSize) => FONT_SIZE_CONFIG[size];
