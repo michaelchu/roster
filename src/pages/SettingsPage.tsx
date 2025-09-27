@@ -140,11 +140,11 @@ export function SettingsPage() {
                 onChange={(e) => setDefaultCapacity(e.target.value)}
                 placeholder="10"
                 min="1"
-                max="10000"
+                max="100"
                 className="text-sm"
               />
               <div className="text-xs text-gray-500 mt-1">
-                Maximum number of participants for new events (1-10,000)
+                Maximum number of participants for new events (1-100)
               </div>
             </div>
 

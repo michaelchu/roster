@@ -59,7 +59,7 @@ export const eventSchema = z.object({
     .number()
     .int('Max participants must be a whole number')
     .min(1, 'Must allow at least 1 participant')
-    .max(10000, 'Maximum 10,000 participants allowed')
+    .max(100, 'Maximum 100 participants allowed')
     .nullable()
     .optional(),
   parent_event_id: z
