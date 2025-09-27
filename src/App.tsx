@@ -38,6 +38,22 @@ function AppContent() {
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/signup/:eventId" element={<SignupPage />} />
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-sm text-gray-500">Page not found</div>
+                <button
+                  onClick={() => window.history.back()}
+                  className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Go back
+                </button>
+              </div>
+            </div>
+          }
+        />
       </Routes>
 
       {!hideBottomNav && <BottomNav />}
