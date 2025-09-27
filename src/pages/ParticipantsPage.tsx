@@ -287,7 +287,7 @@ export function ParticipantsPage() {
           <div className="py-4 px-4">
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
-                sortOption === 'latest' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-muted'
+                sortOption === 'latest' ? 'bg-primary/10 text-primary rounded-lg' : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('latest');
@@ -299,7 +299,7 @@ export function ParticipantsPage() {
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'earliest'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  ? 'bg-primary/10 text-primary rounded-lg'
                   : 'hover:bg-muted'
               }`}
               onClick={() => {
@@ -311,7 +311,9 @@ export function ParticipantsPage() {
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
-                sortOption === 'nameAsc' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-muted'
+                sortOption === 'nameAsc'
+                  ? 'bg-primary/10 text-primary rounded-lg'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('nameAsc');
@@ -323,7 +325,7 @@ export function ParticipantsPage() {
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'nameDesc'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  ? 'bg-primary/10 text-primary rounded-lg'
                   : 'hover:bg-muted'
               }`}
               onClick={() => {
@@ -336,7 +338,7 @@ export function ParticipantsPage() {
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'eventAsc'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  ? 'bg-primary/10 text-primary rounded-lg'
                   : 'hover:bg-muted'
               }`}
               onClick={() => {
@@ -349,7 +351,7 @@ export function ParticipantsPage() {
             <button
               className={`w-full text-center py-4 text-base font-semibold ${
                 sortOption === 'eventDesc'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  ? 'bg-primary/10 text-primary rounded-lg'
                   : 'hover:bg-muted'
               }`}
               onClick={() => {
@@ -361,7 +363,7 @@ export function ParticipantsPage() {
             </button>
             <div className="border-t border-border">
               <button
-                className="w-full text-center py-4 text-base font-semibold text-red-600 hover:bg-muted"
+                className="w-full text-center py-4 text-base font-semibold text-destructive hover:bg-muted"
                 onClick={() => setShowSortDrawer(false)}
               >
                 Cancel

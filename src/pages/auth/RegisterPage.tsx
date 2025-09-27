@@ -85,7 +85,11 @@ export function RegisterPage() {
             />
           </div>
 
-          {error && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{error}</div>}
+          {error && (
+            <div className="text-xs text-destructive-foreground bg-destructive/10 p-2 rounded">
+              {error}
+            </div>
+          )}
 
           <Button type="submit" className="w-full" size="sm" disabled={loading}>
             {loading ? 'Creating account...' : 'Sign Up'}

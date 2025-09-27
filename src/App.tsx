@@ -48,7 +48,7 @@ function AppContent() {
                 <div className="text-sm text-muted-foreground">Page not found</div>
                 <button
                   onClick={() => window.history.back()}
-                  className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                  className="mt-2 text-sm text-primary hover:text-primary/80"
                 >
                   Go back
                 </button>

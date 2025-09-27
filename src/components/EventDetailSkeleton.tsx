@@ -37,7 +37,7 @@ export function EventDetailSkeleton() {
             </div>
 
             {/* Divider */}
-            <div className="border-t border-gray-200"></div>
+            <div className="border-t border-border"></div>
 
             {/* Description */}
             <div className="text-sm">
@@ -71,7 +71,7 @@ export function EventDetailSkeleton() {
               <Skeleton className="h-4 w-20 mb-1" />
               <Skeleton className="h-3 w-32" />
             </div>
-            <div className="flex border border-gray-300 rounded">
+            <div className="flex border border-border rounded">
               <Skeleton className="h-7 w-7 rounded-r-none" />
               <Skeleton className="h-7 w-7 rounded-l-none" />
             </div>
@@ -101,7 +101,7 @@ export function EventDetailSkeleton() {
 
             {/* Empty slots */}
             {Array.from({ length: 2 }).map((_, i) => (
-              <div key={`empty-${i}`} className="p-3 border border-dashed border-gray-200">
+              <div key={`empty-${i}`} className="p-3 border border-dashed border-border">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-3 w-4" />
                   <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />

@@ -525,7 +525,7 @@ export function EventDetailPage() {
 
               {/* Horizontal divider */}
               {event.location && event.description && (
-                <div className="border-t border-gray-200"></div>
+                <div className="border-t border-border"></div>
               )}
 
               {/* Description */}
@@ -539,7 +539,7 @@ export function EventDetailPage() {
 
             {/* Action Buttons Footer */}
             <div className="border-t bg-muted">
-              <div className="flex divide-x divide-gray-200">
+              <div className="flex divide-x divide-border">
                 <button
                   onClick={() => navigate(`/events/${eventId}/edit`)}
                   className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
@@ -595,11 +595,11 @@ export function EventDetailPage() {
                 })()}
               </p>
             </div>
-            <div className="flex border border-gray-300 rounded">
+            <div className="flex border border-border rounded">
               <Button
                 size="sm"
                 variant="ghost"
-                className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
+                className={`h-7 px-2 rounded-r-none border-0 border-r border-border ${
                   showSearchBar ? 'bg-muted' : ''
                 }`}
                 onClick={() => setShowSearchBar(!showSearchBar)}
@@ -663,7 +663,7 @@ export function EventDetailPage() {
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <button
                               onClick={() => setSelectedParticipant(participant)}
-                              className="text-sm font-medium hover:text-blue-600 transition-colors truncate text-left min-w-0 max-w-full"
+                              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors truncate text-left min-w-0 max-w-full"
                             >
                               {displayName}
                             </button>
@@ -688,7 +688,7 @@ export function EventDetailPage() {
                                   e.stopPropagation();
                                   setWithdrawingParticipant(participant);
                                 }}
-                                className="text-xs h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-xs h-6 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                               >
                                 <UserX className="h-3 w-3 mr-1" />
                                 Withdraw
@@ -744,7 +744,7 @@ export function EventDetailPage() {
                   const canClaimSpot = user && userRegistration && isFirstEmptySlot;
 
                   slots.push(
-                    <div key={`empty-${slotNum}`} className="p-3 border-dashed border-gray-200">
+                    <div key={`empty-${slotNum}`} className="p-3 border-dashed border-border">
                       <div className="flex items-center gap-3">
                         <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
                           {slotNum}.
@@ -794,7 +794,7 @@ export function EventDetailPage() {
         <Button
           onClick={() => openSignupDrawer()}
           className={`w-full text-white shadow-lg ${
-            userRegistration ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
+            userRegistration ? 'bg-primary hover:bg-primary/90' : 'bg-primary hover:bg-primary/90'
           }`}
           size="default"
         >
@@ -983,11 +983,13 @@ export function EventDetailPage() {
               </Tabs>
 
               {signupError && (
-                <div className="text-xs text-red-600 bg-red-50 p-1.5 rounded">{signupError}</div>
+                <div className="text-xs text-destructive-foreground bg-destructive/10 p-1.5 rounded">
+                  {signupError}
+                </div>
               )}
             </form>
           </div>
-          <div className="border-t border-gray-200"></div>
+          <div className="border-t border-border"></div>
           <div className="p-3">
             <div className="flex gap-1.5 w-full">
               {userRegistration && (
@@ -1018,7 +1020,7 @@ export function EventDetailPage() {
                 type="submit"
                 form="signup-form"
                 size="sm"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-1"
+                className="flex-1 bg-primary hover:bg-primary/90 text-white py-1"
                 disabled={submitting}
               >
                 {submitting
@@ -1088,7 +1090,7 @@ export function EventDetailPage() {
                           className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
                             hasLabel
                               ? 'bg-primary text-white border-primary'
-                              : 'bg-card text-muted-foreground border-gray-300 hover:bg-muted'
+                              : 'bg-card text-muted-foreground border-border hover:bg-muted'
                           }`}
                         >
                           {label.name}

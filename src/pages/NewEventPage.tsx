@@ -161,18 +161,20 @@ export function NewEventPage() {
                 }))
               }
               className={`flex items-center justify-between w-full p-3 rounded-lg border-2 transition-colors ${
-                formData.is_private ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
+                formData.is_private
+                  ? 'border-destructive/20 bg-destructive/5'
+                  : 'border-primary/20 bg-primary/5'
               }`}
             >
               <div className="flex items-center space-x-2">
                 {formData.is_private ? (
-                  <Lock className="h-4 w-4 text-red-600" />
+                  <Lock className="h-4 w-4 text-destructive" />
                 ) : (
-                  <Unlock className="h-4 w-4 text-green-600" />
+                  <Unlock className="h-4 w-4 text-primary" />
                 )}
                 <span
                   className={`font-medium ${
-                    formData.is_private ? 'text-red-700' : 'text-green-700'
+                    formData.is_private ? 'text-destructive' : 'text-primary'
                   }`}
                 >
                   {formData.is_private ? 'Private Event' : 'Public Event'}
@@ -221,7 +223,7 @@ export function NewEventPage() {
                     <button
                       type="button"
                       onClick={() => removeCustomField(field.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-destructive hover:text-destructive/80"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

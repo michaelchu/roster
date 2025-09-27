@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
           aria-live="assertive"
         >
           <div className="text-center max-w-md">
-            <AlertTriangle className="w-16 h-16 mx-auto text-red-500 mb-4" aria-hidden="true" />
+            <AlertTriangle className="w-16 h-16 mx-auto text-destructive mb-4" aria-hidden="true" />
             <h1 className="text-xl font-semibold text-foreground mb-2">Something went wrong</h1>
             <p className="text-sm text-muted-foreground mb-6">
               We encountered an unexpected error. Please try refreshing the page.
@@ -72,12 +72,12 @@ export class ErrorBoundary extends Component<Props, State> {
               </Button>
             </div>
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <details className="mt-4 p-3 bg-red-50 rounded text-left">
-                <summary className="cursor-pointer text-sm font-medium text-red-800">
+              <details className="mt-4 p-3 bg-destructive/10 rounded text-left">
+                <summary className="cursor-pointer text-sm font-medium text-destructive">
                   Error Details (Development)
                 </summary>
                 <pre
-                  className="mt-2 text-xs text-red-700 whitespace-pre-wrap"
+                  className="mt-2 text-xs text-destructive-foreground whitespace-pre-wrap"
                   aria-label="Error stack trace"
                 >
                   {this.state.error.stack}

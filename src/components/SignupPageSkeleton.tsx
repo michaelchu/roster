@@ -15,7 +15,7 @@ export function SignupPageSkeleton() {
       {/* Header */}
       <div className="bg-card border-b sticky top-0 z-10">
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center text-blue-600">
+          <div className="flex items-center text-primary">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back
           </div>
@@ -47,7 +47,7 @@ export function SignupPageSkeleton() {
             </div>
 
             {/* Divider */}
-            <div className="border-t border-gray-200"></div>
+            <div className="border-t border-border"></div>
 
             {/* Description */}
             <div className="text-sm">
