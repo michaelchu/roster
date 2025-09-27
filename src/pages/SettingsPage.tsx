@@ -20,7 +20,7 @@ export function SettingsPage() {
   const { user, signOut } = useAuth();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
-  const [defaultCapacity, setDefaultCapacity] = useState('50');
+  const [defaultCapacity, setDefaultCapacity] = useState('10');
   const [defaultVisibility, setDefaultVisibility] = useState('public');
   const [theme, setTheme] = useState('system');
 
@@ -138,11 +138,13 @@ export function SettingsPage() {
                 type="number"
                 value={defaultCapacity}
                 onChange={(e) => setDefaultCapacity(e.target.value)}
-                placeholder="50"
+                placeholder="10"
+                min="1"
+                max="10000"
                 className="text-sm"
               />
               <div className="text-xs text-gray-500 mt-1">
-                Maximum number of participants for new events
+                Maximum number of participants for new events (1-10,000)
               </div>
             </div>
 
