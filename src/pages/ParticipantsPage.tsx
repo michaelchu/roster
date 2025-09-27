@@ -80,21 +80,30 @@ export function ParticipantsPage() {
         .order('created_at', { ascending: false });
 
       if (participantsData) {
-        // Get labels for each participant
-        const participantsWithLabels = await Promise.all(
-          participantsData.map(async (p) => {
-            const { data: labelData } = await supabase
-              .from('participant_labels')
-              .select('labels!inner(*)')
-              .eq('participant_id', p.id);
+        // Batch fetch all labels for all participants in one query
+        const participantIds = participantsData.map((p) => p.id);
+        const { data: allLabelData } = await supabase
+          .from('participant_labels')
+          .select('participant_id, labels!inner(*)')
+          .in('participant_id', participantIds);
 
-            return {
-              ...p,
-              event: p.events,
-              labels: labelData?.map((l) => l.labels) || [],
-            };
-          })
-        );
+        // Group labels by participant_id for efficient lookup
+        const labelsByParticipant = new Map<string, any[]>();
+        allLabelData?.forEach((item) => {
+          const participantId = item.participant_id;
+          if (!labelsByParticipant.has(participantId)) {
+            labelsByParticipant.set(participantId, []);
+          }
+          labelsByParticipant.get(participantId)!.push(item.labels);
+        });
+
+        // Map participants with their labels
+        const participantsWithLabels = participantsData.map((p) => ({
+          ...p,
+          event: p.events,
+          labels: labelsByParticipant.get(p.id) || [],
+        }));
+
         setParticipants(participantsWithLabels as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       }
     } catch (error) {
@@ -221,10 +230,18 @@ export function ParticipantsPage() {
                   </div>
                 ) : (
                   filteredParticipants.map((participant) => (
-                    <div
+                    <button
+                      type="button"
                       key={participant.id}
-                      className="p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="w-full text-left p-3 hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={() => navigate(`/events/${participant.event.id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/events/${participant.event.id}`);
+                        }
+                      }}
+                      aria-label={`View event ${participant.event.name}`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
@@ -249,7 +266,7 @@ export function ParticipantsPage() {
                           {new Date(participant.created_at).toLocaleDateString()}
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))
                 )}
               </div>
