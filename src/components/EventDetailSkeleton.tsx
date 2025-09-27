@@ -22,7 +22,7 @@ export function EventDetailSkeleton() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <Skeleton className="h-6 w-32" />
+          <h1 className="text-lg font-semibold text-center"></h1>
         </div>
       </div>
 
