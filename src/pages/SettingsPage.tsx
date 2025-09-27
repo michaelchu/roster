@@ -212,16 +212,40 @@ export function SettingsPage() {
             </Button>
           </div>
 
-          <div className="bg-white rounded-lg border p-3">
-            <div className="text-xs text-gray-500">
-              <div className="mb-2">
-                <strong>About Roster</strong>
-              </div>
-              <div className="space-y-1">
-                <div>Mobile-first event signup management</div>
-                <div>Built with React, TypeScript, Tailwind CSS</div>
-                <div>Database: Supabase (PostgreSQL)</div>
-                <div>UI: shadcn/ui components</div>
+          <div className="bg-white rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-gray-50">
+              <h3 className="text-sm font-medium">About This App</h3>
+            </div>
+            <div className="p-3">
+              <div className="text-xs text-gray-500 space-y-3">
+                <div>
+                  <p className="mb-2">
+                    This is a mobile-first event management platform designed to streamline event
+                    registration and participant management. Create events, manage signups, and
+                    track attendance all from your mobile device.
+                  </p>
+                </div>
+
+                <div>
+                  <div className="font-medium text-gray-700 mb-2">Install Mobile App</div>
+                  <div className="space-y-2">
+                    <div>
+                      <div className="font-medium">For iPhone/iPad:</div>
+                      <div>1. Open this website in Safari</div>
+                      <div>2. Tap the Share button (square with arrow)</div>
+                      <div>3. Select "Add to Home Screen"</div>
+                      <div>4. Tap "Add" to confirm</div>
+                    </div>
+
+                    <div>
+                      <div className="font-medium">For Android:</div>
+                      <div>1. Open this website in Chrome</div>
+                      <div>2. Tap the menu (three dots)</div>
+                      <div>3. Select "Add to Home screen"</div>
+                      <div>4. Tap "Add" to confirm</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
