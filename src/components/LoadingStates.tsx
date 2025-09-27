@@ -127,7 +127,7 @@ export function LoadingSpinner({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
 // Skeleton for upcoming events on HomePage
 export function UpcomingEventSkeleton() {
   return (
-    <div className="w-full p-3 border-b last:border-b-0">
+    <div className="w-full p-3">
       <div className="flex flex-col">
         <div className="flex items-start justify-between mb-2">
           <Skeleton className="h-4 w-3/4" />
