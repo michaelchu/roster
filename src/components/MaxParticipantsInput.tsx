@@ -54,9 +54,10 @@ export function MaxParticipantsInput({
 
   const handleInputBlur = (inputValue: string) => {
     if (inputValue === '' || isNaN(parseInt(inputValue))) {
-      const defaultValue = 10;
-      onChange(defaultValue);
-      setDisplayValue(defaultValue.toString());
+      // Use current value as fallback, then clamp to min/max
+      const fallback = Math.max(min, Math.min(max, value));
+      onChange(fallback);
+      setDisplayValue(fallback.toString());
     } else {
       const num = parseInt(inputValue);
       if (num < min) {
