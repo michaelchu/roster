@@ -59,7 +59,7 @@ export function ParticipantsPage() {
 
       const eventIds = events.map((e) => e.id);
 
-      // Get all participants for these events
+      // Get all participants for these events, excluding the authenticated user
       const { data: participantsData } = await supabase
         .from('participants')
         .select(
@@ -72,6 +72,7 @@ export function ParticipantsPage() {
         `
         )
         .in('event_id', eventIds)
+        .neq('user_id', user?.id || '')
         .order('created_at', { ascending: false });
 
       if (participantsData) {
@@ -162,7 +163,11 @@ export function ParticipantsPage() {
                 </div>
               ) : (
                 filteredParticipants.map((participant) => (
-                  <div key={participant.id} className="p-3 hover:bg-gray-50 transition-colors">
+                  <div
+                    key={participant.id}
+                    className="p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/events/${participant.event.id}`)}
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium">{participant.name}</div>
