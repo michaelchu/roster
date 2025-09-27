@@ -17,6 +17,7 @@ import { TopNav } from '@/components/TopNav';
 import { eventService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
+import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 
 interface CustomField {
   id?: string;
@@ -37,6 +38,16 @@ interface EventData {
   custom_fields: CustomField[];
 }
 
+/**
+ * Render the Edit Event page for an event organizer to view and modify an event.
+ *
+ * The page loads event data, verifies ownership, and provides controls to edit
+ * name, description, date/time, location, max participants, privacy, and custom
+ * participant fields. It also supports saving updates and permanently deleting
+ * the event, with loading states and error handling.
+ *
+ * @returns The rendered Edit Event page as JSX
+ */
 export function EditEventPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
@@ -187,11 +198,7 @@ export function EditEventPage() {
   };
 
   if (initialLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-sm text-gray-500">Loading event...</div>
-      </div>
-    );
+    return <EditEventPageSkeleton />;
   }
 
   if (!event) {

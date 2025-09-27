@@ -47,6 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 
 type Participant = ServiceParticipant & {
   notes?: string | null;
@@ -65,6 +66,15 @@ interface EventData {
   custom_fields: CustomField[];
 }
 
+/**
+ * Render the event detail page including event information, participants, signup UI, and related actions.
+ *
+ * The component loads event, label, and participant data; enforces access controls for private events;
+ * and provides interactions for signing up, modifying or withdrawing registrations, claiming spots,
+ * labeling participants, exporting participant data, and sharing the signup link.
+ *
+ * @returns The page's rendered React element
+ */
 export function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
@@ -461,11 +471,7 @@ export function EventDetailPage() {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-sm text-gray-500">Loading...</div>
-      </div>
-    );
+    return <EventDetailSkeleton />;
   }
 
   if (!event) {

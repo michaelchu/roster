@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { CheckCircle, User, ArrowLeft } from 'lucide-react';
 import { eventService, participantService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
-import { PageSkeleton } from '@/components/LoadingStates';
+import { SignupPageSkeleton } from '@/components/SignupPageSkeleton';
 
 interface CustomField {
   id?: string;
@@ -35,6 +35,15 @@ interface FormData {
   responses: Record<string, string>;
 }
 
+/**
+ * Renders the event signup page and manages the full registration flow.
+ *
+ * Auto-fills name and email for logged-in users and uses localStorage to persist quick-fill data for anonymous users.
+ * Validates required fields (including event custom fields), submits participant data to the participant service,
+ * and displays loading, not-found, error, and success states.
+ *
+ * @returns The signup page UI for an event, including event details, the registration form, and conditional loading/not-found/success views.
+ */
 export function SignupPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
@@ -169,7 +178,7 @@ export function SignupPage() {
   };
 
   if (loading) {
-    return <PageSkeleton />;
+    return <SignupPageSkeleton />;
   }
 
   if (!event) {
