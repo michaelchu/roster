@@ -221,7 +221,6 @@ export function SettingsPage() {
                 <SelectContent>
                   <SelectItem value="light">Light</SelectItem>
                   <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
                 </SelectContent>
               </Select>
               <div className="text-xs text-gray-500 mt-1">Choose your preferred color scheme</div>

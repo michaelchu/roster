@@ -66,7 +66,7 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="system" storageKey="roster-theme">
+      <ThemeProvider defaultTheme="light" storageKey="roster-theme">
         <FontSizeProvider>
           <MobileOnly>
             <AuthProvider>
