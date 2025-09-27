@@ -39,13 +39,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const returnUrl = localStorage.getItem('returnUrl');
         if (returnUrl) {
           localStorage.removeItem('returnUrl');
-          navigate(returnUrl);
+          const isSafeRelativePath = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
+          navigate(isSafeRelativePath ? returnUrl : '/');
         }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -70,8 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
     if (error) throw error;
   };
@@ -82,7 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider
+      value={{ user, session, loading, signIn, signUp, signInWithGoogle, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

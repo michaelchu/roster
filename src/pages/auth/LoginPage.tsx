@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -86,46 +86,46 @@ export function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div className="bg-white rounded-lg p-3 border space-y-3">
             <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-              className="h-10 text-sm"
-            />
-          </div>
+              <Label htmlFor="email" className="text-sm">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+                className="h-10 text-sm"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-              className="h-10 text-sm"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+                className="h-10 text-sm"
+              />
+            </div>
 
-          {error && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{error}</div>}
+            {error && <div className="text-xs text-red-600 bg-red-50 p-2 rounded">{error}</div>}
 
-          <Button type="submit" className="w-full" size="sm" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
-          </Button>
+            <Button type="submit" className="w-full" size="sm" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
 
-          <div className="text-center text-xs text-gray-500">
-            Don't have an account?{' '}
-            <Link to="/auth/register" className="text-primary hover:underline">
-              Sign Up
-            </Link>
+            <div className="text-center text-xs text-gray-500">
+              Don't have an account?{' '}
+              <Link to="/auth/register" className="text-primary hover:underline">
+                Sign Up
+              </Link>
             </div>
           </div>
         </form>

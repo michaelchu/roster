@@ -81,8 +81,6 @@ export function SignupPage() {
     }
   }, [user]);
 
-
-
   useEffect(() => {
     const loadEvent = async () => {
       if (!eventId) return;
