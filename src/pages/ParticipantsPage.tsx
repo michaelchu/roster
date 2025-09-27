@@ -11,14 +11,6 @@ import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton'
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import type { Label } from '@/services/labelService';
 
-// Define the label type as we actually receive it from the database
-interface Label {
-  id: string;
-  event_id: string;
-  name: string;
-  color: string | null;
-}
-
 interface Participant {
   id: string;
   name: string;
