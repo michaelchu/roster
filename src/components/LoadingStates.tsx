@@ -164,7 +164,7 @@ export function LoadingOverlay({ message = 'Loading...' }: { message?: string })
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-card rounded-lg p-6 flex flex-col items-center gap-4">
         <LoadingSpinner size="lg" />
-        <p className="text-sm text-gray-600">{message}</p>
+        <p className="text-sm text-muted-foreground">{message}</p>
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ export function RegisterPage() {
             {loading ? 'Creating account...' : 'Sign Up'}
           </Button>
 
-          <div className="text-center text-xs text-gray-500">
+          <div className="text-center text-xs text-muted-foreground">
             Already have an account?{' '}
             <Link to="/auth/login" className="text-primary hover:underline">
               Sign In

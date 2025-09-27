@@ -477,7 +477,7 @@ export function EventDetailPage() {
   if (!event) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-sm text-gray-500">Event not found</div>
+        <div className="text-sm text-muted-foreground">Event not found</div>
       </div>
     );
   }
@@ -495,8 +495,8 @@ export function EventDetailPage() {
               {event.datetime && (
                 <div className="grid grid-cols-2 gap-3">
                   {event.datetime && (
-                    <div className="text-sm text-gray-600">
-                      <div className="font-medium text-gray-800">Date</div>
+                    <div className="text-sm text-muted-foreground">
+                      <div className="font-medium text-foreground">Date</div>
                       <div>
                         {new Date(event.datetime).toLocaleString(undefined, {
                           year: 'numeric',
@@ -508,8 +508,8 @@ export function EventDetailPage() {
                       </div>
                     </div>
                   )}
-                  <div className="text-sm text-gray-600">
-                    <div className="font-medium text-gray-800">Registration Deadline</div>
+                  <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">Registration Deadline</div>
                     <div>None</div>
                   </div>
                 </div>
@@ -517,8 +517,8 @@ export function EventDetailPage() {
 
               {/* Second row: Location */}
               {event.location && (
-                <div className="text-sm text-gray-600">
-                  <div className="font-medium text-gray-800">Location</div>
+                <div className="text-sm text-muted-foreground">
+                  <div className="font-medium text-foreground">Location</div>
                   <div>{event.location}</div>
                 </div>
               )}
@@ -530,8 +530,8 @@ export function EventDetailPage() {
 
               {/* Description */}
               {event.description && (
-                <div className="text-sm text-gray-700">
-                  <div className="font-medium text-gray-800 mb-1">Description</div>
+                <div className="text-sm text-foreground">
+                  <div className="font-medium text-foreground mb-1">Description</div>
                   <p className="leading-relaxed">{event.description}</p>
                 </div>
               )}
@@ -542,21 +542,21 @@ export function EventDetailPage() {
               <div className="flex divide-x divide-gray-200">
                 <button
                   onClick={() => navigate(`/events/${eventId}/edit`)}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-muted transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </button>
                 <button
                   onClick={shareEvent}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-muted transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </button>
                 <button
                   onClick={exportToCSV}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-muted transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export
@@ -571,7 +571,7 @@ export function EventDetailPage() {
           <div className="px-3 py-2 border-b bg-muted flex items-center justify-between">
             <div>
               <h2 className="text-sm font-medium">Participants</h2>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {(() => {
                   // Count unique users (by user_id and email for non-users)
                   const uniqueUsers = new Set();
@@ -623,7 +623,7 @@ export function EventDetailPage() {
           {showSearchBar && (
             <div className="p-3 border-b bg-muted">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search participants..."
@@ -650,7 +650,7 @@ export function EventDetailPage() {
                 slots.push(
                   <div key={participant.id} className="p-3 hover:bg-muted transition-colors">
                     <div className="flex items-start gap-3">
-                      <div className="text-xs text-gray-400 font-mono flex-shrink-0 mt-1">
+                      <div className="text-xs text-muted-foreground font-mono flex-shrink-0 mt-1">
                         {participant.slot_number}.
                       </div>
                       <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
@@ -696,7 +696,7 @@ export function EventDetailPage() {
                             )}
                           </div>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           Signed up{' '}
                           {(() => {
                             const now = new Date();
@@ -746,14 +746,14 @@ export function EventDetailPage() {
                   slots.push(
                     <div key={`empty-${slotNum}`} className="p-3 border-dashed border-gray-200">
                       <div className="flex items-center gap-3">
-                        <div className="text-xs text-gray-400 font-mono flex-shrink-0">
+                        <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
                           {slotNum}.
                         </div>
                         <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs text-gray-400">?</span>
+                          <span className="text-xs text-muted-foreground">?</span>
                         </div>
                         <div className="flex-1 flex items-center justify-between">
-                          <div className="text-sm text-gray-400 italic">Available slot</div>
+                          <div className="text-sm text-muted-foreground italic">Available slot</div>
                           {canClaimSpot && (
                             <Button
                               size="sm"
@@ -775,8 +775,8 @@ export function EventDetailPage() {
               if (slots.length === 0) {
                 return (
                   <div className="p-6 text-center">
-                    <Users className="h-10 w-10 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">
+                    <Users className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">
                       {searchQuery ? 'No participants found' : 'No participants yet'}
                     </p>
                   </div>
@@ -832,7 +832,7 @@ export function EventDetailPage() {
                   : 'Join Event'}
             </h2>
             {isClaimingForOther && (
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Leave name empty to claim under your name
               </p>
             )}
@@ -1088,7 +1088,7 @@ export function EventDetailPage() {
                           className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
                             hasLabel
                               ? 'bg-primary text-white border-primary'
-                              : 'bg-card text-gray-600 border-gray-300 hover:bg-muted'
+                              : 'bg-card text-muted-foreground border-gray-300 hover:bg-muted'
                           }`}
                         >
                           {label.name}

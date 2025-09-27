@@ -75,7 +75,7 @@ export function LoginPage() {
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
 
-          <div className="text-center text-xs text-gray-500">
+          <div className="text-center text-xs text-muted-foreground">
             Don't have an account?{' '}
             <Link to="/auth/register" className="text-primary hover:underline">
               Sign Up

@@ -242,7 +242,7 @@ export function HomePage() {
               {loading ? (
                 <UpcomingEventsListSkeleton count={3} />
               ) : upcomingEvents.length === 0 ? (
-                <div className="p-3 text-xs text-gray-500 text-center">
+                <div className="p-3 text-xs text-muted-foreground text-center">
                   No events{' '}
                   {timePeriod === 'all'
                     ? 'found'
@@ -275,7 +275,7 @@ export function HomePage() {
                         <div className="flex items-end justify-between">
                           <div className="space-y-1 flex-1 min-w-0">
                             {event.datetime && (
-                              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                 <Calendar className="h-3 w-3 flex-shrink-0" />
                                 <span>
                                   {new Date(event.datetime).toLocaleDateString('en-US', {
@@ -289,13 +289,13 @@ export function HomePage() {
                               </div>
                             )}
                             {event.location && (
-                              <div className="text-xs text-gray-500 truncate">
+                              <div className="text-xs text-muted-foreground truncate">
                                 📍 {event.location}
                               </div>
                             )}
                           </div>
                           {event.isOrganizer && event.participantCount !== undefined && (
-                            <div className="flex items-center gap-1 text-xs text-gray-500 bg-muted px-2 py-1 rounded-full">
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                               <Users className="h-3 w-3" />
                               <span className="font-medium">{event.participantCount}</span>
                             </div>
@@ -310,9 +310,11 @@ export function HomePage() {
           </>
         ) : (
           <div className="bg-card rounded-lg p-6 border text-center">
-            <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <h2 className="text-base font-medium mb-2">Welcome to Roster</h2>
-            <p className="text-xs text-gray-500 mb-4">Sign in to create and manage your events</p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Sign in to create and manage your events
+            </p>
             <Button size="sm" className="w-full" onClick={() => navigate('/auth/login')}>
               Sign In
             </Button>

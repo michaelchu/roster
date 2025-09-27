@@ -45,7 +45,7 @@ function AppContent() {
           element={
             <div className="min-h-screen bg-background flex items-center justify-center">
               <div className="text-center">
-                <div className="text-sm text-gray-500">Page not found</div>
+                <div className="text-sm text-muted-foreground">Page not found</div>
                 <button
                   onClick={() => window.history.back()}
                   className="mt-2 text-sm text-blue-600 hover:text-blue-800"

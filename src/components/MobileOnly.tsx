@@ -19,9 +19,9 @@ export function MobileOnly({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-8">
         <div className="text-center max-w-md">
-          <Smartphone className="w-24 h-24 mx-auto text-gray-400 mb-6" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Mobile Access Only</h1>
-          <p className="text-gray-600">
+          <Smartphone className="w-24 h-24 mx-auto text-muted-foreground mb-6" />
+          <h1 className="text-2xl font-bold text-foreground mb-4">Mobile Access Only</h1>
+          <p className="text-muted-foreground">
             This platform is designed for mobile use only. Please open this page on your phone to
             continue.
           </p>

@@ -17,7 +17,7 @@ export function ParticipantsPageSkeleton() {
         <div className="bg-card rounded-lg border overflow-hidden">
           <div className="p-3 bg-muted">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Skeleton className="h-8 w-full rounded-md pl-9" />
             </div>
           </div>

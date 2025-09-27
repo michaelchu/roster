@@ -192,7 +192,7 @@ export function EditEventPage() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Event Not Found</h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             This event doesn't exist or you don't have permission to edit it.
           </p>
         </div>
@@ -295,7 +295,7 @@ export function EditEventPage() {
                 </span>
               </div>
             </button>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               {formData.is_private
                 ? 'Only people you invite can view and sign up for this event'
                 : 'Anyone with the link can view and sign up for this event'}
@@ -319,7 +319,7 @@ export function EditEventPage() {
           </div>
 
           {customFields.length === 0 ? (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               No custom fields. Add fields to collect additional information from participants.
             </p>
           ) : (

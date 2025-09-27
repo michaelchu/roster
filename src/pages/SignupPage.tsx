@@ -185,7 +185,7 @@ export function SignupPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="text-sm text-gray-500 mb-4">Event not found</div>
+          <div className="text-sm text-muted-foreground mb-4">Event not found</div>
           <Button variant="outline" onClick={() => navigate('/')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Home
@@ -200,8 +200,8 @@ export function SignupPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-4">
           <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful!</h1>
-          <p className="text-sm text-gray-600 mb-6">
+          <h1 className="text-xl font-semibold text-foreground mb-2">Registration Successful!</h1>
+          <p className="text-sm text-muted-foreground mb-6">
             You've successfully registered for "{event.name}". You should receive a confirmation
             soon.
           </p>
@@ -242,8 +242,8 @@ export function SignupPage() {
               {/* Top row: Date and Registration info */}
               {event.datetime && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="text-sm text-gray-600">
-                    <div className="font-medium text-gray-800">Date</div>
+                  <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">Date</div>
                     <div>
                       {new Date(event.datetime).toLocaleString(undefined, {
                         year: 'numeric',
@@ -254,8 +254,8 @@ export function SignupPage() {
                       })}
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    <div className="font-medium text-gray-800">Participants</div>
+                  <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">Participants</div>
                     <div>
                       {event.participant_count || 0}
                       {event.max_participants ? ` / ${event.max_participants}` : ''}
@@ -266,8 +266,8 @@ export function SignupPage() {
 
               {/* Location */}
               {event.location && (
-                <div className="text-sm text-gray-600">
-                  <div className="font-medium text-gray-800">Location</div>
+                <div className="text-sm text-muted-foreground">
+                  <div className="font-medium text-foreground">Location</div>
                   <div>{event.location}</div>
                 </div>
               )}
@@ -279,8 +279,8 @@ export function SignupPage() {
 
               {/* Description */}
               {event.description && (
-                <div className="text-sm text-gray-700">
-                  <div className="font-medium text-gray-800 mb-1">Description</div>
+                <div className="text-sm text-foreground">
+                  <div className="font-medium text-foreground mb-1">Description</div>
                   <p className="leading-relaxed">{event.description}</p>
                 </div>
               )}
@@ -404,7 +404,7 @@ export function SignupPage() {
             </form>
 
             {!user && (
-              <p className="text-xs text-gray-500 mt-3 text-center">
+              <p className="text-xs text-muted-foreground mt-3 text-center">
                 Your information will be saved to make future registrations easier.
               </p>
             )}

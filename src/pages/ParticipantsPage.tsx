@@ -160,7 +160,7 @@ export function ParticipantsPage() {
       <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-gray-500 mb-4">Please sign in to view participants</p>
+          <p className="text-sm text-muted-foreground mb-4">Please sign in to view participants</p>
           <Button size="sm" onClick={() => navigate('/auth/login')}>
             Sign In
           </Button>
@@ -180,9 +180,9 @@ export function ParticipantsPage() {
       <div className="p-3 space-y-3">
         {participants.length === 0 ? (
           <div className="bg-card rounded-lg p-6 border text-center">
-            <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <h2 className="text-base font-medium mb-2">No Participants Yet</h2>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Participants will appear here once they sign up for your events
             </p>
           </div>
@@ -224,7 +224,7 @@ export function ParticipantsPage() {
               {showSearchBar && (
                 <div className="p-3 border-b bg-muted">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
                       placeholder="Search by name, email, phone, or event..."
@@ -239,7 +239,7 @@ export function ParticipantsPage() {
               <div className="divide-y">
                 {filteredParticipants.length === 0 ? (
                   <div className="p-6 text-center">
-                    <p className="text-sm text-gray-500">No participants found</p>
+                    <p className="text-sm text-muted-foreground">No participants found</p>
                   </div>
                 ) : (
                   filteredParticipants.map((participant) => (
@@ -259,10 +259,10 @@ export function ParticipantsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium">{participant.name}</div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground">
                             {participant.email || participant.phone || 'No contact info'}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
+                          <div className="text-xs text-muted-foreground mt-1">
                             Event: {participant.event.name}
                           </div>
                           {participant.labels.length > 0 && (
@@ -275,7 +275,7 @@ export function ParticipantsPage() {
                             </div>
                           )}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-muted-foreground">
                           {new Date(participant.created_at).toLocaleDateString()}
                         </div>
                       </div>

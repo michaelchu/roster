@@ -35,7 +35,7 @@ export function BottomNav() {
               to={item.path}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 h-full py-1 text-xs',
-                isActive ? 'text-primary' : 'text-gray-500'
+                isActive ? 'text-primary' : 'text-muted-foreground'
               )}
               aria-label={`Navigate to ${item.label}`}
               aria-current={isActive ? 'page' : undefined}

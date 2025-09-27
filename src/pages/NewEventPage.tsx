@@ -179,7 +179,7 @@ export function NewEventPage() {
                 </span>
               </div>
             </button>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               {formData.is_private
                 ? 'Only people you invite can view and sign up for this event'
                 : 'Anyone with the link can view and sign up for this event'}
@@ -203,7 +203,7 @@ export function NewEventPage() {
           </div>
 
           {customFields.length === 0 ? (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               No custom fields. Add fields to collect additional information from participants.
             </p>
           ) : (

@@ -68,7 +68,7 @@ export function EventsPage() {
       <div className="min-h-screen bg-background pb-32 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-gray-500 mb-4">Please sign in to view your events</p>
+          <p className="text-sm text-muted-foreground mb-4">Please sign in to view your events</p>
           <Button size="sm" onClick={() => navigate('/auth/login')}>
             Sign In
           </Button>
@@ -92,8 +92,8 @@ export function EventsPage() {
             onClick={() => setActiveTab('organizing')}
             className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-colors ${
               activeTab === 'organizing'
-                ? 'bg-card text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Organizing
@@ -102,8 +102,8 @@ export function EventsPage() {
             onClick={() => setActiveTab('joined')}
             className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-colors ${
               activeTab === 'joined'
-                ? 'bg-card text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Joined
@@ -116,11 +116,11 @@ export function EventsPage() {
           <EventListSkeleton count={3} />
         ) : currentEvents && currentEvents.length === 0 ? (
           <div className="bg-card rounded-lg p-3 border text-center">
-            <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <h2 className="text-base font-medium mb-2">
               {activeTab === 'organizing' ? 'No Events Yet' : 'No Joined Events'}
             </h2>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-muted-foreground mb-4">
               {activeTab === 'organizing'
                 ? 'Create your first event to start managing registrations'
                 : "You haven't joined any events yet"}
@@ -144,7 +144,7 @@ export function EventsPage() {
                     <h3 className="text-sm font-semibold truncate">{event.name}</h3>
                   </div>
                   {(event.datetime || event.location) && (
-                    <div className="flex items-center justify-between text-xs text-gray-600">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       {event.datetime && (
                         <div className="flex items-center gap-1.5">
                           <Calendar className="h-3 w-3 flex-shrink-0" />
@@ -159,7 +159,7 @@ export function EventsPage() {
                         </div>
                       )}
                       {event.location && (
-                        <div className="text-xs text-gray-500 truncate ml-2">
+                        <div className="text-xs text-muted-foreground truncate ml-2">
                           📍 {event.location}
                         </div>
                       )}
@@ -167,7 +167,7 @@ export function EventsPage() {
                   )}
                 </button>
                 <div className="border-t px-3 py-2 bg-muted flex justify-between items-center gap-2">
-                  <div className="flex items-center gap-1 text-xs text-gray-500 bg-muted px-2 py-1 rounded-full">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                     <Users className="h-3 w-3" />
                     <span className="font-medium">{event.participant_count || 0}</span>
                   </div>
