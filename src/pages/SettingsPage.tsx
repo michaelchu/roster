@@ -192,7 +192,7 @@ export function SettingsPage() {
                 </Label>
               </div>
               <Select value={theme} onValueChange={setTheme}>
-                <SelectTrigger className="text-sm">
+                <SelectTrigger id="theme" className="text-sm">
                   <SelectValue placeholder="Select theme" />
                 </SelectTrigger>
                 <SelectContent>
