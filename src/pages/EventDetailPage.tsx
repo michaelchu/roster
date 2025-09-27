@@ -668,7 +668,7 @@ export function EventDetailPage() {
                               {displayName}
                             </button>
                             {isOwnClaimedSpot && claimNumber && (
-                              <Badge variant="outline" className="text-xs h-5 px-1">
+                              <Badge variant="outline" className="text-xs h-5 px-1 mr-2">
                                 +{claimNumber}
                               </Badge>
                             )}
