@@ -9,14 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/TopNav';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
-
-// Define the label type as we actually receive it from the database
-interface Label {
-  id: string;
-  event_id: string;
-  name: string;
-  color: string | null;
-}
+import type { Label } from '@/services/labelService';
 
 interface Participant {
   id: string;
@@ -257,8 +250,8 @@ export function ParticipantsPage() {
                       aria-label={`View event ${participant.event.name}`}
                     >
                       <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium">{participant.name}</div>
+                        <div className="flex-1 min-w-0 pr-2">
+                          <div className="text-sm font-medium truncate">{participant.name}</div>
                           <div className="text-xs text-gray-500">
                             {participant.email || participant.phone || 'No contact info'}
                           </div>
@@ -275,7 +268,7 @@ export function ParticipantsPage() {
                             </div>
                           )}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-400 flex-shrink-0">
                           {new Date(participant.created_at).toLocaleDateString()}
                         </div>
                       </div>
