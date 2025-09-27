@@ -3,8 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
-import { User, LogOut, Mail, MessageSquare } from 'lucide-react';
+import { User, LogOut, Mail, MessageSquare, Settings, Eye, Palette } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 
 export function SettingsPage() {
@@ -12,6 +20,9 @@ export function SettingsPage() {
   const { user, signOut } = useAuth();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
+  const [defaultCapacity, setDefaultCapacity] = useState('50');
+  const [defaultVisibility, setDefaultVisibility] = useState('public');
+  const [theme, setTheme] = useState('system');
 
   const handleSignOut = async () => {
     await signOut();
@@ -106,6 +117,80 @@ export function SettingsPage() {
                 onCheckedChange={setSmsNotifications}
               />
             </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="p-3 border-b bg-gray-50">
+            <h3 className="text-sm font-medium">Event Management</h3>
+          </div>
+
+          <div className="divide-y">
+            <div className="p-3">
+              <div className="flex items-center gap-3 mb-2">
+                <Settings className="h-5 w-5 text-gray-400" />
+                <Label htmlFor="default-capacity" className="text-sm font-medium">
+                  Default Event Capacity
+                </Label>
+              </div>
+              <Input
+                id="default-capacity"
+                type="number"
+                value={defaultCapacity}
+                onChange={(e) => setDefaultCapacity(e.target.value)}
+                placeholder="50"
+                className="text-sm"
+              />
+              <div className="text-xs text-gray-500 mt-1">
+                Maximum number of participants for new events
+              </div>
+            </div>
+
+            <div className="p-3">
+              <div className="flex items-center gap-3 mb-2">
+                <Eye className="h-5 w-5 text-gray-400" />
+                <Label htmlFor="default-visibility" className="text-sm font-medium">
+                  Default Event Visibility
+                </Label>
+              </div>
+              <Select value={defaultVisibility} onValueChange={setDefaultVisibility}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="invite-only">Invite Only</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="text-xs text-gray-500 mt-1">Default visibility for new events</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="p-3 border-b bg-gray-50">
+            <h3 className="text-sm font-medium">Appearance</h3>
+          </div>
+
+          <div className="p-3">
+            <div className="flex items-center gap-3 mb-2">
+              <Palette className="h-5 w-5 text-gray-400" />
+              <Label htmlFor="theme" className="text-sm font-medium">
+                Theme
+              </Label>
+            </div>
+            <Select value={theme} onValueChange={setTheme}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Select theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="system">System</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="text-xs text-gray-500 mt-1">Choose your preferred color scheme</div>
           </div>
         </div>
 
