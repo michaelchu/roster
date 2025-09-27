@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { useAuth, AuthProvider } from '../useAuth';
 import type { ReactNode } from 'react';
 
@@ -8,6 +9,7 @@ const mockAuthStateChange = vi.fn();
 const mockGetSession = vi.fn();
 const mockSignInWithPassword = vi.fn();
 const mockSignUp = vi.fn();
+const mockSignInWithOAuth = vi.fn();
 const mockSignOut = vi.fn();
 
 vi.mock('@/lib/supabase', () => ({
@@ -17,6 +19,8 @@ vi.mock('@/lib/supabase', () => ({
       signInWithPassword: (credentials: { email: string; password: string }) =>
         mockSignInWithPassword(credentials),
       signUp: (credentials: { email: string; password: string }) => mockSignUp(credentials),
+      signInWithOAuth: (options: { provider: string; options?: { redirectTo: string } }) =>
+        mockSignInWithOAuth(options),
       signOut: () => mockSignOut(),
       onAuthStateChange: (callback: (event: string, session: unknown) => void) => {
         mockAuthStateChange(callback);
@@ -39,10 +43,16 @@ describe('useAuth Hook', () => {
       data: { session: null },
       error: null,
     });
+    mockSignInWithOAuth.mockResolvedValue({
+      data: {},
+      error: null,
+    });
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <AuthProvider>{children}</AuthProvider>
+    <MemoryRouter>
+      <AuthProvider>{children}</AuthProvider>
+    </MemoryRouter>
   );
 
   it('initializes with loading state', async () => {
@@ -149,6 +159,42 @@ describe('useAuth Hook', () => {
         await expect(
           result.current.signUp('existing@example.com', 'password123', 'John Doe')
         ).rejects.toThrow('Email already exists');
+      });
+    });
+  });
+
+  describe('signInWithGoogle', () => {
+    it('signs in with Google successfully', async () => {
+      mockSignInWithOAuth.mockResolvedValue({
+        data: {},
+        error: null,
+      });
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await act(async () => {
+        await result.current.signInWithGoogle();
+      });
+
+      expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+    });
+
+    it('throws error on Google sign in failure', async () => {
+      const error = new Error('Google OAuth failed');
+      mockSignInWithOAuth.mockResolvedValue({
+        data: null,
+        error,
+      });
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await act(async () => {
+        await expect(result.current.signInWithGoogle()).rejects.toThrow('Google OAuth failed');
       });
     });
   });
