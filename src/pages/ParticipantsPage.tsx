@@ -7,6 +7,7 @@ import { Users, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/TopNav';
+import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
 
 interface Participant {
   id: string;
@@ -112,14 +113,16 @@ export function ParticipantsPage() {
     );
   }
 
+  if (loading) {
+    return <ParticipantsPageSkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
       <TopNav title="All Participants" sticky />
 
       <div className="p-3 space-y-3">
-        {loading ? (
-          <div className="text-sm text-gray-500 text-center py-8">Loading...</div>
-        ) : participants.length === 0 ? (
+        {participants.length === 0 ? (
           <div className="bg-white rounded-lg p-6 border text-center">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
             <h2 className="text-base font-medium mb-2">No Participants Yet</h2>

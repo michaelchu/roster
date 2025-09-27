@@ -17,6 +17,7 @@ import { TopNav } from '@/components/TopNav';
 import { eventService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
+import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 
 interface CustomField {
   id?: string;
@@ -187,11 +188,7 @@ export function EditEventPage() {
   };
 
   if (initialLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-sm text-gray-500">Loading event...</div>
-      </div>
-    );
+    return <EditEventPageSkeleton />;
   }
 
   if (!event) {
