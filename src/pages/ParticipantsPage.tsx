@@ -59,7 +59,7 @@ export function ParticipantsPage() {
 
       const eventIds = events.map((e) => e.id);
 
-      // Get all participants for these events, excluding the authenticated user
+      // Get all participants for these events, excluding the authenticated user only if they have a user_id
       const { data: participantsData } = await supabase
         .from('participants')
         .select(
@@ -72,7 +72,7 @@ export function ParticipantsPage() {
         `
         )
         .in('event_id', eventIds)
-        .neq('user_id', user?.id || '')
+        .or(`user_id.is.null,user_id.neq.${user?.id || ''}`)
         .order('created_at', { ascending: false });
 
       if (participantsData) {
