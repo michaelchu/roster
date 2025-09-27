@@ -1,26 +1,23 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-export type FontSize = 'sm' | 'md' | 'lg' | 'xl';
+export type FontSize = 'sm' | 'md' | 'lg';
 
 export interface FontSizeConfig {
   sm: string;
   md: string;
   lg: string;
-  xl: string;
 }
 
 const FONT_SIZE_CONFIG: FontSizeConfig = {
   sm: '14px',
   md: '16px',
   lg: '18px',
-  xl: '20px',
 };
 
 const FONT_SIZE_LABELS: Record<FontSize, string> = {
-  sm: 'Small',
-  md: 'Medium',
-  lg: 'Large',
-  xl: 'Extra Large',
+  sm: 'Medium',
+  md: 'Large',
+  lg: 'Extra Large',
 };
 
 interface FontSizeContextType {
@@ -59,7 +56,6 @@ export function FontSizeProvider({ children }: { children: ReactNode }) {
     root.style.setProperty('--font-size-sm', `calc(${sizeValue} * 0.875)`);
     root.style.setProperty('--font-size-base-exact', sizeValue);
     root.style.setProperty('--font-size-lg', `calc(${sizeValue} * 1.125)`);
-    root.style.setProperty('--font-size-xl', `calc(${sizeValue} * 1.25)`);
     root.style.setProperty('--font-size-2xl', `calc(${sizeValue} * 1.5)`);
     root.style.setProperty('--font-size-3xl', `calc(${sizeValue} * 1.875)`);
   }, [fontSize]);

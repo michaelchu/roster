@@ -28,7 +28,7 @@ export function SettingsPage() {
   const [defaultVisibility, setDefaultVisibility] = useState('public');
   const [theme, setTheme] = useState('system');
 
-  const fontSizeOptions: FontSize[] = ['sm', 'md', 'lg', 'xl'];
+  const fontSizeOptions: FontSize[] = ['sm', 'md', 'lg'];
   const currentFontSizeIndex = fontSizeOptions.indexOf(fontSize);
 
   const handleFontSizeChange = (value: number[]) => {
@@ -228,7 +228,7 @@ export function SettingsPage() {
                   <Slider
                     id="font-size"
                     min={0}
-                    max={3}
+                    max={2}
                     step={1}
                     value={[currentFontSizeIndex]}
                     onValueChange={handleFontSizeChange}
