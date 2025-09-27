@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function EventCardSkeleton() {
   return (
-    <div className="bg-white border rounded-lg overflow-hidden">
+    <div className="bg-card border rounded-lg overflow-hidden">
       <div className="p-3">
         <div className="mb-3">
           <Skeleton className="h-4 w-3/4" />
@@ -15,7 +15,7 @@ export function EventCardSkeleton() {
           <Skeleton className="h-3 w-16" />
         </div>
       </div>
-      <div className="border-t px-3 py-2 bg-gray-50 flex justify-between items-center gap-2">
+      <div className="border-t px-3 py-2 bg-muted flex justify-between items-center gap-2">
         <Skeleton className="h-6 w-12 rounded-full" />
         <div className="flex gap-2">
           <Skeleton className="h-7 w-12" />
@@ -38,7 +38,7 @@ export function EventListSkeleton({ count = 3 }: { count?: number }) {
 
 export function ParticipantRowSkeleton() {
   return (
-    <div className="bg-white border rounded-lg p-3">
+    <div className="bg-card border rounded-lg p-3">
       <div className="flex justify-between items-start mb-2">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-4 w-16" />
@@ -96,7 +96,7 @@ export function FormSkeleton() {
 
 export function PageSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <div className="p-3">
         <Skeleton className="h-6 w-32 mb-4" />
         <div className="space-y-3">
@@ -119,7 +119,7 @@ export function LoadingSpinner({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
 
   return (
     <div
-      className={`animate-spin rounded-full border-2 border-gray-300 border-t-gray-600 ${sizeClasses[size]}`}
+      className={`animate-spin rounded-full border-2 border-border border-t-foreground ${sizeClasses[size]}`}
     />
   );
 }
@@ -162,9 +162,9 @@ export function UpcomingEventsListSkeleton({ count = 3 }: { count?: number }) {
 export function LoadingOverlay({ message = 'Loading...' }: { message?: string }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-4">
+      <div className="bg-card rounded-lg p-6 flex flex-col items-center gap-4">
         <LoadingSpinner size="lg" />
-        <p className="text-sm text-gray-600">{message}</p>
+        <p className="text-sm text-muted-foreground">{message}</p>
       </div>
     </div>
   );

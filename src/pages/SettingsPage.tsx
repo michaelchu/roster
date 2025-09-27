@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useFontSize, type FontSize } from '@/hooks/useFontSize';
+import { useTheme } from '@/components/theme-provider';
 import {
   User,
   LogOut,
@@ -33,11 +34,11 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { fontSize, setFontSize, fontSizeLabels } = useFontSize();
+  const { theme, setTheme } = useTheme();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState('10');
   const [defaultVisibility, setDefaultVisibility] = useState('public');
-  const [theme, setTheme] = useState('system');
 
   const fontSizeOptions: FontSize[] = ['sm', 'md', 'lg'];
   const currentFontSizeIndex = fontSizeOptions.indexOf(fontSize);
@@ -55,10 +56,10 @@ export function SettingsPage() {
   if (!user) {
     return (
       <MobileOnly>
-        <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
           <div className="text-center">
             <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-            <p className="text-sm text-gray-500 mb-4">Please sign in to access settings</p>
+            <p className="text-sm text-muted-foreground mb-4">Please sign in to access settings</p>
             <Button size="sm" onClick={() => navigate('/auth/login')}>
               Sign In
             </Button>
@@ -70,12 +71,12 @@ export function SettingsPage() {
 
   return (
     <MobileOnly>
-      <div className="min-h-screen bg-gray-50 pb-14">
+      <div className="min-h-screen bg-background pb-14">
         <TopNav title="Settings" />
 
         <div className="p-3 space-y-3">
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center">
                   <User className="h-5 w-5 text-white" />
@@ -84,34 +85,34 @@ export function SettingsPage() {
                   <div className="text-sm font-medium">
                     {user.user_metadata?.full_name || 'User'}
                   </div>
-                  <div className="text-xs text-gray-500">{user.email}</div>
+                  <div className="text-xs text-muted-foreground">{user.email}</div>
                 </div>
               </div>
             </div>
 
             <div className="divide-y">
               <button
-                className="w-full p-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
+                className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                 onClick={() => navigate('/profile')}
               >
-                <User className="h-5 w-5 text-gray-400" />
+                <User className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <div className="text-sm font-medium">Profile</div>
-                  <div className="text-xs text-gray-500">Update your information</div>
+                  <div className="text-xs text-muted-foreground">Update your information</div>
                 </div>
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <h3 className="text-sm font-medium">Notifications</h3>
             </div>
 
             <div className="divide-y">
               <div className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <Label
                       htmlFor="email-notifications"
@@ -119,7 +120,9 @@ export function SettingsPage() {
                     >
                       Email Notifications
                     </Label>
-                    <div className="text-xs text-gray-500">Receive event updates via email</div>
+                    <div className="text-xs text-muted-foreground">
+                      Receive event updates via email
+                    </div>
                   </div>
                 </div>
                 <Switch
@@ -131,7 +134,7 @@ export function SettingsPage() {
 
               <div className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <MessageSquare className="h-5 w-5 text-gray-400" />
+                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <Label
                       htmlFor="sms-notifications"
@@ -139,7 +142,9 @@ export function SettingsPage() {
                     >
                       SMS Notifications
                     </Label>
-                    <div className="text-xs text-gray-500">Receive event updates via SMS</div>
+                    <div className="text-xs text-muted-foreground">
+                      Receive event updates via SMS
+                    </div>
                   </div>
                 </div>
                 <Switch
@@ -151,15 +156,15 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <h3 className="text-sm font-medium">Event Management</h3>
             </div>
 
             <div className="divide-y">
               <div className="p-3">
                 <div className="flex items-center gap-3 mb-2">
-                  <Settings className="h-5 w-5 text-gray-400" />
+                  <Settings className="h-5 w-5 text-muted-foreground" />
                   <Label htmlFor="default-capacity" className="text-sm font-medium">
                     Default Event Capacity
                   </Label>
@@ -174,14 +179,14 @@ export function SettingsPage() {
                   max="100"
                   className="text-sm"
                 />
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   Maximum number of participants for new events (1-100)
                 </div>
               </div>
 
               <div className="p-3">
                 <div className="flex items-center gap-3 mb-2">
-                  <Eye className="h-5 w-5 text-gray-400" />
+                  <Eye className="h-5 w-5 text-muted-foreground" />
                   <Label htmlFor="default-visibility" className="text-sm font-medium">
                     Default Event Visibility
                   </Label>
@@ -196,19 +201,21 @@ export function SettingsPage() {
                     <SelectItem value="invite-only">Invite Only</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="text-xs text-gray-500 mt-1">Default visibility for new events</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Default visibility for new events
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <h3 className="text-sm font-medium">Appearance</h3>
             </div>
 
             <div className="p-3">
               <div className="flex items-center gap-3 mb-2">
-                <Palette className="h-5 w-5 text-gray-400" />
+                <Palette className="h-5 w-5 text-muted-foreground" />
                 <Label htmlFor="theme" className="text-sm font-medium">
                   Theme
                 </Label>
@@ -220,22 +227,23 @@ export function SettingsPage() {
                 <SelectContent>
                   <SelectItem value="light">Light</SelectItem>
                   <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="text-xs text-gray-500 mt-1">Choose your preferred color scheme</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Choose your preferred color scheme
+              </div>
             </div>
 
             <div className="p-3 border-t">
               <div className="flex items-center gap-3 mb-3">
-                <Type className="h-5 w-5 text-gray-400" />
+                <Type className="h-5 w-5 text-muted-foreground" />
                 <Label htmlFor="font-size" className="text-sm font-medium">
                   Font Size
                 </Label>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Minus className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <Minus className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <Slider
                     id="font-size"
                     min={0}
@@ -245,19 +253,21 @@ export function SettingsPage() {
                     onValueChange={handleFontSizeChange}
                     className="flex-1"
                   />
-                  <Plus className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <Plus className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 </div>
-                <div className="text-xs text-gray-500 text-center">{fontSizeLabels[fontSize]}</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  {fontSizeLabels[fontSize]}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <h3 className="text-sm font-medium">About This App</h3>
             </div>
             <div className="p-3">
-              <div className="text-xs text-gray-500 space-y-3">
+              <div className="text-xs text-muted-foreground space-y-3">
                 <div>
                   <p className="mb-2">
                     Roster is a mobile-first event management platform designed to streamline event
@@ -267,7 +277,7 @@ export function SettingsPage() {
                 </div>
 
                 <div>
-                  <div className="font-medium text-gray-700 mb-2">Install Mobile App</div>
+                  <div className="font-medium text-foreground mb-2">Install Mobile App</div>
                   <div className="space-y-2">
                     <div>
                       <div className="font-medium">For iPhone/iPad:</div>

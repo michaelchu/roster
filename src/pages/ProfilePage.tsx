@@ -49,10 +49,12 @@ export function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-gray-500 mb-4">Please sign in to access your profile</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Please sign in to access your profile
+          </p>
           <Button size="sm" onClick={() => navigate('/auth/login')}>
             Sign In
           </Button>
@@ -62,19 +64,21 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title="Profile" showBackButton backPath="/settings" sticky />
 
       <form onSubmit={handleSubmit} className="p-3 space-y-3">
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="p-3 border-b bg-gray-50">
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-3 border-b bg-muted">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 bg-primary rounded-full flex items-center justify-center">
                 <User className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="text-sm font-medium text-gray-500">Edit Profile</div>
-                <div className="text-xs text-gray-400">Update your personal information</div>
+                <div className="text-sm font-medium text-muted-foreground">Edit Profile</div>
+                <div className="text-xs text-muted-foreground">
+                  Update your personal information
+                </div>
               </div>
             </div>
           </div>
@@ -106,13 +110,15 @@ export function ProfilePage() {
                 placeholder="Enter your email address"
                 className="h-10 text-sm"
               />
-              <p className="text-xs text-gray-500">Changing your email will require verification</p>
+              <p className="text-xs text-muted-foreground">
+                Changing your email will require verification
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-3">
-          <div className="text-xs text-gray-500">
+        <div className="bg-card rounded-lg border p-3">
+          <div className="text-xs text-muted-foreground">
             <div className="mb-2">
               <strong>Account Information</strong>
             </div>

@@ -150,10 +150,10 @@ export function ParticipantsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-gray-500 mb-4">Please sign in to view participants</p>
+          <p className="text-sm text-muted-foreground mb-4">Please sign in to view participants</p>
           <Button size="sm" onClick={() => navigate('/auth/login')}>
             Sign In
           </Button>
@@ -167,21 +167,21 @@ export function ParticipantsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-14">
+    <div className="min-h-screen bg-background pb-14">
       <TopNav title="All Participants" sticky />
 
       <div className="p-3 space-y-3">
         {participants.length === 0 ? (
-          <div className="bg-white rounded-lg p-6 border text-center">
-            <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+          <div className="bg-card rounded-lg p-6 border text-center">
+            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <h2 className="text-base font-medium mb-2">No Participants Yet</h2>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Participants will appear here once they sign up for your events
             </p>
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg border overflow-hidden">
+            <div className="bg-card rounded-lg border overflow-hidden">
               {/* Header */}
               <div className="p-3 border-b flex items-center justify-between">
                 <div>
@@ -190,12 +190,12 @@ export function ParticipantsPage() {
                     {filteredParticipants.length === 1 ? 'participant' : 'participants'}
                   </p>
                 </div>
-                <div className="flex border border-gray-300 rounded">
+                <div className="flex border border-border rounded">
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
-                      showSearchBar ? 'bg-gray-200' : ''
+                    className={`h-7 px-2 rounded-r-none border-0 border-r border-border ${
+                      showSearchBar ? 'bg-muted' : ''
                     }`}
                     onClick={() => setShowSearchBar(!showSearchBar)}
                     disabled={participants.length === 0}
@@ -215,9 +215,9 @@ export function ParticipantsPage() {
               </div>
               {/* Search Bar */}
               {showSearchBar && (
-                <div className="p-3 border-b bg-gray-50">
+                <div className="p-3 border-b bg-muted">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
                       placeholder="Search by name, email, phone, or event..."
@@ -232,14 +232,14 @@ export function ParticipantsPage() {
               <div className="divide-y">
                 {filteredParticipants.length === 0 ? (
                   <div className="p-6 text-center">
-                    <p className="text-sm text-gray-500">No participants found</p>
+                    <p className="text-sm text-muted-foreground">No participants found</p>
                   </div>
                 ) : (
                   filteredParticipants.map((participant) => (
                     <button
                       type="button"
                       key={participant.id}
-                      className="w-full text-left p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="w-full text-left p-3 hover:bg-muted transition-colors cursor-pointer"
                       onClick={() => navigate(`/events/${participant.event.id}`)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -252,10 +252,10 @@ export function ParticipantsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0 pr-2">
                           <div className="text-sm font-medium truncate">{participant.name}</div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground">
                             {participant.email || participant.phone || 'No contact info'}
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
+                          <div className="text-xs text-muted-foreground mt-1">
                             Event: {participant.event.name}
                           </div>
                           {participant.labels.length > 0 && (
@@ -268,7 +268,7 @@ export function ParticipantsPage() {
                             </div>
                           )}
                         </div>
-                        <div className="text-xs text-gray-400 flex-shrink-0">
+                        <div className="text-xs text-muted-foreground flex-shrink-0">
                           {new Date(participant.created_at).toLocaleDateString()}
                         </div>
                       </div>
@@ -286,10 +286,8 @@ export function ParticipantsPage() {
         <DrawerContent className="p-0">
           <div className="py-4 px-4">
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
-                sortOption === 'latest'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
+                sortOption === 'latest' ? 'bg-primary/10 text-primary rounded-lg' : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('latest');
@@ -299,10 +297,10 @@ export function ParticipantsPage() {
               Latest Registration
             </button>
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'earliest'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-primary/10 text-primary rounded-lg'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('earliest');
@@ -312,10 +310,10 @@ export function ParticipantsPage() {
               Earliest Registration
             </button>
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'nameAsc'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-primary/10 text-primary rounded-lg'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('nameAsc');
@@ -325,10 +323,10 @@ export function ParticipantsPage() {
               Name A-Z
             </button>
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'nameDesc'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-primary/10 text-primary rounded-lg'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('nameDesc');
@@ -338,10 +336,10 @@ export function ParticipantsPage() {
               Name Z-A
             </button>
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'eventAsc'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-primary/10 text-primary rounded-lg'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('eventAsc');
@@ -353,8 +351,8 @@ export function ParticipantsPage() {
             <button
               className={`w-full text-center py-4 text-base font-semibold ${
                 sortOption === 'eventDesc'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-primary/10 text-primary rounded-lg'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('eventDesc');
@@ -363,9 +361,9 @@ export function ParticipantsPage() {
             >
               Event Z-A
             </button>
-            <div className="border-t border-gray-200">
+            <div className="border-t border-border">
               <button
-                className="w-full text-center py-4 text-base font-semibold text-red-600 hover:bg-gray-50"
+                className="w-full text-center py-4 text-base font-semibold text-destructive hover:bg-muted"
                 onClick={() => setShowSortDrawer(false)}
               >
                 Cancel
