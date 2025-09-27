@@ -39,7 +39,12 @@ export function TopNav({
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-lg font-semibold text-center truncate max-w-[calc(100%-6rem)]">
+        <h1
+          className={cn(
+            'text-lg font-semibold text-center truncate',
+            showBackButton ? 'max-w-[calc(100%-6rem)]' : 'max-w-full'
+          )}
+        >
           {title}
         </h1>
       </div>
