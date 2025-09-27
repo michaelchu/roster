@@ -102,7 +102,7 @@ export function EventDetailSkeleton() {
 
             {/* Empty slots */}
             {Array.from({ length: 2 }).map((_, i) => (
-              <div key={`empty-${i}`} className="p-3 border-dashed border-gray-200">
+              <div key={`empty-${i}`} className="p-3 border border-dashed border-gray-200">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-3 w-4" />
                   <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
