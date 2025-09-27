@@ -1,6 +1,14 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { TopNav } from '@/components/TopNav';
 
+/**
+ * Render a full-page skeleton UI for the event detail screen.
+ *
+ * Renders placeholder skeletons for the header, event info card (date, registration, location, description, and action buttons),
+ * participants list (items and empty slots), and a fixed bottom join-event button to represent loading state.
+ *
+ * @returns A JSX element containing the skeleton placeholders for the event detail layout
+ */
 export function EventDetailSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">

@@ -2,6 +2,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TopNav } from '@/components/TopNav';
 import { Search } from 'lucide-react';
 
+/**
+ * Render a skeleton UI for the "All Participants" page, including a top navigation, search bar placeholder, and a list of participant row placeholders.
+ *
+ * @returns A JSX element representing the participants page loading skeleton
+ */
 export function ParticipantsPageSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 pb-14">

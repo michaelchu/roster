@@ -1,6 +1,15 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { TopNav } from '@/components/TopNav';
 
+/**
+ * Render a skeleton UI for the Profile page while profile data is loading.
+ *
+ * Renders placeholder skeletons for the profile header (avatar, name, subtitle),
+ * full name and email fields, an account information block, and a fixed bottom
+ * save button to match the page layout during loading.
+ *
+ * @returns A JSX element with skeleton placeholders for the profile header, account information, and a fixed bottom save button.
+ */
 export function ProfilePageSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">

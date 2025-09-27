@@ -1,6 +1,14 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { TopNav } from '@/components/TopNav';
 
+/**
+ * Renders a skeleton placeholder layout for the "Edit Event" page.
+ *
+ * Provides skeleton blocks for the top navigation, basic event information, participants list,
+ * privacy settings, custom fields, delete controls, and a fixed save button to indicate loading state.
+ *
+ * @returns The React element tree representing the edit-event page skeleton.
+ */
 export function EditEventPageSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
