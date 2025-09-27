@@ -660,10 +660,10 @@ export function EventDetailPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
                             <button
                               onClick={() => setSelectedParticipant(participant)}
-                              className="text-sm font-medium hover:text-blue-600 transition-colors truncate text-left min-w-0"
+                              className="text-sm font-medium hover:text-blue-600 transition-colors truncate text-left min-w-0 max-w-full"
                             >
                               {displayName}
                             </button>
@@ -673,7 +673,7 @@ export function EventDetailPage() {
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             {participant.user_id === event.organizer_id &&
                               participant.slot_number === 1 && (
                                 <Badge variant="outline" className="text-xs h-5 px-2">
