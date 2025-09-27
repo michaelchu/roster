@@ -221,8 +221,6 @@ export function SettingsPage() {
                 <SelectContent>
                   <SelectItem value="light">Light</SelectItem>
                   <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="terragon">Terragon Light</SelectItem>
-                  <SelectItem value="terragon-dark">Terragon Dark</SelectItem>
                   <SelectItem value="system">System</SelectItem>
                 </SelectContent>
               </Select>
