@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -12,18 +13,28 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
-import { User, LogOut, Mail, MessageSquare, Settings, Eye, Palette } from 'lucide-react';
+import { useFontSize, type FontSize } from '@/hooks/useFontSize';
+import { User, LogOut, Mail, MessageSquare, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
 
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { fontSize, setFontSize, fontSizeLabels } = useFontSize();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState('10');
   const [defaultVisibility, setDefaultVisibility] = useState('public');
   const [theme, setTheme] = useState('system');
+
+  const fontSizeOptions: FontSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
+  const currentFontSizeIndex = fontSizeOptions.indexOf(fontSize);
+
+  const handleFontSizeChange = (value: number[]) => {
+    const newFontSize = fontSizeOptions[value[0]];
+    setFontSize(newFontSize);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -202,6 +213,33 @@ export function SettingsPage() {
                 </SelectContent>
               </Select>
               <div className="text-xs text-gray-500 mt-1">Choose your preferred color scheme</div>
+            </div>
+
+            <div className="p-3 border-t">
+              <div className="flex items-center gap-3 mb-3">
+                <Type className="h-5 w-5 text-gray-400" />
+                <Label htmlFor="font-size" className="text-sm font-medium">
+                  Font Size
+                </Label>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Minus className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <Slider
+                    id="font-size"
+                    min={0}
+                    max={4}
+                    step={1}
+                    value={[currentFontSizeIndex]}
+                    onValueChange={handleFontSizeChange}
+                    className="flex-1"
+                  />
+                  <Plus className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                </div>
+                <div className="text-xs text-gray-500 text-center">
+                  {fontSizeLabels[fontSize]}
+                </div>
+              </div>
             </div>
           </div>
 

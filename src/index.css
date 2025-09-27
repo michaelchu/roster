@@ -33,6 +33,16 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    /* Font size variables */
+    --font-size-base: 16px;
+    --font-size-xs: calc(var(--font-size-base) * 0.75);
+    --font-size-sm: calc(var(--font-size-base) * 0.875);
+    --font-size-base-exact: var(--font-size-base);
+    --font-size-lg: calc(var(--font-size-base) * 1.125);
+    --font-size-xl: calc(var(--font-size-base) * 1.25);
+    --font-size-2xl: calc(var(--font-size-base) * 1.5);
+    --font-size-3xl: calc(var(--font-size-base) * 1.875);
   }
 
   .dark {
@@ -72,5 +82,16 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: var(--font-size-base);
   }
+}
+
+@layer utilities {
+  .text-dynamic-xs { font-size: var(--font-size-xs); }
+  .text-dynamic-sm { font-size: var(--font-size-sm); }
+  .text-dynamic-base { font-size: var(--font-size-base-exact); }
+  .text-dynamic-lg { font-size: var(--font-size-lg); }
+  .text-dynamic-xl { font-size: var(--font-size-xl); }
+  .text-dynamic-2xl { font-size: var(--font-size-2xl); }
+  .text-dynamic-3xl { font-size: var(--font-size-3xl); }
 }

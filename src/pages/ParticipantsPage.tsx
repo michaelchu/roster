@@ -20,7 +20,7 @@ interface Participant {
     id: string;
     name: string;
   };
-  labels: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  labels: Array<{ id: string; name: string; color: string | null }>;
 }
 
 /**
@@ -88,7 +88,7 @@ export function ParticipantsPage() {
           .in('participant_id', participantIds);
 
         // Group labels by participant_id for efficient lookup
-        const labelsByParticipant = new Map<string, any[]>();
+        const labelsByParticipant = new Map<string, Array<{ id: string; name: string; color: string | null }>>();
         allLabelData?.forEach((item) => {
           const participantId = item.participant_id;
           if (!labelsByParticipant.has(participantId)) {
