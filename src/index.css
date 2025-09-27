@@ -87,11 +87,25 @@
 }
 
 @layer utilities {
-  .text-dynamic-xs { font-size: var(--font-size-xs); }
-  .text-dynamic-sm { font-size: var(--font-size-sm); }
-  .text-dynamic-base { font-size: var(--font-size-base-exact); }
-  .text-dynamic-lg { font-size: var(--font-size-lg); }
-  .text-dynamic-xl { font-size: var(--font-size-xl); }
-  .text-dynamic-2xl { font-size: var(--font-size-2xl); }
-  .text-dynamic-3xl { font-size: var(--font-size-3xl); }
+  .text-dynamic-xs {
+    font-size: var(--font-size-xs);
+  }
+  .text-dynamic-sm {
+    font-size: var(--font-size-sm);
+  }
+  .text-dynamic-base {
+    font-size: var(--font-size-base-exact);
+  }
+  .text-dynamic-lg {
+    font-size: var(--font-size-lg);
+  }
+  .text-dynamic-xl {
+    font-size: var(--font-size-xl);
+  }
+  .text-dynamic-2xl {
+    font-size: var(--font-size-2xl);
+  }
+  .text-dynamic-3xl {
+    font-size: var(--font-size-3xl);
+  }
 }

@@ -80,11 +80,7 @@ export function FontSizeProvider({ children }: { children: ReactNode }) {
     getFontSizeValue,
   };
 
-  return (
-    <FontSizeContext.Provider value={value}>
-      {children}
-    </FontSizeContext.Provider>
-  );
+  return <FontSizeContext.Provider value={value}>{children}</FontSizeContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

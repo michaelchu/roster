@@ -14,7 +14,18 @@ import {
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useFontSize, type FontSize } from '@/hooks/useFontSize';
-import { User, LogOut, Mail, MessageSquare, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
+import {
+  User,
+  LogOut,
+  Mail,
+  MessageSquare,
+  Settings,
+  Eye,
+  Palette,
+  Type,
+  Minus,
+  Plus,
+} from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
 
@@ -236,9 +247,7 @@ export function SettingsPage() {
                   />
                   <Plus className="h-4 w-4 text-gray-400 flex-shrink-0" />
                 </div>
-                <div className="text-xs text-gray-500 text-center">
-                  {fontSizeLabels[fontSize]}
-                </div>
+                <div className="text-xs text-gray-500 text-center">{fontSizeLabels[fontSize]}</div>
               </div>
             </div>
           </div>
