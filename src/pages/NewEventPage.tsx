@@ -85,11 +85,11 @@ export function NewEventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title="Create Event" showBackButton backPath="/events" sticky />
 
       <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-3">
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm">
               Event Name *
@@ -161,25 +161,27 @@ export function NewEventPage() {
                 }))
               }
               className={`flex items-center justify-between w-full p-3 rounded-lg border-2 transition-colors ${
-                formData.is_private ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
+                formData.is_private
+                  ? 'border-destructive/20 bg-destructive/5'
+                  : 'border-primary/20 bg-primary/5'
               }`}
             >
               <div className="flex items-center space-x-2">
                 {formData.is_private ? (
-                  <Lock className="h-4 w-4 text-red-600" />
+                  <Lock className="h-4 w-4 text-destructive" />
                 ) : (
-                  <Unlock className="h-4 w-4 text-green-600" />
+                  <Unlock className="h-4 w-4 text-primary" />
                 )}
                 <span
                   className={`font-medium ${
-                    formData.is_private ? 'text-red-700' : 'text-green-700'
+                    formData.is_private ? 'text-destructive' : 'text-primary'
                   }`}
                 >
                   {formData.is_private ? 'Private Event' : 'Public Event'}
                 </span>
               </div>
             </button>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               {formData.is_private
                 ? 'Only people you invite can view and sign up for this event'
                 : 'Anyone with the link can view and sign up for this event'}
@@ -187,7 +189,7 @@ export function NewEventPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium">Custom Fields</h2>
             <Button
@@ -203,13 +205,13 @@ export function NewEventPage() {
           </div>
 
           {customFields.length === 0 ? (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               No custom fields. Add fields to collect additional information from participants.
             </p>
           ) : (
             <div className="space-y-3">
               {customFields.map((field) => (
-                <div key={field.id} className="p-3 bg-gray-50 rounded space-y-2">
+                <div key={field.id} className="p-3 bg-muted rounded space-y-2">
                   <div className="flex items-center gap-2">
                     <Input
                       type="text"
@@ -221,7 +223,7 @@ export function NewEventPage() {
                     <button
                       type="button"
                       onClick={() => removeCustomField(field.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-destructive hover:text-destructive/80"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

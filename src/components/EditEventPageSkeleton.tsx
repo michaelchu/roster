@@ -11,12 +11,12 @@ import { TopNav } from '@/components/TopNav';
  */
 export function EditEventPageSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title="Edit Event" showBackButton sticky />
 
       <div className="p-3 space-y-3">
         {/* Basic Event Info */}
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-10 w-full rounded-md" />
@@ -39,7 +39,7 @@ export function EditEventPageSkeleton() {
         </div>
 
         {/* Participants Section */}
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-8 w-20 rounded-full" />
@@ -59,7 +59,7 @@ export function EditEventPageSkeleton() {
         </div>
 
         {/* Privacy Settings */}
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Skeleton className="h-4 w-20" />
@@ -70,7 +70,7 @@ export function EditEventPageSkeleton() {
         </div>
 
         {/* Custom Fields */}
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-28" />
             <Skeleton className="h-8 w-20 rounded" />
@@ -96,7 +96,7 @@ export function EditEventPageSkeleton() {
         </div>
 
         {/* Delete Section */}
-        <div className="bg-white rounded-lg p-3 border">
+        <div className="bg-card rounded-lg p-3 border">
           <div className="space-y-2">
             <Skeleton className="h-5 w-24" />
             <Skeleton className="h-3 w-48" />

@@ -11,12 +11,12 @@ import { TopNav } from '@/components/TopNav';
  */
 export function EventDetailSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title="Roster" showBackButton sticky />
 
       <div className="p-3 space-y-3">
         {/* Event Info Card Skeleton */}
-        <div className="bg-white rounded-lg border overflow-hidden">
+        <div className="bg-card rounded-lg border overflow-hidden">
           <div className="p-3 space-y-2">
             {/* Top row: Date and Registration */}
             <div className="grid grid-cols-2 gap-3">
@@ -37,7 +37,7 @@ export function EventDetailSkeleton() {
             </div>
 
             {/* Divider */}
-            <div className="border-t border-gray-200"></div>
+            <div className="border-t border-border"></div>
 
             {/* Description */}
             <div className="text-sm">
@@ -49,7 +49,7 @@ export function EventDetailSkeleton() {
           </div>
 
           {/* Action Buttons Footer */}
-          <div className="border-t bg-gray-50">
+          <div className="border-t bg-muted">
             <div className="flex divide-x divide-gray-200">
               <div className="flex-1 flex items-center justify-center py-2 px-3">
                 <Skeleton className="h-4 w-8" />
@@ -65,13 +65,13 @@ export function EventDetailSkeleton() {
         </div>
 
         {/* Participants List Skeleton */}
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="px-3 py-2 border-b bg-muted flex items-center justify-between">
             <div>
               <Skeleton className="h-4 w-20 mb-1" />
               <Skeleton className="h-3 w-32" />
             </div>
-            <div className="flex border border-gray-300 rounded">
+            <div className="flex border border-border rounded">
               <Skeleton className="h-7 w-7 rounded-r-none" />
               <Skeleton className="h-7 w-7 rounded-l-none" />
             </div>
@@ -101,7 +101,7 @@ export function EventDetailSkeleton() {
 
             {/* Empty slots */}
             {Array.from({ length: 2 }).map((_, i) => (
-              <div key={`empty-${i}`} className="p-3 border border-dashed border-gray-200">
+              <div key={`empty-${i}`} className="p-3 border border-dashed border-border">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-3 w-4" />
                   <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />

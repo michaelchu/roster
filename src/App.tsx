@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { FontSizeProvider } from '@/hooks/useFontSize';
+import { ThemeProvider } from '@/components/theme-provider';
 import { MobileOnly } from '@/components/MobileOnly';
 import { BottomNav } from '@/components/BottomNav';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -42,12 +43,12 @@ function AppContent() {
         <Route
           path="*"
           element={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
               <div className="text-center">
-                <div className="text-sm text-gray-500">Page not found</div>
+                <div className="text-sm text-muted-foreground">Page not found</div>
                 <button
                   onClick={() => window.history.back()}
-                  className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                  className="mt-2 text-sm text-primary hover:text-primary/80"
                 >
                   Go back
                 </button>
@@ -65,16 +66,18 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <FontSizeProvider>
-        <MobileOnly>
-          <AuthProvider>
-            <Router>
-              <AppContent />
-              <Toaster />
-            </Router>
-          </AuthProvider>
-        </MobileOnly>
-      </FontSizeProvider>
+      <ThemeProvider defaultTheme="light" storageKey="roster-theme">
+        <FontSizeProvider>
+          <MobileOnly>
+            <AuthProvider>
+              <Router>
+                <AppContent />
+                <Toaster />
+              </Router>
+            </AuthProvider>
+          </MobileOnly>
+        </FontSizeProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

@@ -169,9 +169,9 @@ export function SignupPage() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="text-sm text-gray-500 mb-4">Event not found</div>
+          <div className="text-sm text-muted-foreground mb-4">Event not found</div>
           <Button variant="outline" onClick={() => navigate('/')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Home
@@ -183,11 +183,11 @@ export function SignupPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-4">
-          <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful!</h1>
-          <p className="text-sm text-gray-600 mb-6">
+          <CheckCircle className="w-16 h-16 mx-auto text-primary mb-4" />
+          <h1 className="text-xl font-semibold text-foreground mb-2">Registration Successful!</h1>
+          <p className="text-sm text-muted-foreground mb-6">
             You've successfully registered for "{event.name}". You should receive a confirmation
             soon.
           </p>
@@ -205,13 +205,13 @@ export function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-card border-b sticky top-0 z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center text-blue-600 hover:text-blue-700"
+            className="flex items-center text-primary hover:text-primary/80"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back
@@ -223,13 +223,13 @@ export function SignupPage() {
       <div className="p-3 space-y-3">
         {/* Event Info Card - Same layout as EventDetailPage */}
         {(event.description || event.datetime || event.location) && (
-          <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-3 space-y-2">
               {/* Top row: Date and Registration info */}
               {event.datetime && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="text-sm text-gray-600">
-                    <div className="font-medium text-gray-800">Date</div>
+                  <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">Date</div>
                     <div>
                       {new Date(event.datetime).toLocaleString(undefined, {
                         year: 'numeric',
@@ -240,8 +240,8 @@ export function SignupPage() {
                       })}
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    <div className="font-medium text-gray-800">Participants</div>
+                  <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">Participants</div>
                     <div>
                       {event.participant_count || 0}
                       {event.max_participants ? ` / ${event.max_participants}` : ''}
@@ -252,21 +252,21 @@ export function SignupPage() {
 
               {/* Location */}
               {event.location && (
-                <div className="text-sm text-gray-600">
-                  <div className="font-medium text-gray-800">Location</div>
+                <div className="text-sm text-muted-foreground">
+                  <div className="font-medium text-foreground">Location</div>
                   <div>{event.location}</div>
                 </div>
               )}
 
               {/* Divider */}
               {event.location && event.description && (
-                <div className="border-t border-gray-200"></div>
+                <div className="border-t border-border"></div>
               )}
 
               {/* Description */}
               {event.description && (
-                <div className="text-sm text-gray-700">
-                  <div className="font-medium text-gray-800 mb-1">Description</div>
+                <div className="text-sm text-foreground">
+                  <div className="font-medium text-foreground mb-1">Description</div>
                   <p className="leading-relaxed">{event.description}</p>
                 </div>
               )}
@@ -275,10 +275,10 @@ export function SignupPage() {
         )}
 
         {/* Registration Form */}
-        <div className="bg-white rounded-lg border">
+        <div className="bg-card rounded-lg border">
           <div className="p-3">
             <div className="flex items-center gap-2 mb-4">
-              <User className="w-5 h-5 text-blue-600" />
+              <User className="w-5 h-5 text-primary" />
               <h2 className="text-base font-semibold">Register for this event</h2>
             </div>
 
@@ -334,7 +334,7 @@ export function SignupPage() {
                 <div key={field.id || field.label}>
                   <Label htmlFor={field.id} className="text-sm font-medium">
                     {field.label}
-                    {field.required && <span className="text-red-500 ml-1">*</span>}
+                    {field.required && <span className="text-destructive ml-1">*</span>}
                   </Label>
                   {field.type === 'select' && field.options ? (
                     <select
@@ -350,7 +350,7 @@ export function SignupPage() {
                         }))
                       }
                       required={field.required}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border border-input px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
                     >
                       <option value="">Select an option</option>
                       {field.options.map((option) => (
@@ -381,7 +381,11 @@ export function SignupPage() {
               ))}
 
               {/* Error Message */}
-              {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</div>}
+              {error && (
+                <div className="text-sm text-destructive-foreground bg-destructive/10 p-2 rounded">
+                  {error}
+                </div>
+              )}
 
               {/* Submit Button */}
               <Button type="submit" disabled={submitting} className="w-full">

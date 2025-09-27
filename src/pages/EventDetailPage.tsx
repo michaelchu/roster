@@ -463,27 +463,27 @@ export function EventDetailPage() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-sm text-gray-500">Event not found</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-sm text-muted-foreground">Event not found</div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${user ? 'pb-32' : 'pb-20'}`}>
+    <div className={`min-h-screen bg-background ${user ? 'pb-32' : 'pb-20'}`}>
       <TopNav title={event.name} showBackButton={!!user} backPath="/events" sticky />
 
       <div className="p-3 space-y-3">
         {/* Event Info */}
         {(event.description || event.datetime || event.location || event.max_participants) && (
-          <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-3 space-y-2">
               {/* Top row: Date and Registration Deadline */}
               {event.datetime && (
                 <div className="grid grid-cols-2 gap-3">
                   {event.datetime && (
-                    <div className="text-sm text-gray-600">
-                      <div className="font-medium text-gray-800">Date</div>
+                    <div className="text-sm text-muted-foreground">
+                      <div className="font-medium text-foreground">Date</div>
                       <div>
                         {new Date(event.datetime).toLocaleString(undefined, {
                           year: 'numeric',
@@ -495,8 +495,8 @@ export function EventDetailPage() {
                       </div>
                     </div>
                   )}
-                  <div className="text-sm text-gray-600">
-                    <div className="font-medium text-gray-800">Registration Deadline</div>
+                  <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">Registration Deadline</div>
                     <div>None</div>
                   </div>
                 </div>
@@ -504,46 +504,46 @@ export function EventDetailPage() {
 
               {/* Second row: Location */}
               {event.location && (
-                <div className="text-sm text-gray-600">
-                  <div className="font-medium text-gray-800">Location</div>
+                <div className="text-sm text-muted-foreground">
+                  <div className="font-medium text-foreground">Location</div>
                   <div>{event.location}</div>
                 </div>
               )}
 
               {/* Horizontal divider */}
               {event.location && event.description && (
-                <div className="border-t border-gray-200"></div>
+                <div className="border-t border-border"></div>
               )}
 
               {/* Description */}
               {event.description && (
-                <div className="text-sm text-gray-700">
-                  <div className="font-medium text-gray-800 mb-1">Description</div>
+                <div className="text-sm text-foreground">
+                  <div className="font-medium text-foreground mb-1">Description</div>
                   <p className="leading-relaxed">{event.description}</p>
                 </div>
               )}
             </div>
 
             {/* Action Buttons Footer */}
-            <div className="border-t bg-gray-50">
-              <div className="flex divide-x divide-gray-200">
+            <div className="border-t bg-muted">
+              <div className="flex divide-x divide-border">
                 <button
                   onClick={() => navigate(`/events/${eventId}/edit`)}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </button>
                 <button
                   onClick={shareEvent}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </button>
                 <button
                   onClick={exportToCSV}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export
@@ -554,11 +554,11 @@ export function EventDetailPage() {
         )}
 
         {/* Participants List */}
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="px-3 py-2 border-b bg-muted flex items-center justify-between">
             <div>
               <h2 className="text-sm font-medium">Participants</h2>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {(() => {
                   // Count unique users (by user_id and email for non-users)
                   const uniqueUsers = new Set();
@@ -582,12 +582,12 @@ export function EventDetailPage() {
                 })()}
               </p>
             </div>
-            <div className="flex border border-gray-300 rounded">
+            <div className="flex border border-border rounded">
               <Button
                 size="sm"
                 variant="ghost"
-                className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
-                  showSearchBar ? 'bg-gray-200' : ''
+                className={`h-7 px-2 rounded-r-none border-0 border-r border-border ${
+                  showSearchBar ? 'bg-muted' : ''
                 }`}
                 onClick={() => setShowSearchBar(!showSearchBar)}
                 disabled={participants.length === 0}
@@ -608,9 +608,9 @@ export function EventDetailPage() {
 
           {/* Search Bar */}
           {showSearchBar && (
-            <div className="p-3 border-b bg-gray-50">
+            <div className="p-3 border-b bg-muted">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search participants..."
@@ -635,9 +635,9 @@ export function EventDetailPage() {
                 const displayName = getDisplayName(participant);
 
                 slots.push(
-                  <div key={participant.id} className="p-3 hover:bg-gray-50 transition-colors">
+                  <div key={participant.id} className="p-3 hover:bg-muted transition-colors">
                     <div className="flex items-start gap-3">
-                      <div className="text-xs text-gray-400 font-mono flex-shrink-0 mt-1">
+                      <div className="text-xs text-muted-foreground font-mono flex-shrink-0 mt-1">
                         {participant.slot_number}.
                       </div>
                       <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
@@ -650,7 +650,7 @@ export function EventDetailPage() {
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <button
                               onClick={() => setSelectedParticipant(participant)}
-                              className="text-sm font-medium hover:text-blue-600 transition-colors truncate text-left min-w-0 max-w-full"
+                              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors truncate text-left min-w-0 max-w-full"
                             >
                               {displayName}
                             </button>
@@ -675,7 +675,7 @@ export function EventDetailPage() {
                                   e.stopPropagation();
                                   setWithdrawingParticipant(participant);
                                 }}
-                                className="text-xs h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-xs h-6 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                               >
                                 <UserX className="h-3 w-3 mr-1" />
                                 Withdraw
@@ -683,7 +683,7 @@ export function EventDetailPage() {
                             )}
                           </div>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           Signed up{' '}
                           {(() => {
                             const now = new Date();
@@ -731,16 +731,16 @@ export function EventDetailPage() {
                   const canClaimSpot = user && userRegistration && isFirstEmptySlot;
 
                   slots.push(
-                    <div key={`empty-${slotNum}`} className="p-3 border-dashed border-gray-200">
+                    <div key={`empty-${slotNum}`} className="p-3 border-dashed border-border">
                       <div className="flex items-center gap-3">
-                        <div className="text-xs text-gray-400 font-mono flex-shrink-0">
+                        <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
                           {slotNum}.
                         </div>
-                        <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs text-gray-400">?</span>
+                        <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs text-muted-foreground">?</span>
                         </div>
                         <div className="flex-1 flex items-center justify-between">
-                          <div className="text-sm text-gray-400 italic">Available slot</div>
+                          <div className="text-sm text-muted-foreground italic">Available slot</div>
                           {canClaimSpot && (
                             <Button
                               size="sm"
@@ -762,8 +762,8 @@ export function EventDetailPage() {
               if (slots.length === 0) {
                 return (
                   <div className="p-6 text-center">
-                    <Users className="h-10 w-10 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">
+                    <Users className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">
                       {searchQuery ? 'No participants found' : 'No participants yet'}
                     </p>
                   </div>
@@ -781,7 +781,7 @@ export function EventDetailPage() {
         <Button
           onClick={() => openSignupDrawer()}
           className={`w-full text-white shadow-lg ${
-            userRegistration ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
+            userRegistration ? 'bg-primary hover:bg-primary/90' : 'bg-primary hover:bg-primary/90'
           }`}
           size="default"
         >
@@ -819,7 +819,7 @@ export function EventDetailPage() {
                   : 'Join Event'}
             </h2>
             {isClaimingForOther && (
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Leave name empty to claim under your name
               </p>
             )}
@@ -970,11 +970,13 @@ export function EventDetailPage() {
               </Tabs>
 
               {signupError && (
-                <div className="text-xs text-red-600 bg-red-50 p-1.5 rounded">{signupError}</div>
+                <div className="text-xs text-destructive-foreground bg-destructive/10 p-1.5 rounded">
+                  {signupError}
+                </div>
               )}
             </form>
           </div>
-          <div className="border-t border-gray-200"></div>
+          <div className="border-t border-border"></div>
           <div className="p-3">
             <div className="flex gap-1.5 w-full">
               {userRegistration && (
@@ -1005,7 +1007,7 @@ export function EventDetailPage() {
                 type="submit"
                 form="signup-form"
                 size="sm"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-1"
+                className="flex-1 bg-primary hover:bg-primary/90 text-white py-1"
                 disabled={submitting}
               >
                 {submitting
@@ -1075,7 +1077,7 @@ export function EventDetailPage() {
                           className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
                             hasLabel
                               ? 'bg-primary text-white border-primary'
-                              : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                              : 'bg-card text-muted-foreground border-border hover:bg-muted'
                           }`}
                         >
                           {label.name}
