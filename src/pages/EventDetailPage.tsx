@@ -47,6 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 
 type Participant = ServiceParticipant & {
   notes?: string | null;
@@ -461,11 +462,7 @@ export function EventDetailPage() {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-sm text-gray-500">Loading...</div>
-      </div>
-    );
+    return <EventDetailSkeleton />;
   }
 
   if (!event) {

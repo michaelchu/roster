@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { CheckCircle, User, ArrowLeft } from 'lucide-react';
 import { eventService, participantService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
-import { PageSkeleton } from '@/components/LoadingStates';
+import { SignupPageSkeleton } from '@/components/SignupPageSkeleton';
 
 interface CustomField {
   id?: string;
@@ -169,7 +169,7 @@ export function SignupPage() {
   };
 
   if (loading) {
-    return <PageSkeleton />;
+    return <SignupPageSkeleton />;
   }
 
   if (!event) {
