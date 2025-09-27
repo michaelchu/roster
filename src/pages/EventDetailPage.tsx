@@ -180,7 +180,8 @@ export function EventDetailPage() {
   };
 
   const shareEvent = () => {
-    const url = `${window.location.origin}/signup/${eventId}`;
+    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const url = `${baseUrl}/signup/${eventId}`;
     const shareText = `Sign up for ${event?.name} ${url}`;
 
     if (navigator.share) {
