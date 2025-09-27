@@ -272,7 +272,7 @@ export function ParticipantsPage() {
                   setShowSortDrawer(false);
                 }}
               >
-                最新报名
+                Latest Registration
               </button>
               <button
                 className={`w-full text-left p-3 rounded text-sm ${
@@ -283,7 +283,7 @@ export function ParticipantsPage() {
                   setShowSortDrawer(false);
                 }}
               >
-                最早报名
+                Earliest Registration
               </button>
               <button
                 className={`w-full text-left p-3 rounded text-sm ${
@@ -294,7 +294,7 @@ export function ParticipantsPage() {
                   setShowSortDrawer(false);
                 }}
               >
-                姓名 A-Z
+                Name A-Z
               </button>
               <button
                 className={`w-full text-left p-3 rounded text-sm ${
@@ -305,7 +305,7 @@ export function ParticipantsPage() {
                   setShowSortDrawer(false);
                 }}
               >
-                姓名 Z-A
+                Name Z-A
               </button>
               <button
                 className={`w-full text-left p-3 rounded text-sm ${
@@ -316,7 +316,7 @@ export function ParticipantsPage() {
                   setShowSortDrawer(false);
                 }}
               >
-                活动 A-Z
+                Event A-Z
               </button>
               <button
                 className={`w-full text-left p-3 rounded text-sm ${
@@ -327,7 +327,7 @@ export function ParticipantsPage() {
                   setShowSortDrawer(false);
                 }}
               >
-                活动 Z-A
+                Event Z-A
               </button>
             </div>
             <div className="mt-4 pt-4 border-t">
