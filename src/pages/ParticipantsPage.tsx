@@ -251,9 +251,7 @@ export function ParticipantsPage() {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0 pr-2">
-                          <div className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap w-0 flex-1">
-                            {participant.name}
-                          </div>
+                          <div className="text-sm font-medium truncate">{participant.name}</div>
                           <div className="text-xs text-gray-500">
                             {participant.email || participant.phone || 'No contact info'}
                           </div>
