@@ -165,7 +165,7 @@ export function SettingsPage() {
                   </Label>
                 </div>
                 <Select value={defaultVisibility} onValueChange={setDefaultVisibility}>
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger id="default-visibility" className="text-sm">
                     <SelectValue placeholder="Select visibility" />
                   </SelectTrigger>
                   <SelectContent>
