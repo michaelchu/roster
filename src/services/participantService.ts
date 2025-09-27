@@ -145,13 +145,15 @@ export const participantService = {
       if (options?.claimingUserName) {
         finalName = `${options.claimingUserName} - Guest`;
       } else {
+        // For self-registrations, this should never happen since authentication is mandatory
+        // But keep a fallback just in case
         finalName = 'Guest';
       }
     }
 
-    // Final safety check - ensure name is never empty
-    if (!finalName || finalName.trim().length === 0) {
-      finalName = 'Anonymous';
+    // Validate that user_id is provided for self-registrations
+    if (!options?.claimingUserId && !participant.user_id) {
+      throw new Error('Authentication required for event registration');
     }
 
     const insertData: TablesInsert<'participants'> = {

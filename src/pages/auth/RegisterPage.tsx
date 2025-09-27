@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,12 +7,16 @@ import { useAuth } from '@/hooks/useAuth';
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { signUp, signInWithGoogle } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const returnUrl = searchParams.get('returnUrl') || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,12 +25,30 @@ export function RegisterPage() {
 
     try {
       await signUp(email, password, name);
-      navigate('/');
+      navigate(returnUrl);
     } catch (err) {
       const error = err as Error;
       setError(error.message || 'Failed to sign up');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setGoogleLoading(true);
+    setError('');
+
+    try {
+      // Store return URL for use after OAuth redirect
+      if (returnUrl !== '/') {
+        localStorage.setItem('returnUrl', returnUrl);
+      }
+      await signInWithGoogle();
+      // Note: OAuth will redirect away, so no need to navigate here
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to sign up with Google');
+      setGoogleLoading(false);
     }
   };
 
@@ -38,9 +60,33 @@ export function RegisterPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-3 space-y-3">
+      <div className="p-3 space-y-3">
         <div className="bg-white rounded-lg p-3 border space-y-3">
-          <div className="space-y-2">
+          {/* Google Sign Up Button */}
+          <Button
+            onClick={handleGoogleSignUp}
+            disabled={googleLoading || loading}
+            variant="outline"
+            className="w-full"
+            size="sm"
+          >
+            {googleLoading ? 'Signing up...' : 'Sign up with Google'}
+          </Button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">or</span>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="bg-white rounded-lg p-3 border space-y-3">
+            <div className="space-y-2">
             <Label htmlFor="name" className="text-sm">
               Name
             </Label>
@@ -96,9 +142,10 @@ export function RegisterPage() {
             <Link to="/auth/login" className="text-primary hover:underline">
               Sign In
             </Link>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

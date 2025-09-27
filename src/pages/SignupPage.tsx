@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,7 +47,8 @@ interface FormData {
 export function SignupPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -61,6 +62,14 @@ export function SignupPage() {
     responses: {},
   });
 
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!authLoading && !user) {
+      const returnUrl = encodeURIComponent(location.pathname);
+      navigate(`/auth/login?returnUrl=${returnUrl}`);
+    }
+  }, [user, authLoading, location.pathname, navigate]);
+
   // Auto-fill form if user is logged in
   useEffect(() => {
     if (user) {
@@ -72,31 +81,7 @@ export function SignupPage() {
     }
   }, [user]);
 
-  // Load quick-fill data from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('venu-signup-form');
-    if (saved && !user) {
-      try {
-        const parsed = JSON.parse(saved);
-        setFormData((prev) => ({ ...prev, ...parsed }));
-      } catch {
-        // Ignore invalid saved data
-      }
-    }
-  }, [user]);
 
-  const saveQuickFill = () => {
-    if (!user) {
-      localStorage.setItem(
-        'venu-signup-form',
-        JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-        })
-      );
-    }
-  };
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -150,8 +135,6 @@ export function SignupPage() {
     setError('');
 
     try {
-      saveQuickFill();
-
       await participantService.createParticipant({
         event_id: event.id,
         name: formData.name,
@@ -177,7 +160,12 @@ export function SignupPage() {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
+    return <SignupPageSkeleton />;
+  }
+
+  // If user is not authenticated, show loading while redirecting
+  if (!user) {
     return <SignupPageSkeleton />;
   }
 
@@ -402,12 +390,6 @@ export function SignupPage() {
                 {submitting ? 'Registering...' : 'Register'}
               </Button>
             </form>
-
-            {!user && (
-              <p className="text-xs text-gray-500 mt-3 text-center">
-                Your information will be saved to make future registrations easier.
-              </p>
-            )}
           </div>
         </div>
       </div>
