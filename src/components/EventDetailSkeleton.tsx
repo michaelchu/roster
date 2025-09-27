@@ -5,7 +5,7 @@ export function EventDetailSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
       {/* Header with skeleton title */}
-      <TopNav title="" showBackButton sticky />
+      <TopNav title="" showBackButton sticky className="pointer-events-none select-none" />
 
       <div className="p-3 space-y-3">
         {/* Event Info Card Skeleton */}

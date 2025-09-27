@@ -32,7 +32,7 @@ export function SettingsPageSkeleton() {
 
         {/* Sign Out Button */}
         <div className="bg-white rounded-lg border p-3">
-          <Skeleton className="h-9 w-full rounded-md bg-red-100" />
+          <Skeleton className="h-9 w-full rounded-md" />
         </div>
 
         {/* About Section */}

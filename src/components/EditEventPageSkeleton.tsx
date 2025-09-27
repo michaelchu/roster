@@ -36,10 +36,17 @@ export function EditEventPageSkeleton() {
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-8 w-20 rounded-full" />
           </div>
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-8 w-8 rounded" />
-            <Skeleton className="h-10 w-16" />
-            <Skeleton className="h-8 w-8 rounded" />
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <Skeleton className="h-8 w-20 rounded-md" />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -85,7 +92,7 @@ export function EditEventPageSkeleton() {
           <div className="space-y-2">
             <Skeleton className="h-5 w-24" />
             <Skeleton className="h-3 w-48" />
-            <Skeleton className="h-9 w-full rounded-md bg-red-100" />
+            <Skeleton className="h-9 w-full rounded-md" />
           </div>
         </div>
       </div>
