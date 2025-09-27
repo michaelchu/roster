@@ -95,7 +95,7 @@ export function EventDetailPage() {
     if (eventId) {
       loadEventData();
     }
-  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [eventId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEventData = async () => {
     if (!eventId) return;
@@ -734,7 +734,8 @@ export function EventDetailPage() {
 
                 // Add empty slots for remaining capacity
                 for (let slotNum = maxUsedSlot + 1; slotNum <= event.max_participants; slotNum++) {
-                  const canClaimSpot = user && userRegistration;
+                  const isFirstEmptySlot = slotNum === maxUsedSlot + 1;
+                  const canClaimSpot = user && userRegistration && isFirstEmptySlot;
 
                   slots.push(
                     <div key={`empty-${slotNum}`} className="p-3 border-dashed border-gray-200">
