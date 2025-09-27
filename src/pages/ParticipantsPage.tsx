@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { Users, Search } from 'lucide-react';
+import { Users, Search, ArrowUpDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/TopNav';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 
 interface Participant {
   id: string;
@@ -36,6 +37,9 @@ export function ParticipantsPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [showSortDrawer, setShowSortDrawer] = useState(false);
+  const [sortOption, setSortOption] = useState('latest');
 
   useEffect(() => {
     if (user) {
@@ -100,12 +104,34 @@ export function ParticipantsPage() {
     }
   };
 
-  const filteredParticipants = participants.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.phone?.includes(searchQuery) ||
-      p.event.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const sortedParticipants = (participants: Participant[]) => {
+    const sorted = [...participants];
+    switch (sortOption) {
+      case 'earliest':
+        return sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      case 'latest':
+        return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      case 'nameAsc':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'nameDesc':
+        return sorted.sort((a, b) => b.name.localeCompare(a.name));
+      case 'eventAsc':
+        return sorted.sort((a, b) => a.event.name.localeCompare(b.event.name));
+      case 'eventDesc':
+        return sorted.sort((a, b) => b.event.name.localeCompare(a.event.name));
+      default:
+        return sorted;
+    }
+  };
+
+  const filteredParticipants = sortedParticipants(
+    participants.filter(
+      (p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.phone?.includes(searchQuery) ||
+        p.event.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
   if (!user) {
@@ -142,62 +168,179 @@ export function ParticipantsPage() {
         ) : (
           <>
             <div className="bg-white rounded-lg border overflow-hidden">
-              <div className="p-3 bg-gray-50">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="search"
-                    placeholder="Search by name, email, phone, or event..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-8 text-sm"
-                  />
+              {/* Header */}
+              <div className="p-3 border-b flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">
+                    {filteredParticipants.length} {filteredParticipants.length === 1 ? 'participant' : 'participants'}
+                  </p>
+                </div>
+                <div className="flex border border-gray-300 rounded">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
+                      showSearchBar ? 'bg-gray-200' : ''
+                    }`}
+                    onClick={() => setShowSearchBar(!showSearchBar)}
+                    disabled={participants.length === 0}
+                  >
+                    <Search className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 rounded-l-none border-0"
+                    onClick={() => setShowSortDrawer(true)}
+                    disabled={participants.length === 0}
+                  >
+                    <ArrowUpDown className="h-3 w-3" />
+                  </Button>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-white rounded-lg border divide-y">
-              {filteredParticipants.length === 0 ? (
-                <div className="p-6 text-center">
-                  <p className="text-sm text-gray-500">No participants found</p>
+              {/* Search Bar */}
+              {showSearchBar && (
+                <div className="p-3 border-b bg-gray-50">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="search"
+                      placeholder="Search by name, email, phone, or event..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-8 text-sm"
+                    />
+                  </div>
                 </div>
-              ) : (
-                filteredParticipants.map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="p-3 hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/events/${participant.event.id}`)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium">{participant.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {participant.email || participant.phone || 'No contact info'}
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          Event: {participant.event.name}
-                        </div>
-                        {participant.labels.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {participant.labels.map((label) => (
-                              <Badge key={label.id} variant="outline" className="text-xs h-5">
-                                {label.name}
-                              </Badge>
-                            ))}
+              )}
+              {/* Participants List */}
+              <div className="divide-y">
+                {filteredParticipants.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <p className="text-sm text-gray-500">No participants found</p>
+                  </div>
+                ) : (
+                  filteredParticipants.map((participant) => (
+                    <div
+                      key={participant.id}
+                      className="p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/events/${participant.event.id}`)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium">{participant.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {participant.email || participant.phone || 'No contact info'}
                           </div>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {new Date(participant.created_at).toLocaleDateString()}
+                          <div className="text-xs text-gray-400 mt-1">
+                            Event: {participant.event.name}
+                          </div>
+                          {participant.labels.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {participant.labels.map((label) => (
+                                <Badge key={label.id} variant="outline" className="text-xs h-5">
+                                  {label.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(participant.created_at).toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </>
         )}
       </div>
+
+      {/* Sort Drawer */}
+      <Drawer open={showSortDrawer} onOpenChange={setShowSortDrawer}>
+        <DrawerContent>
+          <div className="p-4">
+            <div className="space-y-1">
+              <button
+                className={`w-full text-left p-3 rounded text-sm ${
+                  sortOption === 'latest' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  setSortOption('latest');
+                  setShowSortDrawer(false);
+                }}
+              >
+                最新报名
+              </button>
+              <button
+                className={`w-full text-left p-3 rounded text-sm ${
+                  sortOption === 'earliest' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  setSortOption('earliest');
+                  setShowSortDrawer(false);
+                }}
+              >
+                最早报名
+              </button>
+              <button
+                className={`w-full text-left p-3 rounded text-sm ${
+                  sortOption === 'nameAsc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  setSortOption('nameAsc');
+                  setShowSortDrawer(false);
+                }}
+              >
+                姓名 A-Z
+              </button>
+              <button
+                className={`w-full text-left p-3 rounded text-sm ${
+                  sortOption === 'nameDesc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  setSortOption('nameDesc');
+                  setShowSortDrawer(false);
+                }}
+              >
+                姓名 Z-A
+              </button>
+              <button
+                className={`w-full text-left p-3 rounded text-sm ${
+                  sortOption === 'eventAsc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  setSortOption('eventAsc');
+                  setShowSortDrawer(false);
+                }}
+              >
+                活动 A-Z
+              </button>
+              <button
+                className={`w-full text-left p-3 rounded text-sm ${
+                  sortOption === 'eventDesc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => {
+                  setSortOption('eventDesc');
+                  setShowSortDrawer(false);
+                }}
+              >
+                活动 Z-A
+              </button>
+            </div>
+            <div className="mt-4 pt-4 border-t">
+              <button
+                className="w-full text-center p-3 text-sm text-gray-600 hover:bg-gray-50 rounded"
+                onClick={() => setShowSortDrawer(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
