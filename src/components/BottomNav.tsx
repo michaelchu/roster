@@ -20,7 +20,11 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50"
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <div className="flex justify-around items-center h-14">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -33,8 +37,10 @@ export function BottomNav() {
                 'flex flex-col items-center justify-center flex-1 h-full py-1 text-xs',
                 isActive ? 'text-primary' : 'text-gray-500'
               )}
+              aria-label={`Navigate to ${item.label}`}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className="h-5 w-5 mb-1" />
+              <Icon className="h-5 w-5 mb-1" aria-hidden="true" />
               <span>{item.label}</span>
             </Link>
           );

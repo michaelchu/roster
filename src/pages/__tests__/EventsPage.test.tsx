@@ -50,6 +50,7 @@ describe('EventsPage', () => {
 
   it('displays loading state initially', () => {
     render(<EventsPage />);
+
     // EventsPage shows skeleton loading state, not text
     expect(screen.getAllByText('My Events')).toHaveLength(1);
     // Check for skeleton elements (they have animate-pulse class)

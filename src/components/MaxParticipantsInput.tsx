@@ -72,18 +72,27 @@ export function MaxParticipantsInput({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <Label className="text-sm">{label}</Label>
-      <div className="flex items-center space-x-2">
+      <Label htmlFor="max-participants-input" className="text-sm">
+        {label}
+      </Label>
+      <div
+        className="flex items-center space-x-2"
+        role="group"
+        aria-labelledby="max-participants-input"
+      >
         <Button
           type="button"
           variant="outline"
           size="sm"
           className="h-10 w-10 p-0"
           onClick={decrementValue}
+          aria-label={`Decrease ${label.toLowerCase()} to ${Math.max(value - 1, min)}`}
+          disabled={value <= min}
         >
-          <Minus className="h-4 w-4" />
+          <Minus className="h-4 w-4" aria-hidden="true" />
         </Button>
         <Input
+          id="max-participants-input"
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
@@ -91,6 +100,9 @@ export function MaxParticipantsInput({
           onChange={(e) => handleInputChange(e.target.value)}
           onBlur={(e) => handleInputBlur(e.target.value)}
           className="h-10 text-sm text-center"
+          aria-label={`${label} (${min} to ${max})`}
+          min={min}
+          max={max}
         />
         <Button
           type="button"
@@ -98,8 +110,10 @@ export function MaxParticipantsInput({
           size="sm"
           className="h-10 w-10 p-0"
           onClick={incrementValue}
+          aria-label={`Increase ${label.toLowerCase()} to ${Math.min(value + 1, max)}`}
+          disabled={value >= max}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
     </div>
