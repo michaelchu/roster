@@ -1,0 +1,25 @@
+# Exported from Render on 2025-09-27T11:33:41Z
+version: "1"
+services:
+- type: web
+  name: Roster
+  runtime: static
+  repo: https://github.com/goldspanlabs/roster
+  envVars:
+  - key: VITE_SUPABASE_ANON_KEY
+    sync: false
+  - key: VITE_SUPABASE_URL
+    sync: false
+  buildCommand: npm install; npm run build
+  staticPublishPath: dist
+  domains:
+  - rosterapp.co
+  - www.rosterapp.co
+  routes:
+  - type: rewrite
+    source: /*
+    destination: /index.html
+  autoDeployTrigger: commit
+  previews:
+    generation: automatic
+  renderSubdomainPolicy: disabled
