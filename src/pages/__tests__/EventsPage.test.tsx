@@ -31,6 +31,7 @@ vi.mock('@/hooks/useAuth', () => ({
 vi.mock('@/services', () => ({
   eventService: {
     getEventsByOrganizer: vi.fn(),
+    getEventsByParticipant: vi.fn(),
     duplicateEvent: vi.fn(),
   },
 }));
@@ -59,6 +60,7 @@ describe('EventsPage', () => {
   it('displays events list when loaded', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
+    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
 
     render(<EventsPage />);
 
@@ -72,6 +74,7 @@ describe('EventsPage', () => {
   it('displays participant counts for each event', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
+    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
 
     render(<EventsPage />);
 
@@ -84,6 +87,7 @@ describe('EventsPage', () => {
   it('navigates to event detail page when event is clicked', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
+    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
 
     render(<EventsPage />);
 
@@ -98,6 +102,7 @@ describe('EventsPage', () => {
   it('navigates to edit page when edit button is clicked', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
+    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
 
     render(<EventsPage />);
 
@@ -112,6 +117,7 @@ describe('EventsPage', () => {
   it('duplicates event when copy button is clicked', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
+    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
     vi.mocked(eventService.duplicateEvent).mockResolvedValue({
       ...mockEventsList[0],
       id: 'new-id',
@@ -132,6 +138,7 @@ describe('EventsPage', () => {
   it('displays empty state when no events', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue([]);
+    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
 
     render(<EventsPage />);
 
@@ -144,6 +151,7 @@ describe('EventsPage', () => {
   it('shows create event button in empty state', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue([]);
+    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
 
     render(<EventsPage />);
 
