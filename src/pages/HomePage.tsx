@@ -159,7 +159,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
-      <TopNav title="JoinUp" />
+      <TopNav title="Roster" />
 
       <div className="p-3 space-y-3">
         {user ? (
@@ -293,7 +293,7 @@ export function HomePage() {
         ) : (
           <div className="bg-white rounded-lg p-6 border text-center">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-            <h2 className="text-base font-medium mb-2">Welcome to JoinUp</h2>
+            <h2 className="text-base font-medium mb-2">Welcome to Roster</h2>
             <p className="text-xs text-gray-500 mb-4">Sign in to create and manage your events</p>
             <Button size="sm" className="w-full" onClick={() => navigate('/auth/login')}>
               Sign In
