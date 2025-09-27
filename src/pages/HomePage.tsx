@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Users, Plus } from 'lucide-react';
+import { Calendar, Users, Plus, CreditCard, Bookmark } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { TopNav } from '@/components/TopNav';
@@ -186,6 +186,24 @@ export function HomePage() {
                 >
                   <Calendar className="h-5 w-5" />
                   <span className="text-xs">My Events</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-20 flex-col gap-2"
+                  onClick={() => navigate('/payments')}
+                >
+                  <CreditCard className="h-5 w-5" />
+                  <span className="text-xs">Collect Payments</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-20 flex-col gap-2"
+                  onClick={() => navigate('/bookmarked')}
+                >
+                  <Bookmark className="h-5 w-5" />
+                  <span className="text-xs">Bookmarked</span>
                 </Button>
               </div>
             </div>
