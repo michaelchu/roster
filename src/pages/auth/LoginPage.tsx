@@ -24,7 +24,8 @@ export function LoginPage() {
 
     try {
       await signIn(email, password);
-      navigate(returnUrl);
+      const isSafeReturnUrl = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
+      navigate(isSafeReturnUrl ? returnUrl : '/');
     } catch (err) {
       const error = err as Error;
       setError(error.message || 'Failed to sign in');

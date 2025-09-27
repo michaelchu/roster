@@ -25,7 +25,8 @@ export function RegisterPage() {
 
     try {
       await signUp(email, password, name);
-      navigate(returnUrl);
+      const isSafeReturnUrl = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
+      navigate(isSafeReturnUrl ? returnUrl : '/');
     } catch (err) {
       const error = err as Error;
       setError(error.message || 'Failed to sign up');
