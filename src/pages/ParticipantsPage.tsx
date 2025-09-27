@@ -128,9 +128,9 @@ export function ParticipantsPage() {
     participants.filter(
       (p) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.phone?.includes(searchQuery) ||
-        p.event.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (p.email ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.phone ?? '').includes(searchQuery) ||
+        (p.event?.name ?? '').toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
 
