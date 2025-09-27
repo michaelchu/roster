@@ -1,17 +1,12 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { User, LogOut, Mail, MessageSquare } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -61,51 +56,6 @@ export function SettingsPage() {
                 <div className="text-xs text-gray-500">Update your information</div>
               </div>
             </button>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="p-3 border-b bg-gray-50">
-            <h3 className="text-sm font-medium">Notifications</h3>
-          </div>
-
-          <div className="divide-y">
-            <div className="p-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-gray-400" />
-                <div>
-                  <Label
-                    htmlFor="email-notifications"
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    Email Notifications
-                  </Label>
-                  <div className="text-xs text-gray-500">Receive event updates via email</div>
-                </div>
-              </div>
-              <Switch
-                id="email-notifications"
-                checked={emailNotifications}
-                onCheckedChange={setEmailNotifications}
-              />
-            </div>
-
-            <div className="p-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <MessageSquare className="h-5 w-5 text-gray-400" />
-                <div>
-                  <Label htmlFor="sms-notifications" className="text-sm font-medium cursor-pointer">
-                    SMS Notifications
-                  </Label>
-                  <div className="text-xs text-gray-500">Receive event updates via SMS</div>
-                </div>
-              </div>
-              <Switch
-                id="sms-notifications"
-                checked={smsNotifications}
-                onCheckedChange={setSmsNotifications}
-              />
-            </div>
           </div>
         </div>
 
