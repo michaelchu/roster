@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS events (
     is_private BOOLEAN DEFAULT false NOT NULL,
     custom_fields JSONB DEFAULT '[]'::jsonb NOT NULL,
     parent_event_id TEXT,
-    max_participants INTEGER CHECK (max_participants > 0 AND max_participants <= 100),
+    max_participants INTEGER CHECK (max_participants > 0 AND max_participants <= 10000),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
