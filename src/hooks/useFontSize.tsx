@@ -9,14 +9,14 @@ export interface FontSizeConfig {
 }
 
 const FONT_SIZE_CONFIG: FontSizeConfig = {
-  sm: '14px',
-  md: '16px',
-  lg: '18px',
+  sm: '16px',
+  md: '18px',
+  lg: '20px',
 };
 
 const FONT_SIZE_LABELS: Record<FontSize, string> = {
-  sm: 'Medium',
-  md: 'Large',
+  sm: 'Small',
+  md: 'Medium',
   lg: 'Extra Large',
 };
 
