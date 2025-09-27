@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { FontSizeProvider } from '@/hooks/useFontSize';
+import { ThemeProvider } from '@/components/theme-provider';
 import { MobileOnly } from '@/components/MobileOnly';
 import { BottomNav } from '@/components/BottomNav';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -65,16 +66,18 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <FontSizeProvider>
-        <MobileOnly>
-          <AuthProvider>
-            <Router>
-              <AppContent />
-              <Toaster />
-            </Router>
-          </AuthProvider>
-        </MobileOnly>
-      </FontSizeProvider>
+      <ThemeProvider defaultTheme="system" storageKey="roster-theme">
+        <FontSizeProvider>
+          <MobileOnly>
+            <AuthProvider>
+              <Router>
+                <AppContent />
+                <Toaster />
+              </Router>
+            </AuthProvider>
+          </MobileOnly>
+        </FontSizeProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

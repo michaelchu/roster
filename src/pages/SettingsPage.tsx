@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useFontSize, type FontSize } from '@/hooks/useFontSize';
+import { useTheme } from '@/components/theme-provider';
 import {
   User,
   LogOut,
@@ -33,11 +34,11 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { fontSize, setFontSize, fontSizeLabels } = useFontSize();
+  const { theme, setTheme } = useTheme();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState('10');
   const [defaultVisibility, setDefaultVisibility] = useState('public');
-  const [theme, setTheme] = useState('system');
 
   const fontSizeOptions: FontSize[] = ['sm', 'md', 'lg'];
   const currentFontSizeIndex = fontSizeOptions.indexOf(fontSize);
@@ -220,6 +221,8 @@ export function SettingsPage() {
                 <SelectContent>
                   <SelectItem value="light">Light</SelectItem>
                   <SelectItem value="dark">Dark</SelectItem>
+                  <SelectItem value="terragon">Terragon Light</SelectItem>
+                  <SelectItem value="terragon-dark">Terragon Dark</SelectItem>
                   <SelectItem value="system">System</SelectItem>
                 </SelectContent>
               </Select>
