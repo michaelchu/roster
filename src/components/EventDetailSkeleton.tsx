@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import { TopNav } from '@/components/TopNav';
+import { ArrowLeft } from 'lucide-react';
 
 /**
  * Render a full-page skeleton UI for the event detail screen.
@@ -12,7 +12,15 @@ import { TopNav } from '@/components/TopNav';
 export function EventDetailSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      <TopNav title="" showBackButton={true} backPath="/events" sticky className="pointer-events-none select-none" />
+      {/* Header with skeleton */}
+      <div className="bg-white border-b sticky top-0 z-10 pointer-events-none select-none">
+        <div className="flex items-center justify-center px-4 py-2 relative">
+          <button className="absolute left-4" aria-label="Go back">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <Skeleton className="h-6 w-32" />
+        </div>
+      </div>
 
       <div className="p-3 space-y-3">
         {/* Event Info Card Skeleton */}
