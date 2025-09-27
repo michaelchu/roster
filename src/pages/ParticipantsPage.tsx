@@ -9,7 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/TopNav';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
-import { Tables } from '@/types/database.types';
+
+// Define the label type as we actually receive it from the database
+interface Label {
+  id: string;
+  event_id: string;
+  name: string;
+  color: string | null;
+}
 
 interface Participant {
   id: string;
@@ -21,7 +28,7 @@ interface Participant {
     id: string;
     name: string;
   };
-  labels: Tables<'labels'>[];
+  labels: Label[];
 }
 
 /**
@@ -89,7 +96,7 @@ export function ParticipantsPage() {
           .in('participant_id', participantIds);
 
         // Group labels by participant_id for efficient lookup
-        const labelsByParticipant = new Map<string, Tables<'labels'>[]>();
+        const labelsByParticipant = new Map<string, Label[]>();
         allLabelData?.forEach((item) => {
           const participantId = item.participant_id;
           if (!labelsByParticipant.has(participantId)) {
