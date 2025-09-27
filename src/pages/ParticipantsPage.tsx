@@ -22,6 +22,14 @@ interface Participant {
   labels: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
+/**
+ * Renders the participants management page for the authenticated organizer.
+ *
+ * Loads participants for the current signed-in organizer, fetches per-participant labels,
+ * provides a searchable list, and displays appropriate UI for loading, empty, and unauthenticated states.
+ *
+ * @returns The page's JSX containing top navigation, search input, participants list with labels and event info, an empty-state card when there are no participants, a loading skeleton while data is being fetched, and a sign-in prompt when no user is authenticated.
+ */
 export function ParticipantsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();

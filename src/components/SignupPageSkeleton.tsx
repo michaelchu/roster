@@ -1,6 +1,14 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
 
+/**
+ * Render a skeleton loading UI for the signup page.
+ *
+ * Produces a static layout of skeleton placeholders that mimic the header, event information card,
+ * and registration form while real content is loading.
+ *
+ * @returns A React element representing the signup page skeleton UI
+ */
 export function SignupPageSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">

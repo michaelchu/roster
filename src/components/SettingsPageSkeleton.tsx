@@ -1,6 +1,11 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { TopNav } from '@/components/TopNav';
 
+/**
+ * Render a static skeleton UI for the Settings page shown while real content loads.
+ *
+ * @returns A JSX element that renders placeholder skeletons for the top navigation, user profile card, sign-out button, and an about section.
+ */
 export function SettingsPageSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 pb-14">
