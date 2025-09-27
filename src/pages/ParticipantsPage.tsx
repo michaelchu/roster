@@ -9,14 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/TopNav';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
-
-// Define the label type as we actually receive it from the database
-interface Label {
-  id: string;
-  event_id: string;
-  name: string;
-  color: string | null;
-}
+import type { Label } from '@/services/labelService';
 
 interface Participant {
   id: string;
@@ -197,11 +190,11 @@ export function ParticipantsPage() {
                     {filteredParticipants.length === 1 ? 'participant' : 'participants'}
                   </p>
                 </div>
-                <div className="flex border border-gray-300 rounded">
+                <div className="flex border border-border rounded">
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
+                    className={`h-7 px-2 rounded-r-none border-0 border-r border-border ${
                       showSearchBar ? 'bg-muted' : ''
                     }`}
                     onClick={() => setShowSearchBar(!showSearchBar)}
@@ -257,8 +250,8 @@ export function ParticipantsPage() {
                       aria-label={`View event ${participant.event.name}`}
                     >
                       <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium">{participant.name}</div>
+                        <div className="flex-1 min-w-0 pr-2">
+                          <div className="text-sm font-medium truncate">{participant.name}</div>
                           <div className="text-xs text-muted-foreground">
                             {participant.email || participant.phone || 'No contact info'}
                           </div>
@@ -275,7 +268,7 @@ export function ParticipantsPage() {
                             </div>
                           )}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground flex-shrink-0">
                           {new Date(participant.created_at).toLocaleDateString()}
                         </div>
                       </div>
@@ -293,7 +286,7 @@ export function ParticipantsPage() {
         <DrawerContent className="p-0">
           <div className="py-4 px-4">
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'latest' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-muted'
               }`}
               onClick={() => {
@@ -304,7 +297,7 @@ export function ParticipantsPage() {
               Latest Registration
             </button>
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'earliest'
                   ? 'bg-blue-100 text-blue-600 rounded-lg'
                   : 'hover:bg-muted'
@@ -317,7 +310,7 @@ export function ParticipantsPage() {
               Earliest Registration
             </button>
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'nameAsc' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-muted'
               }`}
               onClick={() => {
@@ -328,7 +321,7 @@ export function ParticipantsPage() {
               Name A-Z
             </button>
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'nameDesc'
                   ? 'bg-blue-100 text-blue-600 rounded-lg'
                   : 'hover:bg-muted'
@@ -341,7 +334,7 @@ export function ParticipantsPage() {
               Name Z-A
             </button>
             <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
+              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
                 sortOption === 'eventAsc'
                   ? 'bg-blue-100 text-blue-600 rounded-lg'
                   : 'hover:bg-muted'
@@ -366,7 +359,7 @@ export function ParticipantsPage() {
             >
               Event Z-A
             </button>
-            <div className="border-t border-gray-200">
+            <div className="border-t border-border">
               <button
                 className="w-full text-center py-4 text-base font-semibold text-red-600 hover:bg-muted"
                 onClick={() => setShowSortDrawer(false)}
