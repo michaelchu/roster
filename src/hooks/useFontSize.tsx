@@ -1,9 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-export type FontSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type FontSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export interface FontSizeConfig {
-  xs: string;
   sm: string;
   md: string;
   lg: string;
@@ -11,7 +10,6 @@ export interface FontSizeConfig {
 }
 
 const FONT_SIZE_CONFIG: FontSizeConfig = {
-  xs: '12px',
   sm: '14px',
   md: '16px',
   lg: '18px',
@@ -19,7 +17,6 @@ const FONT_SIZE_CONFIG: FontSizeConfig = {
 };
 
 const FONT_SIZE_LABELS: Record<FontSize, string> = {
-  xs: 'Extra Small',
   sm: 'Small',
   md: 'Medium',
   lg: 'Large',
