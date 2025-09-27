@@ -251,7 +251,7 @@ export function ParticipantsPage() {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium">{participant.name}</div>
+                          <div className="text-sm font-medium truncate">{participant.name}</div>
                           <div className="text-xs text-gray-500">
                             {participant.email || participant.phone || 'No contact info'}
                           </div>
