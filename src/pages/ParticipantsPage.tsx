@@ -11,6 +11,14 @@ import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton'
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import type { Label } from '@/services/labelService';
 
+// Define the label type as we actually receive it from the database
+interface Label {
+  id: string;
+  event_id: string;
+  name: string;
+  color: string | null;
+}
+
 interface Participant {
   id: string;
   name: string;
@@ -21,7 +29,7 @@ interface Participant {
     id: string;
     name: string;
   };
-  labels: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  labels: Label[];
 }
 
 /**
@@ -105,7 +113,7 @@ export function ParticipantsPage() {
           labels: labelsByParticipant.get(p.id) || [],
         }));
 
-        setParticipants(participantsWithLabels as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        setParticipants(participantsWithLabels as Participant[]);
       }
     } catch (error) {
       console.error('Error loading participants:', error);
