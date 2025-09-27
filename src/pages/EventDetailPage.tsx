@@ -663,7 +663,7 @@ export function EventDetailPage() {
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <button
                               onClick={() => setSelectedParticipant(participant)}
-                              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors truncate text-left min-w-0 max-w-full"
+                              className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors truncate text-left min-w-0 max-w-full"
                             >
                               {displayName}
                             </button>
