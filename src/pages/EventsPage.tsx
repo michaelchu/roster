@@ -65,7 +65,7 @@ export function EventsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-32 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background pb-32 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
           <p className="text-sm text-gray-500 mb-4">Please sign in to view your events</p>
@@ -82,17 +82,17 @@ export function EventsPage() {
   const showDuplicateButton = activeTab === 'organizing';
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title="My Events" sticky />
 
       {/* Tab Bar */}
-      <div className="bg-white border-b px-3 py-2">
-        <div className="flex rounded-lg bg-gray-100 p-1">
+      <div className="bg-card border-b px-3 py-2">
+        <div className="flex rounded-lg bg-muted p-1">
           <button
             onClick={() => setActiveTab('organizing')}
             className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-colors ${
               activeTab === 'organizing'
-                ? 'bg-white text-gray-900 shadow-sm'
+                ? 'bg-card text-gray-900 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -102,7 +102,7 @@ export function EventsPage() {
             onClick={() => setActiveTab('joined')}
             className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-colors ${
               activeTab === 'joined'
-                ? 'bg-white text-gray-900 shadow-sm'
+                ? 'bg-card text-gray-900 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -115,7 +115,7 @@ export function EventsPage() {
         {isLoading ? (
           <EventListSkeleton count={3} />
         ) : currentEvents && currentEvents.length === 0 ? (
-          <div className="bg-white rounded-lg p-3 border text-center">
+          <div className="bg-card rounded-lg p-3 border text-center">
             <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-3" />
             <h2 className="text-base font-medium mb-2">
               {activeTab === 'organizing' ? 'No Events Yet' : 'No Joined Events'}
@@ -135,10 +135,10 @@ export function EventsPage() {
         ) : (
           <div className="space-y-3">
             {(currentEvents || []).map((event) => (
-              <div key={event.id} className="bg-white border rounded-lg overflow-hidden">
+              <div key={event.id} className="bg-card border rounded-lg overflow-hidden">
                 <button
                   onClick={() => navigate(`/events/${event.id}`)}
-                  className="w-full p-3 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full p-3 text-left hover:bg-muted transition-colors"
                 >
                   <div className="mb-3">
                     <h3 className="text-sm font-semibold truncate">{event.name}</h3>
@@ -166,8 +166,8 @@ export function EventsPage() {
                     </div>
                   )}
                 </button>
-                <div className="border-t px-3 py-2 bg-gray-50 flex justify-between items-center gap-2">
-                  <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                <div className="border-t px-3 py-2 bg-muted flex justify-between items-center gap-2">
+                  <div className="flex items-center gap-1 text-xs text-gray-500 bg-muted px-2 py-1 rounded-full">
                     <Users className="h-3 w-3" />
                     <span className="font-medium">{event.participant_count || 0}</span>
                   </div>

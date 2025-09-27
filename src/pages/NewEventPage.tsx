@@ -85,11 +85,11 @@ export function NewEventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title="Create Event" showBackButton backPath="/events" sticky />
 
       <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-3">
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm">
               Event Name *
@@ -187,7 +187,7 @@ export function NewEventPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium">Custom Fields</h2>
             <Button
@@ -209,7 +209,7 @@ export function NewEventPage() {
           ) : (
             <div className="space-y-3">
               {customFields.map((field) => (
-                <div key={field.id} className="p-3 bg-gray-50 rounded space-y-2">
+                <div key={field.id} className="p-3 bg-muted rounded space-y-2">
                   <div className="flex items-center gap-2">
                     <Input
                       type="text"

@@ -183,7 +183,7 @@ export function SignupPage() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="text-sm text-gray-500 mb-4">Event not found</div>
           <Button variant="outline" onClick={() => navigate('/')}>
@@ -197,7 +197,7 @@ export function SignupPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-4">
           <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Registration Successful!</h1>
@@ -219,9 +219,9 @@ export function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-card border-b sticky top-0 z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => navigate('/')}
@@ -237,7 +237,7 @@ export function SignupPage() {
       <div className="p-3 space-y-3">
         {/* Event Info Card - Same layout as EventDetailPage */}
         {(event.description || event.datetime || event.location) && (
-          <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-3 space-y-2">
               {/* Top row: Date and Registration info */}
               {event.datetime && (
@@ -289,7 +289,7 @@ export function SignupPage() {
         )}
 
         {/* Registration Form */}
-        <div className="bg-white rounded-lg border">
+        <div className="bg-card rounded-lg border">
           <div className="p-3">
             <div className="flex items-center gap-2 mb-4">
               <User className="w-5 h-5 text-blue-600" />

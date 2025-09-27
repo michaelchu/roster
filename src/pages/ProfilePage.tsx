@@ -49,7 +49,7 @@ export function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
           <p className="text-sm text-gray-500 mb-4">Please sign in to access your profile</p>
@@ -62,12 +62,12 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title="Profile" showBackButton backPath="/settings" sticky />
 
       <form onSubmit={handleSubmit} className="p-3 space-y-3">
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="p-3 border-b bg-gray-50">
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-3 border-b bg-muted">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 bg-primary rounded-full flex items-center justify-center">
                 <User className="h-6 w-6 text-white" />
@@ -111,7 +111,7 @@ export function ProfilePage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border p-3">
+        <div className="bg-card rounded-lg border p-3">
           <div className="text-xs text-gray-500">
             <div className="mb-2">
               <strong>Account Information</strong>

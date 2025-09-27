@@ -43,7 +43,7 @@ function AppContent() {
         <Route
           path="*"
           element={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
               <div className="text-center">
                 <div className="text-sm text-gray-500">Page not found</div>
                 <button

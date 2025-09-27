@@ -56,7 +56,7 @@ export function SettingsPage() {
   if (!user) {
     return (
       <MobileOnly>
-        <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
           <div className="text-center">
             <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
             <p className="text-sm text-gray-500 mb-4">Please sign in to access settings</p>
@@ -71,12 +71,12 @@ export function SettingsPage() {
 
   return (
     <MobileOnly>
-      <div className="min-h-screen bg-gray-50 pb-14">
+      <div className="min-h-screen bg-background pb-14">
         <TopNav title="Settings" />
 
         <div className="p-3 space-y-3">
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center">
                   <User className="h-5 w-5 text-white" />
@@ -92,7 +92,7 @@ export function SettingsPage() {
 
             <div className="divide-y">
               <button
-                className="w-full p-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3"
+                className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                 onClick={() => navigate('/profile')}
               >
                 <User className="h-5 w-5 text-gray-400" />
@@ -104,8 +104,8 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <h3 className="text-sm font-medium">Notifications</h3>
             </div>
 
@@ -152,8 +152,8 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <h3 className="text-sm font-medium">Event Management</h3>
             </div>
 
@@ -202,8 +202,8 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <h3 className="text-sm font-medium">Appearance</h3>
             </div>
 
@@ -252,8 +252,8 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-gray-50">
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="p-3 border-b bg-muted">
               <h3 className="text-sm font-medium">About This App</h3>
             </div>
             <div className="p-3">

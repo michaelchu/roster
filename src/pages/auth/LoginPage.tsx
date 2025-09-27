@@ -30,15 +30,15 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
+    <div className="min-h-screen bg-background">
+      <div className="bg-card border-b">
         <div className="flex items-center justify-center px-4 py-2">
           <h1 className="text-lg font-semibold">Sign In</h1>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="p-3 space-y-3">
-        <div className="bg-white rounded-lg p-3 border space-y-3">
+        <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm">
               Email

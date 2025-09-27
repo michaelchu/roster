@@ -32,7 +32,7 @@ export function TopNav({
   };
 
   return (
-    <div className={cn('bg-white border-b', sticky && 'sticky top-0 z-10', className)}>
+    <div className={cn('bg-card border-b', sticky && 'sticky top-0 z-10', className)}>
       <div className="flex items-center justify-center px-4 py-2 relative">
         {showBackButton && (
           <button onClick={handleBack} className="absolute left-4" aria-label="Go back">

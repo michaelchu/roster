@@ -9,13 +9,13 @@ import { Search } from 'lucide-react';
  */
 export function ParticipantsPageSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-14">
+    <div className="min-h-screen bg-background pb-14">
       <TopNav title="All Participants" sticky />
 
       <div className="p-3 space-y-3">
         {/* Search Bar */}
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="p-3 bg-gray-50">
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-3 bg-muted">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Skeleton className="h-8 w-full rounded-md pl-9" />
@@ -24,7 +24,7 @@ export function ParticipantsPageSkeleton() {
         </div>
 
         {/* Participants List */}
-        <div className="bg-white rounded-lg border divide-y">
+        <div className="bg-card rounded-lg border divide-y">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="p-3">
               <div className="flex items-start justify-between">

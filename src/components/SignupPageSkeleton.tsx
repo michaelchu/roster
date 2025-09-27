@@ -11,9 +11,9 @@ import { ArrowLeft } from 'lucide-react';
  */
 export function SignupPageSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-card border-b sticky top-0 z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center text-blue-600">
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -26,7 +26,7 @@ export function SignupPageSkeleton() {
 
       <div className="p-3 space-y-3">
         {/* Event Info Card Skeleton */}
-        <div className="bg-white rounded-lg border overflow-hidden">
+        <div className="bg-card rounded-lg border overflow-hidden">
           <div className="p-3 space-y-2">
             {/* Top row: Date and Participants */}
             <div className="grid grid-cols-2 gap-3">
@@ -60,7 +60,7 @@ export function SignupPageSkeleton() {
         </div>
 
         {/* Registration Form Skeleton */}
-        <div className="bg-white rounded-lg border">
+        <div className="bg-card rounded-lg border">
           <div className="p-3">
             <div className="flex items-center gap-2 mb-4">
               <Skeleton className="w-5 h-5 rounded" />

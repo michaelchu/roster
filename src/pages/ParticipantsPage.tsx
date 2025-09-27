@@ -157,7 +157,7 @@ export function ParticipantsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-14 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
           <p className="text-sm text-gray-500 mb-4">Please sign in to view participants</p>
@@ -174,12 +174,12 @@ export function ParticipantsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-14">
+    <div className="min-h-screen bg-background pb-14">
       <TopNav title="All Participants" sticky />
 
       <div className="p-3 space-y-3">
         {participants.length === 0 ? (
-          <div className="bg-white rounded-lg p-6 border text-center">
+          <div className="bg-card rounded-lg p-6 border text-center">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
             <h2 className="text-base font-medium mb-2">No Participants Yet</h2>
             <p className="text-xs text-gray-500">
@@ -188,7 +188,7 @@ export function ParticipantsPage() {
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg border overflow-hidden">
+            <div className="bg-card rounded-lg border overflow-hidden">
               {/* Header */}
               <div className="p-3 border-b flex items-center justify-between">
                 <div>
@@ -202,7 +202,7 @@ export function ParticipantsPage() {
                     size="sm"
                     variant="ghost"
                     className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
-                      showSearchBar ? 'bg-gray-200' : ''
+                      showSearchBar ? 'bg-muted' : ''
                     }`}
                     onClick={() => setShowSearchBar(!showSearchBar)}
                     disabled={participants.length === 0}
@@ -222,7 +222,7 @@ export function ParticipantsPage() {
               </div>
               {/* Search Bar */}
               {showSearchBar && (
-                <div className="p-3 border-b bg-gray-50">
+                <div className="p-3 border-b bg-muted">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -246,7 +246,7 @@ export function ParticipantsPage() {
                     <button
                       type="button"
                       key={participant.id}
-                      className="w-full text-left p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="w-full text-left p-3 hover:bg-muted transition-colors cursor-pointer"
                       onClick={() => navigate(`/events/${participant.event.id}`)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -294,9 +294,7 @@ export function ParticipantsPage() {
           <div className="py-4 px-4">
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
-                sortOption === 'latest'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                sortOption === 'latest' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('latest');
@@ -309,7 +307,7 @@ export function ParticipantsPage() {
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
                 sortOption === 'earliest'
                   ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('earliest');
@@ -320,9 +318,7 @@ export function ParticipantsPage() {
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
-                sortOption === 'nameAsc'
-                  ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                sortOption === 'nameAsc' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('nameAsc');
@@ -335,7 +331,7 @@ export function ParticipantsPage() {
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
                 sortOption === 'nameDesc'
                   ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('nameDesc');
@@ -348,7 +344,7 @@ export function ParticipantsPage() {
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
                 sortOption === 'eventAsc'
                   ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('eventAsc');
@@ -361,7 +357,7 @@ export function ParticipantsPage() {
               className={`w-full text-center py-4 text-base font-semibold ${
                 sortOption === 'eventDesc'
                   ? 'bg-blue-100 text-blue-600 rounded-lg'
-                  : 'hover:bg-gray-50'
+                  : 'hover:bg-muted'
               }`}
               onClick={() => {
                 setSortOption('eventDesc');
@@ -372,7 +368,7 @@ export function ParticipantsPage() {
             </button>
             <div className="border-t border-gray-200">
               <button
-                className="w-full text-center py-4 text-base font-semibold text-red-600 hover:bg-gray-50"
+                className="w-full text-center py-4 text-base font-semibold text-red-600 hover:bg-muted"
                 onClick={() => setShowSortDrawer(false)}
               >
                 Cancel

@@ -476,20 +476,20 @@ export function EventDetailPage() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-sm text-gray-500">Event not found</div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${user ? 'pb-32' : 'pb-20'}`}>
+    <div className={`min-h-screen bg-background ${user ? 'pb-32' : 'pb-20'}`}>
       <TopNav title={event.name} showBackButton={!!user} backPath="/events" sticky />
 
       <div className="p-3 space-y-3">
         {/* Event Info */}
         {(event.description || event.datetime || event.location || event.max_participants) && (
-          <div className="bg-white rounded-lg border overflow-hidden">
+          <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-3 space-y-2">
               {/* Top row: Date and Registration Deadline */}
               {event.datetime && (
@@ -538,25 +538,25 @@ export function EventDetailPage() {
             </div>
 
             {/* Action Buttons Footer */}
-            <div className="border-t bg-gray-50">
+            <div className="border-t bg-muted">
               <div className="flex divide-x divide-gray-200">
                 <button
                   onClick={() => navigate(`/events/${eventId}/edit`)}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-muted transition-colors"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </button>
                 <button
                   onClick={shareEvent}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-muted transition-colors"
                 >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </button>
                 <button
                   onClick={exportToCSV}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-gray-600 hover:bg-muted transition-colors"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export
@@ -567,8 +567,8 @@ export function EventDetailPage() {
         )}
 
         {/* Participants List */}
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="px-3 py-2 border-b bg-muted flex items-center justify-between">
             <div>
               <h2 className="text-sm font-medium">Participants</h2>
               <p className="text-xs text-gray-500">
@@ -600,7 +600,7 @@ export function EventDetailPage() {
                 size="sm"
                 variant="ghost"
                 className={`h-7 px-2 rounded-r-none border-0 border-r border-gray-300 ${
-                  showSearchBar ? 'bg-gray-200' : ''
+                  showSearchBar ? 'bg-muted' : ''
                 }`}
                 onClick={() => setShowSearchBar(!showSearchBar)}
                 disabled={participants.length === 0}
@@ -621,7 +621,7 @@ export function EventDetailPage() {
 
           {/* Search Bar */}
           {showSearchBar && (
-            <div className="p-3 border-b bg-gray-50">
+            <div className="p-3 border-b bg-muted">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -648,7 +648,7 @@ export function EventDetailPage() {
                 const displayName = getDisplayName(participant);
 
                 slots.push(
-                  <div key={participant.id} className="p-3 hover:bg-gray-50 transition-colors">
+                  <div key={participant.id} className="p-3 hover:bg-muted transition-colors">
                     <div className="flex items-start gap-3">
                       <div className="text-xs text-gray-400 font-mono flex-shrink-0 mt-1">
                         {participant.slot_number}.
@@ -749,7 +749,7 @@ export function EventDetailPage() {
                         <div className="text-xs text-gray-400 font-mono flex-shrink-0">
                           {slotNum}.
                         </div>
-                        <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-xs text-gray-400">?</span>
                         </div>
                         <div className="flex-1 flex items-center justify-between">
@@ -1088,7 +1088,7 @@ export function EventDetailPage() {
                           className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
                             hasLabel
                               ? 'bg-primary text-white border-primary'
-                              : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                              : 'bg-card text-gray-600 border-gray-300 hover:bg-muted'
                           }`}
                         >
                           {label.name}
