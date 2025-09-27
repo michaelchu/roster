@@ -156,7 +156,7 @@ export function ParticipantsPage() {
     <div className="min-h-screen bg-gray-50 pb-14">
       <TopNav title="All Participants" sticky />
 
-      <div className="p-2 space-y-2">
+      <div className="p-3 space-y-3">
         {participants.length === 0 ? (
           <div className="bg-white rounded-lg p-6 border text-center">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
@@ -167,9 +167,9 @@ export function ParticipantsPage() {
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-lg overflow-hidden">
+            <div className="bg-white rounded-lg border overflow-hidden">
               {/* Header */}
-              <div className="px-3 py-2 border-b flex items-center justify-between">
+              <div className="p-3 border-b flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">
                     {filteredParticipants.length} {filteredParticipants.length === 1 ? 'participant' : 'participants'}
@@ -200,7 +200,7 @@ export function ParticipantsPage() {
               </div>
               {/* Search Bar */}
               {showSearchBar && (
-                <div className="px-3 py-2 border-b bg-gray-50">
+                <div className="p-3 border-b bg-gray-50">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -214,45 +214,41 @@ export function ParticipantsPage() {
                 </div>
               )}
               {/* Participants List */}
-              <div>
+              <div className="divide-y">
                 {filteredParticipants.length === 0 ? (
                   <div className="p-6 text-center">
                     <p className="text-sm text-gray-500">No participants found</p>
                   </div>
                 ) : (
-                  filteredParticipants.map((participant, index) => (
-                    <div key={participant.id}>
-                      <div
-                        className="px-3 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/events/${participant.event.id}`)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium">{participant.name}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">
-                              {participant.email || participant.phone || 'No contact info'}
-                            </div>
-                            <div className="text-xs text-gray-400 mt-0.5">
-                              Event: {participant.event.name}
-                            </div>
-                            {participant.labels.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {participant.labels.map((label) => (
-                                  <Badge key={label.id} variant="outline" className="text-xs h-4 px-1.5">
-                                    {label.name}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+                  filteredParticipants.map((participant) => (
+                    <div
+                      key={participant.id}
+                      className="p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/events/${participant.event.id}`)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium">{participant.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {participant.email || participant.phone || 'No contact info'}
                           </div>
-                          <div className="text-xs text-gray-400 ml-2">
-                            {new Date(participant.created_at).toLocaleDateString()}
+                          <div className="text-xs text-gray-400 mt-1">
+                            Event: {participant.event.name}
                           </div>
+                          {participant.labels.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {participant.labels.map((label) => (
+                                <Badge key={label.id} variant="outline" className="text-xs h-5">
+                                  {label.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(participant.created_at).toLocaleDateString()}
                         </div>
                       </div>
-                      {index < filteredParticipants.length - 1 && (
-                        <div className="border-b border-gray-200"></div>
-                      )}
                     </div>
                   ))
                 )}
@@ -264,11 +260,11 @@ export function ParticipantsPage() {
 
       {/* Sort Drawer */}
       <Drawer open={showSortDrawer} onOpenChange={setShowSortDrawer}>
-        <DrawerContent>
-          <div className="p-4">
-            <div className="space-y-1">
+        <DrawerContent className="p-0">
+          <div className="p-3">
+            <div>
               <button
-                className={`w-full text-left p-3 rounded text-sm ${
+                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
                   sortOption === 'latest' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
                 }`}
                 onClick={() => {
@@ -279,7 +275,7 @@ export function ParticipantsPage() {
                 Latest Registration
               </button>
               <button
-                className={`w-full text-left p-3 rounded text-sm ${
+                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
                   sortOption === 'earliest' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
                 }`}
                 onClick={() => {
@@ -290,7 +286,7 @@ export function ParticipantsPage() {
                 Earliest Registration
               </button>
               <button
-                className={`w-full text-left p-3 rounded text-sm ${
+                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
                   sortOption === 'nameAsc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
                 }`}
                 onClick={() => {
@@ -301,7 +297,7 @@ export function ParticipantsPage() {
                 Name A-Z
               </button>
               <button
-                className={`w-full text-left p-3 rounded text-sm ${
+                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
                   sortOption === 'nameDesc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
                 }`}
                 onClick={() => {
@@ -312,7 +308,7 @@ export function ParticipantsPage() {
                 Name Z-A
               </button>
               <button
-                className={`w-full text-left p-3 rounded text-sm ${
+                className={`w-full text-left py-3 text-sm border-b border-gray-100 ${
                   sortOption === 'eventAsc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
                 }`}
                 onClick={() => {
@@ -323,7 +319,7 @@ export function ParticipantsPage() {
                 Event A-Z
               </button>
               <button
-                className={`w-full text-left p-3 rounded text-sm ${
+                className={`w-full text-left py-3 text-sm ${
                   sortOption === 'eventDesc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
                 }`}
                 onClick={() => {
@@ -334,9 +330,9 @@ export function ParticipantsPage() {
                 Event Z-A
               </button>
             </div>
-            <div className="mt-4 pt-4 border-t">
+            <div className="mt-4 pt-4 border-t border-gray-200">
               <button
-                className="w-full text-center p-3 text-sm text-gray-600 hover:bg-gray-50 rounded"
+                className="w-full text-center py-3 text-sm text-gray-600 hover:bg-gray-50"
                 onClick={() => setShowSortDrawer(false)}
               >
                 Cancel
