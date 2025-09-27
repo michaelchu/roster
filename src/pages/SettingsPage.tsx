@@ -69,7 +69,7 @@ export function SettingsPage() {
         <div className="bg-white rounded-lg border p-3">
           <div className="text-xs text-gray-500">
             <div className="mb-2">
-              <strong>About JoinUp</strong>
+              <strong>About Roster</strong>
             </div>
             <div className="space-y-1">
               <div>Mobile-first event signup management</div>

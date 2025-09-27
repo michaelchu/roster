@@ -1,4 +1,4 @@
-# JoinUp - Mobile Event Signup Platform
+# Roster - Mobile Event Signup Platform
 
 A mobile-first event management platform built with React, TypeScript, and Supabase.
 
