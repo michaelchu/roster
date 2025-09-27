@@ -220,7 +220,7 @@ export function SettingsPage() {
               <div className="text-xs text-gray-500 space-y-3">
                 <div>
                   <p className="mb-2">
-                    This is a mobile-first event management platform designed to streamline event
+                    Roster is a mobile-first event management platform designed to streamline event
                     registration and participant management. Create events, manage signups, and
                     track attendance all from your mobile device.
                   </p>
