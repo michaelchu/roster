@@ -10,6 +10,14 @@ import { TopNav } from '@/components/TopNav';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 
+// Define the label type as we actually receive it from the database
+interface Label {
+  id: string;
+  event_id: string;
+  name: string;
+  color: string | null;
+}
+
 interface Participant {
   id: string;
   name: string;
@@ -20,7 +28,7 @@ interface Participant {
     id: string;
     name: string;
   };
-  labels: Array<{ id: string; name: string; color: string | null }>;
+  labels: Label[];
 }
 
 /**
@@ -88,7 +96,7 @@ export function ParticipantsPage() {
           .in('participant_id', participantIds);
 
         // Group labels by participant_id for efficient lookup
-        const labelsByParticipant = new Map<string, Array<{ id: string; name: string; color: string | null }>>();
+        const labelsByParticipant = new Map<string, Label[]>();
         allLabelData?.forEach((item) => {
           const participantId = item.participant_id;
           if (!labelsByParticipant.has(participantId)) {
@@ -104,7 +112,7 @@ export function ParticipantsPage() {
           labels: labelsByParticipant.get(p.id) || [],
         }));
 
-        setParticipants(participantsWithLabels as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        setParticipants(participantsWithLabels as Participant[]);
       }
     } catch (error) {
       console.error('Error loading participants:', error);
@@ -117,9 +125,13 @@ export function ParticipantsPage() {
     const sorted = [...participants];
     switch (sortOption) {
       case 'earliest':
-        return sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        return sorted.sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
       case 'latest':
-        return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        return sorted.sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
       case 'nameAsc':
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
       case 'nameDesc':
@@ -181,7 +193,8 @@ export function ParticipantsPage() {
               <div className="p-3 border-b flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">
-                    {filteredParticipants.length} {filteredParticipants.length === 1 ? 'participant' : 'participants'}
+                    {filteredParticipants.length}{' '}
+                    {filteredParticipants.length === 1 ? 'participant' : 'participants'}
                   </p>
                 </div>
                 <div className="flex border border-gray-300 rounded">
@@ -281,7 +294,9 @@ export function ParticipantsPage() {
           <div className="py-4 px-4">
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
-                sortOption === 'latest' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-gray-50'
+                sortOption === 'latest'
+                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  : 'hover:bg-gray-50'
               }`}
               onClick={() => {
                 setSortOption('latest');
@@ -292,7 +307,9 @@ export function ParticipantsPage() {
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
-                sortOption === 'earliest' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-gray-50'
+                sortOption === 'earliest'
+                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  : 'hover:bg-gray-50'
               }`}
               onClick={() => {
                 setSortOption('earliest');
@@ -303,7 +320,9 @@ export function ParticipantsPage() {
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
-                sortOption === 'nameAsc' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-gray-50'
+                sortOption === 'nameAsc'
+                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  : 'hover:bg-gray-50'
               }`}
               onClick={() => {
                 setSortOption('nameAsc');
@@ -314,7 +333,9 @@ export function ParticipantsPage() {
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
-                sortOption === 'nameDesc' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-gray-50'
+                sortOption === 'nameDesc'
+                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  : 'hover:bg-gray-50'
               }`}
               onClick={() => {
                 setSortOption('nameDesc');
@@ -325,7 +346,9 @@ export function ParticipantsPage() {
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-gray-200 ${
-                sortOption === 'eventAsc' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-gray-50'
+                sortOption === 'eventAsc'
+                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  : 'hover:bg-gray-50'
               }`}
               onClick={() => {
                 setSortOption('eventAsc');
@@ -336,7 +359,9 @@ export function ParticipantsPage() {
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold ${
-                sortOption === 'eventDesc' ? 'bg-blue-100 text-blue-600 rounded-lg' : 'hover:bg-gray-50'
+                sortOption === 'eventDesc'
+                  ? 'bg-blue-100 text-blue-600 rounded-lg'
+                  : 'hover:bg-gray-50'
               }`}
               onClick={() => {
                 setSortOption('eventDesc');

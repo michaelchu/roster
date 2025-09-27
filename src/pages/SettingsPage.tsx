@@ -243,13 +243,6 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border p-3">
-            <Button variant="destructive" size="sm" className="w-full" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-
           <div className="bg-white rounded-lg border overflow-hidden">
             <div className="p-3 border-b bg-gray-50">
               <h3 className="text-sm font-medium">About This App</h3>
@@ -287,6 +280,11 @@ export function SettingsPage() {
               </div>
             </div>
           </div>
+
+          <Button variant="destructive" size="sm" className="w-full" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
       </div>
     </MobileOnly>
