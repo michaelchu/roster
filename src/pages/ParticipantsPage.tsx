@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/TopNav';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import type { Label } from '@/services/labelService';
 
 interface Participant {
   id: string;
@@ -88,7 +89,7 @@ export function ParticipantsPage() {
           .in('participant_id', participantIds);
 
         // Group labels by participant_id for efficient lookup
-        const labelsByParticipant = new Map<string, any[]>();
+        const labelsByParticipant = new Map<string, Label[]>();
         allLabelData?.forEach((item) => {
           const participantId = item.participant_id;
           if (!labelsByParticipant.has(participantId)) {
