@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { TopNav } from '@/components/TopNav';
 import { type Participant } from '@/services/participantService';
+import { UpcomingEventsListSkeleton } from '@/components/LoadingStates';
 
 interface UpcomingEvent {
   id: string;
@@ -221,7 +222,7 @@ export function HomePage() {
               </div>
 
               {loading ? (
-                <div className="p-3 text-xs text-gray-500 text-center">Loading...</div>
+                <UpcomingEventsListSkeleton count={3} />
               ) : upcomingEvents.length === 0 ? (
                 <div className="p-3 text-xs text-gray-500 text-center">
                   No events{' '}
