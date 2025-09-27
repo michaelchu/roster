@@ -588,9 +588,9 @@ export function EventDetailPage() {
                   const uniqueUserCount = uniqueUsers.size;
 
                   if (event.max_participants) {
-                    return `${participants.length}/${event.max_participants} participants, ${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                    return `${participants.length}/${event.max_participants} participants signed up`;
                   } else {
-                    return `${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                    return `${uniqueUserCount} participants signed up`;
                   }
                 })()}
               </p>
