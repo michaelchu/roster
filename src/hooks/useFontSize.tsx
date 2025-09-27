@@ -9,15 +9,15 @@ export interface FontSizeConfig {
 }
 
 const FONT_SIZE_CONFIG: FontSizeConfig = {
-  sm: '16px',
-  md: '18px',
-  lg: '20px',
+  sm: '18px',
+  md: '20px',
+  lg: '22px',
 };
 
 const FONT_SIZE_LABELS: Record<FontSize, string> = {
   sm: 'Small',
   md: 'Medium',
-  lg: 'Extra Large',
+  lg: 'Large',
 };
 
 interface FontSizeContextType {
