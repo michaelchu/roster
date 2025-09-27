@@ -53,21 +53,21 @@ export function MaxParticipantsInput({
   };
 
   const handleInputBlur = (inputValue: string) => {
-    if (inputValue === '' || isNaN(parseInt(inputValue))) {
-      // Use current value as fallback, then clamp to min/max
-      const fallback = Math.max(min, Math.min(max, value));
-      onChange(fallback);
-      setDisplayValue(fallback.toString());
-    } else {
-      const num = parseInt(inputValue);
-      if (num < min) {
-        onChange(min);
-        setDisplayValue(min.toString());
-      } else if (num > max) {
-        onChange(max);
-        setDisplayValue(max.toString());
-      }
+    const fallbackValue = Math.min(Math.max(value, min), max);
+    if (inputValue.trim() === '') {
+      onChange(fallbackValue);
+      setDisplayValue(fallbackValue.toString());
+      return;
     }
+    const parsed = Number(inputValue);
+    if (Number.isNaN(parsed)) {
+      onChange(fallbackValue);
+      setDisplayValue(fallbackValue.toString());
+      return;
+    }
+    const clamped = Math.min(Math.max(parsed, min), max);
+    onChange(clamped);
+    setDisplayValue(clamped.toString());
   };
 
   return (
