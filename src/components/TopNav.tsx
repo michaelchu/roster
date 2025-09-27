@@ -39,7 +39,9 @@ export function TopNav({
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-lg font-semibold text-center">{title}</h1>
+        <h1 className="text-lg font-semibold text-center truncate max-w-[calc(100%-6rem)]">
+          {title}
+        </h1>
       </div>
     </div>
   );
