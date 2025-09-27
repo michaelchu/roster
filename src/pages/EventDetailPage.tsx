@@ -95,7 +95,7 @@ export function EventDetailPage() {
     if (eventId) {
       loadEventData();
     }
-  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [eventId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEventData = async () => {
     if (!eventId) return;
