@@ -485,28 +485,30 @@ export function EventDetailPage() {
             <div className="p-3 space-y-2">
               {/* Top row: Date and Registration Deadline */}
               {event.datetime && (
-                <div className="grid grid-cols-2 divide-x divide-border">
-                  {event.datetime && (
-                    <div className="text-sm text-muted-foreground pr-3">
-                      <div className="font-medium text-foreground">Date</div>
-                      <div>
-                        {new Date(event.datetime).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                        <br />
-                        {new Date(event.datetime).toLocaleTimeString(undefined, {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true,
-                        })}
+                <div className="-mx-3">
+                  <div className="grid grid-cols-2 divide-x divide-border">
+                    {event.datetime && (
+                      <div className="text-sm text-muted-foreground px-3">
+                        <div className="font-medium text-foreground">Date</div>
+                        <div>
+                          {new Date(event.datetime).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                          <br />
+                          {new Date(event.datetime).toLocaleTimeString(undefined, {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </div>
                       </div>
+                    )}
+                    <div className="text-sm text-muted-foreground px-3">
+                      <div className="font-medium text-foreground">Deadline</div>
+                      <div>None</div>
                     </div>
-                  )}
-                  <div className="text-sm text-muted-foreground pl-3">
-                    <div className="font-medium text-foreground">Deadline</div>
-                    <div>None</div>
                   </div>
                 </div>
               )}
