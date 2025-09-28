@@ -191,7 +191,7 @@ export function NewEventPage() {
               value={formData.group_id}
               onValueChange={(value) => setFormData((prev) => ({ ...prev, group_id: value }))}
             >
-              <SelectTrigger className="h-10 text-sm">
+              <SelectTrigger id="group" className="h-10 text-sm">
                 <SelectValue placeholder="No group (standalone event)" />
               </SelectTrigger>
               <SelectContent>
