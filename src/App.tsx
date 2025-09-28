@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider } from '@/hooks/useAuth';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { FontSizeProvider } from '@/hooks/useFontSize';
 import { ThemeProvider } from '@/components/theme-provider';
 import { MobileOnly } from '@/components/MobileOnly';
@@ -20,10 +20,11 @@ import { RegisterPage } from '@/pages/auth/RegisterPage';
 
 function AppContent() {
   const location = useLocation();
+  const { user } = useAuth();
 
-  // Hide bottom nav on auth pages and signup pages
+  // Hide bottom nav on auth pages and signup pages (but only hide signup pages for non-authenticated users)
   const hideBottomNav =
-    location.pathname.startsWith('/auth') || location.pathname.startsWith('/signup');
+    location.pathname.startsWith('/auth') || (location.pathname.startsWith('/signup') && !user);
 
   return (
     <>
