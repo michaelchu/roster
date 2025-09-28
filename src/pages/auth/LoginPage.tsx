@@ -15,7 +15,7 @@ export function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const returnUrl = searchParams.get('returnUrl') || '/';
+  const returnUrl = searchParams?.get('returnUrl') || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +24,7 @@ export function LoginPage() {
 
     try {
       await signIn(email, password);
-      const isSafeReturnUrl = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
+      const isSafeReturnUrl = returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//');
       navigate(isSafeReturnUrl ? returnUrl : '/');
     } catch (err) {
       const error = err as Error;
@@ -40,7 +40,7 @@ export function LoginPage() {
 
     try {
       // Store a safe return URL for use after OAuth redirect
-      const isSafeReturnUrl = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
+      const isSafeReturnUrl = returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//');
       const safeReturnUrl = isSafeReturnUrl ? returnUrl : '/';
       if (safeReturnUrl !== '/') {
         localStorage.setItem('returnUrl', safeReturnUrl);
