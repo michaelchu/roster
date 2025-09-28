@@ -17,7 +17,6 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
-import { SignupPage } from '@/pages/SignupPage';
 
 function AppContent() {
   const location = useLocation();
@@ -33,13 +32,12 @@ function AppContent() {
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/new" element={<NewEventPage />} />
         <Route path="/events/:eventId/edit" element={<EditEventPage />} />
-        <Route path="/events/:eventId" element={<EventDetailPage />} />
         <Route path="/participants" element={<ParticipantsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
-        <Route path="/signup/:eventId" element={<SignupPage />} />
+        <Route path="/signup/:eventId" element={<EventDetailPage />} />
         <Route
           path="*"
           element={

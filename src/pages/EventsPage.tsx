@@ -137,7 +137,7 @@ export function EventsPage() {
             {(currentEvents || []).map((event) => (
               <div key={event.id} className="bg-card border rounded-lg overflow-hidden">
                 <button
-                  onClick={() => navigate(`/events/${event.id}`)}
+                  onClick={() => navigate(`/signup/${event.id}`)}
                   className="w-full p-3 text-left hover:bg-muted transition-colors"
                 >
                   <div className="mb-3">

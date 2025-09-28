@@ -240,11 +240,11 @@ export function ParticipantsPage() {
                       type="button"
                       key={participant.id}
                       className="w-full text-left p-3 hover:bg-muted transition-colors cursor-pointer"
-                      onClick={() => navigate(`/events/${participant.event.id}`)}
+                      onClick={() => navigate(`/signup/${participant.event.id}`)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          navigate(`/events/${participant.event.id}`);
+                          navigate(`/signup/${participant.event.id}`);
                         }
                       }}
                       aria-label={`View event ${participant.event.name}`}

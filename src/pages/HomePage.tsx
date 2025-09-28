@@ -257,7 +257,7 @@ export function HomePage() {
                   {upcomingEvents.map((event) => (
                     <button
                       key={event.id}
-                      onClick={() => navigate(`/events/${event.id}`)}
+                      onClick={() => navigate(`/signup/${event.id}`)}
                       className="w-full p-3 text-left hover:bg-muted transition-colors"
                     >
                       <div className="flex flex-col">
