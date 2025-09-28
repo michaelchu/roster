@@ -498,12 +498,16 @@ export function EventDetailPage() {
                     <div className="text-sm text-muted-foreground">
                       <div className="font-medium text-foreground">Date</div>
                       <div>
-                        {new Date(event.datetime).toLocaleString(undefined, {
+                        {new Date(event.datetime).toLocaleDateString(undefined, {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
+                        })}
+                        <br />
+                        {new Date(event.datetime).toLocaleTimeString(undefined, {
                           hour: 'numeric',
                           minute: '2-digit',
+                          hour12: true,
                         })}
                       </div>
                     </div>
@@ -588,9 +592,9 @@ export function EventDetailPage() {
                   const uniqueUserCount = uniqueUsers.size;
 
                   if (event.max_participants) {
-                    return `${participants.length}/${event.max_participants} participants, ${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                    return `${participants.length}/${event.max_participants} participants signed up`;
                   } else {
-                    return `${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                    return `${uniqueUserCount} participants signed up`;
                   }
                 })()}
               </p>
@@ -663,12 +667,12 @@ export function EventDetailPage() {
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <button
                               onClick={() => setSelectedParticipant(participant)}
-                              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors truncate text-left min-w-0 max-w-full"
+                              className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors truncate text-left min-w-0 max-w-full"
                             >
                               {displayName}
                             </button>
                             {isOwnClaimedSpot && claimNumber && (
-                              <Badge variant="outline" className="text-xs h-5 px-1">
+                              <Badge variant="outline" className="text-xs h-5 px-1 mr-2">
                                 +{claimNumber}
                               </Badge>
                             )}
