@@ -16,9 +16,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run format:check` - Check formatting without modification
 
 **Testing:**
-- `npm run test` - Run Vitest test suite
+- `npm run test` - Run Vitest unit/integration test suite
 - `npm run test:ui` - Interactive Vitest UI
 - `npm run test:coverage` - Generate test coverage reports
+- `npm run test:e2e` - Run Playwright end-to-end tests
+- `npm run test:e2e:ui` - Run E2E tests with Playwright UI
+- `npm run test:e2e:headed` - Run E2E tests with visible browser
 
 ## High-Level Architecture
 
@@ -47,7 +50,7 @@ src/
 - **Frontend:** React 19 + TypeScript (strict mode) + Vite
 - **UI:** Tailwind CSS + shadcn/ui (New York style) + Radix UI primitives
 - **Backend:** Supabase (PostgreSQL with Row Level Security)
-- **Testing:** Vitest + Testing Library + MSW for API mocking
+- **Testing:** Vitest + Testing Library + MSW for API mocking + Playwright for E2E tests
 - **Routing:** React Router DOM v7
 
 ### Database Schema
@@ -68,8 +71,10 @@ All services export from `/src/services/index.ts` for clean imports.
 ### Testing Approach
 - **Service layer unit tests** with mocked Supabase client
 - **Component integration tests** using Testing Library
+- **End-to-end tests** with Playwright for browser automation
 - **Test fixtures** in `/src/test/fixtures/` for reusable test data
 - **MSW mocking** for API endpoints during testing
+- **Isolated test environments** - E2E tests in `/tests/` folder, unit tests in `/src/test/`
 
 ### Code Quality Standards
 - **TypeScript strict mode** enforced with comprehensive type checking
