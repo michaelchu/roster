@@ -12,7 +12,10 @@ import { EventsPage } from '@/pages/EventsPage';
 import { NewEventPage } from '@/pages/NewEventPage';
 import { EditEventPage } from '@/pages/EditEventPage';
 import { EventDetailPage } from '@/pages/EventDetailPage';
-import { ParticipantsPage } from '@/pages/ParticipantsPage';
+import { GroupsPage } from '@/pages/GroupsPage';
+import { GroupDetailPage } from '@/pages/GroupDetailPage';
+import { NewGroupPage } from '@/pages/NewGroupPage';
+import { GroupParticipantsPage } from '@/pages/GroupParticipantsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -33,7 +36,10 @@ function AppContent() {
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/new" element={<NewEventPage />} />
         <Route path="/events/:eventId/edit" element={<EditEventPage />} />
-        <Route path="/participants" element={<ParticipantsPage />} />
+        <Route path="/groups" element={<GroupsPage />} />
+        <Route path="/groups/new" element={<NewGroupPage />} />
+        <Route path="/groups/:groupId" element={<GroupDetailPage />} />
+        <Route path="/groups/:groupId/participants" element={<GroupParticipantsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/login" element={<LoginPage />} />

@@ -27,6 +27,7 @@ export const mockEvent: Event = {
   ],
   created_at: '2024-01-01T00:00:00Z',
   parent_event_id: null,
+  group_id: null,
   max_participants: 50,
   participant_count: 1,
 };

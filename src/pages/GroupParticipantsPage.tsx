@@ -1,129 +1,71 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/hooks/useAuth';
-import { Users, Search, ArrowUpDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { Search, ArrowUpDown, UsersRound } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import { groupService, type GroupParticipant, type Group } from '@/services';
+import { errorHandler } from '@/lib/errorHandler';
+import { useLoadingState } from '@/hooks/useLoadingState';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
-import type { Label } from '@/services/labelService';
 
-interface Participant {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  created_at: string;
-  event: {
-    id: string;
-    name: string;
-  };
-  labels: Label[];
-}
-
-/**
- * Renders the participants management page for the authenticated organizer.
- *
- * Loads participants for the current signed-in organizer, fetches per-participant labels,
- * provides a searchable list, and displays appropriate UI for loading, empty, and unauthenticated states.
- *
- * @returns The page's JSX containing top navigation, search input, participants list with labels and event info, an empty-state card when there are no participants, a loading skeleton while data is being fetched, and a sign-in prompt when no user is authenticated.
- */
-export function ParticipantsPage() {
+export function GroupParticipantsPage() {
   const navigate = useNavigate();
+  const { groupId } = useParams<{ groupId: string }>();
   const { user, loading: authLoading } = useAuth();
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [group, setGroup] = useState<Group | null>(null);
+  const [groupLoading, setGroupLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [showSortDrawer, setShowSortDrawer] = useState(false);
   const [sortOption, setSortOption] = useState('latest');
+  const {
+    isLoading: participantsLoading,
+    data: participants,
+    execute: loadParticipants,
+  } = useLoadingState<GroupParticipant[]>([]);
+
+  const loadGroup = useCallback(async () => {
+    if (!groupId) return;
+
+    try {
+      setGroupLoading(true);
+      const groupData = await groupService.getGroupById(groupId);
+      setGroup(groupData);
+    } catch (error) {
+      console.error('Error loading group:', error);
+      errorHandler.handle(error);
+      navigate('/groups');
+    } finally {
+      setGroupLoading(false);
+    }
+  }, [groupId, navigate]);
+
+  const loadParticipantsCallback = useCallback(async () => {
+    if (!groupId) return [];
+    return await groupService.getGroupParticipants(groupId);
+  }, [groupId]);
 
   useEffect(() => {
     if (user) {
-      loadParticipants();
+      loadGroup();
+      loadParticipants(loadParticipantsCallback);
     }
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, loadGroup, loadParticipants, loadParticipantsCallback]);
 
-  const loadParticipants = async () => {
-    try {
-      // First get all events for this organizer
-      const { data: events } = await supabase
-        .from('events')
-        .select('id')
-        .eq('organizer_id', user?.id || '');
-
-      if (!events || events.length === 0) {
-        setParticipants([]);
-        setLoading(false);
-        return;
-      }
-
-      const eventIds = events.map((e) => e.id);
-
-      // Get all participants for these events, excluding the authenticated user only if they have a user_id
-      const { data: participantsData } = await supabase
-        .from('participants')
-        .select(
-          `
-          *,
-          events!inner (
-            id,
-            name
-          )
-        `
-        )
-        .in('event_id', eventIds)
-        .or(`user_id.is.null,user_id.neq.${user?.id || ''}`)
-        .order('created_at', { ascending: false });
-
-      if (participantsData) {
-        // Batch fetch all labels for all participants in one query
-        const participantIds = participantsData.map((p) => p.id);
-        const { data: allLabelData } = await supabase
-          .from('participant_labels')
-          .select('participant_id, labels!inner(*)')
-          .in('participant_id', participantIds);
-
-        // Group labels by participant_id for efficient lookup
-        const labelsByParticipant = new Map<string, Label[]>();
-        allLabelData?.forEach((item) => {
-          const participantId = item.participant_id;
-          if (!labelsByParticipant.has(participantId)) {
-            labelsByParticipant.set(participantId, []);
-          }
-          labelsByParticipant.get(participantId)!.push(item.labels);
-        });
-
-        // Map participants with their labels
-        const participantsWithLabels = participantsData.map((p) => ({
-          ...p,
-          event: p.events,
-          labels: labelsByParticipant.get(p.id) || [],
-        }));
-
-        setParticipants(participantsWithLabels as Participant[]);
-      }
-    } catch (error) {
-      console.error('Error loading participants:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const sortedParticipants = (participants: Participant[]) => {
+  const sortedParticipants = (participants: GroupParticipant[]) => {
     const sorted = [...participants];
     switch (sortOption) {
       case 'earliest':
         return sorted.sort(
-          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          (a, b) => new Date(a.group_joined_at).getTime() - new Date(b.group_joined_at).getTime()
         );
       case 'latest':
         return sorted.sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          (a, b) => new Date(b.group_joined_at).getTime() - new Date(a.group_joined_at).getTime()
         );
       case 'nameAsc':
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -139,16 +81,16 @@ export function ParticipantsPage() {
   };
 
   const filteredParticipants = sortedParticipants(
-    participants.filter(
+    participants?.filter(
       (p) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.email ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.phone ?? '').includes(searchQuery) ||
-        (p.event?.name ?? '').toLowerCase().includes(searchQuery.toLowerCase())
-    )
+        p.event.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || []
   );
 
-  if (authLoading) {
+  if (authLoading || groupLoading) {
     return <ParticipantsPageSkeleton />;
   }
 
@@ -157,7 +99,7 @@ export function ParticipantsPage() {
       <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-muted-foreground mb-4">Please sign in to view participants</p>
+          <p className="text-sm text-muted-foreground mb-4">Please sign in to view group members</p>
           <Button size="sm" onClick={() => navigate('/auth/login')}>
             Sign In
           </Button>
@@ -166,21 +108,42 @@ export function ParticipantsPage() {
     );
   }
 
-  if (loading) {
+  if (!group) {
+    return (
+      <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-lg font-semibold mb-2">Group Not Found</h1>
+          <p className="text-sm text-muted-foreground mb-4">
+            The group you're looking for doesn't exist
+          </p>
+          <Button size="sm" onClick={() => navigate('/groups')}>
+            Back to Groups
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (participantsLoading) {
     return <ParticipantsPageSkeleton />;
   }
 
   return (
     <div className="min-h-screen bg-background pb-14">
-      <TopNav title="All Participants" sticky />
+      <TopNav
+        title={`${group.name} Members`}
+        showBackButton
+        backPath={`/groups/${groupId}`}
+        sticky
+      />
 
       <div className="p-3 space-y-3">
-        {participants.length === 0 ? (
+        {!participants || participants.length === 0 ? (
           <div className="bg-card rounded-lg p-6 border text-center">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <h2 className="text-base font-medium mb-2">No Participants Yet</h2>
+            <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+            <h2 className="text-base font-medium mb-2">No Members Yet</h2>
             <p className="text-xs text-muted-foreground">
-              Participants will appear here once they sign up for your events
+              Members will appear here once people sign up for events in this group
             </p>
           </div>
         ) : (
@@ -191,7 +154,7 @@ export function ParticipantsPage() {
                 <div>
                   <p className="text-sm font-medium">
                     {filteredParticipants.length}{' '}
-                    {filteredParticipants.length === 1 ? 'participant' : 'participants'}
+                    {filteredParticipants.length === 1 ? 'member' : 'members'}
                   </p>
                 </div>
                 <div className="flex border border-border rounded">
@@ -236,7 +199,7 @@ export function ParticipantsPage() {
               <div className="divide-y">
                 {filteredParticipants.length === 0 ? (
                   <div className="p-6 text-center">
-                    <p className="text-sm text-muted-foreground">No participants found</p>
+                    <p className="text-sm text-muted-foreground">No members found</p>
                   </div>
                 ) : (
                   filteredParticipants.map((participant) => (
@@ -260,20 +223,17 @@ export function ParticipantsPage() {
                             {participant.email || participant.phone || 'No contact info'}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            Event: {participant.event.name}
+                            Joined via: {participant.event.name}
                           </div>
-                          {participant.labels.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {participant.labels.map((label) => (
-                                <Badge key={label.id} variant="outline" className="text-xs h-5">
-                                  {label.name}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
+                          <div className="text-xs text-muted-foreground">
+                            Member since:{' '}
+                            {new Date(participant.group_joined_at).toLocaleDateString()}
+                          </div>
                         </div>
                         <div className="text-xs text-muted-foreground flex-shrink-0">
-                          {new Date(participant.created_at).toLocaleDateString()}
+                          <Badge variant="outline" className="text-xs h-5">
+                            Member
+                          </Badge>
                         </div>
                       </div>
                     </button>
@@ -298,7 +258,7 @@ export function ParticipantsPage() {
                 setShowSortDrawer(false);
               }}
             >
-              Latest Registration
+              Latest Join Date
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
@@ -311,7 +271,7 @@ export function ParticipantsPage() {
                 setShowSortDrawer(false);
               }}
             >
-              Earliest Registration
+              Earliest Join Date
             </button>
             <button
               className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
