@@ -139,78 +139,52 @@ export function EventsPage() {
         ) : (
           <div className="space-y-3">
             {(currentEvents || []).map((event) => (
-              <div key={event.id} className="bg-card border rounded-lg overflow-hidden">
+              <div key={event.id} className="bg-card border rounded-lg overflow-hidden relative">
                 <button
                   onClick={() => navigate(`/signup/${event.id}`)}
                   className="w-full p-3 text-left hover:bg-muted transition-colors"
                 >
-                  <div className="mb-3">
+                  <div className="mb-3 pr-8">
                     <h3 className="text-sm font-semibold truncate">{event.name}</h3>
                   </div>
-                  {(event.datetime || event.location) && (
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      {event.datetime && (
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3 w-3 flex-shrink-0" />
-                          <span>
-                            {new Date(event.datetime).toLocaleDateString('en-US', {
-                              weekday: 'short',
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </span>
-                        </div>
-                      )}
-                      {event.location && (
-                        <div className="text-xs text-muted-foreground truncate ml-2">
-                          📍 {event.location}
-                        </div>
-                      )}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    {event.datetime && (
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3 w-3 flex-shrink-0" />
+                        <span>
+                          {new Date(event.datetime).toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Users className="h-3 w-3" />
+                      <span className="font-medium">{event.participant_count || 0}</span>
                     </div>
-                  )}
-                </button>
-                <div className="border-t px-3 py-2 bg-muted flex justify-between items-center gap-2">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                    <Users className="h-3 w-3" />
-                    <span className="font-medium">{event.participant_count || 0}</span>
                   </div>
-                  {showDuplicateButton && (
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/events/${event.id}/edit`);
-                        }}
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-xs"
-                        disabled={isDuplicating}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          duplicateEvent(event);
-                        }}
-                      >
-                        {isDuplicating ? (
-                          <LoadingSpinner size="sm" />
-                        ) : (
-                          <>
-                            <Copy className="h-3 w-3 mr-1" />
-                            Duplicate
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                </button>
+                {showDuplicateButton && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-muted-foreground/10"
+                    disabled={isDuplicating}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      duplicateEvent(event);
+                    }}
+                  >
+                    {isDuplicating ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                )}
               </div>
             ))}
           </div>
