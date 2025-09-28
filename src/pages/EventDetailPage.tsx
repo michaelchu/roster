@@ -505,7 +505,7 @@ export function EventDetailPage() {
                     </div>
                   )}
                   <div className="text-sm text-muted-foreground pl-3">
-                    <div className="font-medium text-foreground">Registration Deadline</div>
+                    <div className="font-medium text-foreground">Deadline</div>
                     <div>None</div>
                   </div>
                 </div>
