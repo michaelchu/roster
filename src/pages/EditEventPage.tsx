@@ -400,6 +400,18 @@ export function EditEventPage() {
             </div>
           )}
         </div>
+
+        {/* Delete Event Button */}
+        <Button
+          variant="destructive"
+          size="sm"
+          className="w-full"
+          onClick={() => setShowDeleteDialog(true)}
+          disabled={loading}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete Event
+        </Button>
       </div>
 
       {/* Save Changes Button above navbar */}
