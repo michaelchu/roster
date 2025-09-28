@@ -81,7 +81,7 @@ describe('NewEventPage Integration Tests', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/events/new-event-id');
+      expect(mockNavigate).toHaveBeenCalledWith('/signup/new-event-id');
     });
   });
 
