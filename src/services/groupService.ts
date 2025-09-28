@@ -333,9 +333,22 @@ export const groupService = {
   },
 
   async addParticipantToGroup(groupId: string, participantId: string): Promise<void> {
+    // First get the participant's stable identifiers
+    const { data: participantData, error: participantError } = await supabase
+      .from('participants')
+      .select('user_id, email')
+      .eq('id', participantId)
+      .single();
+
+    if (participantError) throw errorHandler.fromSupabaseError(participantError);
+    if (!participantData) throw new Error('Participant not found');
+
+    // Insert using stable identifiers to prevent duplicates
     const insertData: TablesInsert<'group_participants'> = {
       group_id: groupId,
       participant_id: participantId,
+      user_id: participantData.user_id,
+      guest_email: participantData.user_id ? null : participantData.email,
     };
 
     const { error } = await supabase.from('group_participants').insert(insertData);
@@ -343,31 +356,66 @@ export const groupService = {
     if (error) {
       // Ignore unique constraint violations (participant already in group)
       if (error.code !== '23505') {
-        throw error;
+        throw errorHandler.fromSupabaseError(error);
       }
     }
   },
 
   async removeParticipantFromGroup(groupId: string, participantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('group_participants')
-      .delete()
-      .eq('group_id', groupId)
-      .eq('participant_id', participantId);
+    // First get the participant's stable identifiers to remove by the correct key
+    const { data: participantData, error: participantError } = await supabase
+      .from('participants')
+      .select('user_id, email')
+      .eq('id', participantId)
+      .single();
 
-    if (error) throw error;
+    if (participantError) throw errorHandler.fromSupabaseError(participantError);
+    if (!participantData) throw new Error('Participant not found');
+
+    // Remove using stable identifiers
+    let deleteQuery = supabase.from('group_participants').delete().eq('group_id', groupId);
+
+    if (participantData.user_id) {
+      deleteQuery = deleteQuery.eq('user_id', participantData.user_id);
+    } else if (participantData.email) {
+      deleteQuery = deleteQuery.eq('guest_email', participantData.email);
+    } else {
+      throw new Error('Cannot remove participant: no stable identifier found');
+    }
+
+    const { error } = await deleteQuery;
+
+    if (error) throw errorHandler.fromSupabaseError(error);
   },
 
   async getParticipantGroups(participantId: string): Promise<Group[]> {
-    // Get all groups that a participant belongs to
-    const { data: groupData, error: groupError } = await supabase
-      .from('group_participants')
-      .select(
-        `
+    // First get the participant's stable identifiers
+    const { data: participantData, error: participantError } = await supabase
+      .from('participants')
+      .select('user_id, email')
+      .eq('id', participantId)
+      .single();
+
+    if (participantError) throw errorHandler.fromSupabaseError(participantError);
+    if (!participantData) return [];
+
+    // Get all groups that this person belongs to (using stable identifiers)
+    let groupQuery = supabase.from('group_participants').select(
+      `
         groups!inner (*)
       `
-      )
-      .eq('participant_id', participantId);
+    );
+
+    if (participantData.user_id) {
+      groupQuery = groupQuery.eq('user_id', participantData.user_id);
+    } else if (participantData.email) {
+      groupQuery = groupQuery.eq('guest_email', participantData.email);
+    } else {
+      // No stable identifier found, return empty array
+      return [];
+    }
+
+    const { data: groupData, error: groupError } = await groupQuery;
 
     if (groupError) throw errorHandler.fromSupabaseError(groupError);
 

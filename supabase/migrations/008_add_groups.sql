@@ -26,10 +26,13 @@ BEGIN
 END $$;
 
 -- Create group_participants junction table for direct group membership
+-- Uses stable identifiers (user_id for auth users, guest_email for guests) to avoid duplicates
 CREATE TABLE IF NOT EXISTS group_participants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     group_id TEXT NOT NULL,
-    participant_id UUID NOT NULL,
+    participant_id UUID NOT NULL, -- Keep for traceability to the original registration
+    user_id UUID, -- For authenticated users (stable across multiple event registrations)
+    guest_email TEXT, -- For guest users (stable identifier for non-authenticated participants)
     joined_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
@@ -46,9 +49,22 @@ BEGIN
         FOREIGN KEY (participant_id) REFERENCES participants(id) ON DELETE CASCADE;
     END IF;
 
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'group_participants_group_id_participant_id_key') THEN
-        ALTER TABLE group_participants ADD CONSTRAINT group_participants_group_id_participant_id_key
-        UNIQUE(group_id, participant_id);
+    -- Remove the old unique constraint on participant_id as it causes duplicates
+    -- Replace with partial unique constraints on stable identifiers
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'group_participants_group_id_user_id_key') THEN
+        ALTER TABLE group_participants ADD CONSTRAINT group_participants_group_id_user_id_key
+        UNIQUE(group_id, user_id) DEFERRABLE INITIALLY DEFERRED;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'group_participants_group_id_guest_email_key') THEN
+        ALTER TABLE group_participants ADD CONSTRAINT group_participants_group_id_guest_email_key
+        UNIQUE(group_id, guest_email) DEFERRABLE INITIALLY DEFERRED;
+    END IF;
+
+    -- Ensure exactly one of user_id or guest_email is set
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'group_participants_identity_check') THEN
+        ALTER TABLE group_participants ADD CONSTRAINT group_participants_identity_check
+        CHECK ((user_id IS NOT NULL AND guest_email IS NULL) OR (user_id IS NULL AND guest_email IS NOT NULL));
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'group_participants_group_id_nanoid_format') THEN
@@ -81,6 +97,8 @@ CREATE INDEX IF NOT EXISTS idx_groups_is_private ON groups(is_private);
 
 CREATE INDEX IF NOT EXISTS idx_group_participants_group_id ON group_participants(group_id);
 CREATE INDEX IF NOT EXISTS idx_group_participants_participant_id ON group_participants(participant_id);
+CREATE INDEX IF NOT EXISTS idx_group_participants_user_id ON group_participants(user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_group_participants_guest_email ON group_participants(guest_email) WHERE guest_email IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_group_participants_joined_at ON group_participants(joined_at);
 
 CREATE INDEX IF NOT EXISTS idx_events_group_id ON events(group_id);
@@ -119,6 +137,7 @@ CREATE POLICY "Organizers can manage participants in their groups" ON group_part
     );
 
 -- Function to automatically add participants to groups when they join group events
+-- Uses stable identifiers to prevent duplicate memberships for the same person
 CREATE OR REPLACE FUNCTION auto_add_participant_to_group()
 RETURNS trigger AS $$
 DECLARE
@@ -129,11 +148,24 @@ BEGIN
     FROM events
     WHERE id = NEW.event_id;
 
-    -- If the event belongs to a group, add the participant to that group
+    -- If the event belongs to a group, add the participant to that group using stable identifiers
     IF event_group_id IS NOT NULL THEN
-        INSERT INTO group_participants (group_id, participant_id, joined_at)
-        VALUES (event_group_id, NEW.id, NEW.created_at)
-        ON CONFLICT (group_id, participant_id) DO NOTHING;
+        -- Insert or update using stable identifiers (user_id for auth users, email for guests)
+        IF NEW.user_id IS NOT NULL THEN
+            -- Authenticated user: upsert on group_id + user_id
+            INSERT INTO group_participants (group_id, participant_id, user_id, joined_at)
+            VALUES (event_group_id, NEW.id, NEW.user_id, NEW.created_at)
+            ON CONFLICT (group_id, user_id) DO UPDATE SET
+                participant_id = NEW.id, -- Update to latest registration for traceability
+                joined_at = LEAST(group_participants.joined_at, NEW.created_at); -- Keep earliest join date
+        ELSE
+            -- Guest user: upsert on group_id + guest_email
+            INSERT INTO group_participants (group_id, participant_id, guest_email, joined_at)
+            VALUES (event_group_id, NEW.id, NEW.email, NEW.created_at)
+            ON CONFLICT (group_id, guest_email) DO UPDATE SET
+                participant_id = NEW.id, -- Update to latest registration for traceability
+                joined_at = LEAST(group_participants.joined_at, NEW.created_at); -- Keep earliest join date
+        END IF;
     END IF;
 
     RETURN NEW;
@@ -173,21 +205,17 @@ BEGIN
         )
         AND e.group_id = event_group_id;
 
-        -- If no more events in this group, remove from group
+        -- If no more events in this group, remove from group using stable identifiers
         IF remaining_events_count = 0 THEN
-            DELETE FROM group_participants gp
-            WHERE gp.group_id = event_group_id
-            AND EXISTS (
-                SELECT 1 FROM participants p
-                WHERE p.id = gp.participant_id
-                AND (
-                    -- Match by user_id if the participant was a registered user
-                    (OLD.user_id IS NOT NULL AND p.user_id = OLD.user_id)
-                    OR
-                    -- Match by email if the participant was a guest or for additional safety
-                    (OLD.email IS NOT NULL AND p.email = OLD.email)
-                )
-            );
+            IF OLD.user_id IS NOT NULL THEN
+                -- Remove by user_id for authenticated users
+                DELETE FROM group_participants
+                WHERE group_id = event_group_id AND user_id = OLD.user_id;
+            ELSE
+                -- Remove by guest_email for guest users
+                DELETE FROM group_participants
+                WHERE group_id = event_group_id AND guest_email = OLD.email;
+            END IF;
         END IF;
     END IF;
 
