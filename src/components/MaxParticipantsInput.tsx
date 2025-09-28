@@ -84,7 +84,7 @@ export function MaxParticipantsInput({
           type="button"
           variant="outline"
           size="sm"
-          className="h-10 w-10 p-0"
+          className="h-10 w-10 p-0 rounded-md"
           onClick={decrementValue}
           aria-label={`Decrease ${label.toLowerCase()} to ${Math.max(value - 1, min)}`}
           disabled={value <= min}
@@ -108,7 +108,7 @@ export function MaxParticipantsInput({
           type="button"
           variant="outline"
           size="sm"
-          className="h-10 w-10 p-0"
+          className="h-10 w-10 p-0 rounded-md"
           onClick={incrementValue}
           aria-label={`Increase ${label.toLowerCase()} to ${Math.min(value + 1, max)}`}
           disabled={value >= max}
