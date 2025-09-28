@@ -511,6 +511,11 @@ export function EventDetailPage() {
                 </div>
               )}
 
+              {/* Horizontal divider between dates and location */}
+              {event.datetime && event.location && (
+                <div className="border-t border-border"></div>
+              )}
+
               {/* Second row: Location */}
               {event.location && (
                 <div className="text-sm text-muted-foreground">
