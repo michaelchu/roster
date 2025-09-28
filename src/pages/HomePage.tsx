@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Users, Plus, CreditCard, Bookmark } from 'lucide-react';
+import { Calendar, Users, Plus, CreditCard, Bookmark, UsersRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { TopNav } from '@/components/TopNav';
@@ -173,6 +173,15 @@ export function HomePage() {
                   variant="outline"
                   size="sm"
                   className="h-20 flex-col gap-2"
+                  onClick={() => navigate('/groups/new')}
+                >
+                  <UsersRound className="h-5 w-5" />
+                  <span className="text-xs">Create Group</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-20 flex-col gap-2"
                   onClick={() => navigate('/events/new')}
                 >
                   <Plus className="h-5 w-5" />
@@ -182,19 +191,10 @@ export function HomePage() {
                   variant="outline"
                   size="sm"
                   className="h-20 flex-col gap-2"
-                  onClick={() => navigate('/events')}
-                >
-                  <Calendar className="h-5 w-5" />
-                  <span className="text-xs">My Events</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-20 flex-col gap-2"
                   onClick={() => navigate('/payments')}
                 >
                   <CreditCard className="h-5 w-5" />
-                  <span className="text-xs">Collect Payments</span>
+                  <span className="text-xs">Payments</span>
                 </Button>
                 <Button
                   variant="outline"
