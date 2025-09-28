@@ -16,6 +16,26 @@ export interface GroupParticipant extends Tables<'participants'> {
   group_joined_at: string;
 }
 
+// Internal interfaces for the nested Supabase query results
+interface GroupParticipantQueryResult {
+  joined_at: string;
+  participants: Tables<'participants'> & {
+    events:
+      | {
+          id: string;
+          name: string;
+        }
+      | Array<{
+          id: string;
+          name: string;
+        }>;
+  };
+}
+
+interface EventWithParticipants extends Tables<'events'> {
+  participants: Array<{ id: string } | null>;
+}
+
 export interface GroupStats {
   event_count: number;
   participant_count: number;
@@ -175,17 +195,17 @@ export const groupService = {
 
     if (!eventsData) return [];
 
-    return eventsData.map((event) => {
+    return eventsData.map((event: EventWithParticipants) => {
       // Count the participants
       const participantCount = Array.isArray(event.participants)
         ? event.participants.filter((p) => p !== null).length
         : 0;
 
       // Remove the participants array from the event object before processing
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { participants: _, ...eventWithoutParticipants } = event as Tables<'events'> & {
-        participants: Array<{ id: string } | null>;
-      };
+      const { participants: _participants, ...eventWithoutParticipants } = event;
+
+      // Avoid unused variable warnings
+      void _participants;
 
       return {
         ...eventWithoutParticipants,
@@ -217,8 +237,8 @@ export const groupService = {
 
     if (!participantsData) return [];
 
-    return participantsData.map((item) => {
-      const participant = item.participants as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    return participantsData.map((item: GroupParticipantQueryResult) => {
+      const participant = item.participants;
       const event = participant.events;
 
       return {
