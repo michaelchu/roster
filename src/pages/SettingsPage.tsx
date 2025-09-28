@@ -29,10 +29,11 @@ import {
 } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
+import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const { fontSize, setFontSize, fontSizeLabels } = useFontSize();
   const { theme, setTheme } = useTheme();
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -52,6 +53,10 @@ export function SettingsPage() {
     await signOut();
     navigate('/');
   };
+
+  if (loading) {
+    return <SettingsPageSkeleton />;
+  }
 
   if (!user) {
     return (

@@ -73,7 +73,7 @@ export function NewEventPage() {
       });
 
       errorHandler.success(`Event "${eventData.name}" created successfully!`);
-      navigate(`/events/${eventData.id}`);
+      navigate(`/signup/${eventData.id}`);
     } catch (error) {
       errorHandler.handle(error, {
         userId: user.id,

@@ -34,7 +34,7 @@ interface Participant {
  */
 export function ParticipantsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,6 +148,10 @@ export function ParticipantsPage() {
     )
   );
 
+  if (authLoading) {
+    return <ParticipantsPageSkeleton />;
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
@@ -240,11 +244,11 @@ export function ParticipantsPage() {
                       type="button"
                       key={participant.id}
                       className="w-full text-left p-3 hover:bg-muted transition-colors cursor-pointer"
-                      onClick={() => navigate(`/events/${participant.event.id}`)}
+                      onClick={() => navigate(`/signup/${participant.event.id}`)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          navigate(`/events/${participant.event.id}`);
+                          navigate(`/signup/${participant.event.id}`);
                         }
                       }}
                       aria-label={`View event ${participant.event.name}`}

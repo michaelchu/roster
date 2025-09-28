@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -78,7 +78,12 @@ interface EventData {
 export function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
+  // Determine if navbar is hidden (matching App.tsx logic)
+  const isNavbarHidden =
+    location.pathname.startsWith('/auth') || (location.pathname.startsWith('/signup') && !user);
   const [event, setEvent] = useState<EventData | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [labels, setLabels] = useState<LabelType[]>([]);
@@ -794,7 +799,9 @@ export function EventDetailPage() {
       </div>
 
       {/* Join Event Button */}
-      <div className={`fixed left-0 right-0 z-40 px-4 pb-2 ${user ? 'bottom-16' : 'bottom-4'}`}>
+      <div
+        className={`fixed left-0 right-0 z-40 px-4 pb-2 ${isNavbarHidden ? 'bottom-4' : 'bottom-16'}`}
+      >
         <Button
           onClick={() => openSignupDrawer()}
           className={`w-full text-white shadow-lg ${
