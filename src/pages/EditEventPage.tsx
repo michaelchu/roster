@@ -154,7 +154,12 @@ export function EditEventPage() {
         location: formData.location || null,
         max_participants: maxParticipants,
         is_private: formData.is_private,
-        custom_fields: customFields.filter((f) => f.label),
+        custom_fields: customFields
+          .filter((f) => f.label)
+          .map((f) => ({
+            ...f,
+            options: f.type === 'select' ? f.options : undefined,
+          })),
       });
 
       errorHandler.success('Event updated successfully!');
@@ -360,13 +365,21 @@ export function EditEventPage() {
                   <div className="flex items-center gap-2">
                     <Select
                       value={field.type}
-                      onValueChange={(value) =>
-                        field.id &&
+                      onValueChange={(value) => {
+                        if (!field.id) return;
+                        const nextType = value as CustomField['type'];
                         updateCustomField(field.id, {
-                          type: value as CustomField['type'],
-                          options: value === 'select' ? [''] : undefined,
-                        })
-                      }
+                          type: nextType,
+                          ...(nextType === 'select'
+                            ? {
+                                options:
+                                  field.options && field.options.length > 0 ? field.options : [''],
+                              }
+                            : field.type === 'select'
+                              ? { options: field.options }
+                              : {}),
+                        });
+                      }}
                     >
                       <SelectTrigger className="flex-1 h-9">
                         <SelectValue />
