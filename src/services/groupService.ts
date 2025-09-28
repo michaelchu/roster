@@ -36,6 +36,10 @@ interface EventWithParticipants extends Tables<'events'> {
   participants: Array<{ id: string } | null>;
 }
 
+interface GroupQueryResult {
+  groups: Tables<'groups'> | Array<Tables<'groups'>>;
+}
+
 export interface GroupStats {
   event_count: number;
   participant_count: number;
@@ -95,18 +99,14 @@ export const groupService = {
         : 0;
 
       // Remove the joined arrays from the group object before processing
-      const {
-        events: _events,
-        group_participants: _groupParticipants,
-        ...groupWithoutJoins
-      } = group as Tables<'groups'> & {
+      const { events, group_participants, ...groupWithoutJoins } = group as Tables<'groups'> & {
         events: Array<{ id: string } | null>;
         group_participants: Array<{ id: string } | null>;
       };
 
       // Avoid unused variable warnings
-      void _events;
-      void _groupParticipants;
+      void events;
+      void group_participants;
 
       return {
         ...groupWithoutJoins,
@@ -202,10 +202,8 @@ export const groupService = {
         : 0;
 
       // Remove the participants array from the event object before processing
-      const { participants: _participants, ...eventWithoutParticipants } = event;
-
-      // Avoid unused variable warnings
-      void _participants;
+      const { participants, ...eventWithoutParticipants } = event;
+      void participants;
 
       return {
         ...eventWithoutParticipants,
@@ -322,8 +320,8 @@ export const groupService = {
 
     if (!groupData) return [];
 
-    return groupData.map((item) => {
-      const group = item.groups as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    return groupData.map((item: GroupQueryResult) => {
+      const group = item.groups;
       return Array.isArray(group) ? group[0] : group;
     });
   },
