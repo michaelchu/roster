@@ -40,6 +40,14 @@ interface GroupQueryResult {
   groups: Tables<'groups'> | Array<Tables<'groups'>>;
 }
 
+interface GroupParticipantStatsQueryResult {
+  participants: {
+    user_id: string | null;
+    email: string | null;
+    id: string;
+  };
+}
+
 export interface GroupStats {
   event_count: number;
   participant_count: number;
@@ -72,16 +80,10 @@ function validateGroupData(group: Partial<Group>): void {
 
 export const groupService = {
   async getGroupsByOrganizer(organizerId: string): Promise<Group[]> {
-    // Get groups with event and participant counts in a single query
+    // Get groups without counts first
     const { data: groupsData, error: groupsError } = await supabase
       .from('groups')
-      .select(
-        `
-        *,
-        events!left(id),
-        group_participants!left(id)
-      `
-      )
+      .select('*')
       .eq('organizer_id', organizerId)
       .order('created_at', { ascending: false });
 
@@ -89,31 +91,50 @@ export const groupService = {
 
     if (!groupsData) return [];
 
-    return groupsData.map((group) => {
-      // Count events and participants
-      const eventCount = Array.isArray(group.events)
-        ? group.events.filter((e) => e !== null).length
-        : 0;
-      const participantCount = Array.isArray(group.group_participants)
-        ? group.group_participants.filter((p) => p !== null).length
-        : 0;
+    // Get accurate counts for each group (deduplicating participants)
+    const groupsWithCounts = await Promise.all(
+      groupsData.map(async (group) => {
+        // Get event count
+        const { count: eventCount, error: eventError } = await supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .eq('group_id', group.id);
 
-      // Remove the joined arrays from the group object before processing
-      const { events, group_participants, ...groupWithoutJoins } = group as Tables<'groups'> & {
-        events: Array<{ id: string } | null>;
-        group_participants: Array<{ id: string } | null>;
-      };
+        if (eventError) throw errorHandler.fromSupabaseError(eventError);
 
-      // Avoid unused variable warnings
-      void events;
-      void group_participants;
+        // Get unique participant count (avoiding duplicates)
+        const { data: groupParticipantsData, error: participantError } = await supabase
+          .from('group_participants')
+          .select(
+            `
+            participants!inner (
+              user_id,
+              email,
+              id
+            )
+          `
+          )
+          .eq('group_id', group.id);
 
-      return {
-        ...groupWithoutJoins,
-        event_count: eventCount,
-        participant_count: participantCount,
-      };
-    });
+        if (participantError) throw errorHandler.fromSupabaseError(participantError);
+
+        // Deduplicate participants by stable identifiers
+        const uniqueParticipants = new Set<string>();
+        groupParticipantsData?.forEach((item: GroupParticipantStatsQueryResult) => {
+          const participant = item.participants;
+          const stableKey = participant.user_id || participant.email || participant.id;
+          uniqueParticipants.add(stableKey);
+        });
+
+        return {
+          ...group,
+          event_count: eventCount || 0,
+          participant_count: uniqueParticipants.size,
+        };
+      })
+    );
+
+    return groupsWithCounts;
   },
 
   async getGroupById(groupId: string): Promise<Group> {
@@ -235,16 +256,30 @@ export const groupService = {
 
     if (!participantsData) return [];
 
-    return participantsData.map((item: GroupParticipantQueryResult) => {
+    // Deduplicate participants by stable identifiers (user_id or email)
+    // to avoid showing the same person multiple times
+    const uniqueParticipants = new Map<string, GroupParticipant>();
+
+    participantsData.forEach((item: GroupParticipantQueryResult) => {
       const participant = item.participants;
       const event = participant.events;
 
-      return {
-        ...participant,
-        event: Array.isArray(event) ? event[0] : event,
-        group_joined_at: item.joined_at,
-      };
+      // Create a stable key: use user_id if available, otherwise email
+      const stableKey = participant.user_id || participant.email || participant.id;
+
+      // Only keep the earliest membership record for each unique person
+      if (!uniqueParticipants.has(stableKey)) {
+        uniqueParticipants.set(stableKey, {
+          ...participant,
+          event: Array.isArray(event) ? event[0] : event,
+          group_joined_at: item.joined_at,
+        });
+      }
     });
+
+    return Array.from(uniqueParticipants.values()).sort(
+      (a, b) => new Date(b.group_joined_at).getTime() - new Date(a.group_joined_at).getTime()
+    );
   },
 
   async getGroupStats(groupId: string): Promise<GroupStats> {
@@ -256,13 +291,31 @@ export const groupService = {
 
     if (eventError) throw errorHandler.fromSupabaseError(eventError);
 
-    // Get unique participant count (group members)
-    const { count: participantCount, error: participantError } = await supabase
+    // Get unique participant count (group members) by deduplicating by user_id/email
+    const { data: groupParticipantsData, error: participantError } = await supabase
       .from('group_participants')
-      .select('*', { count: 'exact', head: true })
+      .select(
+        `
+        participants!inner (
+          user_id,
+          email,
+          id
+        )
+      `
+      )
       .eq('group_id', groupId);
 
     if (participantError) throw errorHandler.fromSupabaseError(participantError);
+
+    // Deduplicate participants by stable identifiers
+    const uniqueParticipants = new Set<string>();
+    groupParticipantsData?.forEach((item: GroupParticipantStatsQueryResult) => {
+      const participant = item.participants;
+      const stableKey = participant.user_id || participant.email || participant.id;
+      uniqueParticipants.add(stableKey);
+    });
+
+    const participantCount = uniqueParticipants.size;
 
     // Get total registrations across all events in group
     const { count: totalRegistrations, error: registrationsError } = await supabase
@@ -274,7 +327,7 @@ export const groupService = {
 
     return {
       event_count: eventCount || 0,
-      participant_count: participantCount || 0,
+      participant_count: participantCount,
       total_registrations: totalRegistrations || 0,
     };
   },
