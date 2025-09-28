@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Users, Plus, CreditCard, Bookmark, UsersRound } from 'lucide-react';
+import { Calendar, Users, CreditCard, Bookmark, UsersRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { TopNav } from '@/components/TopNav';
@@ -184,7 +184,7 @@ export function HomePage() {
                   className="h-20 flex-col gap-2"
                   onClick={() => navigate('/events/new')}
                 >
-                  <Plus className="h-5 w-5" />
+                  <Calendar className="h-5 w-5" />
                   <span className="text-xs">Create Event</span>
                 </Button>
                 <Button
