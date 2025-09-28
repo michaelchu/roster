@@ -482,33 +482,31 @@ export function EventDetailPage() {
         {/* Event Info */}
         {(event.description || event.datetime || event.location || event.max_participants) && (
           <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="p-3 space-y-2">
+            <div className="space-y-2">
               {/* Top row: Date and Registration Deadline */}
               {event.datetime && (
-                <div className="-mx-3">
-                  <div className="grid grid-cols-2 divide-x divide-border">
-                    {event.datetime && (
-                      <div className="text-sm text-muted-foreground px-3">
-                        <div className="font-medium text-foreground">Date</div>
-                        <div>
-                          {new Date(event.datetime).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                          <br />
-                          {new Date(event.datetime).toLocaleTimeString(undefined, {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          })}
-                        </div>
-                      </div>
-                    )}
+                <div className="grid grid-cols-2 divide-x divide-border py-3">
+                  {event.datetime && (
                     <div className="text-sm text-muted-foreground px-3">
-                      <div className="font-medium text-foreground">Deadline</div>
-                      <div>None</div>
+                      <div className="font-medium text-foreground">Date</div>
+                      <div>
+                        {new Date(event.datetime).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                        <br />
+                        {new Date(event.datetime).toLocaleTimeString(undefined, {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
+                      </div>
                     </div>
+                  )}
+                  <div className="text-sm text-muted-foreground px-3">
+                    <div className="font-medium text-foreground">Deadline</div>
+                    <div>None</div>
                   </div>
                 </div>
               )}
@@ -520,7 +518,7 @@ export function EventDetailPage() {
 
               {/* Second row: Location */}
               {event.location && (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground p-3">
                   <div className="font-medium text-foreground">Location</div>
                   <div>{event.location}</div>
                 </div>
@@ -533,7 +531,7 @@ export function EventDetailPage() {
 
               {/* Description */}
               {event.description && (
-                <div className="text-sm text-foreground">
+                <div className="text-sm text-foreground p-3">
                   <div className="font-medium text-foreground mb-1">Description</div>
                   <p className="leading-relaxed">{event.description}</p>
                 </div>
