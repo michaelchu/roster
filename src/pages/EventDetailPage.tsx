@@ -485,7 +485,7 @@ export function EventDetailPage() {
             <div className="p-3 space-y-2">
               {/* Top row: Date and Registration Deadline */}
               {event.datetime && (
-                <div className="grid grid-cols-2 gap-3 divide-x divide-border">
+                <div className="grid grid-cols-2 divide-x divide-border">
                   {event.datetime && (
                     <div className="text-sm text-muted-foreground pr-3">
                       <div className="font-medium text-foreground">Date</div>
