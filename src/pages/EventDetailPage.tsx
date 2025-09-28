@@ -498,10 +498,13 @@ export function EventDetailPage() {
                     <div className="text-sm text-muted-foreground">
                       <div className="font-medium text-foreground">Date</div>
                       <div>
-                        {new Date(event.datetime).toLocaleString(undefined, {
+                        {new Date(event.datetime).toLocaleDateString(undefined, {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
+                        })}
+                        <br />
+                        {new Date(event.datetime).toLocaleTimeString(undefined, {
                           hour: 'numeric',
                           minute: '2-digit',
                           hour12: true,
