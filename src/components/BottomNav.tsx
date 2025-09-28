@@ -1,12 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Users, Settings } from 'lucide-react';
+import { Home, Calendar, UsersRound, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
   { icon: Home, label: 'Home', path: '/' },
   { icon: Calendar, label: 'Events', path: '/events' },
-  { icon: Users, label: 'People', path: '/participants' },
+  { icon: UsersRound, label: 'Groups', path: '/groups' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 

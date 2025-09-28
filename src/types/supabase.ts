@@ -14,6 +14,7 @@ export type Database = {
           custom_fields: Json;
           datetime: string | null;
           description: string | null;
+          group_id: string | null;
           id: string;
           is_private: boolean;
           location: string | null;
@@ -27,6 +28,7 @@ export type Database = {
           custom_fields?: Json;
           datetime?: string | null;
           description?: string | null;
+          group_id?: string | null;
           id?: string;
           is_private?: boolean;
           location?: string | null;
@@ -40,6 +42,7 @@ export type Database = {
           custom_fields?: Json;
           datetime?: string | null;
           description?: string | null;
+          group_id?: string | null;
           id?: string;
           is_private?: boolean;
           location?: string | null;
@@ -61,6 +64,90 @@ export type Database = {
             columns: ['parent_event_id'];
             isOneToOne: false;
             referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'events_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      group_participants: {
+        Row: {
+          group_id: string;
+          guest_email: string | null;
+          id: string;
+          joined_at: string;
+          participant_id: string;
+          user_id: string | null;
+        };
+        Insert: {
+          group_id: string;
+          guest_email?: string | null;
+          id?: string;
+          joined_at?: string;
+          participant_id: string;
+          user_id?: string | null;
+        };
+        Update: {
+          group_id?: string;
+          guest_email?: string | null;
+          id?: string;
+          joined_at?: string;
+          participant_id?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'group_participants_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'group_participants_participant_id_fkey';
+            columns: ['participant_id'];
+            isOneToOne: false;
+            referencedRelation: 'participants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      groups: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: string;
+          is_private: boolean;
+          name: string;
+          organizer_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_private?: boolean;
+          name: string;
+          organizer_id: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_private?: boolean;
+          name?: string;
+          organizer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'groups_organizer_id_fkey';
+            columns: ['organizer_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizers';
             referencedColumns: ['id'];
           },
         ];

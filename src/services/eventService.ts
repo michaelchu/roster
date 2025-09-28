@@ -99,6 +99,7 @@ export const eventService = {
       custom_fields: event.custom_fields as unknown as Json,
       parent_event_id: event.parent_event_id,
       max_participants: event.max_participants,
+      group_id: event.group_id,
     };
 
     const { data, error } = await supabase.from('events').insert(insertData).select().single();
@@ -121,6 +122,7 @@ export const eventService = {
       updateData.max_participants = updates.max_participants;
     if (updates.custom_fields !== undefined)
       updateData.custom_fields = updates.custom_fields as unknown as Json;
+    if (updates.group_id !== undefined) updateData.group_id = updates.group_id;
 
     const { data, error } = await supabase
       .from('events')
@@ -162,6 +164,7 @@ export const eventService = {
       parent_event_id: originalEvent.id,
       is_private: originalEvent.is_private,
       max_participants: originalEvent.max_participants,
+      group_id: originalEvent.group_id,
     };
 
     const { data: newEvent, error: createError } = await supabase

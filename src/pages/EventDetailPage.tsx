@@ -512,9 +512,7 @@ export function EventDetailPage() {
               )}
 
               {/* Horizontal divider between dates and location */}
-              {event.datetime && event.location && (
-                <div className="border-t border-border"></div>
-              )}
+              {event.datetime && event.location && <div className="border-t border-border"></div>}
 
               {/* Second row: Location */}
               {event.location && (

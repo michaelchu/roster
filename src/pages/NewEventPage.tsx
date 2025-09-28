@@ -1,15 +1,23 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Trash2, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
-import { eventService } from '@/services';
+import { eventService, groupService, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
+import { useLoadingState } from '@/hooks/useLoadingState';
 
 interface CustomField {
   id: string;
@@ -21,6 +29,7 @@ interface CustomField {
 
 export function NewEventPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,9 +39,52 @@ export function NewEventPage() {
     location: '',
     max_participants: null as number | null,
     is_private: false,
+    group_id: '__no_group__',
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [maxParticipants, setMaxParticipants] = useState<number>(10);
+  const {
+    isLoading: groupsLoading,
+    data: groups,
+    execute: loadGroups,
+  } = useLoadingState<Group[]>(null);
+
+  const loadGroupsCallback = useCallback(async () => {
+    if (!user) return [];
+    return await groupService.getGroupsByOrganizer(user.id);
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      void loadGroups(loadGroupsCallback);
+    }
+  }, [user, loadGroups, loadGroupsCallback]);
+
+  useEffect(() => {
+    const groupParam = searchParams.get('group');
+    if (!groupParam) {
+      return;
+    }
+
+    if (groupParam === '__no_group__') {
+      setFormData((prev) =>
+        prev.group_id === '__no_group__' ? prev : { ...prev, group_id: '__no_group__' }
+      );
+      return;
+    }
+
+    if (groupsLoading || groups === null) {
+      return;
+    }
+
+    const nextGroupId = groups?.some((group) => group.id === groupParam)
+      ? groupParam
+      : '__no_group__';
+
+    setFormData((prev) =>
+      prev.group_id === nextGroupId ? prev : { ...prev, group_id: nextGroupId }
+    );
+  }, [searchParams, groupsLoading, groups]);
 
   const addCustomField = () => {
     const newField: CustomField = {
@@ -70,6 +122,7 @@ export function NewEventPage() {
         is_private: formData.is_private,
         custom_fields: customFields.filter((f) => f.label),
         parent_event_id: null,
+        group_id: formData.group_id === '__no_group__' ? null : formData.group_id,
       });
 
       errorHandler.success(`Event "${eventData.name}" created successfully!`);
@@ -146,6 +199,38 @@ export function NewEventPage() {
               onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
               className="h-10 text-sm"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="group" className="text-sm">
+              Group (Optional)
+            </Label>
+            <Select
+              value={formData.group_id}
+              onValueChange={(value) => setFormData((prev) => ({ ...prev, group_id: value }))}
+              disabled={groupsLoading}
+            >
+              <SelectTrigger id="group" className="h-10 text-sm">
+                <SelectValue placeholder="No group (standalone event)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__no_group__">No group (standalone event)</SelectItem>
+                {groupsLoading ? (
+                  <SelectItem value="__loading__" disabled>
+                    Loading groups...
+                  </SelectItem>
+                ) : (
+                  groups?.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Assign this event to a group to organize related events together
+            </p>
           </div>
 
           <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
