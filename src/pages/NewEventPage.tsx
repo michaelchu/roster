@@ -39,7 +39,7 @@ export function NewEventPage() {
     location: '',
     max_participants: null as number | null,
     is_private: false,
-    group_id: '',
+    group_id: '__no_group__',
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [maxParticipants, setMaxParticipants] = useState<number>(10);
@@ -63,7 +63,7 @@ export function NewEventPage() {
   useEffect(() => {
     // Pre-select group if coming from group detail page
     const groupParam = searchParams.get('group');
-    if (groupParam) {
+    if (groupParam && groupParam !== '__no_group__') {
       setFormData((prev) => ({ ...prev, group_id: groupParam }));
     }
   }, [searchParams]);
@@ -104,7 +104,7 @@ export function NewEventPage() {
         is_private: formData.is_private,
         custom_fields: customFields.filter((f) => f.label),
         parent_event_id: null,
-        group_id: formData.group_id || null,
+        group_id: formData.group_id === '__no_group__' ? null : formData.group_id || null,
       });
 
       errorHandler.success(`Event "${eventData.name}" created successfully!`);
@@ -195,7 +195,7 @@ export function NewEventPage() {
                 <SelectValue placeholder="No group (standalone event)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No group (standalone event)</SelectItem>
+                <SelectItem value="__no_group__">No group (standalone event)</SelectItem>
                 {groupsLoading ? (
                   <SelectItem value="__loading__" disabled>
                     Loading groups...
