@@ -100,7 +100,7 @@ describe('EventsPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/signup/V1StGXR8_Z');
   });
 
-  it('navigates to edit page when edit button is clicked', async () => {
+  it('no longer has edit button in footer (removed in UI update)', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
     vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
@@ -108,14 +108,13 @@ describe('EventsPage', () => {
     render(<EventsPage />);
 
     await waitFor(() => {
-      const editButtons = screen.getAllByRole('button', { name: /edit/i });
-      fireEvent.click(editButtons[0]);
+      // Verify edit button no longer exists in the new UI
+      const editButtons = screen.queryAllByRole('button', { name: /edit/i });
+      expect(editButtons).toHaveLength(0);
     });
-
-    expect(mockNavigate).toHaveBeenCalledWith('/events/V1StGXR8_Z/edit');
   });
 
-  it('duplicates event when copy button is clicked', async () => {
+  it('duplicates event when copy icon is clicked', async () => {
     const { eventService } = await import('@/services');
     vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
     vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
@@ -127,8 +126,17 @@ describe('EventsPage', () => {
     render(<EventsPage />);
 
     await waitFor(() => {
-      const duplicateButtons = screen.getAllByRole('button', { name: /duplicate/i });
-      fireEvent.click(duplicateButtons[0]);
+      // Find copy icon buttons (they are in top-right corner with copy icon)
+      const copyButtons = screen.getAllByRole('button');
+      // Filter for the small icon buttons (they have specific classes)
+      const copyIconButtons = copyButtons.filter(
+        (button) =>
+          button.classList.contains('absolute') &&
+          button.classList.contains('top-2') &&
+          button.classList.contains('right-2')
+      );
+      expect(copyIconButtons.length).toBeGreaterThan(0);
+      fireEvent.click(copyIconButtons[0]);
     });
 
     await waitFor(() => {
