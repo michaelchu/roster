@@ -268,7 +268,10 @@ export const groupService = {
       const stableKey = participant.user_id || participant.email || participant.id;
 
       // Only keep the earliest membership record for each unique person
-      if (!uniqueParticipants.has(stableKey)) {
+      const existing = uniqueParticipants.get(stableKey);
+      const joinedAt = new Date(item.joined_at).getTime();
+
+      if (!existing || joinedAt < new Date(existing.group_joined_at).getTime()) {
         uniqueParticipants.set(stableKey, {
           ...participant,
           event: Array.isArray(event) ? event[0] : event,
