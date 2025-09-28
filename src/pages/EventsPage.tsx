@@ -2,7 +2,7 @@ import { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Calendar, Users, Copy, Edit } from 'lucide-react';
+import { Plus, Calendar, Users, Copy } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService, type Event } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -178,11 +178,7 @@ export function EventsPage() {
                       duplicateEvent(event);
                     }}
                   >
-                    {isDuplicating ? (
-                      <LoadingSpinner size="sm" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
+                    {isDuplicating ? <LoadingSpinner size="sm" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 )}
               </div>
