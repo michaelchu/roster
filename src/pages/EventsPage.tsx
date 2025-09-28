@@ -25,7 +25,7 @@ export function EventsPage() {
     data: joinedEvents,
     execute: loadJoinedEvents,
   } = useLoadingState<Event[]>([]);
-  const { isLoading: isDuplicating, execute: duplicateEventAsync } = useLoadingState<Event>();
+  const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
 
   const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
@@ -53,13 +53,17 @@ export function EventsPage() {
   const duplicateEvent = async (event: Event) => {
     if (!user) return;
 
-    const result = await duplicateEventAsync(async () => {
-      return await eventService.duplicateEvent(event.id, user.id);
-    });
-
-    if (result) {
-      errorHandler.success(`"${event.name}" has been duplicated successfully`);
-      loadOrganizingEvents(loadOrganizingEventsCallback);
+    setDuplicatingEventId(event.id);
+    try {
+      const result = await eventService.duplicateEvent(event.id, user.id);
+      if (result) {
+        errorHandler.success(`"${event.name}" has been duplicated successfully`);
+        loadOrganizingEvents(loadOrganizingEventsCallback);
+      }
+    } catch {
+      // Error handling is done by errorHandler in the service
+    } finally {
+      setDuplicatingEventId(null);
     }
   };
 
@@ -172,13 +176,17 @@ export function EventsPage() {
                     size="sm"
                     variant="ghost"
                     className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-muted-foreground/10"
-                    disabled={isDuplicating}
+                    disabled={duplicatingEventId === event.id}
                     onClick={(e) => {
                       e.stopPropagation();
                       duplicateEvent(event);
                     }}
                   >
-                    {isDuplicating ? <LoadingSpinner size="sm" /> : <Copy className="h-3 w-3" />}
+                    {duplicatingEventId === event.id ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
                   </Button>
                 )}
               </div>
