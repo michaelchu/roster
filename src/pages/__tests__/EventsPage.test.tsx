@@ -97,7 +97,7 @@ describe('EventsPage', () => {
       fireEvent.click(eventButton);
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith('/events/V1StGXR8_Z');
+    expect(mockNavigate).toHaveBeenCalledWith('/signup/V1StGXR8_Z');
   });
 
   it('navigates to edit page when edit button is clicked', async () => {

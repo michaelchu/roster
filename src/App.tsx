@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider } from '@/hooks/useAuth';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { FontSizeProvider } from '@/hooks/useFontSize';
 import { ThemeProvider } from '@/components/theme-provider';
 import { MobileOnly } from '@/components/MobileOnly';
@@ -17,14 +17,14 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
-import { SignupPage } from '@/pages/SignupPage';
 
 function AppContent() {
   const location = useLocation();
+  const { user } = useAuth();
 
-  // Hide bottom nav on auth pages and signup pages
+  // Hide bottom nav on auth pages and signup pages (but only hide signup pages for non-authenticated users)
   const hideBottomNav =
-    location.pathname.startsWith('/auth') || location.pathname.startsWith('/signup');
+    location.pathname.startsWith('/auth') || (location.pathname.startsWith('/signup') && !user);
 
   return (
     <>
@@ -33,13 +33,12 @@ function AppContent() {
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/new" element={<NewEventPage />} />
         <Route path="/events/:eventId/edit" element={<EditEventPage />} />
-        <Route path="/events/:eventId" element={<EventDetailPage />} />
         <Route path="/participants" element={<ParticipantsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
-        <Route path="/signup/:eventId" element={<SignupPage />} />
+        <Route path="/signup/:eventId" element={<EventDetailPage />} />
         <Route
           path="*"
           element={
