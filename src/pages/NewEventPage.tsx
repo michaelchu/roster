@@ -197,7 +197,7 @@ export function NewEventPage() {
               <SelectContent>
                 <SelectItem value="">No group (standalone event)</SelectItem>
                 {groupsLoading ? (
-                  <SelectItem value="" disabled>
+                  <SelectItem value="__loading__" disabled>
                     Loading groups...
                   </SelectItem>
                 ) : (
