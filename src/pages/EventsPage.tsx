@@ -13,7 +13,7 @@ type TabType = 'organizing' | 'joined';
 
 export function EventsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('organizing');
   const {
     isLoading: isLoadingOrganizing,
@@ -62,6 +62,10 @@ export function EventsPage() {
       loadOrganizingEvents(loadOrganizingEventsCallback);
     }
   };
+
+  if (loading) {
+    return <EventListSkeleton />;
+  }
 
   if (!user) {
     return (
@@ -137,7 +141,7 @@ export function EventsPage() {
             {(currentEvents || []).map((event) => (
               <div key={event.id} className="bg-card border rounded-lg overflow-hidden">
                 <button
-                  onClick={() => navigate(`/events/${event.id}`)}
+                  onClick={() => navigate(`/signup/${event.id}`)}
                   className="w-full p-3 text-left hover:bg-muted transition-colors"
                 >
                   <div className="mb-3">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -78,7 +78,12 @@ interface EventData {
 export function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
+  // Determine if navbar is hidden (matching App.tsx logic)
+  const isNavbarHidden =
+    location.pathname.startsWith('/auth') || (location.pathname.startsWith('/signup') && !user);
   const [event, setEvent] = useState<EventData | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [labels, setLabels] = useState<LabelType[]>([]);
@@ -485,12 +490,16 @@ export function EventDetailPage() {
                     <div className="text-sm text-muted-foreground">
                       <div className="font-medium text-foreground">Date</div>
                       <div>
-                        {new Date(event.datetime).toLocaleString(undefined, {
+                        {new Date(event.datetime).toLocaleDateString(undefined, {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
+                        })}
+                        <br />
+                        {new Date(event.datetime).toLocaleTimeString(undefined, {
                           hour: 'numeric',
                           minute: '2-digit',
+                          hour12: true,
                         })}
                       </div>
                     </div>
@@ -575,9 +584,9 @@ export function EventDetailPage() {
                   const uniqueUserCount = uniqueUsers.size;
 
                   if (event.max_participants) {
-                    return `${participants.length}/${event.max_participants} participants, ${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                    return `${participants.length}/${event.max_participants} participants signed up`;
                   } else {
-                    return `${uniqueUserCount} ${uniqueUserCount === 1 ? 'person' : 'persons'} signed up`;
+                    return `${uniqueUserCount} participants signed up`;
                   }
                 })()}
               </p>
@@ -650,12 +659,12 @@ export function EventDetailPage() {
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <button
                               onClick={() => setSelectedParticipant(participant)}
-                              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors truncate text-left min-w-0 max-w-full"
+                              className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors truncate text-left min-w-0 max-w-full"
                             >
                               {displayName}
                             </button>
                             {isOwnClaimedSpot && claimNumber && (
-                              <Badge variant="outline" className="text-xs h-5 px-1">
+                              <Badge variant="outline" className="text-xs h-5 px-1 mr-2">
                                 +{claimNumber}
                               </Badge>
                             )}
@@ -777,7 +786,9 @@ export function EventDetailPage() {
       </div>
 
       {/* Join Event Button */}
-      <div className={`fixed left-0 right-0 z-40 px-4 pb-2 ${user ? 'bottom-16' : 'bottom-4'}`}>
+      <div
+        className={`fixed left-0 right-0 z-40 px-4 pb-2 ${isNavbarHidden ? 'bottom-4' : 'bottom-16'}`}
+      >
         <Button
           onClick={() => openSignupDrawer()}
           className={`w-full text-white shadow-lg ${
