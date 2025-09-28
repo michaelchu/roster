@@ -485,9 +485,9 @@ export function EventDetailPage() {
             <div className="space-y-2">
               {/* Top row: Date and Registration Deadline */}
               {event.datetime && (
-                <div className="grid grid-cols-2 divide-x divide-border py-3">
+                <div className="grid grid-cols-2 divide-x divide-border">
                   {event.datetime && (
-                    <div className="text-sm text-muted-foreground px-3">
+                    <div className="text-sm text-muted-foreground p-3">
                       <div className="font-medium text-foreground">Date</div>
                       <div>
                         {new Date(event.datetime).toLocaleDateString(undefined, {
@@ -504,7 +504,7 @@ export function EventDetailPage() {
                       </div>
                     </div>
                   )}
-                  <div className="text-sm text-muted-foreground px-3">
+                  <div className="text-sm text-muted-foreground p-3">
                     <div className="font-medium text-foreground">Deadline</div>
                     <div>None</div>
                   </div>
