@@ -43,10 +43,19 @@ import { test, expect } from '@playwright/test'
 test.describe('Feature Name', () => {
   test('should do something', async ({ page }) => {
     await page.goto('/')
+
+    // Wait for DOM to load (avoid networkidle with Vite HMR)
+    await page.waitForLoadState('domcontentloaded')
+
     await expect(page).toHaveTitle(/Roster/)
   })
 })
 ```
+
+### Important Notes
+
+- **Avoid `networkidle`**: Use `domcontentloaded` instead of `networkidle` when waiting for page loads, as Vite's HMR keeps websocket connections open that prevent `networkidle` from resolving
+- **Mobile Testing**: Tests run on both desktop and mobile viewports automatically
 
 ## Current Test Coverage
 

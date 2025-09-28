@@ -5,7 +5,7 @@ test.describe('Basic App E2E Tests', () => {
     await page.goto('/')
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Check page title
     await expect(page).toHaveTitle(/Roster/)
@@ -18,7 +18,7 @@ test.describe('Basic App E2E Tests', () => {
     await page.goto('/')
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Basic check that page doesn't crash on mobile
     await expect(page).toHaveTitle(/Roster/)
@@ -28,7 +28,7 @@ test.describe('Basic App E2E Tests', () => {
     await page.goto('/non-existent-route')
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
 
     // Should still have the app title (React Router handles 404s)
     await expect(page).toHaveTitle(/Roster/)
