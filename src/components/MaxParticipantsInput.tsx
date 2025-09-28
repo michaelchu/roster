@@ -76,7 +76,7 @@ export function MaxParticipantsInput({
         {label}
       </Label>
       <div
-        className="flex items-center space-x-2"
+        className="flex items-center w-fit"
         role="group"
         aria-labelledby="max-participants-input"
       >
@@ -84,7 +84,7 @@ export function MaxParticipantsInput({
           type="button"
           variant="outline"
           size="sm"
-          className="h-10 w-10 p-0 rounded-md"
+          className="h-10 w-10 p-0 rounded-l-md rounded-r-none border-r-0"
           onClick={decrementValue}
           aria-label={`Decrease ${label.toLowerCase()} to ${Math.max(value - 1, min)}`}
           disabled={value <= min}
@@ -99,7 +99,7 @@ export function MaxParticipantsInput({
           value={displayValue}
           onChange={(e) => handleInputChange(e.target.value)}
           onBlur={(e) => handleInputBlur(e.target.value)}
-          className="h-10 text-sm text-center"
+          className="h-10 w-16 text-sm text-center rounded-none border-x-0 focus:border-x focus:z-10"
           aria-label={`${label} (${min} to ${max})`}
           min={min}
           max={max}
@@ -108,7 +108,7 @@ export function MaxParticipantsInput({
           type="button"
           variant="outline"
           size="sm"
-          className="h-10 w-10 p-0 rounded-md"
+          className="h-10 w-10 p-0 rounded-r-md rounded-l-none border-l-0"
           onClick={incrementValue}
           aria-label={`Increase ${label.toLowerCase()} to ${Math.min(value + 1, max)}`}
           disabled={value >= max}
