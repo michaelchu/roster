@@ -175,8 +175,19 @@ BEGIN
 
         -- If no more events in this group, remove from group
         IF remaining_events_count = 0 THEN
-            DELETE FROM group_participants
-            WHERE group_id = event_group_id AND participant_id = OLD.id;
+            DELETE FROM group_participants gp
+            WHERE gp.group_id = event_group_id
+            AND EXISTS (
+                SELECT 1 FROM participants p
+                WHERE p.id = gp.participant_id
+                AND (
+                    -- Match by user_id if the participant was a registered user
+                    (OLD.user_id IS NOT NULL AND p.user_id = OLD.user_id)
+                    OR
+                    -- Match by email if the participant was a guest or for additional safety
+                    (OLD.email IS NOT NULL AND p.email = OLD.email)
+                )
+            );
         END IF;
     END IF;
 
