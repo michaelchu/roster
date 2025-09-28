@@ -40,9 +40,13 @@ export function RegisterPage() {
     setError('');
 
     try {
-      // Store return URL for use after OAuth redirect
-      if (returnUrl !== '/') {
-        localStorage.setItem('returnUrl', returnUrl);
+      // Store a safe return URL for use after OAuth redirect
+      const isSafeReturnUrl = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
+      const safeReturnUrl = isSafeReturnUrl ? returnUrl : '/';
+      if (safeReturnUrl !== '/') {
+        localStorage.setItem('returnUrl', safeReturnUrl);
+      } else {
+        localStorage.removeItem('returnUrl');
       }
       await signInWithGoogle();
       // Note: OAuth will redirect away, so no need to navigate here
