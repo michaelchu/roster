@@ -482,7 +482,7 @@ export function EventDetailPage() {
         {/* Event Info */}
         {(event.description || event.datetime || event.location || event.max_participants) && (
           <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="space-y-2">
+            <div>
               {/* Top row: Date and Registration Deadline */}
               {event.datetime && (
                 <div className="grid grid-cols-2 divide-x divide-border">
