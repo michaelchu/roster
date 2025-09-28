@@ -21,9 +21,13 @@ export function ThemeProvider({
   storageKey = 'roster-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+    } catch {
+      return defaultTheme;
+    }
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -35,7 +39,11 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (newTheme: Theme) => {
-      localStorage.setItem(storageKey, newTheme);
+      try {
+        localStorage.setItem(storageKey, newTheme);
+      } catch {
+        // Silently fail if localStorage is not available
+      }
       setTheme(newTheme);
     },
   };

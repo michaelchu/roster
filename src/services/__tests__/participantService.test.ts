@@ -128,6 +128,8 @@ describe('participantService', () => {
       delete (newParticipant as Partial<typeof mockParticipant>).id;
       delete (newParticipant as Partial<typeof mockParticipant>).created_at;
       delete (newParticipant as Partial<typeof mockParticipant>).labels;
+      // Provide a user_id since authentication is now mandatory
+      newParticipant.user_id = '550e8400-e29b-41d4-a716-446655440099';
 
       vi.mocked(supabase.from).mockReturnValue({
         insert: vi.fn().mockReturnThis(),

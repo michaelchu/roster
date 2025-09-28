@@ -158,22 +158,9 @@ export function EventDetailPage() {
         setParticipants(participantsData as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
         // Check if current user is already registered
-        let currentUserRegistration = participantsData.find(
-          (p) => (user?.id && p.user_id === user.id) || (user?.email && p.email === user.email)
+        const currentUserRegistration = participantsData.find(
+          (p) => user?.id && p.user_id === user.id
         );
-
-        // If not found by user_id but found by email, update the participant record to link to user
-        if (!currentUserRegistration && user?.email) {
-          const emailMatch = participantsData.find((p) => p.email === user.email && !p.user_id);
-          if (emailMatch) {
-            // Update participant to link to current user
-            participantService.updateParticipant(emailMatch.id, { user_id: user.id }).then(() => {
-              // Reload data to reflect the update
-              loadEventData();
-            });
-            currentUserRegistration = emailMatch;
-          }
-        }
 
         setUserRegistration(currentUserRegistration || null);
       }
