@@ -8,10 +8,11 @@ import { supabase } from '@/lib/supabase';
 import { User, Save } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { errorHandler } from '@/lib/errorHandler';
+import { ProfilePageSkeleton } from '@/components/ProfilePageSkeleton';
 
 export function ProfilePage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: user?.user_metadata?.full_name || '',
@@ -46,6 +47,10 @@ export function ProfilePage() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return <ProfilePageSkeleton />;
+  }
 
   if (!user) {
     return (

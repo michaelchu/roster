@@ -34,7 +34,7 @@ interface Participant {
  */
 export function ParticipantsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -147,6 +147,10 @@ export function ParticipantsPage() {
         (p.event?.name ?? '').toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
+
+  if (authLoading) {
+    return <ParticipantsPageSkeleton />;
+  }
 
   if (!user) {
     return (

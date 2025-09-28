@@ -13,7 +13,7 @@ type TabType = 'organizing' | 'joined';
 
 export function EventsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('organizing');
   const {
     isLoading: isLoadingOrganizing,
@@ -62,6 +62,10 @@ export function EventsPage() {
       loadOrganizingEvents(loadOrganizingEventsCallback);
     }
   };
+
+  if (loading) {
+    return <EventListSkeleton />;
+  }
 
   if (!user) {
     return (
