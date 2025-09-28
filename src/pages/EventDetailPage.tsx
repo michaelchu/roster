@@ -482,12 +482,12 @@ export function EventDetailPage() {
         {/* Event Info */}
         {(event.description || event.datetime || event.location || event.max_participants) && (
           <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="p-3 space-y-2">
+            <div>
               {/* Top row: Date and Registration Deadline */}
               {event.datetime && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 divide-x divide-border">
                   {event.datetime && (
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground p-3">
                       <div className="font-medium text-foreground">Date</div>
                       <div>
                         {new Date(event.datetime).toLocaleDateString(undefined, {
@@ -504,16 +504,21 @@ export function EventDetailPage() {
                       </div>
                     </div>
                   )}
-                  <div className="text-sm text-muted-foreground">
-                    <div className="font-medium text-foreground">Registration Deadline</div>
+                  <div className="text-sm text-muted-foreground p-3">
+                    <div className="font-medium text-foreground">Deadline</div>
                     <div>None</div>
                   </div>
                 </div>
               )}
 
+              {/* Horizontal divider between dates and location */}
+              {event.datetime && event.location && (
+                <div className="border-t border-border"></div>
+              )}
+
               {/* Second row: Location */}
               {event.location && (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground p-3">
                   <div className="font-medium text-foreground">Location</div>
                   <div>{event.location}</div>
                 </div>
@@ -526,7 +531,7 @@ export function EventDetailPage() {
 
               {/* Description */}
               {event.description && (
-                <div className="text-sm text-foreground">
+                <div className="text-sm text-foreground p-3">
                   <div className="font-medium text-foreground mb-1">Description</div>
                   <p className="leading-relaxed">{event.description}</p>
                 </div>

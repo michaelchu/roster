@@ -247,7 +247,7 @@ export function EditEventPage() {
                 }))
               }
               className="resize-none"
-              rows={3}
+              rows={5}
             />
           </div>
 
