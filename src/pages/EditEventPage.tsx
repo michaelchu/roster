@@ -3,6 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -224,7 +232,7 @@ export function EditEventPage() {
             <Label htmlFor="description" className="text-sm">
               Description
             </Label>
-            <textarea
+            <Textarea
               id="description"
               value={formData.description}
               onChange={(e) =>
@@ -233,7 +241,7 @@ export function EditEventPage() {
                   description: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2 text-sm border rounded-md resize-none"
+              className="resize-none"
               rows={3}
             />
           </div>
@@ -264,7 +272,10 @@ export function EditEventPage() {
             />
           </div>
 
-          <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
+          <div className="grid grid-cols-2 gap-3">
+            <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
+            <div></div>
+          </div>
 
           <div className="space-y-2">
             <Label className="text-sm">Event Privacy</Label>
@@ -347,23 +358,27 @@ export function EditEventPage() {
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <select
+                    <Select
                       value={field.type}
-                      onChange={(e) =>
+                      onValueChange={(value) =>
                         field.id &&
                         updateCustomField(field.id, {
-                          type: e.target.value as CustomField['type'],
-                          options: e.target.value === 'select' ? [''] : undefined,
+                          type: value as CustomField['type'],
+                          options: value === 'select' ? [''] : undefined,
                         })
                       }
-                      className="flex-1 h-9 px-2 text-sm border rounded"
                     >
-                      <option value="text">Text</option>
-                      <option value="email">Email</option>
-                      <option value="tel">Phone</option>
-                      <option value="number">Number</option>
-                      <option value="select">Dropdown</option>
-                    </select>
+                      <SelectTrigger className="flex-1 h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="tel">Phone</SelectItem>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="select">Dropdown</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <label className="flex items-center gap-1 text-xs">
                       <input
                         type="checkbox"
@@ -381,7 +396,7 @@ export function EditEventPage() {
                   {field.type === 'select' && (
                     <div className="space-y-2">
                       <Label className="text-xs">Options (one per line)</Label>
-                      <textarea
+                      <Textarea
                         value={field.options?.join('\n') || ''}
                         onChange={(e) =>
                           field.id &&
@@ -389,8 +404,8 @@ export function EditEventPage() {
                             options: e.target.value.split('\n').filter(Boolean),
                           })
                         }
-                        placeholder="Option 1&#10;Option 2&#10;Option 3"
-                        className="w-full px-2 py-1 text-sm border rounded resize-none"
+                        placeholder="Option 1\nOption 2\nOption 3"
+                        className="text-sm resize-none"
                         rows={3}
                       />
                     </div>
