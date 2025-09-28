@@ -47,7 +47,7 @@ export function NewEventPage() {
     isLoading: groupsLoading,
     data: groups,
     execute: loadGroups,
-  } = useLoadingState<Group[]>([]);
+  } = useLoadingState<Group[]>(null);
 
   const loadGroupsCallback = useCallback(async () => {
     if (!user) return [];
@@ -56,7 +56,7 @@ export function NewEventPage() {
 
   useEffect(() => {
     if (user) {
-      loadGroups(loadGroupsCallback);
+      void loadGroups(loadGroupsCallback);
     }
   }, [user, loadGroups, loadGroupsCallback]);
 
@@ -73,7 +73,7 @@ export function NewEventPage() {
       return;
     }
 
-    if (groupsLoading) {
+    if (groupsLoading || groups === null) {
       return;
     }
 
@@ -122,7 +122,7 @@ export function NewEventPage() {
         is_private: formData.is_private,
         custom_fields: customFields.filter((f) => f.label),
         parent_event_id: null,
-        group_id: formData.group_id === '__no_group__' ? null : formData.group_id || null,
+        group_id: formData.group_id === '__no_group__' ? null : formData.group_id,
       });
 
       errorHandler.success(`Event "${eventData.name}" created successfully!`);
@@ -208,6 +208,7 @@ export function NewEventPage() {
             <Select
               value={formData.group_id}
               onValueChange={(value) => setFormData((prev) => ({ ...prev, group_id: value }))}
+              disabled={groupsLoading}
             >
               <SelectTrigger id="group" className="h-10 text-sm">
                 <SelectValue placeholder="No group (standalone event)" />
