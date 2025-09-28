@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { Tables, TablesInsert, TablesUpdate } from '@/types/app.types';
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/supabase';
 import { errorHandler, ValidationError } from '@/lib/errorHandler';
 
 // Extended Group type with additional computed properties
