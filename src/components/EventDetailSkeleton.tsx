@@ -50,7 +50,7 @@ export function EventDetailSkeleton() {
 
           {/* Action Buttons Footer */}
           <div className="border-t bg-muted">
-            <div className="flex divide-x divide-gray-200">
+            <div className="flex divide-x divide-border">
               <div className="flex-1 flex items-center justify-center py-2 px-3">
                 <Skeleton className="h-4 w-8" />
               </div>
