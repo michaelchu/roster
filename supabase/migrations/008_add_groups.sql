@@ -164,7 +164,13 @@ BEGIN
         SELECT COUNT(*) INTO remaining_events_count
         FROM participants p
         JOIN events e ON p.event_id = e.id
-        WHERE p.id = OLD.id
+        WHERE (
+            -- Match by user_id if the participant was a registered user
+            (OLD.user_id IS NOT NULL AND p.user_id = OLD.user_id)
+            OR
+            -- Match by email if the participant was a guest or for additional safety
+            (OLD.email IS NOT NULL AND p.email = OLD.email)
+        )
         AND e.group_id = event_group_id;
 
         -- If no more events in this group, remove from group
