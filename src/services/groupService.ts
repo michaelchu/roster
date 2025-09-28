@@ -75,15 +75,18 @@ export const groupService = {
         : 0;
 
       // Remove the joined arrays from the group object before processing
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const {
-        events: _,
-        group_participants: __,
+        events: _events,
+        group_participants: _groupParticipants,
         ...groupWithoutJoins
       } = group as Tables<'groups'> & {
         events: Array<{ id: string } | null>;
         group_participants: Array<{ id: string } | null>;
       };
+
+      // Avoid unused variable warnings
+      void _events;
+      void _groupParticipants;
 
       return {
         ...groupWithoutJoins,
