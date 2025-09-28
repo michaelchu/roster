@@ -68,12 +68,12 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="roster-theme">
         <FontSizeProvider>
           <MobileOnly>
-            <AuthProvider>
-              <Router>
+            <Router>
+              <AuthProvider>
                 <AppContent />
                 <Toaster />
-              </Router>
-            </AuthProvider>
+              </AuthProvider>
+            </Router>
           </MobileOnly>
         </FontSizeProvider>
       </ThemeProvider>
