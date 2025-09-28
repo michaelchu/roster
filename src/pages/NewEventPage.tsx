@@ -61,12 +61,30 @@ export function NewEventPage() {
   }, [user, loadGroups, loadGroupsCallback]);
 
   useEffect(() => {
-    // Pre-select group if coming from group detail page
     const groupParam = searchParams.get('group');
-    if (groupParam && groupParam !== '__no_group__') {
-      setFormData((prev) => ({ ...prev, group_id: groupParam }));
+    if (!groupParam) {
+      return;
     }
-  }, [searchParams]);
+
+    if (groupParam === '__no_group__') {
+      setFormData((prev) =>
+        prev.group_id === '__no_group__' ? prev : { ...prev, group_id: '__no_group__' }
+      );
+      return;
+    }
+
+    if (groupsLoading) {
+      return;
+    }
+
+    const nextGroupId = groups?.some((group) => group.id === groupParam)
+      ? groupParam
+      : '__no_group__';
+
+    setFormData((prev) =>
+      prev.group_id === nextGroupId ? prev : { ...prev, group_id: nextGroupId }
+    );
+  }, [searchParams, groupsLoading, groups]);
 
   const addCustomField = () => {
     const newField: CustomField = {
