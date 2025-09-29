@@ -489,14 +489,27 @@ export function EventDetailPage() {
           <div className="bg-card rounded-lg border overflow-hidden">
             <div>
               {/* Event Name */}
-              <div className="text-lg font-semibold p-3 border-b border-border">{event.name}</div>
+              <div className="text-base font-semibold px-3 py-2 border-b border-border">
+                {event.name}
+              </div>
+
+              {/* Description */}
+              {event.description && (
+                <>
+                  <div className="text-sm text-foreground px-3 py-2">
+                    <div className="font-medium text-foreground text-xs">Description</div>
+                    <p className="text-xs leading-snug mt-0.5">{event.description}</p>
+                  </div>
+                  <div className="border-t border-border"></div>
+                </>
+              )}
 
               {/* Top row: Start and End times */}
               {(event.datetime || event.end_datetime) && (
                 <div className="grid grid-cols-2 divide-x divide-border">
-                  <div className="text-sm text-muted-foreground p-3">
-                    <div className="font-medium text-foreground">Start</div>
-                    <div>
+                  <div className="text-sm text-muted-foreground px-3 py-2">
+                    <div className="font-medium text-foreground text-xs">Start</div>
+                    <div className="text-xs leading-tight mt-0.5">
                       {event.datetime ? (
                         <>
                           {new Date(event.datetime).toLocaleDateString(undefined, {
@@ -516,9 +529,9 @@ export function EventDetailPage() {
                       )}
                     </div>
                   </div>
-                  <div className="text-sm text-muted-foreground p-3">
-                    <div className="font-medium text-foreground">End</div>
-                    <div>
+                  <div className="text-sm text-muted-foreground px-3 py-2">
+                    <div className="font-medium text-foreground text-xs">End</div>
+                    <div className="text-xs leading-tight mt-0.5">
                       {event.end_datetime ? (
                         <>
                           {new Date(event.end_datetime).toLocaleDateString(undefined, {
@@ -545,9 +558,9 @@ export function EventDetailPage() {
               {(event.datetime || event.end_datetime) && (
                 <>
                   <div className="border-t border-border"></div>
-                  <div className="text-sm text-muted-foreground p-3">
-                    <div className="font-medium text-foreground">Registration Deadline</div>
-                    <div>None</div>
+                  <div className="text-sm text-muted-foreground px-3 py-2">
+                    <div className="font-medium text-foreground text-xs">Registration Deadline</div>
+                    <div className="text-xs mt-0.5">None</div>
                   </div>
                 </>
               )}
@@ -559,22 +572,9 @@ export function EventDetailPage() {
 
               {/* Second row: Location */}
               {event.location && (
-                <div className="text-sm text-muted-foreground p-3">
-                  <div className="font-medium text-foreground">Location</div>
-                  <div>{event.location}</div>
-                </div>
-              )}
-
-              {/* Horizontal divider */}
-              {event.location && event.description && (
-                <div className="border-t border-border"></div>
-              )}
-
-              {/* Description */}
-              {event.description && (
-                <div className="text-sm text-foreground p-3">
-                  <div className="font-medium text-foreground mb-1">Description</div>
-                  <p className="leading-relaxed">{event.description}</p>
+                <div className="text-sm text-muted-foreground px-3 py-2">
+                  <div className="font-medium text-foreground text-xs">Location</div>
+                  <div className="text-xs mt-0.5">{event.location}</div>
                 </div>
               )}
             </div>
@@ -705,7 +705,7 @@ export function EventDetailPage() {
                           <div className="flex items-center gap-2 min-w-0 flex-1">
                             <button
                               onClick={() => setSelectedParticipant(participant)}
-                              className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors truncate text-left min-w-0 max-w-full"
+                              className="text-xs font-medium text-foreground hover:text-foreground/80 transition-colors truncate text-left min-w-0 max-w-full"
                             >
                               {displayName}
                             </button>
@@ -738,7 +738,7 @@ export function EventDetailPage() {
                             )}
                           </div>
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-[11px] text-muted-foreground">
                           Signed up{' '}
                           {(() => {
                             const now = new Date();
@@ -795,7 +795,7 @@ export function EventDetailPage() {
                           <span className="text-xs text-muted-foreground">?</span>
                         </div>
                         <div className="flex-1 flex items-center justify-between">
-                          <div className="text-sm text-muted-foreground italic">Available slot</div>
+                          <div className="text-xs text-muted-foreground italic">Available slot</div>
                           {canClaimSpot && (
                             <Button
                               size="sm"
