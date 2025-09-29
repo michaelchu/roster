@@ -804,7 +804,7 @@ export function EventDetailPage() {
                               className="text-xs h-6 px-2"
                             >
                               <UserPlus className="h-3 w-3 mr-1" />
-                              Claim Spot
+                              Claim
                             </Button>
                           )}
                         </div>
