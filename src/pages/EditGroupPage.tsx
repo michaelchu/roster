@@ -37,13 +37,25 @@ export function EditGroupPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
-    if (groupId && user) {
-      loadGroup();
+    if (!groupId) {
+      setInitialLoading(false);
+      return;
     }
+
+    if (!user) {
+      setInitialLoading(false);
+      return;
+    }
+
+    setInitialLoading(true);
+    loadGroup();
   }, [groupId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadGroup = async () => {
-    if (!groupId || !user) return;
+    if (!groupId || !user) {
+      setInitialLoading(false);
+      return;
+    }
 
     try {
       const data = await groupService.getGroupById(groupId);
@@ -54,6 +66,7 @@ export function EditGroupPage() {
           userId: user.id,
           action: 'loadGroupForEdit',
         });
+        setInitialLoading(false);
         navigate('/groups');
         return;
       }
@@ -69,10 +82,12 @@ export function EditGroupPage() {
         userId: user?.id,
         action: 'loadGroupForEdit',
       });
-      navigate('/groups');
-    } finally {
       setInitialLoading(false);
+      navigate('/groups');
+      return;
     }
+
+    setInitialLoading(false);
   };
 
   const validateForm = () => {
