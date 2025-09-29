@@ -94,6 +94,7 @@ export const eventService = {
       name: event.name.trim(),
       description: event.description,
       datetime: event.datetime,
+      end_datetime: event.end_datetime,
       location: event.location,
       is_private: event.is_private ?? false,
       custom_fields: event.custom_fields as unknown as Json,
@@ -116,6 +117,7 @@ export const eventService = {
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.description !== undefined) updateData.description = updates.description;
     if (updates.datetime !== undefined) updateData.datetime = updates.datetime;
+    if (updates.end_datetime !== undefined) updateData.end_datetime = updates.end_datetime;
     if (updates.location !== undefined) updateData.location = updates.location;
     if (updates.is_private !== undefined) updateData.is_private = updates.is_private;
     if (updates.max_participants !== undefined)
@@ -159,6 +161,7 @@ export const eventService = {
       name: `${originalEvent.name} (Copy)`,
       description: originalEvent.description,
       datetime: originalEvent.datetime,
+      end_datetime: originalEvent.end_datetime,
       location: originalEvent.location,
       custom_fields: originalEvent.custom_fields,
       parent_event_id: originalEvent.id,

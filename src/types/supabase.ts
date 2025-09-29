@@ -14,6 +14,7 @@ export type Database = {
           custom_fields: Json;
           datetime: string | null;
           description: string | null;
+          end_datetime: string | null;
           group_id: string | null;
           id: string;
           is_private: boolean;
@@ -28,6 +29,7 @@ export type Database = {
           custom_fields?: Json;
           datetime?: string | null;
           description?: string | null;
+          end_datetime?: string | null;
           group_id?: string | null;
           id?: string;
           is_private?: boolean;
@@ -42,6 +44,7 @@ export type Database = {
           custom_fields?: Json;
           datetime?: string | null;
           description?: string | null;
+          end_datetime?: string | null;
           group_id?: string | null;
           id?: string;
           is_private?: boolean;
