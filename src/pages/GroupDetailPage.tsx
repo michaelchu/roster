@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, Users, Plus, UsersRound, Share2 } from 'lucide-react';
+import { Calendar, Users, Plus, UsersRound, Share2, Edit } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -137,21 +137,31 @@ export function GroupDetailPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 mt-4">
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1"
-              onClick={() => navigate(`/groups/${group.id}/participants`)}
-            >
-              <Users className="h-4 w-4 mr-1" />
-              View Members
-            </Button>
-            <Button size="sm" variant="outline" className="flex-1" onClick={handleInvite}>
-              <Share2 className="h-4 w-4 mr-1" />
-              Invite
-            </Button>
+          {/* Action Buttons Footer */}
+          <div className="border-t bg-muted">
+            <div className="flex divide-x divide-border">
+              <button
+                onClick={() => navigate(`/groups/${group.id}/edit`)}
+                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </button>
+              <button
+                onClick={handleInvite}
+                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Invite
+              </button>
+              <button
+                onClick={() => navigate(`/groups/${group.id}/participants`)}
+                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Members
+              </button>
+            </div>
           </div>
         </div>
 
