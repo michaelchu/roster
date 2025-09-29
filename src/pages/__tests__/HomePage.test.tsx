@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
+import type { User } from '@supabase/supabase-js';
 import { HomePage } from '../HomePage';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -56,14 +57,14 @@ describe('HomePage', () => {
   });
 
   it('renders quick actions for authenticated users', () => {
-    const mockUser = {
+    const mockUser: User = {
       id: '123',
       email: 'test@example.com',
       app_metadata: {},
       user_metadata: {},
       aud: 'authenticated',
       created_at: '2023-01-01T00:00:00Z',
-    } as any;
+    } as User;
 
     mockUseAuth.mockReturnValue({
       user: mockUser,
@@ -85,14 +86,14 @@ describe('HomePage', () => {
   });
 
   it('renders upcoming events section for authenticated users', () => {
-    const mockUser = {
+    const mockUser: User = {
       id: '123',
       email: 'test@example.com',
       app_metadata: {},
       user_metadata: {},
       aud: 'authenticated',
       created_at: '2023-01-01T00:00:00Z',
-    } as any;
+    } as User;
 
     mockUseAuth.mockReturnValue({
       user: mockUser,
