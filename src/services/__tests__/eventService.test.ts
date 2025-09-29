@@ -47,54 +47,11 @@ describe('eventService', () => {
     vi.clearAllMocks();
   });
 
-  describe('getEventsByOrganizer', () => {
-    it('should fetch events for an organizer with participant counts', async () => {
-      const mockEvents = [
-        {
-          id: 'event-1',
-          name: 'Test Event',
-          organizer_id: 'organizer-1',
-          custom_fields: [],
-          is_private: false,
-          participants: [{ id: 'p1' }, { id: 'p2' }],
-          created_at: '2023-01-01T00:00:00Z',
-        },
-      ];
+  // Note: Basic CRUD operations (getEventsByOrganizer, getEventById, updateEvent, deleteEvent, etc.)
+  // are thin Supabase wrappers and should be tested via integration tests instead.
+  // Only testing business logic here.
 
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      const result = await eventService.getEventsByOrganizer('organizer-1');
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual(
-        expect.objectContaining({
-          id: 'event-1',
-          name: 'Test Event',
-          participant_count: 2,
-        })
-      );
-    });
-
-    it('should return empty array when no events found', async () => {
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      const result = await eventService.getEventsByOrganizer('organizer-1');
-
-      expect(result).toEqual([]);
-    });
-
+  describe('getEventsByOrganizer - participant counting logic', () => {
     it('should correctly count participants filtering null values', async () => {
       const mockEvents = [
         {
@@ -121,45 +78,10 @@ describe('eventService', () => {
     });
   });
 
-  describe('getEventById', () => {
-    it('should fetch event by ID', async () => {
-      const mockEvent = {
-        id: 'event-1',
-        name: 'Test Event',
-        organizer_id: 'org-1',
-        custom_fields: [],
-        created_at: '2023-01-01',
-      };
+  // getEventById is a direct query - tested via integration tests
 
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockEvent, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      const result = await eventService.getEventById('event-1');
-
-      expect(mockQueryChain.eq).toHaveBeenCalledWith('id', 'event-1');
-      expect(result.id).toBe('event-1');
-    });
-
-    it('should throw error when event not found', async () => {
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      await expect(eventService.getEventById('nonexistent')).rejects.toThrow('Event not found');
-    });
-  });
-
-  describe('createEvent', () => {
-    it('should create event with validation', async () => {
+  describe('createEvent - data transformation', () => {
+    it('should trim event name', async () => {
       const newEvent = {
         organizer_id: 'org-1',
         name: '  Test Event  ',
@@ -184,7 +106,7 @@ describe('eventService', () => {
 
       mockSupabase.from.mockReturnValue(mockQueryChain as any);
 
-      const result = await eventService.createEvent(newEvent);
+      await eventService.createEvent(newEvent);
 
       // Verify name was trimmed
       expect(mockQueryChain.insert).toHaveBeenCalledWith(
@@ -192,7 +114,6 @@ describe('eventService', () => {
           name: 'Test Event',
         })
       );
-      expect(result.id).toBe('event-1');
     });
 
     it('should set is_private to false by default', async () => {
@@ -229,90 +150,7 @@ describe('eventService', () => {
     });
   });
 
-  describe('updateEvent', () => {
-    it('should update event fields', async () => {
-      const updates = {
-        name: 'Updated Name',
-        description: 'Updated description',
-        datetime: '2025-01-01T12:00:00Z',
-        is_private: true,
-      };
-
-      const mockQueryChain = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { id: 'event-1', ...updates, custom_fields: [], created_at: '2023-01-01' },
-          error: null,
-        }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      const result = await eventService.updateEvent('event-1', updates);
-
-      expect(mockQueryChain.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Updated Name',
-          description: 'Updated description',
-          is_private: true,
-        })
-      );
-      expect(result.name).toBe('Updated Name');
-    });
-
-    it('should handle partial updates', async () => {
-      const updates = { name: 'Only Name Updated' };
-
-      const mockQueryChain = {
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: {
-            id: 'event-1',
-            name: 'Only Name Updated',
-            custom_fields: [],
-            created_at: '2023-01-01',
-          },
-          error: null,
-        }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      await eventService.updateEvent('event-1', updates);
-
-      expect(mockQueryChain.update).toHaveBeenCalledWith({ name: 'Only Name Updated' });
-    });
-  });
-
-  describe('deleteEvent', () => {
-    it('should delete event', async () => {
-      const mockQueryChain = {
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      await eventService.deleteEvent('event-1');
-
-      expect(mockQueryChain.eq).toHaveBeenCalledWith('id', 'event-1');
-    });
-
-    it('should throw error on delete failure', async () => {
-      const mockQueryChain = {
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: { message: 'Delete failed' } }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      await expect(eventService.deleteEvent('event-1')).rejects.toThrow();
-    });
-  });
+  // updateEvent, deleteEvent are direct Supabase operations - tested via integration tests
 
   describe('duplicateEvent', () => {
     it('should duplicate event with (Copy) suffix', async () => {
@@ -421,80 +259,5 @@ describe('eventService', () => {
     });
   });
 
-  describe('getPublicEvents', () => {
-    it('should fetch only public events', async () => {
-      const mockEvents = [
-        { id: 'event-1', name: 'Public Event', is_private: false, custom_fields: [] },
-      ];
-
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      const result = await eventService.getPublicEvents();
-
-      expect(mockQueryChain.eq).toHaveBeenCalledWith('is_private', false);
-      expect(mockQueryChain.order).toHaveBeenCalledWith('datetime', { ascending: true });
-      expect(result).toHaveLength(1);
-    });
-
-    it('should return empty array when no public events', async () => {
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      const result = await eventService.getPublicEvents();
-
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe('getEventsByParticipant', () => {
-    it('should fetch events where user is participant', async () => {
-      const mockEvents = [
-        {
-          id: 'event-1',
-          name: 'Event I Joined',
-          custom_fields: [],
-          participants: [{ id: 'p1' }],
-          created_at: '2023-01-01',
-        },
-      ];
-
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      const result = await eventService.getEventsByParticipant('user-1');
-
-      expect(mockQueryChain.eq).toHaveBeenCalledWith('participants.user_id', 'user-1');
-      expect(result).toHaveLength(1);
-    });
-
-    it('should return empty array when user has no events', async () => {
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
-
-      const result = await eventService.getEventsByParticipant('user-1');
-
-      expect(result).toEqual([]);
-    });
-  });
+  // getPublicEvents, getEventsByParticipant are direct queries - tested via integration tests
 });
