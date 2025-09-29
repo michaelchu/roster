@@ -58,7 +58,7 @@ describe('eventService', () => {
         order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
       const result = await eventService.getEventsByOrganizer('organizer-1');
 
@@ -90,7 +90,7 @@ describe('eventService', () => {
         order: vi.fn().mockResolvedValue({ data: null, error: null }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
       const result = await eventService.getEventsByOrganizer('organizer-1');
 
@@ -104,7 +104,7 @@ describe('eventService', () => {
         order: vi.fn().mockResolvedValue({ data: null, error: { message: 'Database error' } }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
       await expect(eventService.getEventsByOrganizer('organizer-1')).rejects.toThrow();
     });

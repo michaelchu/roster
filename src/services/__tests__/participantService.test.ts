@@ -53,7 +53,7 @@ describe('participantService', () => {
         order: vi.fn().mockResolvedValue({ data: mockParticipants, error: null }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
       const result = await participantService.getParticipantsByEventId('event-1');
 
@@ -85,7 +85,7 @@ describe('participantService', () => {
         order: vi.fn().mockResolvedValue({ data: null, error: null }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
       const result = await participantService.getParticipantsByEventId('event-1');
 
@@ -117,7 +117,7 @@ describe('participantService', () => {
         single: vi.fn().mockResolvedValue({ data: mockCreatedParticipant, error: null }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
       const result = await participantService.createParticipant(newParticipant);
 
@@ -151,7 +151,7 @@ describe('participantService', () => {
         single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Database error' } }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
       const newParticipant = {
         event_id: 'event-1',
