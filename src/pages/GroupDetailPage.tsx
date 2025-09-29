@@ -136,10 +136,8 @@ export function GroupDetailPage() {
               <span>Created {new Date(group.created_at).toLocaleDateString()}</span>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons Footer */}
-        <div className="bg-card rounded-lg border overflow-hidden">
+          {/* Action Buttons Footer */}
           <div className="border-t bg-muted">
             <div className="flex divide-x divide-border">
               <button
