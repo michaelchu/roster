@@ -27,7 +27,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
-import { toLocalInputValue } from '@/lib/utils';
+import { toLocalInputValue, fromLocalInputValue } from '@/lib/utils';
 
 interface CustomField {
   id?: string;
@@ -167,8 +167,8 @@ export function EditEventPage() {
       await eventService.updateEvent(event.id, {
         name: formData.name,
         description: formData.description || null,
-        datetime: formData.datetime || null,
-        end_datetime: formData.end_datetime || null,
+        datetime: formData.datetime ? fromLocalInputValue(formData.datetime) : null,
+        end_datetime: formData.end_datetime ? fromLocalInputValue(formData.end_datetime) : null,
         location: formData.location || null,
         max_participants: maxParticipants,
         is_private: formData.is_private,

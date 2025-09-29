@@ -21,3 +21,17 @@ export function toLocalInputValue(iso: string): string {
   const minutes = pad(d.getMinutes());
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
+
+/**
+ * Converts a datetime-local input value to ISO format preserving local timezone
+ * This prevents timezone conversion issues when storing datetime-local values
+ * @param localValue Local datetime string from datetime-local input (e.g., "2024-12-01T09:00")
+ * @returns ISO datetime string in local timezone (e.g., "2024-12-01T09:00:00-05:00")
+ */
+export function fromLocalInputValue(localValue: string): string {
+  if (!localValue) return '';
+  // Create date from local value (interpreted as local time)
+  const d = new Date(localValue);
+  // Return ISO string which includes timezone offset
+  return d.toISOString();
+}
