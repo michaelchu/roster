@@ -219,12 +219,15 @@ export const eventService = {
 
   async getEventsByParticipant(userId: string): Promise<Event[]> {
     // Get events where the user is a participant
+    // We need two separate queries because we need:
+    // 1. An INNER JOIN to filter events where user is a participant
+    // 2. A LEFT JOIN to count ALL participants for each event
     const { data: eventsData, error: eventsError } = await supabase
       .from('events')
       .select(
         `
         *,
-        participants!inner(id),
+        participants!inner(id, user_id),
         groups!left(name)
       `
       )
@@ -235,7 +238,28 @@ export const eventService = {
 
     if (!eventsData) return [];
 
+    // Get unique event IDs to fetch full participant counts
+    const eventIds = eventsData.map((e) => e.id);
+
+    // Fetch all participants for these events to get accurate counts
+    const { data: allParticipants } = await supabase
+      .from('participants')
+      .select('event_id, id')
+      .in('event_id', eventIds);
+
+    // Create a map of event_id to participant count
+    const participantCountMap = new Map<string, number>();
+    if (allParticipants) {
+      allParticipants.forEach((p) => {
+        const count = participantCountMap.get(p.event_id) || 0;
+        participantCountMap.set(p.event_id, count + 1);
+      });
+    }
+
     return eventsData.map((event) => {
+      // Get the full participant count for this event
+      const participantCount = participantCountMap.get(event.id) || 0;
+
       // Extract group name
       const groupName =
         event.groups && !Array.isArray(event.groups) ? event.groups.name : undefined;
@@ -252,6 +276,7 @@ export const eventService = {
 
       return {
         ...dbEventToEvent(eventWithoutJoins),
+        participant_count: participantCount,
         group_name: groupName,
       };
     });
