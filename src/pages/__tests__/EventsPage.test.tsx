@@ -22,11 +22,7 @@ vi.mock('@/lib/errorHandler', () => ({
 
 // Mock loading state hook
 vi.mock('@/hooks/useLoadingState', () => ({
-  useLoadingState: () => ({
-    isLoading: false,
-    data: [],
-    execute: vi.fn(),
-  }),
+  useLoadingState: vi.fn(),
 }));
 
 import { render, screen } from '@testing-library/react';
@@ -35,8 +31,10 @@ import type { ReactElement } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { EventsPage } from '@/pages/EventsPage';
 import { useAuth } from '@/hooks/useAuth';
+import { useLoadingState } from '@/hooks/useLoadingState';
 
 const mockUseAuth = vi.mocked(useAuth);
+const mockUseLoadingState = vi.mocked(useLoadingState);
 
 const renderWithRouter = (component: ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
@@ -45,6 +43,12 @@ const renderWithRouter = (component: ReactElement) => {
 describe('EventsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Set default mock return value for useLoadingState
+    mockUseLoadingState.mockReturnValue({
+      isLoading: false,
+      data: [],
+      execute: vi.fn(),
+    });
   });
 
   it('shows loading skeleton when auth is loading', () => {
@@ -60,11 +64,16 @@ describe('EventsPage', () => {
 
     renderWithRouter(<EventsPage />);
 
-    // Should show loading skeleton, not the main content
+    // Should show loading skeleton (animate-pulse elements)
+    const skeletons = document.querySelectorAll('.animate-pulse');
+    expect(skeletons.length).toBeGreaterThan(0);
+
+    // Should not show main content or sign-in prompt
     expect(screen.queryByText('My Events')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sign In Required')).not.toBeInTheDocument();
   });
 
-  it('redirects to sign in when no user', () => {
+  it('shows sign in prompt when user is not authenticated', () => {
     mockUseAuth.mockReturnValue({
       user: null,
       session: null,
