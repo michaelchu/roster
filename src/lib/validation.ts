@@ -1,5 +1,19 @@
 import { z } from 'zod';
 
+// Reusable datetime validation function
+const createDatetimeValidator = (errorMessage: string) => {
+  return z
+    .string()
+    .refine((val) => {
+      if (!val) return true; // Allow empty/null values
+      // Accept ISO datetime strings (with or without timezone)
+      const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/;
+      return isoRegex.test(val) || !isNaN(Date.parse(val));
+    }, errorMessage)
+    .nullable()
+    .optional();
+};
+
 // Custom field validation
 export const customFieldSchema = z.object({
   id: z.string().optional(),
@@ -43,26 +57,8 @@ export const eventSchema = z
       .max(2000, 'Description must be less than 2000 characters')
       .nullable()
       .optional(),
-    datetime: z
-      .string()
-      .refine((val) => {
-        if (!val) return true; // Allow empty/null values
-        // Accept ISO datetime strings (with or without timezone)
-        const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/;
-        return isoRegex.test(val) || !isNaN(Date.parse(val));
-      }, 'Invalid date format')
-      .nullable()
-      .optional(),
-    end_datetime: z
-      .string()
-      .refine((val) => {
-        if (!val) return true; // Allow empty/null values
-        // Accept ISO datetime strings (with or without timezone)
-        const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/;
-        return isoRegex.test(val) || !isNaN(Date.parse(val));
-      }, 'Invalid end date format')
-      .nullable()
-      .optional(),
+    datetime: createDatetimeValidator('Invalid date format'),
+    end_datetime: createDatetimeValidator('Invalid end date format'),
     location: z
       .string()
       .max(500, 'Location must be less than 500 characters')
