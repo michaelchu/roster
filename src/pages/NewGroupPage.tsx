@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { TopNav } from '@/components/TopNav';
 import { groupService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
-import { LoadingSpinner } from '@/components/LoadingStates';
+import { ActionButton } from '@/components/ActionButton';
 
 export function NewGroupPage() {
   const navigate = useNavigate();
@@ -96,7 +96,7 @@ export function NewGroupPage() {
       <TopNav title="Create Group" showBackButton backPath="/groups" />
 
       <div className="p-4">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form id="create-group-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Group Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Group Name *</Label>
@@ -148,19 +148,17 @@ export function NewGroupPage() {
           </div>
 
           {/* Submit Button */}
-          <div className="pt-4">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  Creating Group...
-                </>
-              ) : (
-                'Create Group'
-              )}
-            </Button>
-          </div>
+          <div className="pt-4">{/* Spacer for fixed button */}</div>
         </form>
+
+        <ActionButton
+          type="submit"
+          form="create-group-form"
+          loading={loading}
+          loadingText="Creating Group..."
+        >
+          Create Group
+        </ActionButton>
       </div>
     </div>
   );
