@@ -15,6 +15,7 @@ import { EventDetailPage } from '@/pages/EventDetailPage';
 import { GroupsPage } from '@/pages/GroupsPage';
 import { GroupDetailPage } from '@/pages/GroupDetailPage';
 import { NewGroupPage } from '@/pages/NewGroupPage';
+import { EditGroupPage } from '@/pages/EditGroupPage';
 import { GroupParticipantsPage } from '@/pages/GroupParticipantsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
@@ -39,6 +40,7 @@ function AppContent() {
         <Route path="/groups" element={<GroupsPage />} />
         <Route path="/groups/new" element={<NewGroupPage />} />
         <Route path="/groups/:groupId" element={<GroupDetailPage />} />
+        <Route path="/groups/:groupId/edit" element={<EditGroupPage />} />
         <Route path="/groups/:groupId/participants" element={<GroupParticipantsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
