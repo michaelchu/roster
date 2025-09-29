@@ -48,47 +48,63 @@ export function EditGroupPage() {
     }
 
     setInitialLoading(true);
-    loadGroup();
-  }, [groupId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadGroup = async () => {
-    if (!groupId || !user) {
-      setInitialLoading(false);
-      return;
-    }
+    // Create cancellation flag to prevent stale fetches from updating state
+    let cancelled = false;
 
-    try {
-      const data = await groupService.getGroupById(groupId);
-
-      // Verify ownership
-      if (data.organizer_id !== user.id) {
-        errorHandler.handle(new Error('Unauthorized'), {
-          userId: user.id,
-          action: 'loadGroupForEdit',
-        });
-        setInitialLoading(false);
-        navigate('/groups');
+    const loadGroup = async () => {
+      if (!groupId || !user) {
+        if (!cancelled) setInitialLoading(false);
         return;
       }
 
-      setGroup(data);
-      setFormData({
-        name: data.name,
-        description: data.description || '',
-        is_private: data.is_private ?? false,
-      });
-    } catch (error) {
-      errorHandler.handle(error, {
-        userId: user?.id,
-        action: 'loadGroupForEdit',
-      });
-      setInitialLoading(false);
-      navigate('/groups');
-      return;
-    }
+      try {
+        const data = await groupService.getGroupById(groupId);
 
-    setInitialLoading(false);
-  };
+        // Check if this fetch was cancelled before updating state
+        if (cancelled) return;
+
+        // Verify ownership
+        if (data.organizer_id !== user.id) {
+          errorHandler.handle(new Error('Unauthorized'), {
+            userId: user.id,
+            action: 'loadGroupForEdit',
+          });
+          if (!cancelled) {
+            setInitialLoading(false);
+            navigate('/groups');
+          }
+          return;
+        }
+
+        if (!cancelled) {
+          setGroup(data);
+          setFormData({
+            name: data.name,
+            description: data.description || '',
+            is_private: data.is_private ?? false,
+          });
+          setInitialLoading(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          errorHandler.handle(error, {
+            userId: user?.id,
+            action: 'loadGroupForEdit',
+          });
+          setInitialLoading(false);
+          navigate('/groups');
+        }
+      }
+    };
+
+    loadGroup();
+
+    // Cleanup function to cancel the fetch if dependencies change
+    return () => {
+      cancelled = true;
+    };
+  }, [groupId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
