@@ -7,6 +7,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Bai Jamjuree', 'sans-serif'],
+      },
       fontSize: {
         'xs': 'var(--font-size-xs)',
         'sm': 'var(--font-size-sm)',
