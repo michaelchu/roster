@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, Users, Plus, UsersRound } from 'lucide-react';
+import { Calendar, Users, Plus, UsersRound, Share2, Edit } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -48,6 +48,38 @@ export function GroupDetailPage() {
     return await groupService.getGroupEvents(groupId);
   }, [groupId]);
 
+  const handleInvite = useCallback(async () => {
+    if (!group) return;
+
+    // Stub invite link - in the future this would generate a proper invite token
+    const inviteLink = `${window.location.origin}/groups/join/${group.id}?invite=stub-token-${Date.now()}`;
+
+    const fallbackCopy = () => {
+      if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+        window.prompt('Copy invite link', inviteLink);
+      }
+    };
+
+    try {
+      if (!navigator?.clipboard?.writeText) {
+        fallbackCopy();
+        errorHandler.info('Clipboard access is unavailable. Copy the invite link manually.');
+        return;
+      }
+
+      await navigator.clipboard.writeText(inviteLink);
+      errorHandler.success('Invite link copied to clipboard!');
+    } catch (error) {
+      fallbackCopy();
+      errorHandler.handle(
+        error instanceof Error ? error : new Error('Failed to copy invite link'),
+        undefined,
+        false
+      );
+      errorHandler.info('Clipboard access is unavailable. Copy the invite link manually.');
+    }
+  }, [group]);
+
   useEffect(() => {
     if (user) {
       loadGroup();
@@ -90,58 +122,65 @@ export function GroupDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-14">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title={group.name} showBackButton backPath="/groups" />
 
       <div className="p-3 space-y-3">
         {/* Group Info Card */}
-        <div className="bg-card rounded-lg p-4 border">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold mb-1">{group.name}</h1>
-              {group.description && (
-                <p className="text-sm text-muted-foreground">{group.description}</p>
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <h1 className="text-lg font-semibold mb-1">{group.name}</h1>
+                {group.description && (
+                  <p className="text-sm text-muted-foreground">{group.description}</p>
+                )}
+              </div>
+              {group.is_private && (
+                <Badge variant="secondary" className="text-xs">
+                  Private
+                </Badge>
               )}
             </div>
-            {group.is_private && (
-              <Badge variant="secondary" className="text-xs">
-                Private
-              </Badge>
-            )}
-          </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>{events?.length || 0} events</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <UsersRound className="h-4 w-4" />
-              <span>Created {new Date(group.created_at).toLocaleDateString()}</span>
+            {/* Stats */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span>{events?.length || 0} events</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <UsersRound className="h-4 w-4" />
+                <span>Created {new Date(group.created_at).toLocaleDateString()}</span>
+              </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 mt-4">
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1"
-              onClick={() => navigate(`/groups/${group.id}/participants`)}
-            >
-              <Users className="h-4 w-4 mr-1" />
-              View Members
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1"
-              onClick={() => navigate(`/events/new?group=${group.id}`)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Event
-            </Button>
+          {/* Action Buttons Footer */}
+          <div className="border-t bg-muted">
+            <div className="flex divide-x divide-border">
+              <button
+                onClick={() => navigate(`/groups/${group.id}/edit`)}
+                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </button>
+              <button
+                onClick={handleInvite}
+                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Invite
+              </button>
+              <button
+                onClick={() => navigate(`/groups/${group.id}/participants`)}
+                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Members
+              </button>
+            </div>
           </div>
         </div>
 
@@ -213,6 +252,17 @@ export function GroupDetailPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Add Event Button above navbar */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
+        <Button
+          onClick={() => navigate(`/events/new?group=${group.id}`)}
+          className="w-full text-white shadow-lg"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Add Event
+        </Button>
       </div>
     </div>
   );
