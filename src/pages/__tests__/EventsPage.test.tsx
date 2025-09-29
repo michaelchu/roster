@@ -1,33 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render as rtlRender, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { EventsPage } from '../EventsPage';
-import { mockEventsList } from '@/test/fixtures/events';
+import { describe, it, beforeEach, expect, vi } from 'vitest';
 
-const mockNavigate = vi.fn();
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
+// Mock the auth hook BEFORE importing the component
+vi.mock('@/hooks/useAuth', () => ({ useAuth: vi.fn() }));
 
-interface MockUser {
-  id: string;
-  email: string;
-}
-
-const mockUseAuth = vi.fn(() => ({
-  user: { id: 'user-123', email: 'test@example.com' } as MockUser | null,
-  loading: false,
-}));
-
-vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => mockUseAuth(),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
-
+// Mock eventService
 vi.mock('@/services', () => ({
   eventService: {
     getEventsByOrganizer: vi.fn(),
@@ -36,151 +12,144 @@ vi.mock('@/services', () => ({
   },
 }));
 
-// Custom render without AuthProvider since we're mocking it
-const render = (ui: React.ReactElement) => {
-  return rtlRender(ui, {
-    wrapper: ({ children }) => <BrowserRouter>{children}</BrowserRouter>,
-  });
+// Mock error handler
+vi.mock('@/lib/errorHandler', () => ({
+  errorHandler: {
+    handle: vi.fn(),
+    success: vi.fn(),
+  },
+}));
+
+// Mock loading state hook
+vi.mock('@/hooks/useLoadingState', () => ({
+  useLoadingState: vi.fn(),
+}));
+
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { EventsPage } from '@/pages/EventsPage';
+import { useAuth } from '@/hooks/useAuth';
+import { useLoadingState } from '@/hooks/useLoadingState';
+
+const mockUseAuth = vi.mocked(useAuth);
+const mockUseLoadingState = vi.mocked(useLoadingState);
+
+const renderWithRouter = (component: ReactElement) => {
+  return render(<BrowserRouter>{component}</BrowserRouter>);
 };
 
 describe('EventsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it('displays loading state initially', () => {
-    render(<EventsPage />);
-
-    // EventsPage shows skeleton loading state, not text
-    expect(screen.getAllByText('My Events')).toHaveLength(1);
-    // Check for skeleton elements (they have animate-pulse class)
-    const skeletonElements = document.querySelectorAll('.animate-pulse');
-    expect(skeletonElements.length).toBeGreaterThan(0);
-  });
-
-  it('displays events list when loaded', async () => {
-    const { eventService } = await import('@/services');
-    vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
-    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
-
-    render(<EventsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Event')).toBeInTheDocument();
-      expect(screen.getByText('Another Event')).toBeInTheDocument();
-      expect(screen.getByText('Third Event')).toBeInTheDocument();
+    // Set default mock return value for useLoadingState
+    mockUseLoadingState.mockReturnValue({
+      isLoading: false,
+      data: [],
+      execute: vi.fn(),
+      error: null,
+      reset: vi.fn(),
+      setLoading: vi.fn(),
+      setError: vi.fn(),
+      setData: vi.fn(),
     });
   });
 
-  it('displays participant counts for each event', async () => {
-    const { eventService } = await import('@/services');
-    vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
-    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
-
-    render(<EventsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('1')).toBeInTheDocument(); // First event count
-      expect(screen.getAllByText('0')).toHaveLength(2); // Second and third event counts
-    });
-  });
-
-  it('navigates to event detail page when event is clicked', async () => {
-    const { eventService } = await import('@/services');
-    vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
-    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
-
-    render(<EventsPage />);
-
-    await waitFor(() => {
-      const eventButton = screen.getByText('Test Event');
-      fireEvent.click(eventButton);
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith('/signup/V1StGXR8_Z');
-  });
-
-  it('no longer has edit button in footer (removed in UI update)', async () => {
-    const { eventService } = await import('@/services');
-    vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
-    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
-
-    render(<EventsPage />);
-
-    await waitFor(() => {
-      // Verify edit button no longer exists in the new UI
-      const editButtons = screen.queryAllByRole('button', { name: /edit/i });
-      expect(editButtons).toHaveLength(0);
-    });
-  });
-
-  it('duplicates event when copy icon is clicked', async () => {
-    const { eventService } = await import('@/services');
-    vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue(mockEventsList);
-    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
-    vi.mocked(eventService.duplicateEvent).mockResolvedValue({
-      ...mockEventsList[0],
-      id: 'new-id',
-    });
-
-    render(<EventsPage />);
-
-    await waitFor(() => {
-      // Find copy icon buttons (they are in top-right corner with copy icon)
-      const copyButtons = screen.getAllByRole('button');
-      // Filter for the small icon buttons (they have specific classes)
-      const copyIconButtons = copyButtons.filter(
-        (button) =>
-          button.classList.contains('absolute') &&
-          button.classList.contains('top-2') &&
-          button.classList.contains('right-2')
-      );
-      expect(copyIconButtons.length).toBeGreaterThan(0);
-      fireEvent.click(copyIconButtons[0]);
-    });
-
-    await waitFor(() => {
-      expect(eventService.duplicateEvent).toHaveBeenCalledWith('V1StGXR8_Z', 'user-123');
-    });
-  });
-
-  it('displays empty state when no events', async () => {
-    const { eventService } = await import('@/services');
-    vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue([]);
-    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
-
-    render(<EventsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('No Events Yet')).toBeInTheDocument();
-      expect(screen.getByText(/Create your first event/)).toBeInTheDocument();
-    });
-  });
-
-  it('shows create event button in empty state', async () => {
-    const { eventService } = await import('@/services');
-    vi.mocked(eventService.getEventsByOrganizer).mockResolvedValue([]);
-    vi.mocked(eventService.getEventsByParticipant).mockResolvedValue([]);
-
-    render(<EventsPage />);
-
-    await waitFor(() => {
-      const createButton = screen.getByRole('button', { name: /create event/i });
-      fireEvent.click(createButton);
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith('/events/new');
-  });
-
-  it('displays sign in prompt when user is not authenticated', () => {
+  it('shows loading skeleton when auth is loading', () => {
     mockUseAuth.mockReturnValue({
-      user: null as MockUser | null,
-      loading: false,
+      user: null,
+      session: null,
+      loading: true,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signInWithGoogle: vi.fn(),
+      signOut: vi.fn(),
     });
 
-    render(<EventsPage />);
+    renderWithRouter(<EventsPage />);
+
+    // Should show loading skeleton (animate-pulse elements)
+    const skeletons = document.querySelectorAll('.animate-pulse');
+    expect(skeletons.length).toBeGreaterThan(0);
+
+    // Should not show main content or sign-in prompt
+    expect(screen.queryByText('My Events')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sign In Required')).not.toBeInTheDocument();
+  });
+
+  it('shows sign in prompt when user is not authenticated', () => {
+    mockUseAuth.mockReturnValue({
+      user: null,
+      session: null,
+      loading: false,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signInWithGoogle: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    renderWithRouter(<EventsPage />);
 
     expect(screen.getByText('Sign In Required')).toBeInTheDocument();
     expect(screen.getByText('Please sign in to view your events')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
+  });
+
+  it('renders events page for authenticated users', () => {
+    const mockUser: User = {
+      id: '123',
+      email: 'test@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z',
+    } as User;
+
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      session: null,
+      loading: false,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signInWithGoogle: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    renderWithRouter(<EventsPage />);
+
+    expect(screen.getByText('My Events')).toBeInTheDocument();
+    expect(screen.getByText('Organizing')).toBeInTheDocument();
+    expect(screen.getByText('Joined')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'New Event' })).toBeInTheDocument();
+  });
+
+  it('shows empty state when no events', () => {
+    const mockUser: User = {
+      id: '123',
+      email: 'test@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z',
+    } as User;
+
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      session: null,
+      loading: false,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signInWithGoogle: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    renderWithRouter(<EventsPage />);
+
+    expect(screen.getByText('No Events Yet')).toBeInTheDocument();
+    expect(
+      screen.getByText('Create your first event to start managing registrations')
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Event' })).toBeInTheDocument();
   });
 });

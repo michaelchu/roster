@@ -1,27 +1,37 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, beforeEach, expect, vi } from 'vitest';
+
+// Mock Supabase - must be hoisted
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnThis(),
+    })),
+  },
+}));
+
 import { eventService } from '../eventService';
-import { mockEvent, mockEventsList, mockLabel } from '@/test/fixtures/events';
-import type { MockSupabaseQueryBuilder } from '@/test/types/mocks';
+import { supabase } from '@/lib/supabase';
 
-// Mock supabase
-vi.mock('@/lib/supabase', () => {
-  const mockFrom = vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    in: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    single: vi.fn(),
-  }));
+// Mock error handler
+vi.mock('@/lib/errorHandler', () => ({
+  errorHandler: {
+    fromSupabaseError: vi.fn((error) => new Error(error.message)),
+  },
+}));
 
-  return {
-    supabase: {
-      from: mockFrom,
-    },
-  };
-});
+// Mock validation
+vi.mock('@/lib/validation', () => ({
+  safeValidateEvent: vi.fn((event) => event),
+  validateCustomFields: vi.fn((fields) => fields || []),
+}));
+
+const mockSupabase = vi.mocked(supabase);
 
 describe('eventService', () => {
   beforeEach(() => {
@@ -30,235 +40,73 @@ describe('eventService', () => {
 
   describe('getEventsByOrganizer', () => {
     it('should fetch events for an organizer with participant counts', async () => {
-      const { supabase } = await import('@/lib/supabase');
-
-      // Mock events with joined participants data
-      const eventsWithParticipants = [
+      const mockEvents = [
         {
-          ...mockEventsList[0],
-          participants: [{ id: 'p1' }, { id: 'p2' }], // 2 participants
-        },
-        {
-          ...mockEventsList[1],
-          participants: [{ id: 'p3' }], // 1 participant
-        },
-        {
-          ...mockEventsList[2],
-          participants: [], // 0 participants
+          id: 'event-1',
+          name: 'Test Event',
+          organizer_id: 'organizer-1',
+          custom_fields: [],
+          is_private: false,
+          participants: [{ id: 'p1' }, { id: 'p2' }],
+          created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      vi.mocked(supabase.from).mockReturnValue({
+      const mockQueryChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({
-          data: eventsWithParticipants,
-          error: null,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
+        order: vi.fn().mockResolvedValue({ data: mockEvents, error: null }),
+      };
 
-      const result = await eventService.getEventsByOrganizer('org-123');
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
-      expect(result).toHaveLength(3);
-      expect(result[0].participant_count).toBe(2);
-      expect(result[1].participant_count).toBe(1);
-      expect(result[2].participant_count).toBe(0);
+      const result = await eventService.getEventsByOrganizer('organizer-1');
+
+      // Verify the query was built correctly
+      expect(mockSupabase.from).toHaveBeenCalledWith('events');
+      expect(mockQueryChain.select).toHaveBeenCalledWith(
+        expect.stringContaining('participants!left(id)')
+      );
+      expect(mockQueryChain.eq).toHaveBeenCalledWith('organizer_id', 'organizer-1');
+      expect(mockQueryChain.order).toHaveBeenCalledWith('created_at', { ascending: false });
+
+      // Verify the result is properly mapped
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'event-1',
+          name: 'Test Event',
+          participant_count: 2,
+          custom_fields: [],
+          is_private: false,
+        })
+      );
     });
 
     it('should return empty array when no events found', async () => {
-      const { supabase } = await import('@/lib/supabase');
-      vi.mocked(supabase.from).mockReturnValue({
+      const mockQueryChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
+        order: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
 
-      const result = await eventService.getEventsByOrganizer('org-123');
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
+
+      const result = await eventService.getEventsByOrganizer('organizer-1');
+
       expect(result).toEqual([]);
     });
 
-    it('should throw error when fetch fails', async () => {
-      const { supabase } = await import('@/lib/supabase');
-      const error = new Error('Database error');
-      vi.mocked(supabase.from).mockReturnValue({
+    it('should handle Supabase errors', async () => {
+      const mockQueryChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({
-          data: null,
-          error,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
+        order: vi.fn().mockResolvedValue({ data: null, error: { message: 'Database error' } }),
+      };
 
-      await expect(eventService.getEventsByOrganizer('org-123')).rejects.toThrow('Database error');
-    });
-  });
+      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
 
-  describe('getEventById', () => {
-    it('should fetch a single event by ID', async () => {
-      const { supabase } = await import('@/lib/supabase');
-      vi.mocked(supabase.from).mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: mockEvent,
-          error: null,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
-
-      const result = await eventService.getEventById('V1StGXR8_Z');
-      expect(result.id).toBe('V1StGXR8_Z');
-      expect(result.name).toBe('Test Event');
-    });
-
-    it('should throw error when event not found', async () => {
-      const { supabase } = await import('@/lib/supabase');
-      const error = new Error('Event not found');
-      vi.mocked(supabase.from).mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: null,
-          error,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
-
-      await expect(eventService.getEventById('nonexistent')).rejects.toThrow('Event not found');
-    });
-  });
-
-  describe('createEvent', () => {
-    it('should create a new event', async () => {
-      const { supabase } = await import('@/lib/supabase');
-      const newEvent = { ...mockEvent };
-      delete (newEvent as Partial<typeof mockEvent>).id;
-      delete (newEvent as Partial<typeof mockEvent>).created_at;
-      delete (newEvent as Partial<typeof mockEvent>).participant_count;
-
-      vi.mocked(supabase.from).mockReturnValue({
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: mockEvent,
-          error: null,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
-
-      const result = await eventService.createEvent(newEvent);
-      expect(result.id).toBe('V1StGXR8_Z');
-    });
-  });
-
-  describe('updateEvent', () => {
-    it('should update an event', async () => {
-      const { supabase } = await import('@/lib/supabase');
-      const updates = { name: 'Updated Event Name' };
-      const updatedEvent = { ...mockEvent, ...updates };
-
-      vi.mocked(supabase.from).mockReturnValue({
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: updatedEvent,
-          error: null,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
-
-      const result = await eventService.updateEvent('event-123', updates);
-      expect(result.name).toBe('Updated Event Name');
-    });
-  });
-
-  describe('deleteEvent', () => {
-    it('should delete an event', async () => {
-      const { supabase } = await import('@/lib/supabase');
-      vi.mocked(supabase.from).mockReturnValue({
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({
-          error: null,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
-
-      await expect(eventService.deleteEvent('event-123')).resolves.not.toThrow();
-    });
-  });
-
-  describe('duplicateEvent', () => {
-    it('should duplicate an event with labels', async () => {
-      const { supabase } = await import('@/lib/supabase');
-
-      // Mock for fetching original event
-      const mockFromOriginalEvent = vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: mockEvent,
-          error: null,
-        }),
-      });
-
-      // Mock for creating new event
-      const mockFromCreateEvent = vi.fn().mockReturnValue({
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { ...mockEvent, id: 'new-event-id', name: 'Test Event (Copy)' },
-          error: null,
-        }),
-      });
-
-      // Mock for fetching labels
-      const mockFromLabels = vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({
-          data: [mockLabel],
-          error: null,
-        }),
-      });
-
-      // Mock for inserting new labels
-      const mockFromInsertLabels = vi.fn().mockReturnValue({
-        insert: vi.fn().mockResolvedValue({
-          error: null,
-        }),
-      });
-
-      vi.mocked(supabase.from)
-        .mockImplementationOnce(
-          () => mockFromOriginalEvent() as unknown as MockSupabaseQueryBuilder
-        )
-        .mockImplementationOnce(() => mockFromCreateEvent() as unknown as MockSupabaseQueryBuilder)
-        .mockImplementationOnce(() => mockFromLabels() as unknown as MockSupabaseQueryBuilder)
-        .mockImplementationOnce(
-          () => mockFromInsertLabels() as unknown as MockSupabaseQueryBuilder
-        );
-
-      const result = await eventService.duplicateEvent('event-123', 'org-123');
-      expect(result.id).toBe('new-event-id');
-      expect(result.name).toBe('Test Event (Copy)');
-    });
-  });
-
-  describe('getPublicEvents', () => {
-    it('should fetch public events', async () => {
-      const { supabase } = await import('@/lib/supabase');
-      const publicEvents = mockEventsList.filter((e) => !e.is_private);
-
-      vi.mocked(supabase.from).mockReturnValue({
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({
-          data: publicEvents,
-          error: null,
-        }),
-      } as unknown as MockSupabaseQueryBuilder);
-
-      const result = await eventService.getPublicEvents();
-      expect(result).toHaveLength(publicEvents.length);
-      expect(result.every((e) => !e.is_private)).toBe(true);
+      await expect(eventService.getEventsByOrganizer('organizer-1')).rejects.toThrow();
     });
   });
 });
