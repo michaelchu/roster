@@ -46,7 +46,7 @@ describe('NewEventPage', () => {
     vi.clearAllMocks();
   });
 
-  it('renders create event form for authenticated users', () => {
+  it('renders create event form for authenticated users', async () => {
     const mockUser: User = {
       id: '123',
       email: 'test@example.com',
@@ -69,10 +69,10 @@ describe('NewEventPage', () => {
     renderWithRouter(<NewEventPage />);
 
     expect(screen.getByRole('heading', { name: 'Create Event' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Event Name *')).toBeInTheDocument();
-    expect(screen.getByLabelText('Description')).toBeInTheDocument();
-    expect(screen.getByLabelText('Date & Time')).toBeInTheDocument();
-    expect(screen.getByLabelText('Location')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Event Name *')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Description')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Date & Time')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Location')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Event' })).toBeInTheDocument();
   });
 
