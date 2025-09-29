@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, Users, Plus, UsersRound } from 'lucide-react';
+import { Calendar, Users, Plus, UsersRound, Share2 } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -47,6 +47,32 @@ export function GroupDetailPage() {
     if (!groupId) return [];
     return await groupService.getGroupEvents(groupId);
   }, [groupId]);
+
+  const handleInvite = useCallback(async () => {
+    if (!group) return;
+
+    try {
+      // Stub invite link - in the future this would generate a proper invite token
+      const inviteLink = `${window.location.origin}/groups/join/${group.id}?invite=stub-token-${Date.now()}`;
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(inviteLink);
+      errorHandler.success('Invite link copied to clipboard!');
+    } catch {
+      // Fallback for browsers that don't support clipboard API
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = `${window.location.origin}/groups/join/${group.id}?invite=stub-token-${Date.now()}`;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        errorHandler.success('Invite link copied to clipboard!');
+      } catch {
+        errorHandler.error('Failed to copy invite link');
+      }
+    }
+  }, [group]);
 
   useEffect(() => {
     if (user) {
@@ -127,11 +153,15 @@ export function GroupDetailPage() {
             <Button
               size="sm"
               variant="outline"
-              className="w-full"
+              className="flex-1"
               onClick={() => navigate(`/groups/${group.id}/participants`)}
             >
               <Users className="h-4 w-4 mr-1" />
               View Members
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1" onClick={handleInvite}>
+              <Share2 className="h-4 w-4 mr-1" />
+              Invite
             </Button>
           </div>
         </div>
