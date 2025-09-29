@@ -36,6 +36,7 @@ export function NewEventPage() {
     name: '',
     description: '',
     datetime: '',
+    end_datetime: '',
     location: '',
     max_participants: null as number | null,
     is_private: false,
@@ -110,6 +111,19 @@ export function NewEventPage() {
     e.preventDefault();
     if (!user) return;
 
+    // Client-side validation for end date
+    if (formData.datetime && formData.end_datetime) {
+      const startDate = new Date(formData.datetime);
+      const endDate = new Date(formData.end_datetime);
+      if (endDate <= startDate) {
+        errorHandler.handle(new Error('End date must be after start date'), {
+          userId: user.id,
+          action: 'validateEventDates',
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const eventData = await eventService.createEvent({
@@ -117,6 +131,7 @@ export function NewEventPage() {
         name: formData.name,
         description: formData.description || null,
         datetime: formData.datetime || null,
+        end_datetime: formData.end_datetime || null,
         location: formData.location || null,
         max_participants: maxParticipants,
         is_private: formData.is_private,
@@ -177,13 +192,26 @@ export function NewEventPage() {
 
           <div className="space-y-2">
             <Label htmlFor="datetime" className="text-sm">
-              Date & Time
+              Start Date & Time
             </Label>
             <Input
               id="datetime"
               type="datetime-local"
               value={formData.datetime}
               onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
+              className="h-10 text-sm"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="end_datetime" className="text-sm">
+              End Date & Time (Optional)
+            </Label>
+            <Input
+              id="end_datetime"
+              type="datetime-local"
+              value={formData.end_datetime}
+              onChange={(e) => setFormData((prev) => ({ ...prev, end_datetime: e.target.value }))}
               className="h-10 text-sm"
             />
           </div>

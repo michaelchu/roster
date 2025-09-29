@@ -1,5 +1,19 @@
 import { z } from 'zod';
 
+// Reusable datetime validation function
+const createDatetimeValidator = (errorMessage: string) => {
+  return z
+    .string()
+    .refine((val) => {
+      if (!val) return true; // Allow empty/null values
+      // Accept ISO datetime strings (with or without timezone)
+      const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/;
+      return isoRegex.test(val) || !isNaN(Date.parse(val));
+    }, errorMessage)
+    .nullable()
+    .optional();
+};
+
 // Custom field validation
 export const customFieldSchema = z.object({
   id: z.string().optional(),
@@ -24,54 +38,66 @@ export const responseValueSchema = z.union([
 export const responseRecordSchema = z.record(z.string(), responseValueSchema);
 
 // Event validation
-export const eventSchema = z.object({
-  id: z
-    .string()
-    .min(8)
-    .max(12)
-    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format')
-    .optional(), // Only nanoid format
-  organizer_id: z.string().uuid('Invalid organizer ID'), // Keep UUID for organizer (from Supabase auth)
-  name: z
-    .string()
-    .min(1, 'Event name is required')
-    .max(200, 'Event name must be less than 200 characters')
-    .trim(),
-  description: z
-    .string()
-    .max(2000, 'Description must be less than 2000 characters')
-    .nullable()
-    .optional(),
-  datetime: z
-    .string()
-    .refine((val) => {
-      if (!val) return true; // Allow empty/null values
-      // Accept ISO datetime strings (with or without timezone)
-      const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d{3})?(Z|[+-]\d{2}:\d{2})?$/;
-      return isoRegex.test(val) || !isNaN(Date.parse(val));
-    }, 'Invalid date format')
-    .nullable()
-    .optional(),
-  location: z.string().max(500, 'Location must be less than 500 characters').nullable().optional(),
-  is_private: z.boolean().default(false),
-  custom_fields: z.array(customFieldSchema).default([]),
-  max_participants: z
-    .number()
-    .int('Max participants must be a whole number')
-    .min(1, 'Must allow at least 1 participant')
-    .max(100, 'Maximum 100 participants allowed')
-    .nullable()
-    .optional(),
-  parent_event_id: z
-    .string()
-    .min(8)
-    .max(12)
-    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid parent event ID format')
-    .nullable()
-    .optional(), // Only nanoid format
-  created_at: z.string().datetime().optional(),
-  participant_count: z.number().int().min(0).optional(),
-});
+export const eventSchema = z
+  .object({
+    id: z
+      .string()
+      .min(8)
+      .max(12)
+      .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format')
+      .optional(), // Only nanoid format
+    organizer_id: z.string().uuid('Invalid organizer ID'), // Keep UUID for organizer (from Supabase auth)
+    name: z
+      .string()
+      .min(1, 'Event name is required')
+      .max(200, 'Event name must be less than 200 characters')
+      .trim(),
+    description: z
+      .string()
+      .max(2000, 'Description must be less than 2000 characters')
+      .nullable()
+      .optional(),
+    datetime: createDatetimeValidator('Invalid date format'),
+    end_datetime: createDatetimeValidator('Invalid end date format'),
+    location: z
+      .string()
+      .max(500, 'Location must be less than 500 characters')
+      .nullable()
+      .optional(),
+    is_private: z.boolean().default(false),
+    custom_fields: z.array(customFieldSchema).default([]),
+    max_participants: z
+      .number()
+      .int('Max participants must be a whole number')
+      .min(1, 'Must allow at least 1 participant')
+      .max(100, 'Maximum 100 participants allowed')
+      .nullable()
+      .optional(),
+    parent_event_id: z
+      .string()
+      .min(8)
+      .max(12)
+      .regex(/^[A-Za-z0-9_-]+$/, 'Invalid parent event ID format')
+      .nullable()
+      .optional(), // Only nanoid format
+    created_at: z.string().datetime().optional(),
+    participant_count: z.number().int().min(0).optional(),
+  })
+  .refine(
+    (data) => {
+      // If both datetime and end_datetime are provided, end_datetime must be after datetime
+      if (data.datetime && data.end_datetime) {
+        const startDate = new Date(data.datetime);
+        const endDate = new Date(data.end_datetime);
+        return endDate > startDate;
+      }
+      return true;
+    },
+    {
+      message: 'End date must be after start date',
+      path: ['end_datetime'],
+    }
+  );
 
 // Participant validation
 export const participantSchema = z.object({

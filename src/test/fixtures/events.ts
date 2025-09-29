@@ -15,6 +15,7 @@ export const mockEvent: Event = {
   name: 'Test Event',
   description: 'A test event description',
   datetime: '2024-12-01T14:00:00Z',
+  end_datetime: '2024-12-01T16:00:00Z',
   location: 'Test Location',
   is_private: false,
   custom_fields: [
@@ -38,12 +39,14 @@ export const mockEventsList: Event[] = [
     ...mockEvent,
     id: 'K1LoGXR8_A', // 10-character nanoid format
     name: 'Another Event',
+    end_datetime: '2024-12-01T18:00:00Z',
     participant_count: 0,
   },
   {
     ...mockEvent,
     id: 'M2JhGXR8_B', // 10-character nanoid format
     name: 'Third Event',
+    end_datetime: null,
     is_private: true,
     participant_count: 0,
   },

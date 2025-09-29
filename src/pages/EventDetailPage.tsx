@@ -59,6 +59,7 @@ interface EventData {
   name: string;
   description: string | null;
   datetime: string | null;
+  end_datetime: string | null;
   location: string | null;
   max_participants: number | null;
   organizer_id: string;
@@ -480,39 +481,78 @@ export function EventDetailPage() {
 
       <div className="p-3 space-y-3">
         {/* Event Info */}
-        {(event.description || event.datetime || event.location || event.max_participants) && (
+        {(event.description ||
+          event.datetime ||
+          event.end_datetime ||
+          event.location ||
+          event.max_participants) && (
           <div className="bg-card rounded-lg border overflow-hidden">
             <div>
-              {/* Top row: Date and Registration Deadline */}
-              {event.datetime && (
+              {/* Top row: Start and End times */}
+              {(event.datetime || event.end_datetime) && (
                 <div className="grid grid-cols-2 divide-x divide-border">
-                  {event.datetime && (
-                    <div className="text-sm text-muted-foreground p-3">
-                      <div className="font-medium text-foreground">Date</div>
-                      <div>
-                        {new Date(event.datetime).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                        <br />
-                        {new Date(event.datetime).toLocaleTimeString(undefined, {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true,
-                        })}
-                      </div>
-                    </div>
-                  )}
                   <div className="text-sm text-muted-foreground p-3">
-                    <div className="font-medium text-foreground">Deadline</div>
-                    <div>None</div>
+                    <div className="font-medium text-foreground">Start</div>
+                    <div>
+                      {event.datetime ? (
+                        <>
+                          {new Date(event.datetime).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                          <br />
+                          {new Date(event.datetime).toLocaleTimeString(undefined, {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </>
+                      ) : (
+                        'Not set'
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground p-3">
+                    <div className="font-medium text-foreground">End</div>
+                    <div>
+                      {event.end_datetime ? (
+                        <>
+                          {new Date(event.end_datetime).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                          <br />
+                          {new Date(event.end_datetime).toLocaleTimeString(undefined, {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </>
+                      ) : (
+                        'Not set'
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Horizontal divider between dates and location */}
-              {event.datetime && event.location && <div className="border-t border-border"></div>}
+              {/* Registration Deadline section */}
+              {(event.datetime || event.end_datetime) && (
+                <>
+                  <div className="border-t border-border"></div>
+                  <div className="text-sm text-muted-foreground p-3">
+                    <div className="font-medium text-foreground">Registration Deadline</div>
+                    <div>None</div>
+                  </div>
+                </>
+              )}
+
+              {/* Horizontal divider between registration deadline and location */}
+              {(event.datetime || event.end_datetime) && event.location && (
+                <div className="border-t border-border"></div>
+              )}
 
               {/* Second row: Location */}
               {event.location && (

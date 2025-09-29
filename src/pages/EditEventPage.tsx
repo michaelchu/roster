@@ -27,6 +27,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
+import { toLocalInputValue } from '@/lib/utils';
 
 interface CustomField {
   id?: string;
@@ -41,6 +42,7 @@ interface EventData {
   name: string;
   description: string | null;
   datetime: string | null;
+  end_datetime: string | null;
   location: string | null;
   max_participants: number | null;
   is_private: boolean | null;
@@ -68,6 +70,7 @@ export function EditEventPage() {
     name: '',
     description: '',
     datetime: '',
+    end_datetime: '',
     location: '',
     is_private: false,
   });
@@ -104,7 +107,8 @@ export function EditEventPage() {
       setFormData({
         name: data.name,
         description: data.description || '',
-        datetime: data.datetime ? new Date(data.datetime).toISOString().slice(0, 16) : '',
+        datetime: data.datetime ? toLocalInputValue(data.datetime) : '',
+        end_datetime: data.end_datetime ? toLocalInputValue(data.end_datetime) : '',
         location: data.location || '',
         is_private: data.is_private ?? false,
       });
@@ -145,12 +149,26 @@ export function EditEventPage() {
     e.preventDefault();
     if (!event || !user) return;
 
+    // Client-side validation for end date
+    if (formData.datetime && formData.end_datetime) {
+      const startDate = new Date(formData.datetime);
+      const endDate = new Date(formData.end_datetime);
+      if (endDate <= startDate) {
+        errorHandler.handle(new Error('End date must be after start date'), {
+          userId: user.id,
+          action: 'validateEventDates',
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       await eventService.updateEvent(event.id, {
         name: formData.name,
         description: formData.description || null,
         datetime: formData.datetime || null,
+        end_datetime: formData.end_datetime || null,
         location: formData.location || null,
         max_participants: maxParticipants,
         is_private: formData.is_private,
@@ -253,13 +271,26 @@ export function EditEventPage() {
 
           <div className="space-y-2">
             <Label htmlFor="datetime" className="text-sm">
-              Date & Time
+              Start Date & Time
             </Label>
             <Input
               id="datetime"
               type="datetime-local"
               value={formData.datetime}
               onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
+              className="h-10 text-sm"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="end_datetime" className="text-sm">
+              End Date & Time (Optional)
+            </Label>
+            <Input
+              id="end_datetime"
+              type="datetime-local"
+              value={formData.end_datetime}
+              onChange={(e) => setFormData((prev) => ({ ...prev, end_datetime: e.target.value }))}
               className="h-10 text-sm"
             />
           </div>
