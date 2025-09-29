@@ -69,7 +69,7 @@ export function GroupDetailPage() {
         document.body.removeChild(textArea);
         errorHandler.success('Invite link copied to clipboard!');
       } catch {
-        errorHandler.error('Failed to copy invite link');
+        errorHandler.handle(new Error('Failed to copy invite link'));
       }
     }
   }, [group]);
