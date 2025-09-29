@@ -1,7 +1,7 @@
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 
-// Mock the auth hook
-vi.mock('@/hooks/useAuth');
+// Mock the auth hook BEFORE importing the component
+vi.mock('@/hooks/useAuth', () => ({ useAuth: vi.fn() }));
 
 // Mock groupService
 vi.mock('@/services', () => ({
