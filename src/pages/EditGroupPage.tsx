@@ -172,19 +172,6 @@ export function EditGroupPage() {
     );
   }
 
-  if (!group) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-lg font-semibold mb-2">Group Not Found</h1>
-          <p className="text-sm text-muted-foreground">
-            This group doesn't exist or you don't have permission to edit it.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   if (!user) {
     return (
       <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
@@ -194,6 +181,19 @@ export function EditGroupPage() {
           <Button size="sm" onClick={() => navigate('/auth/login')}>
             Sign In
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!group) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-lg font-semibold mb-2">Group Not Found</h1>
+          <p className="text-sm text-muted-foreground">
+            This group doesn't exist or you don't have permission to edit it.
+          </p>
         </div>
       </div>
     );
