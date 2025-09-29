@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, UsersRound, Search, Calendar, Users } from 'lucide-react';
+import { Plus, UsersRound, Calendar, Users } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService, type Group } from '@/services';
 import { useLoadingState } from '@/hooks/useLoadingState';
@@ -12,8 +11,6 @@ import { EventListSkeleton } from '@/components/LoadingStates';
 export function GroupsPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSearchBar, setShowSearchBar] = useState(false);
   const { isLoading, data: groups, execute: loadGroups } = useLoadingState<Group[]>([]);
 
   const loadGroupsCallback = useCallback(async () => {
@@ -26,12 +23,6 @@ export function GroupsPage() {
       loadGroups(loadGroupsCallback);
     }
   }, [user, loadGroups, loadGroupsCallback]);
-
-  const filteredGroups = (groups || []).filter(
-    (group) =>
-      group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (group.description ?? '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   if (loading) {
     return <EventListSkeleton />;
@@ -73,83 +64,41 @@ export function GroupsPage() {
         ) : (
           <>
             <div className="bg-card rounded-lg border overflow-hidden">
-              {/* Header */}
-              <div className="p-3 border-b flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">
-                    {filteredGroups.length} {filteredGroups.length === 1 ? 'group' : 'groups'}
-                  </p>
-                </div>
-                <div className="flex border border-border rounded">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className={`h-7 px-2 rounded-r-none border-0 border-r border-border ${
-                      showSearchBar ? 'bg-muted' : ''
-                    }`}
-                    onClick={() => setShowSearchBar(!showSearchBar)}
-                    disabled={!groups || groups.length === 0}
-                  >
-                    <Search className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              {/* Search Bar */}
-              {showSearchBar && (
-                <div className="p-3 border-b bg-muted">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search groups by name or description..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-8 text-sm"
-                    />
-                  </div>
-                </div>
-              )}
               {/* Groups List */}
               <div className="divide-y">
-                {filteredGroups.length === 0 ? (
-                  <div className="p-6 text-center">
-                    <p className="text-sm text-muted-foreground">No groups found</p>
-                  </div>
-                ) : (
-                  filteredGroups.map((group) => (
-                    <button
-                      key={group.id}
-                      onClick={() => navigate(`/groups/${group.id}`)}
-                      className="w-full p-3 text-left hover:bg-muted transition-colors"
-                    >
-                      <div className="flex flex-col">
-                        <div className="mb-3">
-                          <h3 className="text-sm font-semibold truncate">{group.name}</h3>
-                          {group.description && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {group.description}
-                            </p>
-                          )}
+                {(groups || []).map((group) => (
+                  <button
+                    key={group.id}
+                    onClick={() => navigate(`/groups/${group.id}`)}
+                    className="w-full p-3 text-left hover:bg-muted transition-colors"
+                  >
+                    <div className="flex flex-col">
+                      <div className="mb-3">
+                        <h3 className="text-sm font-semibold truncate">{group.name}</h3>
+                        {group.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {group.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{group.event_count || 0} events</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            <span>{group.participant_count || 0} members</span>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{group.event_count || 0} events</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              <span>{group.participant_count || 0} members</span>
-                            </div>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(group.created_at).toLocaleDateString()}
-                          </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(group.created_at).toLocaleDateString()}
                         </div>
                       </div>
-                    </button>
-                  ))
-                )}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </>
