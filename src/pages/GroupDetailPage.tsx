@@ -127,28 +127,27 @@ export function GroupDetailPage() {
             <Button
               size="sm"
               variant="outline"
-              className="flex-1"
+              className="w-full"
               onClick={() => navigate(`/groups/${group.id}/participants`)}
             >
               <Users className="h-4 w-4 mr-1" />
               View Members
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1"
-              onClick={() => navigate(`/events/new?group=${group.id}`)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Event
             </Button>
           </div>
         </div>
 
         {/* Events Section */}
         <div className="bg-card rounded-lg border overflow-hidden">
-          <div className="p-3 border-b">
+          <div className="p-3 border-b flex items-center justify-between">
             <h2 className="text-sm font-medium">Group Events</h2>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`/events/new?group=${group.id}`)}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Event
+            </Button>
           </div>
 
           {eventsLoading ? (
