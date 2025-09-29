@@ -125,6 +125,7 @@ describe('eventService', () => {
         datetime: null,
         end_datetime: null,
         location: null,
+        is_private: false,
         custom_fields: [],
         max_participants: null,
         group_id: null,
@@ -142,7 +143,7 @@ describe('eventService', () => {
 
       mockSupabase.from.mockReturnValue(mockQueryChain as any);
 
-      await eventService.createEvent(newEvent as any);
+      await eventService.createEvent(newEvent);
 
       expect(mockQueryChain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
