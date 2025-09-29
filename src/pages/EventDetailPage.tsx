@@ -477,7 +477,7 @@ export function EventDetailPage() {
 
   return (
     <div className={`min-h-screen bg-background ${user ? 'pb-32' : 'pb-20'}`}>
-      <TopNav title={event.name} showBackButton={!!user} backPath="/events" sticky />
+      <TopNav title="" showBackButton={!!user} backPath="/events" sticky />
 
       <div className="p-3 space-y-3">
         {/* Event Info */}
@@ -488,6 +488,9 @@ export function EventDetailPage() {
           event.max_participants) && (
           <div className="bg-card rounded-lg border overflow-hidden">
             <div>
+              {/* Event Name */}
+              <div className="text-lg font-semibold p-3 border-b border-border">{event.name}</div>
+
               {/* Top row: Start and End times */}
               {(event.datetime || event.end_datetime) && (
                 <div className="grid grid-cols-2 divide-x divide-border">
