@@ -1,14 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import type { ReactElement } from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import type { User } from '@supabase/supabase-js';
-import { ProfilePage } from '../ProfilePage';
-import { useAuth } from '@/hooks/useAuth';
 
 // Mock the auth hook
 vi.mock('@/hooks/useAuth');
-const mockUseAuth = vi.mocked(useAuth);
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
@@ -26,6 +19,15 @@ vi.mock('@/lib/errorHandler', () => ({
     success: vi.fn(),
   },
 }));
+
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { useAuth } from '@/hooks/useAuth';
+
+const mockUseAuth = vi.mocked(useAuth);
 
 const renderWithRouter = (component: ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);

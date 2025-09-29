@@ -1,14 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import type { ReactElement } from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import type { User } from '@supabase/supabase-js';
-import { SettingsPage } from '../SettingsPage';
-import { useAuth } from '@/hooks/useAuth';
 
 // Mock the auth hook
 vi.mock('@/hooks/useAuth');
-const mockUseAuth = vi.mocked(useAuth);
 
 // Mock useFontSize hook
 vi.mock('@/hooks/useFontSize', () => ({
@@ -31,6 +24,15 @@ vi.mock('@/components/theme-provider', () => ({
 vi.mock('@/components/MobileOnly', () => ({
   MobileOnly: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
+
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { SettingsPage } from '@/pages/SettingsPage';
+import { useAuth } from '@/hooks/useAuth';
+
+const mockUseAuth = vi.mocked(useAuth);
 
 const renderWithRouter = (component: ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);

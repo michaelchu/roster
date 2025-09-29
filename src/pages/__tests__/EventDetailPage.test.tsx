@@ -1,14 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import type { ReactElement } from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import type { User } from '@supabase/supabase-js';
-import { EventDetailPage } from '../EventDetailPage';
-import { useAuth } from '@/hooks/useAuth';
 
 // Mock the auth hook
 vi.mock('@/hooks/useAuth');
-const mockUseAuth = vi.mocked(useAuth);
 
 // Mock services
 vi.mock('@/services', () => ({
@@ -59,6 +52,15 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { EventDetailPage } from '@/pages/EventDetailPage';
+import { useAuth } from '@/hooks/useAuth';
+
+const mockUseAuth = vi.mocked(useAuth);
+
 const renderWithRouter = (component: ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
 };
@@ -85,7 +87,7 @@ describe('EventDetailPage', () => {
     expect(screen.queryByText('Event Details')).not.toBeInTheDocument();
   });
 
-  it('shows loading skeleton when no user', () => {
+  it('renders public roster view when unauthenticated', () => {
     mockUseAuth.mockReturnValue({
       user: null,
       session: null,
@@ -98,7 +100,7 @@ describe('EventDetailPage', () => {
 
     renderWithRouter(<EventDetailPage />);
 
-    // Should show loading skeleton instead of sign-in
+    // Should render roster for public events; no sign-in gate
     expect(screen.getByText('Roster')).toBeInTheDocument();
     expect(screen.queryByText('Sign In Required')).not.toBeInTheDocument();
   });

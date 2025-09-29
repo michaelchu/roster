@@ -1,14 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import type { ReactElement } from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import type { User } from '@supabase/supabase-js';
-import { GroupDetailPage } from '../GroupDetailPage';
-import { useAuth } from '@/hooks/useAuth';
 
 // Mock the auth hook
 vi.mock('@/hooks/useAuth');
-const mockUseAuth = vi.mocked(useAuth);
 
 // Mock groupService
 vi.mock('@/services', () => ({
@@ -45,6 +38,15 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { GroupDetailPage } from '@/pages/GroupDetailPage';
+import { useAuth } from '@/hooks/useAuth';
+
+const mockUseAuth = vi.mocked(useAuth);
+
 const renderWithRouter = (component: ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
 };
@@ -67,8 +69,9 @@ describe('GroupDetailPage', () => {
 
     renderWithRouter(<GroupDetailPage />);
 
-    // Should show loading skeleton
-    expect(screen.queryByText('Group Details')).not.toBeInTheDocument();
+    // Should show loading state (and not the sign-in or not-found branches)
+    expect(screen.queryByText('Sign In Required')).not.toBeInTheDocument();
+    expect(screen.queryByText('Group Not Found')).not.toBeInTheDocument();
   });
 
   it('shows loading skeleton when no user', () => {

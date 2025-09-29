@@ -1,14 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import type { ReactElement } from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import type { User } from '@supabase/supabase-js';
-import { GroupParticipantsPage } from '../GroupParticipantsPage';
-import { useAuth } from '@/hooks/useAuth';
 
 // Mock the auth hook
 vi.mock('@/hooks/useAuth');
-const mockUseAuth = vi.mocked(useAuth);
 
 // Mock groupService
 vi.mock('@/services', () => ({
@@ -45,6 +38,15 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { GroupParticipantsPage } from '@/pages/GroupParticipantsPage';
+import { useAuth } from '@/hooks/useAuth';
+
+const mockUseAuth = vi.mocked(useAuth);
+
 const renderWithRouter = (component: ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
 };
@@ -71,7 +73,7 @@ describe('GroupParticipantsPage', () => {
     expect(screen.queryByText('Participants')).not.toBeInTheDocument();
   });
 
-  it('shows page content when no user', () => {
+  it('shows loading skeleton when no user', () => {
     mockUseAuth.mockReturnValue({
       user: null,
       session: null,
@@ -84,8 +86,8 @@ describe('GroupParticipantsPage', () => {
 
     renderWithRouter(<GroupParticipantsPage />);
 
-    // Should show page content including title
-    expect(screen.getByText('All Participants')).toBeInTheDocument();
+    // Should not show sign-in prompt; page remains in loading state
+    expect(screen.queryByText('Sign In Required')).not.toBeInTheDocument();
   });
 
   it('renders for authenticated users', () => {

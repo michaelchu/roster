@@ -1,12 +1,14 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import type { ReactElement } from 'react';
-import { RegisterPage } from '../RegisterPage';
-import { useAuth } from '@/hooks/useAuth';
 
 // Mock the auth hook
 vi.mock('@/hooks/useAuth');
+
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
+import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { useAuth } from '@/hooks/useAuth';
+
 const mockUseAuth = vi.mocked(useAuth);
 
 const renderWithRouter = (component: ReactElement) => {
