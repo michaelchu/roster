@@ -21,6 +21,7 @@ export function GroupDetailPage() {
   const { user, loading: authLoading } = useAuth();
   const [group, setGroup] = useState<Group | null>(null);
   const [groupLoading, setGroupLoading] = useState(true);
+  const [memberCount, setMemberCount] = useState<number>(0);
   const {
     isLoading: eventsLoading,
     data: events,
@@ -34,6 +35,10 @@ export function GroupDetailPage() {
       setGroupLoading(true);
       const groupData = await groupService.getGroupById(groupId);
       setGroup(groupData);
+
+      // Load member count
+      const members = await groupService.getGroupParticipants(groupId);
+      setMemberCount(members.length);
     } catch (error) {
       console.error('Error loading group:', error);
       errorHandler.handle(error);
@@ -123,7 +128,7 @@ export function GroupDetailPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav title={group.name} showBackButton backPath="/groups" />
+      <TopNav title="" showBackButton backPath="/groups" />
 
       <div className="p-3 space-y-3">
         {/* Group Info Card */}
@@ -144,14 +149,16 @@ export function GroupDetailPage() {
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>{events?.length || 0} events</span>
               </div>
               <div className="flex items-center gap-1">
                 <UsersRound className="h-4 w-4" />
-                <span>Created {new Date(group.created_at).toLocaleDateString()}</span>
+                <span>
+                  {memberCount} {memberCount === 1 ? 'member' : 'members'}
+                </span>
               </div>
             </div>
           </div>
@@ -215,36 +222,37 @@ export function GroupDetailPage() {
                   <div className="flex flex-col">
                     <div className="mb-3">
                       <h3 className="text-sm font-semibold truncate">{event.name}</h3>
-                      {event.description && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {event.description}
-                        </p>
-                      )}
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      {event.datetime && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>
+                            {new Date(event.datetime).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                            })}{' '}
+                            -{' '}
+                            {new Date(event.datetime).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-3">
-                        {event.datetime && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>
-                              {new Date(event.datetime).toLocaleDateString('en-US', {
-                                weekday: 'short',
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </span>
-                          </div>
-                        )}
                         <div className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
                           <span>{event.participant_count || 0} registered</span>
                         </div>
+                        {event.is_private && (
+                          <Badge variant="outline" className="text-xs h-5">
+                            Private
+                          </Badge>
+                        )}
                       </div>
-                      {event.is_private && (
-                        <Badge variant="outline" className="text-xs h-5">
-                          Private
-                        </Badge>
-                      )}
                     </div>
                   </div>
                 </button>

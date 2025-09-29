@@ -45,7 +45,7 @@ export function TopNav({
             showBackButton ? 'max-w-[calc(100%-6rem)]' : 'max-w-full'
           )}
         >
-          {title}
+          {title || 'Roster'}
         </h1>
       </div>
     </div>

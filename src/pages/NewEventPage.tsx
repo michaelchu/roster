@@ -15,7 +15,7 @@ import { Plus, Trash2, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService, groupService, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
-import { LoadingSpinner } from '@/components/LoadingStates';
+import { ActionButton } from '@/components/ActionButton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { fromLocalInputValue } from '@/lib/utils';
@@ -396,24 +396,14 @@ export function NewEventPage() {
       </form>
 
       {/* Create Event Button */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">
-        <Button
-          type="submit"
-          form="create-event-form"
-          className="w-full text-white shadow-lg"
-          size="sm"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <LoadingSpinner size="sm" />
-              <span>Creating...</span>
-            </>
-          ) : (
-            'Create Event'
-          )}
-        </Button>
-      </div>
+      <ActionButton
+        type="submit"
+        form="create-event-form"
+        loading={loading}
+        loadingText="Creating..."
+      >
+        Create Event
+      </ActionButton>
     </div>
   );
 }

@@ -148,8 +148,13 @@ export function EventsPage() {
                   onClick={() => navigate(`/signup/${event.id}`)}
                   className="w-full p-3 text-left hover:bg-muted transition-colors"
                 >
-                  <div className="mb-3 pr-8">
-                    <h3 className="text-sm font-semibold truncate">{event.name}</h3>
+                  <div className="pr-8 mb-3">
+                    <h3 className="text-sm font-semibold truncate leading-tight">{event.name}</h3>
+                    {event.group_name && (
+                      <p className="text-xs text-muted-foreground leading-tight">
+                        {event.group_name}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     {event.datetime && (

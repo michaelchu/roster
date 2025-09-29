@@ -7,6 +7,7 @@ import { safeValidateEvent, validateCustomFields, type CustomField } from '@/lib
 export interface Event extends Omit<Tables<'events'>, 'custom_fields'> {
   participant_count?: number;
   custom_fields: CustomField[];
+  group_name?: string;
 }
 
 export type Label = Tables<'labels'>;
@@ -24,13 +25,14 @@ function dbEventToEvent(dbEvent: Tables<'events'>): Event {
 
 export const eventService = {
   async getEventsByOrganizer(organizerId: string): Promise<Event[]> {
-    // Use a single query with LEFT JOIN to get events with participant counts
+    // Use a single query with LEFT JOIN to get events with participant counts and group name
     const { data: eventsData, error: eventsError } = await supabase
       .from('events')
       .select(
         `
         *,
-        participants!left(id)
+        participants!left(id),
+        groups!left(name)
       `
       )
       .eq('organizer_id', organizerId)
@@ -46,15 +48,24 @@ export const eventService = {
         ? event.participants.filter((p) => p !== null).length
         : 0;
 
-      // Remove the participants array from the event object before processing
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { participants: _, ...eventWithoutParticipants } = event as Tables<'events'> & {
+      // Extract group name
+      const groupName =
+        event.groups && !Array.isArray(event.groups) ? event.groups.name : undefined;
+
+      // Remove the participants and groups arrays from the event object before processing
+      const { participants, groups, ...eventWithoutJoins } = event as Tables<'events'> & {
         participants: Array<{ id: string } | null>;
+        groups: { name: string } | null;
       };
 
+      // Avoid unused variable warnings
+      void participants;
+      void groups;
+
       return {
-        ...dbEventToEvent(eventWithoutParticipants),
+        ...dbEventToEvent(eventWithoutJoins),
         participant_count: participantCount,
+        group_name: groupName,
       };
     });
   },
@@ -213,7 +224,8 @@ export const eventService = {
       .select(
         `
         *,
-        participants!inner(id)
+        participants!inner(id),
+        groups!left(name)
       `
       )
       .eq('participants.user_id', userId)
@@ -224,13 +236,24 @@ export const eventService = {
     if (!eventsData) return [];
 
     return eventsData.map((event) => {
-      // Remove the participants array from the event object before processing
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { participants: _, ...eventWithoutParticipants } = event as Tables<'events'> & {
+      // Extract group name
+      const groupName =
+        event.groups && !Array.isArray(event.groups) ? event.groups.name : undefined;
+
+      // Remove the participants and groups arrays from the event object before processing
+      const { participants, groups, ...eventWithoutJoins } = event as Tables<'events'> & {
         participants: Array<{ id: string } | null>;
+        groups: { name: string } | null;
       };
 
-      return dbEventToEvent(eventWithoutParticipants);
+      // Avoid unused variable warnings
+      void participants;
+      void groups;
+
+      return {
+        ...dbEventToEvent(eventWithoutJoins),
+        group_name: groupName,
+      };
     });
   },
 };
