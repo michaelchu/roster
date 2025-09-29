@@ -73,6 +73,7 @@ export const eventSchema = z
       .max(100, 'Maximum 100 participants allowed')
       .nullable()
       .optional(),
+    group_id: z.string().nullable().optional(),
     parent_event_id: z
       .string()
       .min(8)
