@@ -110,30 +110,32 @@ export function GroupDetailPage() {
 
       <div className="p-3 space-y-3">
         {/* Group Info Card */}
-        <div className="bg-card rounded-lg p-4 border">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold mb-1">{group.name}</h1>
-              {group.description && (
-                <p className="text-sm text-muted-foreground">{group.description}</p>
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <h1 className="text-lg font-semibold mb-1">{group.name}</h1>
+                {group.description && (
+                  <p className="text-sm text-muted-foreground">{group.description}</p>
+                )}
+              </div>
+              {group.is_private && (
+                <Badge variant="secondary" className="text-xs">
+                  Private
+                </Badge>
               )}
             </div>
-            {group.is_private && (
-              <Badge variant="secondary" className="text-xs">
-                Private
-              </Badge>
-            )}
-          </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>{events?.length || 0} events</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <UsersRound className="h-4 w-4" />
-              <span>Created {new Date(group.created_at).toLocaleDateString()}</span>
+            {/* Stats */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span>{events?.length || 0} events</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <UsersRound className="h-4 w-4" />
+                <span>Created {new Date(group.created_at).toLocaleDateString()}</span>
+              </div>
             </div>
           </div>
 
