@@ -105,7 +105,7 @@ export function GroupDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-14">
+    <div className="min-h-screen bg-background pb-32">
       <TopNav title={group.name} showBackButton backPath="/groups" />
 
       <div className="p-3 space-y-3">
@@ -157,16 +157,8 @@ export function GroupDetailPage() {
 
         {/* Events Section */}
         <div className="bg-card rounded-lg border overflow-hidden">
-          <div className="p-3 border-b flex items-center justify-between">
+          <div className="p-3 border-b">
             <h2 className="text-sm font-medium">Group Events</h2>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => navigate(`/events/new?group=${group.id}`)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Event
-            </Button>
           </div>
 
           {eventsLoading ? (
@@ -231,6 +223,17 @@ export function GroupDetailPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Add Event Button above navbar */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
+        <Button
+          onClick={() => navigate(`/events/new?group=${group.id}`)}
+          className="w-full text-white shadow-lg"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Add Event
+        </Button>
       </div>
     </div>
   );
