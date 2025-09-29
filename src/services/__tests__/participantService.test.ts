@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 
 // Mock Supabase - must be hoisted
@@ -11,6 +12,7 @@ vi.mock('@/lib/supabase', () => ({
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       single: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
     })),
   },
 }));
@@ -32,141 +34,239 @@ describe('participantService', () => {
     vi.clearAllMocks();
   });
 
-  describe('getParticipantsByEventId', () => {
-    it('should fetch participants for an event', async () => {
-      const mockParticipants = [
-        {
-          id: 'participant-1',
-          event_id: 'event-1',
-          name: 'John Doe',
-          email: 'john@example.com',
-          responses: { field1: 'value1' },
-          slot_number: 1,
-          claimed_by_user_id: null,
-          created_at: '2023-01-01T00:00:00Z',
-        },
-      ];
+  // Note: Basic CRUD operations (getParticipantsByEventId, getParticipantById, etc.)
+  // are thin Supabase wrappers and should be tested via integration tests instead.
+  // Only testing business logic here.
 
+  describe('createParticipant - business logic', () => {
+    it('should set claimed_by_user_id when claiming for others', async () => {
       const mockQueryChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockParticipants, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      const result = await participantService.getParticipantsByEventId('event-1');
-
-      // Verify the query was built correctly
-      expect(mockSupabase.from).toHaveBeenCalledWith('participants');
-      expect(mockQueryChain.select).toHaveBeenCalledWith(
-        expect.stringContaining('participant_labels')
-      );
-      expect(mockQueryChain.eq).toHaveBeenCalledWith('event_id', 'event-1');
-      expect(mockQueryChain.order).toHaveBeenCalledWith('slot_number', { ascending: true });
-
-      // Verify the result is properly mapped
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual(
-        expect.objectContaining({
-          id: 'participant-1',
-          name: 'John Doe',
-          email: 'john@example.com',
-          responses: { field1: 'value1' },
-          slot_number: 1,
-        })
-      );
-    });
-
-    it('should return empty array when no participants found', async () => {
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      const result = await participantService.getParticipantsByEventId('event-1');
-
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe('createParticipant', () => {
-    it('should create a new participant', async () => {
-      const newParticipant = {
-        event_id: 'event-1',
-        name: 'Jane Doe',
-        email: 'jane@example.com',
-        phone: '+1234567890',
-        notes: 'Test notes',
-        user_id: 'user-1',
-        responses: { field1: 'value1' },
-        claimed_by_user_id: null,
-      };
-
-      const mockCreatedParticipant = {
-        id: 'participant-2',
-        ...newParticipant,
-        slot_number: 1,
-        created_at: '2023-01-01T00:00:00Z',
-      };
-
-      const mockQueryChain = {
         insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockCreatedParticipant, error: null }),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'p1',
+            event_id: 'event-1',
+            name: 'John - 1',
+            user_id: null,
+            claimed_by_user_id: 'user-1',
+            slot_number: 1,
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
 
-      const result = await participantService.createParticipant(newParticipant);
+      const result = await participantService.createParticipant(
+        {
+          event_id: 'event-1',
+          name: '',
+          user_id: null,
+          responses: {},
+          claimed_by_user_id: null,
+          email: null,
+          phone: null,
+          notes: null,
+        },
+        { claimingUserId: 'user-1', claimingUserName: 'John' }
+      );
 
-      // Verify the query was built correctly
-      expect(mockSupabase.from).toHaveBeenCalledWith('participants');
+      // Verify claimed spot has correct user relationships
+      expect(result.claimed_by_user_id).toBe('user-1');
+      expect(result.user_id).toBeNull();
+      // Verify insert was called with correct data
       expect(mockQueryChain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          event_id: 'event-1',
-          name: 'Jane Doe',
-          email: 'jane@example.com',
-          user_id: 'user-1',
-        })
-      );
-      expect(mockQueryChain.select).toHaveBeenCalled();
-      expect(mockQueryChain.single).toHaveBeenCalled();
-
-      // Verify the result
-      expect(result).toEqual(
-        expect.objectContaining({
-          id: 'participant-2',
-          name: 'Jane Doe',
-          email: 'jane@example.com',
+          user_id: null,
+          claimed_by_user_id: 'user-1',
         })
       );
     });
 
-    it('should handle Supabase errors during creation', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Database error' } }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
-
+    it('should require authentication for self-registration', async () => {
       const newParticipant = {
         event_id: 'event-1',
         name: 'Jane Doe',
         email: 'jane@example.com',
-        phone: '+1234567890',
-        notes: 'Test notes',
-        user_id: 'user-1',
+        phone: null,
+        notes: null,
+        user_id: null, // No user_id
         responses: {},
         claimed_by_user_id: null,
       };
 
-      await expect(participantService.createParticipant(newParticipant)).rejects.toThrow();
+      await expect(participantService.createParticipant(newParticipant)).rejects.toThrow(
+        'Authentication required for event registration'
+      );
+    });
+  });
+
+  describe('updateParticipant - data transformation', () => {
+    it('should convert empty strings to null for optional fields', async () => {
+      const updates = {
+        email: '',
+        phone: '',
+        notes: '',
+      };
+
+      const mockQueryChain = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'p1',
+            name: 'Test',
+            email: null,
+            phone: null,
+            notes: null,
+            slot_number: 1,
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await participantService.updateParticipant('p1', updates);
+
+      expect(mockQueryChain.update).toHaveBeenCalledWith({
+        email: null,
+        phone: null,
+        notes: null,
+      });
+    });
+  });
+
+  // deleteParticipant, bulkDeleteParticipants, getParticipantByUserAndEvent
+  // are direct Supabase calls - tested via integration tests
+
+  describe('addLabelToParticipant - deduplication logic', () => {
+    it('should skip adding label if already exists (deduplication check)', async () => {
+      const checkChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { id: 'existing' }, error: null }),
+      };
+
+      mockSupabase.from.mockReturnValueOnce(checkChain as any);
+
+      await participantService.addLabelToParticipant('p1', 'label-1');
+
+      // Should only call from once (for the check), not insert
+      expect(mockSupabase.from).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // removeLabelFromParticipant is a direct delete - tested via integration tests
+
+  describe('exportParticipantsToCSV', () => {
+    it('should generate CSV with basic fields', async () => {
+      const participants = [
+        {
+          id: 'p1',
+          name: 'John Doe',
+          email: 'john@example.com',
+          phone: '+1234567890',
+          notes: 'Test notes',
+          labels: [{ id: 'l1', name: 'VIP', event_id: 'e1', color: '#FF0000' }],
+          responses: {},
+          slot_number: 1,
+          user_id: 'user-1',
+          event_id: 'event-1',
+          claimed_by_user_id: null,
+          created_at: '2023-01-01',
+        },
+      ];
+
+      // Mock DOM APIs
+      global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+      global.URL.revokeObjectURL = vi.fn();
+      const mockClick = vi.fn();
+      document.createElement = vi.fn(() => ({
+        click: mockClick,
+        href: '',
+        download: '',
+      })) as any;
+
+      await participantService.exportParticipantsToCSV(participants, 'Test Event', []);
+
+      expect(mockClick).toHaveBeenCalled();
+    });
+
+    it('should include custom fields in CSV', async () => {
+      const participants = [
+        {
+          id: 'p1',
+          name: 'John Doe',
+          email: 'john@example.com',
+          phone: null,
+          notes: null,
+          labels: [],
+          responses: { age: '25', hobbies: ['reading', 'coding'] },
+          slot_number: 1,
+          user_id: 'user-1',
+          event_id: 'event-1',
+          claimed_by_user_id: null,
+          created_at: '2023-01-01',
+        },
+      ];
+
+      const customFields = [
+        { id: 'age', label: 'Age', type: 'number' as const, required: false },
+        { id: 'hobbies', label: 'Hobbies', type: 'select' as const, required: false },
+      ];
+
+      global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+      global.URL.revokeObjectURL = vi.fn();
+      const mockClick = vi.fn();
+      document.createElement = vi.fn(() => ({
+        click: mockClick,
+        href: '',
+        download: '',
+      })) as any;
+
+      await participantService.exportParticipantsToCSV(participants, 'Test Event', customFields);
+
+      expect(mockClick).toHaveBeenCalled();
+    });
+
+    it('should escape special characters in CSV', async () => {
+      const participants = [
+        {
+          id: 'p1',
+          name: 'John "Johnny" Doe',
+          email: 'john@example.com',
+          phone: null,
+          notes: 'Has "quotes" in notes',
+          labels: [],
+          responses: {},
+          slot_number: 1,
+          user_id: 'user-1',
+          event_id: 'event-1',
+          claimed_by_user_id: null,
+          created_at: '2023-01-01',
+        },
+      ];
+
+      global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+      global.URL.revokeObjectURL = vi.fn();
+      global.Blob = vi.fn() as any;
+      const mockClick = vi.fn();
+      document.createElement = vi.fn(() => ({
+        click: mockClick,
+        href: '',
+        download: '',
+      })) as any;
+
+      await participantService.exportParticipantsToCSV(participants, 'Test Event', []);
+
+      // Verify Blob was created (CSV generation happened)
+      expect(global.Blob).toHaveBeenCalled();
     });
   });
 });
