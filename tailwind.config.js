@@ -1,3 +1,5 @@
+import defaultTheme from 'tailwindcss/defaultTheme'
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
@@ -7,6 +9,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Bai Jamjuree"', ...defaultTheme.fontFamily.sans],
+      },
       fontSize: {
         'xs': 'var(--font-size-xs)',
         'sm': 'var(--font-size-sm)',
