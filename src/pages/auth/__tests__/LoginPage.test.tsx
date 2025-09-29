@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
+import type { ReactElement } from 'react';
 import { LoginPage } from '../LoginPage';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -8,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 vi.mock('@/hooks/useAuth');
 const mockUseAuth = vi.mocked(useAuth);
 
-const renderWithRouter = (component: React.ReactElement) => {
+const renderWithRouter = (component: ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
 };
 

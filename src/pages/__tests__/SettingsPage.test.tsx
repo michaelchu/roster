@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import type { User } from '@supabase/supabase-js';
 import { SettingsPage } from '../SettingsPage';
@@ -31,7 +32,7 @@ vi.mock('@/components/MobileOnly', () => ({
   MobileOnly: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-const renderWithRouter = (component: React.ReactElement) => {
+const renderWithRouter = (component: ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
 };
 
