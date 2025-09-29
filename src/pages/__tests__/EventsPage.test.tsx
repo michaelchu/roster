@@ -48,6 +48,11 @@ describe('EventsPage', () => {
       isLoading: false,
       data: [],
       execute: vi.fn(),
+      error: null,
+      reset: vi.fn(),
+      setLoading: vi.fn(),
+      setError: vi.fn(),
+      setData: vi.fn(),
     });
   });
 
