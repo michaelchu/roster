@@ -25,7 +25,8 @@ export function EditGroupPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [group, setGroup] = useState<Group | null>(null);
   const [formData, setFormData] = useState({
@@ -63,6 +64,15 @@ export function EditGroupPage() {
 
         // Check if this fetch was cancelled before updating state
         if (cancelled) return;
+
+        // Handle missing group
+        if (!data) {
+          if (!cancelled) {
+            setGroup(null);
+            setInitialLoading(false);
+          }
+          return;
+        }
 
         // Verify ownership
         if (data.organizer_id !== user.id) {
@@ -138,7 +148,7 @@ export function EditGroupPage() {
       return;
     }
 
-    setLoading(true);
+    setSaving(true);
     try {
       await groupService.updateGroup(group.id, {
         name: formData.name.trim(),
@@ -155,18 +165,20 @@ export function EditGroupPage() {
         metadata: { groupId: group.id },
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const confirmDelete = async () => {
     if (!group || !user) return;
 
-    setLoading(true);
+    setDeleting(true);
     try {
       await groupService.deleteGroup(group.id);
 
       errorHandler.success('Group deleted successfully');
+      // Close dialog before navigate to avoid setState on unmounted component
+      setShowDeleteDialog(false);
       navigate('/groups');
     } catch (error) {
       errorHandler.handle(error, {
@@ -175,8 +187,7 @@ export function EditGroupPage() {
         metadata: { groupId: group.id, groupName: group.name },
       });
     } finally {
-      setLoading(false);
-      setShowDeleteDialog(false);
+      setDeleting(false);
     }
   };
 
@@ -277,7 +288,7 @@ export function EditGroupPage() {
             size="sm"
             className="w-full"
             onClick={() => setShowDeleteDialog(true)}
-            disabled={loading}
+            disabled={saving || deleting}
             type="button"
           >
             <Trash2 className="h-4 w-4 mr-2" />
@@ -295,9 +306,9 @@ export function EditGroupPage() {
           }}
           className="w-full text-white shadow-lg"
           size="sm"
-          disabled={loading}
+          disabled={saving || deleting}
         >
-          {loading ? (
+          {saving ? (
             <>
               <LoadingSpinner size="sm" />
               <span>Saving...</span>
@@ -325,7 +336,7 @@ export function EditGroupPage() {
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
-              disabled={loading}
+              disabled={deleting}
               className="w-full sm:w-auto"
             >
               Cancel
@@ -333,10 +344,10 @@ export function EditGroupPage() {
             <Button
               variant="destructive"
               onClick={confirmDelete}
-              disabled={loading}
+              disabled={deleting}
               className="w-full sm:w-auto"
             >
-              {loading ? 'Deleting...' : 'Delete Group'}
+              {deleting ? 'Deleting...' : 'Delete Group'}
             </Button>
           </DialogFooter>
         </DialogContent>
