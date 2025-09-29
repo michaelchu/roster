@@ -61,7 +61,7 @@ describe('NewGroupPage', () => {
     expect(screen.getByRole('heading', { name: 'Create Group' })).toBeInTheDocument();
     expect(screen.getByLabelText('Group Name *')).toBeInTheDocument();
     expect(screen.getByLabelText('Description')).toBeInTheDocument();
-    expect(screen.getByText('Private Group')).toBeInTheDocument();
+    expect(screen.getByText('Public Group')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Group' })).toBeInTheDocument();
   });
 

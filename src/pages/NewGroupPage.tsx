@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
+import { Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -92,74 +92,91 @@ export function NewGroupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-14">
-      <TopNav title="Create Group" showBackButton backPath="/groups" />
+    <div className="min-h-screen bg-background pb-32">
+      <TopNav title="Create Group" showBackButton backPath="/groups" sticky />
 
-      <div className="p-4">
-        <form id="create-group-form" onSubmit={handleSubmit} className="space-y-6">
-          {/* Group Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Group Name *</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Enter group name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className={errors.name ? 'border-destructive' : ''}
-              maxLength={200}
-            />
-            {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-            <p className="text-xs text-muted-foreground">{formData.name.length}/200 characters</p>
-          </div>
+      <form id="create-group-form" onSubmit={handleSubmit} className="px-4 py-3 space-y-4">
+        {/* Group Name */}
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm">
+            Group Name *
+          </Label>
+          <Input
+            id="name"
+            type="text"
+            placeholder="Enter group name"
+            value={formData.name}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+            className={`h-10 text-sm ${errors.name ? 'border-destructive' : ''}`}
+            maxLength={200}
+          />
+          {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+          <p className="text-xs text-muted-foreground">{formData.name.length}/200 characters</p>
+        </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Describe your group (optional)"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className={`min-h-[100px] ${errors.description ? 'border-destructive' : ''}`}
-              maxLength={2000}
-            />
-            {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
-            <p className="text-xs text-muted-foreground">
-              {formData.description.length}/2000 characters
-            </p>
-          </div>
+        {/* Description */}
+        <div className="space-y-2">
+          <Label htmlFor="description" className="text-sm">
+            Description
+          </Label>
+          <Textarea
+            id="description"
+            placeholder="Describe your group (optional)"
+            value={formData.description}
+            onChange={(e) => handleInputChange('description', e.target.value)}
+            className={`text-sm resize-none ${errors.description ? 'border-destructive' : ''}`}
+            rows={3}
+            maxLength={2000}
+          />
+          {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+          <p className="text-xs text-muted-foreground">
+            {formData.description.length}/2000 characters
+          </p>
+        </div>
 
-          {/* Privacy Setting */}
-          <div className="space-y-3">
-            <Label>Privacy</Label>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex-1">
-                <div className="font-medium text-sm">Private Group</div>
-                <div className="text-xs text-muted-foreground">
-                  Only invited members can join this group
-                </div>
-              </div>
-              <Switch
-                checked={formData.is_private}
-                onCheckedChange={(checked) => handleInputChange('is_private', checked)}
-              />
+        {/* Privacy Setting */}
+        <div className="space-y-2">
+          <Label className="text-sm">Group Privacy</Label>
+          <button
+            type="button"
+            onClick={() => handleInputChange('is_private', !formData.is_private)}
+            className={`flex items-center justify-between w-full p-2 rounded-lg border-2 transition-colors ${
+              formData.is_private
+                ? 'border-destructive/20 bg-destructive/5'
+                : 'border-primary/20 bg-primary/5'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              {formData.is_private ? (
+                <Lock className="h-3.5 w-3.5 text-destructive" />
+              ) : (
+                <Unlock className="h-3.5 w-3.5 text-primary" />
+              )}
+              <span
+                className={`text-sm font-medium ${
+                  formData.is_private ? 'text-destructive' : 'text-primary'
+                }`}
+              >
+                {formData.is_private ? 'Private Group' : 'Public Group'}
+              </span>
             </div>
-          </div>
+          </button>
+          <p className="text-xs text-muted-foreground">
+            {formData.is_private
+              ? 'Only people you invite can view and join this group'
+              : 'Anyone with the link can view and join this group'}
+          </p>
+        </div>
+      </form>
 
-          {/* Submit Button */}
-          <div className="pt-4">{/* Spacer for fixed button */}</div>
-        </form>
-
-        <ActionButton
-          type="submit"
-          form="create-group-form"
-          loading={loading}
-          loadingText="Creating Group..."
-        >
-          Create Group
-        </ActionButton>
-      </div>
+      <ActionButton
+        type="submit"
+        form="create-group-form"
+        loading={loading}
+        loadingText="Creating Group..."
+      >
+        Create Group
+      </ActionButton>
     </div>
   );
 }

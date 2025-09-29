@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -157,153 +159,151 @@ export function NewEventPage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav title="Create Event" showBackButton backPath="/events" sticky />
 
-      <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-3">
-        <div className="bg-card rounded-lg p-3 border space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm">
-              Event Name *
-            </Label>
-            <Input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-              required
-              className="h-10 text-sm"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm">
-              Description
-            </Label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2 text-sm border rounded-md resize-none"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="datetime" className="text-sm">
-              Start Date & Time
-            </Label>
-            <Input
-              id="datetime"
-              type="datetime-local"
-              value={formData.datetime}
-              onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
-              className="h-10 text-sm"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="end_datetime" className="text-sm">
-              End Date & Time (Optional)
-            </Label>
-            <Input
-              id="end_datetime"
-              type="datetime-local"
-              value={formData.end_datetime}
-              onChange={(e) => setFormData((prev) => ({ ...prev, end_datetime: e.target.value }))}
-              className="h-10 text-sm"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="location" className="text-sm">
-              Location
-            </Label>
-            <Input
-              id="location"
-              type="text"
-              value={formData.location}
-              onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
-              className="h-10 text-sm"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="group" className="text-sm">
-              Group (Optional)
-            </Label>
-            <Select
-              value={formData.group_id}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, group_id: value }))}
-              disabled={groupsLoading}
-            >
-              <SelectTrigger id="group" className="h-10 text-sm">
-                <SelectValue placeholder="No group (standalone event)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__no_group__">No group (standalone event)</SelectItem>
-                {groupsLoading ? (
-                  <SelectItem value="__loading__" disabled>
-                    Loading groups...
-                  </SelectItem>
-                ) : (
-                  groups?.map((group) => (
-                    <SelectItem key={group.id} value={group.id}>
-                      {group.name}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Assign this event to a group to organize related events together
-            </p>
-          </div>
-
-          <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
-
-          <div className="space-y-2">
-            <Label className="text-sm">Event Privacy</Label>
-            <button
-              type="button"
-              onClick={() =>
-                setFormData((prev) => ({
-                  ...prev,
-                  is_private: !prev.is_private,
-                }))
-              }
-              className={`flex items-center justify-between w-full p-3 rounded-lg border-2 transition-colors ${
-                formData.is_private
-                  ? 'border-destructive/20 bg-destructive/5'
-                  : 'border-primary/20 bg-primary/5'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                {formData.is_private ? (
-                  <Lock className="h-4 w-4 text-destructive" />
-                ) : (
-                  <Unlock className="h-4 w-4 text-primary" />
-                )}
-                <span
-                  className={`font-medium ${
-                    formData.is_private ? 'text-destructive' : 'text-primary'
-                  }`}
-                >
-                  {formData.is_private ? 'Private Event' : 'Public Event'}
-                </span>
-              </div>
-            </button>
-            <p className="text-xs text-muted-foreground">
-              {formData.is_private
-                ? 'Only people you invite can view and sign up for this event'
-                : 'Anyone with the link can view and sign up for this event'}
-            </p>
-          </div>
+      <form id="create-event-form" onSubmit={handleSubmit} className="px-4 py-3 space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm">
+            Event Name *
+          </Label>
+          <Input
+            id="name"
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+            required
+            className="h-10 text-sm"
+          />
         </div>
 
-        <div className="bg-card rounded-lg p-3 border space-y-3">
+        <div className="space-y-2">
+          <Label htmlFor="description" className="text-sm">
+            Description
+          </Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                description: e.target.value,
+              }))
+            }
+            className="text-sm resize-none"
+            rows={3}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="datetime" className="text-sm">
+            Start Date & Time
+          </Label>
+          <Input
+            id="datetime"
+            type="datetime-local"
+            value={formData.datetime}
+            onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
+            className="h-10 text-sm"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="end_datetime" className="text-sm">
+            End Date & Time (Optional)
+          </Label>
+          <Input
+            id="end_datetime"
+            type="datetime-local"
+            value={formData.end_datetime}
+            onChange={(e) => setFormData((prev) => ({ ...prev, end_datetime: e.target.value }))}
+            className="h-10 text-sm"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="location" className="text-sm">
+            Location
+          </Label>
+          <Input
+            id="location"
+            type="text"
+            value={formData.location}
+            onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
+            className="h-10 text-sm"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="group" className="text-sm">
+            Group (Optional)
+          </Label>
+          <Select
+            value={formData.group_id}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, group_id: value }))}
+            disabled={groupsLoading}
+          >
+            <SelectTrigger id="group" className="h-10 text-sm">
+              <SelectValue placeholder="No group (standalone event)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__no_group__">No group (standalone event)</SelectItem>
+              {groupsLoading ? (
+                <SelectItem value="__loading__" disabled>
+                  Loading groups...
+                </SelectItem>
+              ) : (
+                groups?.map((group) => (
+                  <SelectItem key={group.id} value={group.id}>
+                    {group.name}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Assign this event to a group to organize related events together
+          </p>
+        </div>
+
+        <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
+
+        <div className="space-y-2">
+          <Label className="text-sm">Event Privacy</Label>
+          <button
+            type="button"
+            onClick={() =>
+              setFormData((prev) => ({
+                ...prev,
+                is_private: !prev.is_private,
+              }))
+            }
+            className={`flex items-center justify-between w-full p-2 rounded-lg border-2 transition-colors ${
+              formData.is_private
+                ? 'border-destructive/20 bg-destructive/5'
+                : 'border-primary/20 bg-primary/5'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              {formData.is_private ? (
+                <Lock className="h-3.5 w-3.5 text-destructive" />
+              ) : (
+                <Unlock className="h-3.5 w-3.5 text-primary" />
+              )}
+              <span
+                className={`text-sm font-medium ${
+                  formData.is_private ? 'text-destructive' : 'text-primary'
+                }`}
+              >
+                {formData.is_private ? 'Private Event' : 'Public Event'}
+              </span>
+            </div>
+          </button>
+          <p className="text-xs text-muted-foreground">
+            {formData.is_private
+              ? 'Only people you invite can view and sign up for this event'
+              : 'Anyone with the link can view and sign up for this event'}
+          </p>
+        </div>
+
+        <div className="pt-3 border-t">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium">Custom Fields</h2>
             <Button
@@ -319,13 +319,13 @@ export function NewEventPage() {
           </div>
 
           {customFields.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-2">
               No custom fields. Add fields to collect additional information from participants.
             </p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 mt-3">
               {customFields.map((field) => (
-                <div key={field.id} className="p-3 bg-muted rounded space-y-2">
+                <div key={field.id} className="p-3 bg-muted rounded border space-y-2">
                   <div className="flex items-center gap-2">
                     <Input
                       type="text"
@@ -343,29 +343,32 @@ export function NewEventPage() {
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <select
+                    <Select
                       value={field.type}
-                      onChange={(e) =>
+                      onValueChange={(value) =>
                         updateCustomField(field.id, {
-                          type: e.target.value as CustomField['type'],
-                          options: e.target.value === 'select' ? [''] : undefined,
+                          type: value as CustomField['type'],
+                          options: value === 'select' ? [''] : undefined,
                         })
                       }
-                      className="flex-1 h-9 px-2 text-sm border rounded"
                     >
-                      <option value="text">Text</option>
-                      <option value="email">Email</option>
-                      <option value="tel">Phone</option>
-                      <option value="number">Number</option>
-                      <option value="select">Dropdown</option>
-                    </select>
-                    <label className="flex items-center gap-1 text-xs">
-                      <input
-                        type="checkbox"
+                      <SelectTrigger className="flex-1 h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="tel">Phone</SelectItem>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="select">Dropdown</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                      <Checkbox
                         checked={field.required}
-                        onChange={(e) =>
+                        onCheckedChange={(checked) =>
                           updateCustomField(field.id, {
-                            required: e.target.checked,
+                            required: checked === true,
                           })
                         }
                       />
@@ -375,7 +378,7 @@ export function NewEventPage() {
                   {field.type === 'select' && (
                     <div className="space-y-2">
                       <Label className="text-xs">Options (one per line)</Label>
-                      <textarea
+                      <Textarea
                         value={field.options?.join('\n') || ''}
                         onChange={(e) =>
                           updateCustomField(field.id, {
@@ -383,7 +386,7 @@ export function NewEventPage() {
                           })
                         }
                         placeholder="Option 1&#10;Option 2&#10;Option 3"
-                        className="w-full px-2 py-1 text-sm border rounded resize-none"
+                        className="text-sm resize-none"
                         rows={3}
                       />
                     </div>
