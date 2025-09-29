@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { HomePage } from '../HomePage';
 import { useAuth } from '@/hooks/useAuth';
 
