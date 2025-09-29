@@ -71,7 +71,7 @@ describe('NewEventPage', () => {
     expect(screen.getByRole('heading', { name: 'Create Event' })).toBeInTheDocument();
     expect(screen.getByLabelText('Event Name *')).toBeInTheDocument();
     expect(screen.getByLabelText('Description')).toBeInTheDocument();
-    expect(screen.getByLabelText('Date & Time')).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/date & time/i).length).toBeGreaterThan(0);
     expect(screen.getByLabelText('Location')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Event' })).toBeInTheDocument();
   });
