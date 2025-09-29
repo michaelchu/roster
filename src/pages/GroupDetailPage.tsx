@@ -59,18 +59,7 @@ export function GroupDetailPage() {
       await navigator.clipboard.writeText(inviteLink);
       errorHandler.success('Invite link copied to clipboard!');
     } catch {
-      // Fallback for browsers that don't support clipboard API
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = `${window.location.origin}/groups/join/${group.id}?invite=stub-token-${Date.now()}`;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        errorHandler.success('Invite link copied to clipboard!');
-      } catch {
-        errorHandler.handle(new Error('Failed to copy invite link'));
-      }
+      errorHandler.handle(new Error('Failed to copy invite link'));
     }
   }, [group]);
 
