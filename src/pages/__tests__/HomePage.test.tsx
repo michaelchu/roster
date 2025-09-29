@@ -40,9 +40,11 @@ describe('HomePage', () => {
   it('renders welcome message for unauthenticated users', () => {
     mockUseAuth.mockReturnValue({
       user: null,
+      session: null,
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithGoogle: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -54,11 +56,22 @@ describe('HomePage', () => {
   });
 
   it('renders quick actions for authenticated users', () => {
+    const mockUser = {
+      id: '123',
+      email: 'test@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z',
+    } as any;
+
     mockUseAuth.mockReturnValue({
-      user: { id: '123', email: 'test@example.com' },
+      user: mockUser,
+      session: null,
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithGoogle: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -72,11 +85,22 @@ describe('HomePage', () => {
   });
 
   it('renders upcoming events section for authenticated users', () => {
+    const mockUser = {
+      id: '123',
+      email: 'test@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z',
+    } as any;
+
     mockUseAuth.mockReturnValue({
-      user: { id: '123', email: 'test@example.com' },
+      user: mockUser,
+      session: null,
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithGoogle: vi.fn(),
       signOut: vi.fn(),
     });
 
