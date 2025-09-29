@@ -51,15 +51,32 @@ export function GroupDetailPage() {
   const handleInvite = useCallback(async () => {
     if (!group) return;
 
-    try {
-      // Stub invite link - in the future this would generate a proper invite token
-      const inviteLink = `${window.location.origin}/groups/join/${group.id}?invite=stub-token-${Date.now()}`;
+    // Stub invite link - in the future this would generate a proper invite token
+    const inviteLink = `${window.location.origin}/groups/join/${group.id}?invite=stub-token-${Date.now()}`;
 
-      // Copy to clipboard
+    const fallbackCopy = () => {
+      if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+        window.prompt('Copy invite link', inviteLink);
+      }
+    };
+
+    try {
+      if (!navigator?.clipboard?.writeText) {
+        fallbackCopy();
+        errorHandler.info('Clipboard access is unavailable. Copy the invite link manually.');
+        return;
+      }
+
       await navigator.clipboard.writeText(inviteLink);
       errorHandler.success('Invite link copied to clipboard!');
-    } catch {
-      errorHandler.handle(new Error('Failed to copy invite link'));
+    } catch (error) {
+      fallbackCopy();
+      errorHandler.handle(
+        error instanceof Error ? error : new Error('Failed to copy invite link'),
+        undefined,
+        false
+      );
+      errorHandler.info('Clipboard access is unavailable. Copy the invite link manually.');
     }
   }, [group]);
 
