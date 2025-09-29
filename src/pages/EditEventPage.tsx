@@ -27,6 +27,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
+import { toLocalInputValue } from '@/lib/utils';
 
 interface CustomField {
   id?: string;
@@ -106,10 +107,8 @@ export function EditEventPage() {
       setFormData({
         name: data.name,
         description: data.description || '',
-        datetime: data.datetime ? new Date(data.datetime).toISOString().slice(0, 16) : '',
-        end_datetime: data.end_datetime
-          ? new Date(data.end_datetime).toISOString().slice(0, 16)
-          : '',
+        datetime: data.datetime ? toLocalInputValue(data.datetime) : '',
+        end_datetime: data.end_datetime ? toLocalInputValue(data.end_datetime) : '',
         location: data.location || '',
         is_private: data.is_private ?? false,
       });

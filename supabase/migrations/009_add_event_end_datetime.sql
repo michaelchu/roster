@@ -8,10 +8,23 @@ ALTER TABLE events ADD COLUMN IF NOT EXISTS end_datetime TIMESTAMPTZ;
 -- Add check constraint to ensure end_datetime is after datetime when both are provided
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'events_end_datetime_after_start') THEN
-        ALTER TABLE events ADD CONSTRAINT events_end_datetime_after_start
-        CHECK (end_datetime IS NULL OR datetime IS NULL OR end_datetime > datetime);
-    END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class    t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE c.conname  = 'events_end_datetime_after_start'
+      AND t.relname  = 'events'
+      AND n.nspname  = 'public'
+  ) THEN
+    ALTER TABLE events
+      ADD CONSTRAINT events_end_datetime_after_start
+      CHECK (
+        end_datetime IS NULL
+        OR datetime      IS NULL
+        OR end_datetime > datetime
+      );
+  END IF;
 END $$;
 
 -- Add index for performance on end_datetime queries
