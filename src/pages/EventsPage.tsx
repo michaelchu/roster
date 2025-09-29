@@ -150,6 +150,9 @@ export function EventsPage() {
                 >
                   <div className="mb-3 pr-8">
                     <h3 className="text-sm font-semibold truncate">{event.name}</h3>
+                    {event.group_name && (
+                      <p className="text-xs text-muted-foreground mt-1">{event.group_name}</p>
+                    )}
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     {event.datetime && (
