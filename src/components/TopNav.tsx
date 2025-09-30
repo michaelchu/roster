@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TopNavProps {
-  title: string;
+  title?: string;
   showBackButton?: boolean;
   backPath?: string;
   onBack?: () => void;
