@@ -309,7 +309,7 @@ export function HomePage() {
               <p className="text-xs text-muted-foreground mb-4">
                 Sign in to create and manage your events
               </p>
-              <Button size="sm" className="w-full" onClick={() => navigate('/auth/login')}>
+              <Button className="w-full" onClick={() => navigate('/auth/login')}>
                 Sign In
               </Button>
             </div>

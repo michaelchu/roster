@@ -119,7 +119,7 @@ export function RegisterPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" size="sm" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating account...' : 'Sign Up'}
             </Button>
 
@@ -139,7 +139,6 @@ export function RegisterPage() {
               disabled={googleLoading || loading}
               variant="outline"
               className="w-full"
-              size="sm"
             >
               {googleLoading ? (
                 'Signing up...'

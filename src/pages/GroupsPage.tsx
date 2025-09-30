@@ -7,6 +7,7 @@ import { TopNav } from '@/components/TopNav';
 import { groupService, type Group } from '@/services';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton } from '@/components/LoadingStates';
+import { ActionButton } from '@/components/ActionButton';
 
 export function GroupsPage() {
   const navigate = useNavigate();
@@ -34,9 +35,7 @@ export function GroupsPage() {
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
           <p className="text-sm text-muted-foreground mb-4">Please sign in to view your groups</p>
-          <Button size="sm" onClick={() => navigate('/auth/login')}>
-            Sign In
-          </Button>
+          <Button onClick={() => navigate('/auth/login')}>Sign In</Button>
         </div>
       </div>
     );
@@ -56,7 +55,7 @@ export function GroupsPage() {
             <p className="text-xs text-muted-foreground mb-4">
               Create your first group to organize events and manage participants
             </p>
-            <Button size="sm" className="w-full" onClick={() => navigate('/groups/new')}>
+            <Button className="w-full" onClick={() => navigate('/groups/new')}>
               <Plus className="h-4 w-4 mr-1" />
               Create Group
             </Button>
@@ -106,12 +105,10 @@ export function GroupsPage() {
       </div>
 
       {/* New Group Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">
-        <Button onClick={() => navigate('/groups/new')} className="w-full text-white shadow-lg">
-          <Plus className="h-5 w-5 mr-2" />
-          New Group
-        </Button>
-      </div>
+      <ActionButton onClick={() => navigate('/groups/new')}>
+        <Plus className="h-5 w-5 mr-2" />
+        New Group
+      </ActionButton>
     </div>
   );
 }

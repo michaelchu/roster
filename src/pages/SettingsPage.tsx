@@ -65,9 +65,7 @@ export function SettingsPage() {
           <div className="text-center">
             <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
             <p className="text-sm text-muted-foreground mb-4">Please sign in to access settings</p>
-            <Button size="sm" onClick={() => navigate('/auth/login')}>
-              Sign In
-            </Button>
+            <Button onClick={() => navigate('/auth/login')}>Sign In</Button>
           </div>
         </div>
       </MobileOnly>
@@ -305,7 +303,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <Button variant="destructive" size="sm" className="w-full" onClick={handleSignOut}>
+          <Button variant="destructive" className="w-full" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
