@@ -98,23 +98,29 @@ export function EventsPage() {
     );
   }
 
-  const renderEventList = (events: Event[] | null, isLoading: boolean, showDuplicate: boolean) => {
+  const renderEventList = (
+    events: Event[] | null,
+    isLoading: boolean,
+    showDuplicate: boolean,
+    emptyState?: { title: string; description: string }
+  ) => {
     if (isLoading) {
       return <EventListSkeleton count={3} />;
     }
 
     if (!events || events.length === 0) {
+      const title = emptyState?.title || (showDuplicate ? 'No Events Yet' : 'No Joined Events');
+      const description =
+        emptyState?.description ||
+        (showDuplicate
+          ? 'Create your first event to start managing registrations'
+          : "You haven't joined any events yet");
+
       return (
         <div className="bg-card rounded-lg p-3 border text-center">
           <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h2 className="text-base font-medium mb-2">
-            {showDuplicate ? 'No Events Yet' : 'No Joined Events'}
-          </h2>
-          <p className="text-xs text-muted-foreground mb-4">
-            {showDuplicate
-              ? 'Create your first event to start managing registrations'
-              : "You haven't joined any events yet"}
-          </p>
+          <h2 className="text-base font-medium mb-2">{title}</h2>
+          <p className="text-xs text-muted-foreground mb-4">{description}</p>
           {showDuplicate && (
             <Button size="sm" className="w-full" onClick={() => navigate('/events/new')}>
               <Plus className="h-4 w-4 mr-1" />
@@ -210,7 +216,10 @@ export function EventsPage() {
         </TabsContent>
 
         <TabsContent value="archive" className="p-3 space-y-3 mt-0">
-          {renderEventList(archivedEvents, isLoadingArchived, false)}
+          {renderEventList(archivedEvents, isLoadingArchived, false, {
+            title: 'No Archived Events',
+            description: 'Past events will appear here once their date has passed',
+          })}
         </TabsContent>
       </Tabs>
     </div>
