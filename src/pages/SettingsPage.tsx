@@ -34,7 +34,7 @@ import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
-  const { fontSize, setFontSize, fontSizeLabels } = useFontSize();
+  const { fontSize, setFontSize } = useFontSize();
   const { theme, setTheme } = useTheme();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
@@ -130,10 +130,7 @@ export function SettingsPage() {
               <div className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                  <Label
-                    htmlFor="sms-notifications"
-                    className="text-sm font-medium cursor-pointer"
-                  >
+                  <Label htmlFor="sms-notifications" className="text-sm font-medium cursor-pointer">
                     SMS Notifications
                   </Label>
                 </div>
