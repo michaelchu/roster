@@ -265,44 +265,6 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-muted">
-              <h3 className="text-sm font-medium">About This App</h3>
-            </div>
-            <div className="p-3">
-              <div className="text-xs text-muted-foreground space-y-3">
-                <div>
-                  <p className="mb-2">
-                    Roster is a mobile-first event management platform designed to streamline event
-                    registration and participant management. Create events, manage signups, and
-                    track attendance all from your mobile device.
-                  </p>
-                </div>
-
-                <div>
-                  <div className="font-medium text-foreground mb-2">Install Mobile App</div>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="font-medium">For iPhone/iPad:</div>
-                      <div>1. Open this website in Safari</div>
-                      <div>2. Tap the Share button (square with arrow)</div>
-                      <div>3. Select "Add to Home Screen"</div>
-                      <div>4. Tap "Add" to confirm</div>
-                    </div>
-
-                    <div>
-                      <div className="font-medium">For Android:</div>
-                      <div>1. Open this website in Chrome</div>
-                      <div>2. Tap the menu (three dots)</div>
-                      <div>3. Select "Add to Home screen"</div>
-                      <div>4. Tap "Add" to confirm</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <Button variant="destructive" className="w-full" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
