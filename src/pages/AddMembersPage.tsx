@@ -123,48 +123,32 @@ export function AddMembersPage() {
 
     setAdding(true);
     try {
-      // Get selected participants
-      const selectedParticipants = availableParticipants.filter((p) =>
-        selectedParticipantIds.has(p.id)
-      );
+      // Get selected participant IDs as array
+      const participantIds = Array.from(selectedParticipantIds);
 
-      // Add all participants to the group in parallel using Promise.allSettled
-      const results = await Promise.allSettled(
-        selectedParticipants.map((participant) =>
-          groupService.addParticipantToGroup(groupId, participant.id)
-        )
-      );
-
-      // Collect successes and failures
-      const successes: string[] = [];
-      const failures: Array<{ name: string; error: string }> = [];
-
-      results.forEach((result, index) => {
-        const participant = selectedParticipants[index];
-        if (result.status === 'fulfilled') {
-          successes.push(participant.name);
-        } else {
-          failures.push({
-            name: participant.name,
-            error: result.reason?.message || 'Unknown error',
-          });
-        }
-      });
+      // Use atomic batch RPC operation
+      const result = await groupService.addParticipantsToGroupBatch(groupId, participantIds);
 
       // Report results to user
-      if (failures.length === 0) {
-        // All succeeded
-        errorHandler.success(
-          `Added ${successes.length} ${successes.length === 1 ? 'member' : 'members'} to the group`
-        );
+      if (result.failed === 0) {
+        // All succeeded (including skipped duplicates)
+        if (result.skipped > 0) {
+          errorHandler.success(
+            `Added ${result.added} new ${result.added === 1 ? 'member' : 'members'}. ${result.skipped} ${result.skipped === 1 ? 'was' : 'were'} already in the group.`
+          );
+        } else {
+          errorHandler.success(
+            `Added ${result.added} ${result.added === 1 ? 'member' : 'members'} to the group`
+          );
+        }
         // Clear selection and reload data
         setSelectedParticipantIds(new Set());
         await loadData();
-      } else if (successes.length === 0) {
+      } else if (result.added === 0 && result.skipped === 0) {
         // All failed
         errorHandler.handle(
           new Error(
-            `Failed to add members: ${failures.map((f) => `${f.name} (${f.error})`).join(', ')}`
+            `Failed to add all ${result.failed} selected ${result.failed === 1 ? 'member' : 'members'}`
           ),
           {
             userId: user?.id,
@@ -174,22 +158,21 @@ export function AddMembersPage() {
       } else {
         // Partial success
         errorHandler.success(
-          `Added ${successes.length} ${successes.length === 1 ? 'member' : 'members'} successfully`
+          `Added ${result.added} ${result.added === 1 ? 'member' : 'members'} successfully${result.skipped > 0 ? ` (${result.skipped} already in group)` : ''}`
         );
-        errorHandler.handle(
-          new Error(
-            `Failed to add ${failures.length} ${failures.length === 1 ? 'member' : 'members'}: ${failures.map((f) => f.name).join(', ')}`
-          ),
-          {
-            userId: user?.id,
-            action: 'addMembers',
-          }
-        );
-        // Clear only successful selections and reload
-        const failedIds = new Set(
-          selectedParticipants.filter((_, i) => results[i].status === 'rejected').map((p) => p.id)
-        );
-        setSelectedParticipantIds(failedIds);
+        if (result.failed > 0) {
+          errorHandler.handle(
+            new Error(
+              `Failed to add ${result.failed} ${result.failed === 1 ? 'member' : 'members'}`
+            ),
+            {
+              userId: user?.id,
+              action: 'addMembers',
+            }
+          );
+        }
+        // Clear selection and reload since we can't identify which specific ones failed
+        setSelectedParticipantIds(new Set());
         await loadData();
       }
     } catch (error) {

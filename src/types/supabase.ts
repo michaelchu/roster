@@ -329,6 +329,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      add_participants_to_group: {
+        Args: { p_group_id: string; p_participant_ids: string[] };
+        Returns: { added_count: number; skipped_count: number; failed_count: number }[];
+      };
       get_next_slot_number: {
         Args: { p_event_id: string; p_user_id?: string };
         Returns: number;
@@ -336,6 +340,10 @@ export type Database = {
       nanoid: {
         Args: { size?: number };
         Returns: string;
+      };
+      remove_participants_from_group: {
+        Args: { p_group_id: string; p_participant_ids: string[] };
+        Returns: { removed_count: number; failed_count: number }[];
       };
     };
     Enums: {

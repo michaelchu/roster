@@ -118,47 +118,29 @@ export function RemoveMembersPage() {
 
     setRemoving(true);
     try {
-      // Get selected members
-      const selectedMembers = members.filter((m) => selectedMemberIds.has(m.id));
+      // Get selected member IDs as array
+      const memberIds = Array.from(selectedMemberIds);
 
-      // Remove all members in parallel using Promise.allSettled
-      const results = await Promise.allSettled(
-        selectedMembers.map((member) => groupService.removeParticipantFromGroup(groupId, member.id))
-      );
-
-      // Collect successes and failures
-      const successes: string[] = [];
-      const failures: Array<{ name: string; error: string }> = [];
-
-      results.forEach((result, index) => {
-        const member = selectedMembers[index];
-        if (result.status === 'fulfilled') {
-          successes.push(member.name);
-        } else {
-          failures.push({
-            name: member.name,
-            error: result.reason?.message || 'Unknown error',
-          });
-        }
-      });
+      // Use atomic batch RPC operation
+      const result = await groupService.removeParticipantsFromGroupBatch(groupId, memberIds);
 
       // Close dialog first
       setShowConfirmDialog(false);
 
       // Report results to user
-      if (failures.length === 0) {
+      if (result.failed === 0) {
         // All succeeded
         errorHandler.success(
-          `Removed ${successes.length} ${successes.length === 1 ? 'member' : 'members'} from the group`
+          `Removed ${result.removed} ${result.removed === 1 ? 'member' : 'members'} from the group`
         );
         // Clear selection and reload data
         setSelectedMemberIds(new Set());
         await loadData();
-      } else if (successes.length === 0) {
+      } else if (result.removed === 0) {
         // All failed
         errorHandler.handle(
           new Error(
-            `Failed to remove members: ${failures.map((f) => `${f.name} (${f.error})`).join(', ')}`
+            `Failed to remove all ${result.failed} selected ${result.failed === 1 ? 'member' : 'members'}`
           ),
           {
             userId: user?.id,
@@ -168,22 +150,21 @@ export function RemoveMembersPage() {
       } else {
         // Partial success
         errorHandler.success(
-          `Removed ${successes.length} ${successes.length === 1 ? 'member' : 'members'} successfully`
+          `Removed ${result.removed} ${result.removed === 1 ? 'member' : 'members'} successfully`
         );
-        errorHandler.handle(
-          new Error(
-            `Failed to remove ${failures.length} ${failures.length === 1 ? 'member' : 'members'}: ${failures.map((f) => f.name).join(', ')}`
-          ),
-          {
-            userId: user?.id,
-            action: 'removeMembers',
-          }
-        );
-        // Clear only successful selections and reload
-        const failedIds = new Set(
-          selectedMembers.filter((_, i) => results[i].status === 'rejected').map((m) => m.id)
-        );
-        setSelectedMemberIds(failedIds);
+        if (result.failed > 0) {
+          errorHandler.handle(
+            new Error(
+              `Failed to remove ${result.failed} ${result.failed === 1 ? 'member' : 'members'}`
+            ),
+            {
+              userId: user?.id,
+              action: 'removeMembers',
+            }
+          );
+        }
+        // Clear selection and reload since we can't identify which specific ones failed
+        setSelectedMemberIds(new Set());
         await loadData();
       }
     } catch (error) {
