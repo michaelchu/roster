@@ -33,12 +33,14 @@ export function EventsPage() {
 
   const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
-    return await eventService.getEventsByOrganizer(user.id);
+    const allEvents = await eventService.getEventsByOrganizer(user.id);
+    return allEvents.filter((event) => !isEventInPast(event.datetime));
   }, [user]);
 
   const loadJoinedEventsCallback = useCallback(async () => {
     if (!user) return [];
-    return await eventService.getEventsByParticipant(user.id);
+    const allEvents = await eventService.getEventsByParticipant(user.id);
+    return allEvents.filter((event) => !isEventInPast(event.datetime));
   }, [user]);
 
   const loadArchivedEventsCallback = useCallback(async () => {
