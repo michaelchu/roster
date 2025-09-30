@@ -60,14 +60,14 @@ export function DateTimeInput({ value, onChange, id, className }: DateTimeInputP
   };
 
   return (
-    <div className={cn('flex gap-4', className)}>
+    <div className={cn('grid grid-cols-2 gap-4', className)}>
       <div className="flex flex-col gap-3">
         <Label htmlFor={id} className="px-1">
           Date
         </Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" id={id} className="w-32 justify-between font-normal">
+            <Button variant="outline" id={id} className="w-full justify-between font-normal">
               {date ? date.toLocaleDateString() : 'Select date'}
               <ChevronDownIcon />
             </Button>
@@ -92,10 +92,9 @@ export function DateTimeInput({ value, onChange, id, className }: DateTimeInputP
         <Input
           type="time"
           id={`${id}-time`}
-          step="1"
           value={time}
           onChange={(e) => handleTimeChange(e.target.value)}
-          className="w-32 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          className="w-full bg-background"
         />
       </div>
     </div>
