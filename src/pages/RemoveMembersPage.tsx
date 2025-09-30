@@ -181,7 +181,7 @@ export function RemoveMembersPage() {
         );
         // Clear only successful selections and reload
         const failedIds = new Set(
-          selectedMembers.filter((m, i) => results[i].status === 'rejected').map((m) => m.id)
+          selectedMembers.filter((_, i) => results[i].status === 'rejected').map((m) => m.id)
         );
         setSelectedMemberIds(failedIds);
         await loadData();

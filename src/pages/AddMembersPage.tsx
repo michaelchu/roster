@@ -187,7 +187,7 @@ export function AddMembersPage() {
         );
         // Clear only successful selections and reload
         const failedIds = new Set(
-          selectedParticipants.filter((p, i) => results[i].status === 'rejected').map((p) => p.id)
+          selectedParticipants.filter((_, i) => results[i].status === 'rejected').map((p) => p.id)
         );
         setSelectedParticipantIds(failedIds);
         await loadData();
