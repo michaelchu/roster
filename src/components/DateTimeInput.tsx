@@ -95,7 +95,7 @@ export function DateTimeInput({ value, onChange, id, className }: DateTimeInputP
           step="1"
           value={time}
           onChange={(e) => handleTimeChange(e.target.value)}
-          className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          className="w-32 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         />
       </div>
     </div>
