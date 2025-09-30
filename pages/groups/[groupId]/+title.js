@@ -1,4 +1,7 @@
 export default (pageContext) => {
-  const { group, memberCount } = pageContext.data
-  return `${group.name} - ${memberCount} members`
+  const { group, memberCount = 0 } = pageContext.data
+  if (!group?.name) {
+    return 'Group Details'
+  }
+  return `${group.name} - ${memberCount} member${memberCount !== 1 ? 's' : ''}`
 }
