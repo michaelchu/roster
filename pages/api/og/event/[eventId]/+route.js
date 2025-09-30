@@ -47,15 +47,15 @@ async function GET(pageContext) {
     const dateText = formatEventDateTime(event.datetime)
     ctx.fillText(dateText, 80, 190)
 
-    // Location (with emoji)
+    // Location (with text label)
     ctx.font = '36px Arial, sans-serif'
     if (event.location) {
-      const locationText = `📍 ${event.location}`
+      const locationText = `Location: ${event.location}`
       ctx.fillText(locationText, 80, 270)
     }
 
-    // Cost (with emoji)
-    const costText = `💰 ${event.cost || 'Free'}`
+    // Cost (with text label)
+    const costText = `Cost: ${event.cost || 'Free'}`
     ctx.fillText(costText, 80, 320)
 
     // Organizer info (if available)

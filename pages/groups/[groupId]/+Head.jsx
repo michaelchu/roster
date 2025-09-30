@@ -2,7 +2,7 @@ import { usePageContext } from 'vike-react/usePageContext'
 
 export default function Head() {
   const pageContext = usePageContext()
-  const { group, memberCount, eventCount } = pageContext.data
+  const { group, memberCount = 0, eventCount = 0 } = pageContext.data
 
   if (!group) {
     return null

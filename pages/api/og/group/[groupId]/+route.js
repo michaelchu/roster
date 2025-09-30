@@ -47,11 +47,11 @@ async function GET(pageContext) {
 
     // Group stats (medium)
     ctx.font = '48px Arial, sans-serif'
-    const memberText = `👥 ${memberCount} member${memberCount !== 1 ? 's' : ''}`
+    const memberText = `Members: ${memberCount}`
     ctx.fillText(memberText, 80, 190)
 
     // Event count
-    const eventText = `🎯 ${eventCount} event${eventCount !== 1 ? 's' : ''}`
+    const eventText = `Events: ${eventCount}`
     ctx.fillText(eventText, 80, 250)
 
     // Group description (if available)
@@ -108,7 +108,7 @@ async function GET(pageContext) {
     ctx.font = 'bold 48px Arial, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText('👥', avatarX, avatarY)
+    ctx.fillText('G', avatarX, avatarY)
 
     // Add small Roster branding in bottom right
     ctx.fillStyle = '#999999'
