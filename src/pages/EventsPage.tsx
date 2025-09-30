@@ -9,6 +9,7 @@ import { eventService, type Event } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
+import { formatEventDateTime } from '@/lib/utils';
 
 export function EventsPage() {
   const navigate = useNavigate();
@@ -128,14 +129,7 @@ export function EventsPage() {
                 {event.datetime && (
                   <div className="flex items-center gap-1.5">
                     <Calendar className="h-3 w-3 flex-shrink-0" />
-                    <span>
-                      {new Date(event.datetime).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
+                    <span>{formatEventDateTime(event.datetime)}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">

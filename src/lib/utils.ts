@@ -35,3 +35,20 @@ export function fromLocalInputValue(localValue: string): string {
   // Return ISO string which includes timezone offset
   return d.toISOString();
 }
+
+/**
+ * Formats a date to consistent display format: "Tue, Sep 30, 2:00 PM"
+ * @param date Date string or Date object
+ * @returns Formatted date string (e.g., "Tue, Sep 30, 2:00 PM")
+ */
+export function formatEventDateTime(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}

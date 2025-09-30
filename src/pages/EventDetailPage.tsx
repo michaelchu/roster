@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { Label } from '@/components/ui/label';
+import { formatEventDateTime } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -496,46 +497,12 @@ export function EventDetailPage() {
                 <div className="grid grid-cols-2 divide-x divide-border">
                   <div className="text-sm text-muted-foreground p-3">
                     <div className="font-medium text-foreground">Start</div>
-                    <div>
-                      {event.datetime ? (
-                        <>
-                          {new Date(event.datetime).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                          <br />
-                          {new Date(event.datetime).toLocaleTimeString(undefined, {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          })}
-                        </>
-                      ) : (
-                        'Not set'
-                      )}
-                    </div>
+                    <div>{event.datetime ? formatEventDateTime(event.datetime) : 'Not set'}</div>
                   </div>
                   <div className="text-sm text-muted-foreground p-3">
                     <div className="font-medium text-foreground">End</div>
                     <div>
-                      {event.end_datetime ? (
-                        <>
-                          {new Date(event.end_datetime).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                          <br />
-                          {new Date(event.end_datetime).toLocaleTimeString(undefined, {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          })}
-                        </>
-                      ) : (
-                        'Not set'
-                      )}
+                      {event.end_datetime ? formatEventDateTime(event.end_datetime) : 'Not set'}
                     </div>
                   </div>
                 </div>
