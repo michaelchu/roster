@@ -1,115 +1,183 @@
-# Roster - Mobile Event Signup Platform
+# Supabase CLI
 
-A mobile-first event management platform built with React, TypeScript, and Supabase.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## Features
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-### For Participants
-- **Mobile-Only Access** - Platform enforces mobile device usage
-- **Quick Signup** - Simple form-based registration for events
-- **Quick Fill** - Auto-fills participant information from localStorage
-- **Custom Fields** - Support for event-specific custom fields
-- **Confirmation Screen** - Shows registration success
+This repository contains all the functionality for Supabase CLI.
 
-### For Organizers
-- **Event Management** - Create, view, and manage events
-- **Participant Management** - View all registered participants
-- **Label System** - Organize participants with custom labels
-- **Event Duplication** - Copy events with all settings and labels
-- **CSV Export** - Download participant lists with labels
-- **Real-time Updates** - Live participant counts and registration
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-### Design
-- **WeChat-Style UI** - Compact, dense layouts with minimal whitespace
-- **List-Based Interface** - No floating cards, everything in lists
-- **Mobile Navigation** - Persistent bottom navigation bar
-- **Responsive** - Optimized for mobile screens only
+## Getting started
 
-## Tech Stack
+### Install the CLI
 
-- **Frontend**: Vite + React + TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Storage**: localStorage for Quick Fill
-
-## Database Schema
-
-The app uses the following tables:
-- `organizers` - User profiles linked to Supabase Auth
-- `events` - Event information with custom fields
-- `participants` - Event registrations
-- `labels` - Event-specific participant labels
-- `participant_labels` - Many-to-many relationship for labels
-
-## Getting Started
-
-1. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Set up Environment Variables**
-   Copy `.env.example` to `.env` and fill in your Supabase credentials:
-   ```
-   VITE_SUPABASE_URL=your-supabase-url
-   VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-   ```
-
-3. **Run Database Migration**
-   Execute the SQL in `supabase/migrations/001_initial_schema.sql` in your Supabase SQL Editor
-
-4. **Start Development Server**
-   ```bash
-   npm run dev
-   ```
-
-## Usage
-
-### Creating an Event
-1. Sign up/login as an organizer
-2. Navigate to Events tab
-3. Click "New" to create an event
-4. Add event details and custom fields
-5. Share the signup link with participants
-
-### Managing Participants
-1. View participants in the event detail page
-2. Add/remove labels for organization
-3. Export participant data to CSV
-4. Search and filter participants
-
-### Participant Registration
-1. Participants access the signup link on mobile
-2. Fill out the registration form
-3. Information is saved for Quick Fill on future events
-4. Confirmation screen shows successful registration
-
-## Key Files
-
-- `src/App.tsx` - Main app with routing
-- `src/hooks/useAuth.tsx` - Authentication context
-- `src/lib/supabase.ts` - Database client and types
-- `src/components/BottomNav.tsx` - Mobile navigation
-- `src/components/MobileOnly.tsx` - Desktop restriction
-- `supabase/migrations/001_initial_schema.sql` - Database schema
-
-## Development
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
+npm i supabase --save-dev
 ```
 
-## License
+To install the beta release channel:
 
-MIT License
+```bash
+npm i supabase@beta --save-dev
+```
+
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
+
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+
+<details>
+  <summary><b>macOS</b></summary>
+
+  Available via [Homebrew](https://brew.sh). To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Windows</b></summary>
+
+  Available via [Scoop](https://scoop.sh). To install:
+
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
+
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
+```bash
+supabase bootstrap
+```
+
+Or using npx:
+
+```bash
+npx supabase bootstrap
+```
+
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```
