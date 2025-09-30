@@ -358,8 +358,8 @@ export function RemoveMembersPage() {
             <DialogDescription>
               Are you sure you want to remove{' '}
               {selectedCount === 1 ? 'this member' : 'these members'} from the group?{' '}
-              {selectedCount === 1 ? 'They' : 'They'} can be re-added later from the Add Members
-              page.
+              {selectedCount === 1 ? 'This member' : 'They'} can be re-added later from the Add
+              Members page.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row">
