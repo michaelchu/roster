@@ -5,7 +5,7 @@ const mockEvent = {
   datetime: '2024-01-15T18:00:00Z',
   location: 'Tiger Badminton Center',
   cost: '$16/person',
-  description: 'Join us for a fun badminton session!'
+  description: 'Join us for a fun badminton session!',
 };
 
 const mockGroup = {
@@ -14,7 +14,7 @@ const mockGroup = {
   description: 'Weekly badminton games for all skill levels',
   participant_count: 47,
   event_count: 12,
-  created_at: '2024-01-01T00:00:00Z'
+  created_at: '2024-01-01T00:00:00Z',
 };
 
 // Check if environment variables are available
@@ -25,7 +25,7 @@ if (hasEnvVars) {
   try {
     const { supabaseServer: ss } = await import('../lib/supabase-server.js');
     supabaseServer = ss;
-  } catch (error) {
+  } catch {
     console.warn('Supabase server client not available, using mock data');
   }
 }
@@ -54,7 +54,7 @@ export const serverEventService = {
       console.warn('Failed to fetch real event data, using mock data:', error);
       return { ...mockEvent, id: eventId };
     }
-  }
+  },
 };
 
 // Server-side group service for OG image generation
@@ -81,5 +81,5 @@ export const serverGroupService = {
       console.warn('Failed to fetch real group data, using mock data:', error);
       return { ...mockGroup, id: groupId };
     }
-  }
+  },
 };
