@@ -326,9 +326,7 @@ export function HomePage() {
                   </div>
 
                   <div>
-                    <div className="font-medium text-foreground mb-2">
-                      Install the Mobile App
-                    </div>
+                    <div className="font-medium text-foreground mb-2">Install the Mobile App</div>
                     <div className="space-y-2">
                       <div>
                         <div className="font-medium">For iPhone/iPad:</div>
