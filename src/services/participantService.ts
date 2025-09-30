@@ -156,6 +156,15 @@ export const participantService = {
       throw new Error('Authentication required for event registration');
     }
 
+    // Get the next slot number for this participant
+    const { data: slotData, error: slotError } = await supabase.rpc('get_next_slot_number', {
+      p_event_id: participant.event_id,
+      p_user_id: options?.claimingUserId || participant.user_id || undefined,
+    });
+
+    if (slotError) throw slotError;
+    const slotNumber = slotData as number;
+
     const insertData: TablesInsert<'participants'> = {
       event_id: participant.event_id,
       name: finalName,
@@ -167,6 +176,7 @@ export const participantService = {
       user_id: options?.claimingUserId ? null : participant.user_id,
       claimed_by_user_id: options?.claimingUserId || null,
       responses: participant.responses as Json,
+      slot_number: slotNumber,
     };
 
     const { data, error } = await supabase
