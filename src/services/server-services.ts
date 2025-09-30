@@ -1,5 +1,27 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
+
+// Type definitions for server services
+interface Event {
+  id: string;
+  name: string;
+  datetime: string | null;
+  location?: string | null;
+  cost?: string;
+  description?: string | null;
+}
+
+interface Group {
+  id: string;
+  name: string;
+  description?: string | null;
+  participant_count?: number;
+  event_count?: number;
+  created_at?: string;
+}
+
 // Mock data for testing when environment variables aren't available
-const mockEvent = {
+const mockEvent: Event = {
   id: 'test-event',
   name: 'Sample Badminton Event',
   datetime: '2024-01-15T18:00:00Z',
@@ -8,7 +30,7 @@ const mockEvent = {
   description: 'Join us for a fun badminton session!',
 };
 
-const mockGroup = {
+const mockGroup: Group = {
   id: 'test-group',
   name: 'HSD Badminton Group',
   description: 'Weekly badminton games for all skill levels',
@@ -20,7 +42,7 @@ const mockGroup = {
 // Check if environment variables are available
 const hasEnvVars = process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY;
 
-let supabaseServer = null;
+let supabaseServer: SupabaseClient<Database> | null = null;
 if (hasEnvVars) {
   try {
     const { supabaseServer: ss } = await import('../lib/supabase-server.js');
@@ -32,7 +54,7 @@ if (hasEnvVars) {
 
 // Server-side event service for OG image generation
 export const serverEventService = {
-  async getEventById(eventId: string) {
+  async getEventById(eventId: string): Promise<Event> {
     if (!supabaseServer) {
       console.log('Using mock event data for OG image generation');
       return { ...mockEvent, id: eventId };
@@ -59,7 +81,7 @@ export const serverEventService = {
 
 // Server-side group service for OG image generation
 export const serverGroupService = {
-  async getGroupById(groupId: string) {
+  async getGroupById(groupId: string): Promise<Group> {
     if (!supabaseServer) {
       console.log('Using mock group data for OG image generation');
       return { ...mockGroup, id: groupId };
