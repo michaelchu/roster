@@ -1,5 +1,5 @@
 import { createCanvas } from 'canvas'
-import { serverGroupService } from '../../../../../src/services/server-services.js'
+import { serverGroupService } from '@/services/server-services.js'
 
 async function GET(pageContext) {
   try {

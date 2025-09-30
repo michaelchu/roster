@@ -1,6 +1,6 @@
 import { createCanvas } from 'canvas'
-import { serverEventService } from '../../../../../src/services/server-services.js'
-import { formatEventDateTime } from '../../../../../src/lib/utils.js'
+import { serverEventService } from '@/services/server-services.js'
+import { formatEventDateTime } from '@/lib/utils.js'
 
 async function GET(pageContext) {
   try {
