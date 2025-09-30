@@ -146,8 +146,7 @@ export function EditEventPage() {
     setCustomFields(customFields.filter((field) => field.id !== id));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveChanges = async () => {
     if (!event || !user) return;
 
     // Client-side validation for end date
@@ -470,14 +469,7 @@ export function EditEventPage() {
       </div>
 
       {/* Save Changes Button above navbar */}
-      <ActionButton
-        onClick={(e) => {
-          e?.preventDefault();
-          handleSubmit(e as unknown as React.FormEvent);
-        }}
-        loading={loading}
-        loadingText="Saving..."
-      >
+      <ActionButton onClick={saveChanges} loading={loading} loadingText="Saving...">
         <Save className="h-4 w-4 mr-2" />
         Save Changes
       </ActionButton>

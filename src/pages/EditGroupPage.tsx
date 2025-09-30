@@ -232,7 +232,7 @@ export function EditGroupPage() {
       <TopNav title="Edit Group" showBackButton backPath={`/groups/${group.id}`} />
 
       <div className="px-4 py-3">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form id="edit-group-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Group Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Group Name *</Label>
@@ -299,10 +299,8 @@ export function EditGroupPage() {
 
       {/* Save Changes Button above navbar */}
       <ActionButton
-        onClick={(e) => {
-          e?.preventDefault();
-          handleSubmit(e as unknown as React.FormEvent);
-        }}
+        type="submit"
+        form="edit-group-form"
         loading={saving}
         disabled={deleting}
         loadingText="Saving..."
