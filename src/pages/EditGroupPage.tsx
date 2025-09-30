@@ -20,6 +20,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { Save, Trash2 } from 'lucide-react';
 import type { Group } from '@/services/groupService';
+import { ActionButton } from '@/components/ActionButton';
 
 export function EditGroupPage() {
   const { groupId } = useParams<{ groupId: string }>();
@@ -298,29 +299,18 @@ export function EditGroupPage() {
       </div>
 
       {/* Save Changes Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
-        <Button
-          onClick={(e) => {
-            e.preventDefault();
-            handleSubmit(e as React.FormEvent);
-          }}
-          className="w-full text-white shadow-lg"
-          size="sm"
-          disabled={saving || deleting}
-        >
-          {saving ? (
-            <>
-              <LoadingSpinner size="sm" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </>
-          )}
-        </Button>
-      </div>
+      <ActionButton
+        onClick={(e) => {
+          e?.preventDefault();
+          handleSubmit(e as unknown as React.FormEvent);
+        }}
+        loading={saving}
+        disabled={deleting}
+        loadingText="Saving..."
+      >
+        <Save className="h-4 w-4 mr-2" />
+        Save Changes
+      </ActionButton>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

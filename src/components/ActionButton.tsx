@@ -4,7 +4,7 @@ import { LoadingSpinner } from '@/components/LoadingStates';
 interface ActionButtonProps {
   loading?: boolean;
   disabled?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
   type?: 'button' | 'submit';
   form?: string;
   children: React.ReactNode;
