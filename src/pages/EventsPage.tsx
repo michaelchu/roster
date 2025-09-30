@@ -9,7 +9,7 @@ import { eventService, type Event } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
-import { formatEventDateTime } from '@/lib/utils';
+import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
 
 export function EventsPage() {
   const navigate = useNavigate();
@@ -24,29 +24,45 @@ export function EventsPage() {
     data: joinedEvents,
     execute: loadJoinedEvents,
   } = useLoadingState<Event[]>([]);
+  const {
+    isLoading: isLoadingArchived,
+    data: archivedEvents,
+    execute: loadArchivedEvents,
+  } = useLoadingState<Event[]>([]);
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
 
   const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
-    return await eventService.getEventsByOrganizer(user.id);
+    const allEvents = await eventService.getEventsByOrganizer(user.id);
+    return allEvents.filter((event) => !isEventCompleted(event.datetime, event.end_datetime));
   }, [user]);
 
   const loadJoinedEventsCallback = useCallback(async () => {
     if (!user) return [];
-    return await eventService.getEventsByParticipant(user.id);
+    const allEvents = await eventService.getEventsByParticipant(user.id);
+    return allEvents.filter((event) => !isEventCompleted(event.datetime, event.end_datetime));
+  }, [user]);
+
+  const loadArchivedEventsCallback = useCallback(async () => {
+    if (!user) return [];
+    const allEvents = await eventService.getEventsByOrganizer(user.id);
+    return allEvents.filter((event) => isEventCompleted(event.datetime, event.end_datetime));
   }, [user]);
 
   useEffect(() => {
     if (user) {
       loadOrganizingEvents(loadOrganizingEventsCallback);
       loadJoinedEvents(loadJoinedEventsCallback);
+      loadArchivedEvents(loadArchivedEventsCallback);
     }
   }, [
     user,
     loadOrganizingEvents,
     loadJoinedEvents,
+    loadArchivedEvents,
     loadOrganizingEventsCallback,
     loadJoinedEventsCallback,
+    loadArchivedEventsCallback,
   ]);
 
   const duplicateEvent = async (event: Event) => {
@@ -84,23 +100,29 @@ export function EventsPage() {
     );
   }
 
-  const renderEventList = (events: Event[] | null, isLoading: boolean, showDuplicate: boolean) => {
+  const renderEventList = (
+    events: Event[] | null,
+    isLoading: boolean,
+    showDuplicate: boolean,
+    emptyState?: { title: string; description: string }
+  ) => {
     if (isLoading) {
       return <EventListSkeleton count={3} />;
     }
 
     if (!events || events.length === 0) {
+      const title = emptyState?.title || (showDuplicate ? 'No Events Yet' : 'No Joined Events');
+      const description =
+        emptyState?.description ||
+        (showDuplicate
+          ? 'Create your first event to start managing registrations'
+          : "You haven't joined any events yet");
+
       return (
         <div className="bg-card rounded-lg p-3 border text-center">
           <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h2 className="text-base font-medium mb-2">
-            {showDuplicate ? 'No Events Yet' : 'No Joined Events'}
-          </h2>
-          <p className="text-xs text-muted-foreground mb-4">
-            {showDuplicate
-              ? 'Create your first event to start managing registrations'
-              : "You haven't joined any events yet"}
-          </p>
+          <h2 className="text-base font-medium mb-2">{title}</h2>
+          <p className="text-xs text-muted-foreground mb-4">{description}</p>
           {showDuplicate && (
             <Button size="sm" className="w-full" onClick={() => navigate('/events/new')}>
               <Plus className="h-4 w-4 mr-1" />
@@ -175,6 +197,9 @@ export function EventsPage() {
             <TabsTrigger value="joined" className="flex-1">
               Joined
             </TabsTrigger>
+            <TabsTrigger value="archive" className="flex-1">
+              Archive
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -190,6 +215,13 @@ export function EventsPage() {
 
         <TabsContent value="joined" className="p-3 space-y-3 mt-0">
           {renderEventList(joinedEvents, isLoadingJoined, false)}
+        </TabsContent>
+
+        <TabsContent value="archive" className="p-3 space-y-3 mt-0">
+          {renderEventList(archivedEvents, isLoadingArchived, false, {
+            title: 'No Archived Events',
+            description: 'Past events will appear here once their date has passed',
+          })}
         </TabsContent>
       </Tabs>
     </div>

@@ -52,3 +52,30 @@ export function formatEventDateTime(date: string | Date): string {
     hour12: true,
   });
 }
+
+/**
+ * Checks if an event is in the past based on its datetime
+ * @param datetime Event datetime string or null
+ * @returns True if event is in the past, false otherwise
+ */
+export function isEventInPast(datetime: string | null): boolean {
+  if (!datetime) return false;
+  return new Date(datetime) < new Date();
+}
+
+/**
+ * Checks if an event has been completed based on its end datetime or start datetime
+ * An event is considered completed only after its end time has passed.
+ * If no end time is specified, falls back to checking the start datetime.
+ * @param datetime Event start datetime string or null
+ * @param endDatetime Event end datetime string or null
+ * @returns True if event has completed, false otherwise
+ */
+export function isEventCompleted(datetime: string | null, endDatetime?: string | null): boolean {
+  // If there's an end datetime, use that to determine completion
+  if (endDatetime) {
+    return new Date(endDatetime) < new Date();
+  }
+  // Otherwise fall back to start datetime
+  return isEventInPast(datetime);
+}
