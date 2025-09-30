@@ -9,6 +9,7 @@ import { User, Save } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { errorHandler } from '@/lib/errorHandler';
 import { ProfilePageSkeleton } from '@/components/ProfilePageSkeleton';
+import { ActionButton } from '@/components/ActionButton';
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -140,17 +141,14 @@ export function ProfilePage() {
       </form>
 
       {/* Save Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
-        <Button
-          onClick={handleSubmit}
-          className="w-full text-white shadow-lg"
-          size="sm"
-          disabled={loading}
-        >
-          <Save className="h-5 w-5 mr-2" />
-          {loading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
+      <ActionButton
+        onClick={() => handleSubmit(new Event('submit') as unknown as React.FormEvent)}
+        loading={loading}
+        loadingText="Saving..."
+      >
+        <Save className="h-5 w-5 mr-2" />
+        Save Changes
+      </ActionButton>
     </div>
   );
 }

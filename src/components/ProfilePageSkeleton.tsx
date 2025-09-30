@@ -56,8 +56,8 @@ export function ProfilePageSkeleton() {
       </div>
 
       {/* Save Button */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
-        <Skeleton className="w-full h-11 rounded-md" />
+      <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">
+        <Skeleton className="w-full h-8 rounded-md" />
       </div>
     </div>
   );

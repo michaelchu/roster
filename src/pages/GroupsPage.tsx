@@ -7,6 +7,7 @@ import { TopNav } from '@/components/TopNav';
 import { groupService, type Group } from '@/services';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton } from '@/components/LoadingStates';
+import { ActionButton } from '@/components/ActionButton';
 
 export function GroupsPage() {
   const navigate = useNavigate();
@@ -106,12 +107,10 @@ export function GroupsPage() {
       </div>
 
       {/* New Group Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">
-        <Button onClick={() => navigate('/groups/new')} className="w-full text-white shadow-lg">
-          <Plus className="h-5 w-5 mr-2" />
-          New Group
-        </Button>
-      </div>
+      <ActionButton onClick={() => navigate('/groups/new')}>
+        <Plus className="h-5 w-5 mr-2" />
+        New Group
+      </ActionButton>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton } from '@/components/LoadingStates';
 import type { Tables } from '@/types/app.types';
 import { formatEventDateTime } from '@/lib/utils';
+import { ActionButton } from '@/components/ActionButton';
 
 interface GroupEvent extends Tables<'events'> {
   participant_count?: number;
@@ -252,15 +253,10 @@ export function GroupDetailPage() {
       </div>
 
       {/* Add Event Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
-        <Button
-          onClick={() => navigate(`/events/new?group=${group.id}`)}
-          className="w-full text-white shadow-lg"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Event
-        </Button>
-      </div>
+      <ActionButton onClick={() => navigate(`/events/new?group=${group.id}`)}>
+        <Plus className="h-5 w-5 mr-2" />
+        Add Event
+      </ActionButton>
     </div>
   );
 }

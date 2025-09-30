@@ -9,6 +9,7 @@ interface ActionButtonProps {
   form?: string;
   children: React.ReactNode;
   loadingText?: string;
+  size?: 'default' | 'sm' | 'lg';
 }
 
 /**
@@ -23,6 +24,7 @@ export function ActionButton({
   form,
   children,
   loadingText = 'Loading...',
+  size = 'sm',
 }: ActionButtonProps) {
   return (
     <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">
@@ -32,6 +34,7 @@ export function ActionButton({
         onClick={onClick}
         className="w-full text-white shadow-lg"
         disabled={loading || disabled}
+        size={size}
       >
         {loading ? (
           <>
