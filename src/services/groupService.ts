@@ -54,9 +54,7 @@ export interface GroupStats {
   total_registrations: number;
 }
 
-export interface GroupAdmin extends Tables<'group_admins'> {
-  // Extended with user info if needed
-}
+export type GroupAdmin = Tables<'group_admins'>;
 
 // Validation function for group data
 function validateGroupData(group: Partial<Group>): void {
