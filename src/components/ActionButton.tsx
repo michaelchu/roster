@@ -24,7 +24,7 @@ export function ActionButton({
   form,
   children,
   loadingText = 'Loading...',
-  size = 'sm',
+  size = 'default',
 }: ActionButtonProps) {
   return (
     <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">

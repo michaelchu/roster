@@ -61,9 +61,7 @@ export function ProfilePage() {
           <p className="text-sm text-muted-foreground mb-4">
             Please sign in to access your profile
           </p>
-          <Button size="sm" onClick={() => navigate('/auth/login')}>
-            Sign In
-          </Button>
+          <Button onClick={() => navigate('/auth/login')}>Sign In</Button>
         </div>
       </div>
     );

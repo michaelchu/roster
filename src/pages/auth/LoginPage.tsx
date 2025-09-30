@@ -103,7 +103,7 @@ export function LoginPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" size="sm" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
 
@@ -123,7 +123,6 @@ export function LoginPage() {
               disabled={googleLoading || loading}
               variant="outline"
               className="w-full"
-              size="sm"
             >
               {googleLoading ? (
                 'Signing in...'

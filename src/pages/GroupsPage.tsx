@@ -35,9 +35,7 @@ export function GroupsPage() {
         <div className="text-center">
           <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
           <p className="text-sm text-muted-foreground mb-4">Please sign in to view your groups</p>
-          <Button size="sm" onClick={() => navigate('/auth/login')}>
-            Sign In
-          </Button>
+          <Button onClick={() => navigate('/auth/login')}>Sign In</Button>
         </div>
       </div>
     );
@@ -57,7 +55,7 @@ export function GroupsPage() {
             <p className="text-xs text-muted-foreground mb-4">
               Create your first group to organize events and manage participants
             </p>
-            <Button size="sm" className="w-full" onClick={() => navigate('/groups/new')}>
+            <Button className="w-full" onClick={() => navigate('/groups/new')}>
               <Plus className="h-4 w-4 mr-1" />
               Create Group
             </Button>
