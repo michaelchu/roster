@@ -181,11 +181,11 @@ export function GroupParticipantsPage() {
                 size="sm"
                 className="h-20 flex-col gap-2"
                 onClick={() => {
-                  // TODO: Implement invite admins functionality
+                  // TODO: Implement manage admins functionality
                 }}
               >
                 <UserCog className="h-5 w-5" />
-                <span className="text-xs">Invite Admins</span>
+                <span className="text-xs">Manage</span>
               </Button>
               <Button
                 variant="outline"
@@ -196,7 +196,7 @@ export function GroupParticipantsPage() {
                 }}
               >
                 <UserPlus className="h-5 w-5" />
-                <span className="text-xs">Add Members</span>
+                <span className="text-xs">Add</span>
               </Button>
               <Button
                 variant="outline"
@@ -208,7 +208,7 @@ export function GroupParticipantsPage() {
                 disabled={!participants || participants.length === 0}
               >
                 <UserMinus className="h-5 w-5" />
-                <span className="text-xs">Remove Members</span>
+                <span className="text-xs">Remove</span>
               </Button>
             </div>
           </div>
