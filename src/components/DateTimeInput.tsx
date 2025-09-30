@@ -1,11 +1,10 @@
+import * as React from 'react';
+import { CalendarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface DateTimeInputProps {
   value: string;
@@ -15,120 +14,87 @@ interface DateTimeInputProps {
 }
 
 /**
- * Custom DateTime input that displays time in 12-hour format
- * Converts between datetime-local format (24hr) and user-friendly 12hr display
+ * Custom DateTime input using shadcn Calendar and time input
+ * Converts between datetime-local format (YYYY-MM-DDTHH:mm) and Date + time string
  */
 export function DateTimeInput({ value, onChange, id, className }: DateTimeInputProps) {
+  const [open, setOpen] = React.useState(false);
+
   // Parse the datetime-local value (YYYY-MM-DDTHH:mm)
   const parseDateTime = (datetimeLocal: string) => {
     if (!datetimeLocal) {
-      return { date: '', hour: '12', minute: '00', period: 'PM' };
+      return { date: undefined, time: '' };
     }
 
     const [datePart, timePart] = datetimeLocal.split('T');
-    const [hourStr, minuteStr] = (timePart || '12:00').split(':');
-    let hour = parseInt(hourStr, 10);
-    const minute = minuteStr || '00';
+    const date = datePart ? new Date(datePart + 'T00:00:00') : undefined;
+    const time = timePart || '';
 
-    const period = hour >= 12 ? 'PM' : 'AM';
-    if (hour === 0) hour = 12;
-    else if (hour > 12) hour = hour - 12;
-
-    return {
-      date: datePart || '',
-      hour: hour.toString(),
-      minute,
-      period,
-    };
+    return { date, time };
   };
 
   // Format back to datetime-local (YYYY-MM-DDTHH:mm)
-  const formatDateTime = (date: string, hour: string, minute: string, period: string) => {
+  const formatDateTime = (date: Date | undefined, time: string) => {
     if (!date) return '';
 
-    let hour24 = parseInt(hour, 10);
-    if (period === 'AM' && hour24 === 12) hour24 = 0;
-    else if (period === 'PM' && hour24 !== 12) hour24 += 12;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
 
-    const hourStr = hour24.toString().padStart(2, '0');
-    const minuteStr = minute.padStart(2, '0');
+    if (!time) return dateStr + 'T00:00';
 
-    return `${date}T${hourStr}:${minuteStr}`;
+    return `${dateStr}T${time}`;
   };
 
-  const { date, hour, minute, period } = parseDateTime(value);
+  const { date, time } = parseDateTime(value);
 
-  const handleDateChange = (newDate: string) => {
-    onChange(formatDateTime(newDate, hour, minute, period));
+  const handleDateChange = (newDate: Date | undefined) => {
+    onChange(formatDateTime(newDate, time));
+    setOpen(false);
   };
 
-  const handleHourChange = (newHour: string) => {
-    onChange(formatDateTime(date, newHour, minute, period));
+  const handleTimeChange = (newTime: string) => {
+    onChange(formatDateTime(date, newTime));
   };
 
-  const handleMinuteChange = (newMinute: string) => {
-    onChange(formatDateTime(date, hour, newMinute, period));
+  // Format date for display
+  const formatDateDisplay = (date: Date | undefined) => {
+    if (!date) return 'Select date';
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
-
-  const handlePeriodChange = (newPeriod: string) => {
-    onChange(formatDateTime(date, hour, minute, newPeriod));
-  };
-
-  // Generate hour options (1-12)
-  const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
-
-  // Generate minute options (00, 15, 30, 45)
-  const minutes = ['00', '15', '30', '45'];
 
   return (
-    <div className={className}>
-      {/* Date Input */}
+    <div className={cn('flex gap-2', className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            id={id}
+            className={cn(
+              'flex-1 justify-start text-left font-normal h-10',
+              !date && 'text-muted-foreground'
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {formatDateDisplay(date)}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar mode="single" selected={date} onSelect={handleDateChange} initialFocus />
+        </PopoverContent>
+      </Popover>
+
       <Input
-        id={id}
-        type="date"
-        value={date}
-        onChange={(e) => handleDateChange(e.target.value)}
-        className="h-10 text-sm mb-2"
+        type="time"
+        value={time}
+        onChange={(e) => handleTimeChange(e.target.value)}
+        className="w-32 h-10 text-sm"
       />
-
-      {/* Time Inputs */}
-      <div className="grid grid-cols-3 gap-2">
-        <Select value={hour} onValueChange={handleHourChange}>
-          <SelectTrigger className="h-10 text-sm">
-            <SelectValue placeholder="Hour" />
-          </SelectTrigger>
-          <SelectContent>
-            {hours.map((h) => (
-              <SelectItem key={h} value={h}>
-                {h}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={minute} onValueChange={handleMinuteChange}>
-          <SelectTrigger className="h-10 text-sm">
-            <SelectValue placeholder="Min" />
-          </SelectTrigger>
-          <SelectContent>
-            {minutes.map((m) => (
-              <SelectItem key={m} value={m}>
-                {m}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={period} onValueChange={handlePeriodChange}>
-          <SelectTrigger className="h-10 text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="AM">AM</SelectItem>
-            <SelectItem value="PM">PM</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
     </div>
   );
 }
