@@ -10,8 +10,9 @@ export default function Head() {
 
   const groupTitle = `${group.name} - Join our group!`
   const groupDescription = `👥 ${memberCount} member${memberCount !== 1 ? 's' : ''} • ${eventCount} event${eventCount !== 1 ? 's' : ''} • ${group.description || 'Active community'}`
-  const groupImage = `/api/og/group/${group.id}`
-  const groupUrl = `${process.env.VITE_APP_URL || 'http://localhost:3000'}/groups/${group.id}`
+  const baseUrl = process.env.VITE_APP_URL || 'http://localhost:3000'
+  const groupImage = `${baseUrl}/api/og/group/${group.id}`
+  const groupUrl = `${baseUrl}/groups/${group.id}`
 
   return (
     <>

@@ -11,8 +11,9 @@ export default function Head() {
 
   const eventTitle = `${event.name} - Let's play!`
   const eventDescription = `Join us! ${event.location ? `📍 ${event.location}` : ''} ${event.cost ? `💰 ${event.cost}` : '💰 Free'}`
-  const eventImage = `/api/og/event/${event.id}`
-  const eventUrl = `${process.env.VITE_APP_URL || 'http://localhost:3000'}/signup/${event.id}`
+  const baseUrl = process.env.VITE_APP_URL || 'http://localhost:3000'
+  const eventImage = `${baseUrl}/api/og/event/${event.id}`
+  const eventUrl = `${baseUrl}/signup/${event.id}`
 
   return (
     <>
