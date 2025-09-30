@@ -302,16 +302,53 @@ export function HomePage() {
             </div>
           </>
         ) : (
-          <div className="bg-card rounded-lg p-6 border text-center">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <h2 className="text-base font-medium mb-2">Welcome to Roster</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Sign in to create and manage your events
-            </p>
-            <Button size="sm" className="w-full" onClick={() => navigate('/auth/login')}>
-              Sign In
-            </Button>
-          </div>
+          <>
+            <div className="bg-card rounded-lg p-6 border text-center">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <h2 className="text-base font-medium mb-2">Welcome to Roster</h2>
+              <p className="text-xs text-muted-foreground mb-4">
+                Sign in to create and manage your events
+              </p>
+              <Button size="sm" className="w-full" onClick={() => navigate('/auth/login')}>
+                Sign In
+              </Button>
+            </div>
+
+            <div className="bg-card rounded-lg border overflow-hidden">
+              <div className="p-3">
+                <div className="text-xs text-muted-foreground space-y-3">
+                  <div>
+                    <p className="mb-2">
+                      Roster is a mobile-first event management platform designed to streamline
+                      event registration and participant management. Create events, manage signups,
+                      and track attendance all from your mobile device.
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="font-medium text-foreground mb-2">Install the Mobile App</div>
+                    <div className="space-y-2">
+                      <div>
+                        <div className="font-medium">For iPhone/iPad:</div>
+                        <div>1. Open this website in Safari</div>
+                        <div>2. Tap the Share button (square with arrow)</div>
+                        <div>3. Select "Add to Home Screen"</div>
+                        <div>4. Tap "Add" to confirm</div>
+                      </div>
+
+                      <div>
+                        <div className="font-medium">For Android:</div>
+                        <div>1. Open this website in Chrome</div>
+                        <div>2. Tap the menu (three dots)</div>
+                        <div>3. Select "Add to Home screen"</div>
+                        <div>4. Tap "Add" to confirm</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
