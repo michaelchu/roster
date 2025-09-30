@@ -34,7 +34,7 @@ import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
-  const { fontSize, setFontSize, fontSizeLabels } = useFontSize();
+  const { fontSize, setFontSize } = useFontSize();
   const { theme, setTheme } = useTheme();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
@@ -99,10 +99,7 @@ export function SettingsPage() {
                 onClick={() => navigate('/profile')}
               >
                 <User className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-medium">Profile</div>
-                  <div className="text-xs text-muted-foreground">Update your information</div>
-                </div>
+                <div className="text-sm font-medium">Profile</div>
               </button>
             </div>
           </div>
@@ -116,17 +113,12 @@ export function SettingsPage() {
               <div className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <Label
-                      htmlFor="email-notifications"
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Email Notifications
-                    </Label>
-                    <div className="text-xs text-muted-foreground">
-                      Receive event updates via email
-                    </div>
-                  </div>
+                  <Label
+                    htmlFor="email-notifications"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Email Notifications
+                  </Label>
                 </div>
                 <Switch
                   id="email-notifications"
@@ -138,17 +130,9 @@ export function SettingsPage() {
               <div className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <Label
-                      htmlFor="sms-notifications"
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      SMS Notifications
-                    </Label>
-                    <div className="text-xs text-muted-foreground">
-                      Receive event updates via SMS
-                    </div>
-                  </div>
+                  <Label htmlFor="sms-notifications" className="text-sm font-medium cursor-pointer">
+                    SMS Notifications
+                  </Label>
                 </div>
                 <Switch
                   id="sms-notifications"
@@ -182,9 +166,6 @@ export function SettingsPage() {
                   max="100"
                   className="text-sm"
                 />
-                <div className="text-xs text-muted-foreground mt-1">
-                  Maximum number of participants for new events (1-100)
-                </div>
               </div>
 
               <div className="p-3">
@@ -204,9 +185,6 @@ export function SettingsPage() {
                     <SelectItem value="invite-only">Invite Only</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Default visibility for new events
-                </div>
               </div>
             </div>
           </div>
@@ -232,9 +210,6 @@ export function SettingsPage() {
                   <SelectItem value="dark">Dark</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="text-xs text-muted-foreground mt-1">
-                Choose your preferred color scheme
-              </div>
             </div>
 
             <div className="p-3 border-t">
@@ -244,61 +219,18 @@ export function SettingsPage() {
                   Font Size
                 </Label>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Minus className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <Slider
-                    id="font-size"
-                    min={0}
-                    max={2}
-                    step={1}
-                    value={[currentFontSizeIndex]}
-                    onValueChange={handleFontSizeChange}
-                    className="flex-1"
-                  />
-                  <Plus className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                </div>
-                <div className="text-xs text-muted-foreground text-center">
-                  {fontSizeLabels[fontSize]}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-muted">
-              <h3 className="text-sm font-medium">About This App</h3>
-            </div>
-            <div className="p-3">
-              <div className="text-xs text-muted-foreground space-y-3">
-                <div>
-                  <p className="mb-2">
-                    Roster is a mobile-first event management platform designed to streamline event
-                    registration and participant management. Create events, manage signups, and
-                    track attendance all from your mobile device.
-                  </p>
-                </div>
-
-                <div>
-                  <div className="font-medium text-foreground mb-2">Install Mobile App</div>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="font-medium">For iPhone/iPad:</div>
-                      <div>1. Open this website in Safari</div>
-                      <div>2. Tap the Share button (square with arrow)</div>
-                      <div>3. Select "Add to Home Screen"</div>
-                      <div>4. Tap "Add" to confirm</div>
-                    </div>
-
-                    <div>
-                      <div className="font-medium">For Android:</div>
-                      <div>1. Open this website in Chrome</div>
-                      <div>2. Tap the menu (three dots)</div>
-                      <div>3. Select "Add to Home screen"</div>
-                      <div>4. Tap "Add" to confirm</div>
-                    </div>
-                  </div>
-                </div>
+              <div className="flex items-center gap-3">
+                <Minus className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <Slider
+                  id="font-size"
+                  min={0}
+                  max={2}
+                  step={1}
+                  value={[currentFontSizeIndex]}
+                  onValueChange={handleFontSizeChange}
+                  className="flex-1"
+                />
+                <Plus className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               </div>
             </div>
           </div>
