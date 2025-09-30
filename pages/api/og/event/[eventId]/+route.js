@@ -1,4 +1,4 @@
-import { createCanvas, loadImage, registerFont } from 'canvas'
+import { createCanvas } from 'canvas'
 import { serverEventService } from '../../../../../src/services/server-services.js'
 import { formatEventDateTime } from '../../../../../src/lib/utils.js'
 

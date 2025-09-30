@@ -1,4 +1,4 @@
-import { createCanvas, loadImage } from 'canvas'
+import { createCanvas } from 'canvas'
 import { serverGroupService } from '../../../../../src/services/server-services.js'
 
 async function GET(pageContext) {
