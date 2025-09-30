@@ -28,6 +28,7 @@ import { LoadingSpinner } from '@/components/LoadingStates';
 import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { toLocalInputValue, fromLocalInputValue } from '@/lib/utils';
+import { DateTimeInput } from '@/components/DateTimeInput';
 
 interface CustomField {
   id?: string;
@@ -273,12 +274,10 @@ export function EditEventPage() {
             <Label htmlFor="datetime" className="text-sm">
               Start Date & Time
             </Label>
-            <Input
+            <DateTimeInput
               id="datetime"
-              type="datetime-local"
               value={formData.datetime}
-              onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
-              className="h-10 text-sm"
+              onChange={(value) => setFormData((prev) => ({ ...prev, datetime: value }))}
             />
           </div>
 
@@ -286,12 +285,10 @@ export function EditEventPage() {
             <Label htmlFor="end_datetime" className="text-sm">
               End Date & Time (Optional)
             </Label>
-            <Input
+            <DateTimeInput
               id="end_datetime"
-              type="datetime-local"
               value={formData.end_datetime}
-              onChange={(e) => setFormData((prev) => ({ ...prev, end_datetime: e.target.value }))}
-              className="h-10 text-sm"
+              onChange={(value) => setFormData((prev) => ({ ...prev, end_datetime: value }))}
             />
           </div>
 
