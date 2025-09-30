@@ -10,7 +10,16 @@ import { groupService, type GroupParticipant, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { ParticipantsPageSkeleton } from '@/components/ParticipantsPageSkeleton';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { SortDrawer, type SortOption } from '@/components/SortDrawer';
+
+const SORT_OPTIONS: SortOption[] = [
+  { value: 'latest', label: 'Latest Join Date' },
+  { value: 'earliest', label: 'Earliest Join Date' },
+  { value: 'nameAsc', label: 'Name A-Z' },
+  { value: 'nameDesc', label: 'Name Z-A' },
+  { value: 'eventAsc', label: 'Event A-Z' },
+  { value: 'eventDesc', label: 'Event Z-A' },
+];
 
 export function GroupParticipantsPage() {
   const navigate = useNavigate();
@@ -246,96 +255,13 @@ export function GroupParticipantsPage() {
       </div>
 
       {/* Sort Drawer */}
-      <Drawer open={showSortDrawer} onOpenChange={setShowSortDrawer}>
-        <DrawerContent className="p-0">
-          <div className="py-4 px-4">
-            <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
-                sortOption === 'latest' ? 'bg-primary/10 text-primary rounded-lg' : 'hover:bg-muted'
-              }`}
-              onClick={() => {
-                setSortOption('latest');
-                setShowSortDrawer(false);
-              }}
-            >
-              Latest Join Date
-            </button>
-            <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
-                sortOption === 'earliest'
-                  ? 'bg-primary/10 text-primary rounded-lg'
-                  : 'hover:bg-muted'
-              }`}
-              onClick={() => {
-                setSortOption('earliest');
-                setShowSortDrawer(false);
-              }}
-            >
-              Earliest Join Date
-            </button>
-            <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
-                sortOption === 'nameAsc'
-                  ? 'bg-primary/10 text-primary rounded-lg'
-                  : 'hover:bg-muted'
-              }`}
-              onClick={() => {
-                setSortOption('nameAsc');
-                setShowSortDrawer(false);
-              }}
-            >
-              Name A-Z
-            </button>
-            <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
-                sortOption === 'nameDesc'
-                  ? 'bg-primary/10 text-primary rounded-lg'
-                  : 'hover:bg-muted'
-              }`}
-              onClick={() => {
-                setSortOption('nameDesc');
-                setShowSortDrawer(false);
-              }}
-            >
-              Name Z-A
-            </button>
-            <button
-              className={`w-full text-center py-4 text-base font-semibold border-b border-border ${
-                sortOption === 'eventAsc'
-                  ? 'bg-primary/10 text-primary rounded-lg'
-                  : 'hover:bg-muted'
-              }`}
-              onClick={() => {
-                setSortOption('eventAsc');
-                setShowSortDrawer(false);
-              }}
-            >
-              Event A-Z
-            </button>
-            <button
-              className={`w-full text-center py-4 text-base font-semibold ${
-                sortOption === 'eventDesc'
-                  ? 'bg-primary/10 text-primary rounded-lg'
-                  : 'hover:bg-muted'
-              }`}
-              onClick={() => {
-                setSortOption('eventDesc');
-                setShowSortDrawer(false);
-              }}
-            >
-              Event Z-A
-            </button>
-            <div className="border-t border-border">
-              <button
-                className="w-full text-center py-4 text-base font-semibold text-destructive hover:bg-muted"
-                onClick={() => setShowSortDrawer(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <SortDrawer
+        open={showSortDrawer}
+        onOpenChange={setShowSortDrawer}
+        options={SORT_OPTIONS}
+        selectedValue={sortOption}
+        onSelect={setSortOption}
+      />
     </div>
   );
 }
