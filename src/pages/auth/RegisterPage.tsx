@@ -66,29 +66,6 @@ export function RegisterPage() {
       </div>
 
       <div className="p-3 space-y-3">
-        <div className="bg-card rounded-lg p-3 border space-y-3">
-          {/* Google Sign Up Button */}
-          <Button
-            onClick={handleGoogleSignUp}
-            disabled={googleLoading || loading}
-            variant="outline"
-            className="w-full"
-            size="sm"
-          >
-            {googleLoading ? 'Signing up...' : 'Sign up with Google'}
-          </Button>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">or</span>
-            </div>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit}>
           <div className="bg-card rounded-lg p-3 border space-y-3">
             <div className="space-y-2">
@@ -154,6 +131,29 @@ export function RegisterPage() {
             </div>
           </div>
         </form>
+
+        <div className="bg-card rounded-lg p-3 border space-y-3">
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">or</span>
+            </div>
+          </div>
+
+          {/* Google Sign Up Button */}
+          <Button
+            onClick={handleGoogleSignUp}
+            disabled={googleLoading || loading}
+            variant="outline"
+            className="w-full"
+            size="sm"
+          >
+            {googleLoading ? 'Signing up...' : 'Sign up with Google'}
+          </Button>
+        </div>
       </div>
     </div>
   );
