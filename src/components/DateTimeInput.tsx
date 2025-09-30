@@ -94,7 +94,7 @@ export function DateTimeInput({ value, onChange, id, className }: DateTimeInputP
           id={`${id}-time`}
           value={time}
           onChange={(e) => handleTimeChange(e.target.value)}
-          className="w-full bg-background"
+          className="h-9 w-full bg-background"
         />
       </div>
     </div>
