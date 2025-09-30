@@ -806,11 +806,18 @@ export function EventDetailPage() {
           onClick={() => openSignupDrawer()}
           disabled={isEventCompleted(event.datetime, event.end_datetime)}
           className={`w-full text-white shadow-lg ${
-            userRegistration ? 'bg-primary hover:bg-primary/90' : 'bg-primary hover:bg-primary/90'
+            isEventCompleted(event.datetime, event.end_datetime)
+              ? 'bg-[#3d5a3d]'
+              : 'bg-primary hover:bg-primary/90'
           }`}
           size="default"
         >
-          {userRegistration ? (
+          {isEventCompleted(event.datetime, event.end_datetime) ? (
+            <>
+              <UserX className="h-5 w-5 mr-2" />
+              Registration Closed
+            </>
+          ) : userRegistration ? (
             <>
               <UserCheck className="h-5 w-5 mr-2" />
               Modify Registration
