@@ -3,6 +3,7 @@ import { CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
@@ -69,32 +70,40 @@ export function DateTimeInput({ value, onChange, id, className }: DateTimeInputP
   };
 
   return (
-    <div className={cn('flex gap-2', className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            id={id}
-            className={cn(
-              'flex-1 justify-start text-left font-normal h-10',
-              !date && 'text-muted-foreground'
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {formatDateDisplay(date)}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={date} onSelect={handleDateChange} autoFocus />
-        </PopoverContent>
-      </Popover>
+    <div className={cn('flex gap-4', className)}>
+      <div className="flex flex-col gap-3 flex-1">
+        <Label htmlFor={id} className="text-sm">
+          Date
+        </Label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              id={id}
+              className={cn('justify-between font-normal h-10', !date && 'text-muted-foreground')}
+            >
+              {formatDateDisplay(date)}
+              <CalendarIcon className="h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={date} onSelect={handleDateChange} autoFocus />
+          </PopoverContent>
+        </Popover>
+      </div>
 
-      <Input
-        type="time"
-        value={time}
-        onChange={(e) => handleTimeChange(e.target.value)}
-        className="w-32 h-10 text-sm"
-      />
+      <div className="flex flex-col gap-3 w-32">
+        <Label htmlFor={`${id}-time`} className="text-sm">
+          Time
+        </Label>
+        <Input
+          type="time"
+          id={`${id}-time`}
+          value={time}
+          onChange={(e) => handleTimeChange(e.target.value)}
+          className="h-10 text-sm"
+        />
+      </div>
     </div>
   );
 }
