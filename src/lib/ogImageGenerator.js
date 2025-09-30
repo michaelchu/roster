@@ -129,17 +129,22 @@ function createImageResponse(canvas) {
  * Generates an OG image for an event
  */
 export function generateEventOGImage(event, formatEventDateTime) {
+  // Validate required fields and provide fallbacks
+  if (!event) {
+    throw new Error('Event object is required for OG image generation');
+  }
+
   const { canvas, ctx } = createBaseCanvas();
 
-  // Event title (large, bold)
+  // Event title (large, bold) - with fallback for missing name
   ctx.fillStyle = COLORS.textPrimary;
   ctx.font = 'bold 64px Arial, sans-serif';
-  const titleText = truncateText(event.name, 30);
+  const titleText = truncateText(event.name || 'Untitled Event', 30);
   ctx.fillText(titleText, 80, 100);
 
-  // Event date/time (medium)
+  // Event date/time (medium) - with fallback for missing datetime
   ctx.font = '48px Arial, sans-serif';
-  const dateText = formatEventDateTime(event.datetime);
+  const dateText = event.datetime ? formatEventDateTime(event.datetime) : 'Date TBD';
   ctx.fillText(dateText, 80, 190);
 
   // Location (with text label)
@@ -181,12 +186,17 @@ export function generateEventOGImage(event, formatEventDateTime) {
  * Generates an OG image for a group
  */
 export function generateGroupOGImage(group, memberCount = 0, eventCount = 0) {
+  // Validate required fields and provide fallbacks
+  if (!group) {
+    throw new Error('Group object is required for OG image generation');
+  }
+
   const { canvas, ctx } = createBaseCanvas();
 
-  // Group title (large, bold)
+  // Group title (large, bold) - with fallback for missing name
   ctx.fillStyle = COLORS.textPrimary;
   ctx.font = 'bold 64px Arial, sans-serif';
-  const titleText = truncateText(group.name, 30);
+  const titleText = truncateText(group.name || 'Untitled Group', 30);
   ctx.fillText(titleText, 80, 100);
 
   // Group stats (medium)
