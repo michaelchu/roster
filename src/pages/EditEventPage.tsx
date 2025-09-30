@@ -236,7 +236,7 @@ export function EditEventPage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav title="Edit Event" showBackButton backPath={`/signup/${event.id}`} sticky />
 
-      <div className="p-3 space-y-3">
+      <div className="px-4 py-3 space-y-3">
         <div className="bg-card rounded-lg p-3 border space-y-3">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm">
