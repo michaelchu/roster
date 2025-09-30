@@ -155,8 +155,8 @@ export function LoginPage() {
               <div>
                 <p className="mb-2">
                   Roster is a mobile-first event management platform designed to streamline event
-                  registration and participant management. Create events, manage signups, and
-                  track attendance all from your mobile device.
+                  registration and participant management. Create events, manage signups, and track
+                  attendance all from your mobile device.
                 </p>
               </div>
 
