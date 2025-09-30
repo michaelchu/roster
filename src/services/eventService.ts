@@ -238,6 +238,8 @@ export const eventService = {
 
     if (!eventsData) return [];
 
+    if (eventsData.length === 0) return [];
+
     // Get unique event IDs to fetch full participant counts
     const eventIds = eventsData.map((e) => e.id);
 
