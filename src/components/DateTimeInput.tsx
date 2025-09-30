@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CalendarIcon } from 'lucide-react';
+import { ChevronDownIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
@@ -59,49 +59,43 @@ export function DateTimeInput({ value, onChange, id, className }: DateTimeInputP
     onChange(formatDateTime(date, newTime));
   };
 
-  // Format date for display
-  const formatDateDisplay = (date: Date | undefined) => {
-    if (!date) return 'Select date';
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
   return (
     <div className={cn('flex gap-4', className)}>
-      <div className="flex flex-col gap-3 flex-1">
-        <Label htmlFor={id} className="text-sm">
+      <div className="flex flex-col gap-3">
+        <Label htmlFor={id} className="px-1">
           Date
         </Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id={id}
-              className={cn('justify-between font-normal h-10', !date && 'text-muted-foreground')}
-            >
-              {formatDateDisplay(date)}
-              <CalendarIcon className="h-4 w-4 opacity-50" />
+            <Button variant="outline" id={id} className="w-32 justify-between font-normal">
+              {date ? date.toLocaleDateString() : 'Select date'}
+              <ChevronDownIcon />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={date} onSelect={handleDateChange} />
+          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              captionLayout="dropdown"
+              onSelect={(date) => {
+                handleDateChange(date);
+              }}
+            />
           </PopoverContent>
         </Popover>
       </div>
 
-      <div className="flex flex-col gap-3 w-32">
-        <Label htmlFor={`${id}-time`} className="text-sm">
+      <div className="flex flex-col gap-3">
+        <Label htmlFor={`${id}-time`} className="px-1">
           Time
         </Label>
         <Input
           type="time"
           id={`${id}-time`}
+          step="1"
           value={time}
           onChange={(e) => handleTimeChange(e.target.value)}
-          className="h-10 text-sm"
+          className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         />
       </div>
     </div>
