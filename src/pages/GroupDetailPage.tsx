@@ -10,6 +10,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton } from '@/components/LoadingStates';
 import type { Tables } from '@/types/app.types';
+import { formatEventDateTime } from '@/lib/utils';
 
 interface GroupEvent extends Tables<'events'> {
   participant_count?: number;
@@ -227,19 +228,7 @@ export function GroupDetailPage() {
                       {event.datetime && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>
-                            {new Date(event.datetime).toLocaleDateString('en-US', {
-                              weekday: 'short',
-                              month: 'short',
-                              day: 'numeric',
-                            })}{' '}
-                            -{' '}
-                            {new Date(event.datetime).toLocaleTimeString('en-US', {
-                              hour: 'numeric',
-                              minute: '2-digit',
-                              hour12: true,
-                            })}
-                          </span>
+                          <span>{formatEventDateTime(event.datetime)}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-3">

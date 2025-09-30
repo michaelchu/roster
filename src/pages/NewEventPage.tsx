@@ -21,6 +21,7 @@ import { ActionButton } from '@/components/ActionButton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { fromLocalInputValue } from '@/lib/utils';
+import { DateTimeInput } from '@/components/DateTimeInput';
 
 interface CustomField {
   id: string;
@@ -159,7 +160,7 @@ export function NewEventPage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav title="Create Event" showBackButton backPath="/events" sticky />
 
-      <form id="create-event-form" onSubmit={handleSubmit} className="px-4 py-3 space-y-4">
+      <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm">
             Event Name *
@@ -196,12 +197,10 @@ export function NewEventPage() {
           <Label htmlFor="datetime" className="text-sm">
             Start Date & Time
           </Label>
-          <Input
+          <DateTimeInput
             id="datetime"
-            type="datetime-local"
             value={formData.datetime}
-            onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
-            className="h-10 text-sm"
+            onChange={(value) => setFormData((prev) => ({ ...prev, datetime: value }))}
           />
         </div>
 
@@ -209,12 +208,10 @@ export function NewEventPage() {
           <Label htmlFor="end_datetime" className="text-sm">
             End Date & Time (Optional)
           </Label>
-          <Input
+          <DateTimeInput
             id="end_datetime"
-            type="datetime-local"
             value={formData.end_datetime}
-            onChange={(e) => setFormData((prev) => ({ ...prev, end_datetime: e.target.value }))}
-            className="h-10 text-sm"
+            onChange={(value) => setFormData((prev) => ({ ...prev, end_datetime: value }))}
           />
         </div>
 

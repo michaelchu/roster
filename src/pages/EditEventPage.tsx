@@ -24,10 +24,11 @@ import { Plus, Trash2, Save, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
-import { LoadingSpinner } from '@/components/LoadingStates';
 import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { toLocalInputValue, fromLocalInputValue } from '@/lib/utils';
+import { DateTimeInput } from '@/components/DateTimeInput';
+import { ActionButton } from '@/components/ActionButton';
 
 interface CustomField {
   id?: string;
@@ -145,8 +146,7 @@ export function EditEventPage() {
     setCustomFields(customFields.filter((field) => field.id !== id));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveChanges = async () => {
     if (!event || !user) return;
 
     // Client-side validation for end date
@@ -273,12 +273,10 @@ export function EditEventPage() {
             <Label htmlFor="datetime" className="text-sm">
               Start Date & Time
             </Label>
-            <Input
+            <DateTimeInput
               id="datetime"
-              type="datetime-local"
               value={formData.datetime}
-              onChange={(e) => setFormData((prev) => ({ ...prev, datetime: e.target.value }))}
-              className="h-10 text-sm"
+              onChange={(value) => setFormData((prev) => ({ ...prev, datetime: value }))}
             />
           </div>
 
@@ -286,12 +284,10 @@ export function EditEventPage() {
             <Label htmlFor="end_datetime" className="text-sm">
               End Date & Time (Optional)
             </Label>
-            <Input
+            <DateTimeInput
               id="end_datetime"
-              type="datetime-local"
               value={formData.end_datetime}
-              onChange={(e) => setFormData((prev) => ({ ...prev, end_datetime: e.target.value }))}
-              className="h-10 text-sm"
+              onChange={(value) => setFormData((prev) => ({ ...prev, end_datetime: value }))}
             />
           </div>
 
@@ -463,7 +459,6 @@ export function EditEventPage() {
         {/* Delete Event Button */}
         <Button
           variant="destructive"
-          size="sm"
           className="w-full"
           onClick={() => setShowDeleteDialog(true)}
           disabled={loading}
@@ -474,29 +469,10 @@ export function EditEventPage() {
       </div>
 
       {/* Save Changes Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
-        <Button
-          onClick={(e) => {
-            e.preventDefault();
-            handleSubmit(e as React.FormEvent);
-          }}
-          className="w-full text-white shadow-lg"
-          size="sm"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <LoadingSpinner size="sm" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </>
-          )}
-        </Button>
-      </div>
+      <ActionButton onClick={saveChanges} loading={loading} loadingText="Saving...">
+        <Save className="h-4 w-4 mr-2" />
+        Save Changes
+      </ActionButton>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

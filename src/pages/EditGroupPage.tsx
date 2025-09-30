@@ -20,6 +20,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { Save, Trash2 } from 'lucide-react';
 import type { Group } from '@/services/groupService';
+import { ActionButton } from '@/components/ActionButton';
 
 export function EditGroupPage() {
   const { groupId } = useParams<{ groupId: string }>();
@@ -230,8 +231,8 @@ export function EditGroupPage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav title="Edit Group" showBackButton backPath={`/groups/${group.id}`} />
 
-      <div className="p-4">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="p-3">
+        <form id="edit-group-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Group Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Group Name *</Label>
@@ -285,7 +286,6 @@ export function EditGroupPage() {
           {/* Delete Group Button */}
           <Button
             variant="destructive"
-            size="sm"
             className="w-full"
             onClick={() => setShowDeleteDialog(true)}
             disabled={saving || deleting}
@@ -298,29 +298,16 @@ export function EditGroupPage() {
       </div>
 
       {/* Save Changes Button above navbar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
-        <Button
-          onClick={(e) => {
-            e.preventDefault();
-            handleSubmit(e as React.FormEvent);
-          }}
-          className="w-full text-white shadow-lg"
-          size="sm"
-          disabled={saving || deleting}
-        >
-          {saving ? (
-            <>
-              <LoadingSpinner size="sm" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </>
-          )}
-        </Button>
-      </div>
+      <ActionButton
+        type="submit"
+        form="edit-group-form"
+        loading={saving}
+        disabled={deleting}
+        loadingText="Saving..."
+      >
+        <Save className="h-4 w-4 mr-2" />
+        Save Changes
+      </ActionButton>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

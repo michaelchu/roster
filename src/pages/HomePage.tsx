@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase';
 import { TopNav } from '@/components/TopNav';
 import { type Participant } from '@/services/participantService';
 import { UpcomingEventsListSkeleton } from '@/components/LoadingStates';
+import { formatEventDateTime } from '@/lib/utils';
 
 interface UpcomingEvent {
   id: string;
@@ -277,15 +278,7 @@ export function HomePage() {
                             {event.datetime && (
                               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                 <Calendar className="h-3 w-3 flex-shrink-0" />
-                                <span>
-                                  {new Date(event.datetime).toLocaleDateString('en-US', {
-                                    weekday: 'short',
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                  })}
-                                </span>
+                                <span>{formatEventDateTime(event.datetime)}</span>
                               </div>
                             )}
                             {event.location && (

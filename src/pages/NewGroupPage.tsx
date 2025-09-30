@@ -95,7 +95,7 @@ export function NewGroupPage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav title="Create Group" showBackButton backPath="/groups" sticky />
 
-      <form id="create-group-form" onSubmit={handleSubmit} className="px-4 py-3 space-y-4">
+      <form id="create-group-form" onSubmit={handleSubmit} className="p-3 space-y-4">
         {/* Group Name */}
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm">
