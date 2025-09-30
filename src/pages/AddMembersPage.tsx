@@ -128,18 +128,70 @@ export function AddMembersPage() {
         selectedParticipantIds.has(p.id)
       );
 
-      // Add each participant to the group
-      for (const participant of selectedParticipants) {
-        await groupService.addParticipantToGroup(groupId, participant.id);
-      }
-
-      errorHandler.success(
-        `Added ${selectedParticipants.length} ${selectedParticipants.length === 1 ? 'member' : 'members'} to the group`
+      // Add all participants to the group in parallel using Promise.allSettled
+      const results = await Promise.allSettled(
+        selectedParticipants.map((participant) =>
+          groupService.addParticipantToGroup(groupId, participant.id)
+        )
       );
 
-      // Clear selection and reload data
-      setSelectedParticipantIds(new Set());
-      await loadData();
+      // Collect successes and failures
+      const successes: string[] = [];
+      const failures: Array<{ name: string; error: string }> = [];
+
+      results.forEach((result, index) => {
+        const participant = selectedParticipants[index];
+        if (result.status === 'fulfilled') {
+          successes.push(participant.name);
+        } else {
+          failures.push({
+            name: participant.name,
+            error: result.reason?.message || 'Unknown error',
+          });
+        }
+      });
+
+      // Report results to user
+      if (failures.length === 0) {
+        // All succeeded
+        errorHandler.success(
+          `Added ${successes.length} ${successes.length === 1 ? 'member' : 'members'} to the group`
+        );
+        // Clear selection and reload data
+        setSelectedParticipantIds(new Set());
+        await loadData();
+      } else if (successes.length === 0) {
+        // All failed
+        errorHandler.handle(
+          new Error(
+            `Failed to add members: ${failures.map((f) => `${f.name} (${f.error})`).join(', ')}`
+          ),
+          {
+            userId: user?.id,
+            action: 'addMembers',
+          }
+        );
+      } else {
+        // Partial success
+        errorHandler.success(
+          `Added ${successes.length} ${successes.length === 1 ? 'member' : 'members'} successfully`
+        );
+        errorHandler.handle(
+          new Error(
+            `Failed to add ${failures.length} ${failures.length === 1 ? 'member' : 'members'}: ${failures.map((f) => f.name).join(', ')}`
+          ),
+          {
+            userId: user?.id,
+            action: 'addMembers',
+          }
+        );
+        // Clear only successful selections and reload
+        const failedIds = new Set(
+          selectedParticipants.filter((p, i) => results[i].status === 'rejected').map((p) => p.id)
+        );
+        setSelectedParticipantIds(failedIds);
+        await loadData();
+      }
     } catch (error) {
       errorHandler.handle(error, {
         userId: user?.id,

@@ -121,19 +121,71 @@ export function RemoveMembersPage() {
       // Get selected members
       const selectedMembers = members.filter((m) => selectedMemberIds.has(m.id));
 
-      // Remove each member
-      for (const member of selectedMembers) {
-        await groupService.removeParticipantFromGroup(groupId, member.id);
-      }
-
-      errorHandler.success(
-        `Removed ${selectedMembers.length} ${selectedMembers.length === 1 ? 'member' : 'members'} from the group`
+      // Remove all members in parallel using Promise.allSettled
+      const results = await Promise.allSettled(
+        selectedMembers.map((member) => groupService.removeParticipantFromGroup(groupId, member.id))
       );
 
-      // Clear selection and reload data
-      setSelectedMemberIds(new Set());
+      // Collect successes and failures
+      const successes: string[] = [];
+      const failures: Array<{ name: string; error: string }> = [];
+
+      results.forEach((result, index) => {
+        const member = selectedMembers[index];
+        if (result.status === 'fulfilled') {
+          successes.push(member.name);
+        } else {
+          failures.push({
+            name: member.name,
+            error: result.reason?.message || 'Unknown error',
+          });
+        }
+      });
+
+      // Close dialog first
       setShowConfirmDialog(false);
-      await loadData();
+
+      // Report results to user
+      if (failures.length === 0) {
+        // All succeeded
+        errorHandler.success(
+          `Removed ${successes.length} ${successes.length === 1 ? 'member' : 'members'} from the group`
+        );
+        // Clear selection and reload data
+        setSelectedMemberIds(new Set());
+        await loadData();
+      } else if (successes.length === 0) {
+        // All failed
+        errorHandler.handle(
+          new Error(
+            `Failed to remove members: ${failures.map((f) => `${f.name} (${f.error})`).join(', ')}`
+          ),
+          {
+            userId: user?.id,
+            action: 'removeMembers',
+          }
+        );
+      } else {
+        // Partial success
+        errorHandler.success(
+          `Removed ${successes.length} ${successes.length === 1 ? 'member' : 'members'} successfully`
+        );
+        errorHandler.handle(
+          new Error(
+            `Failed to remove ${failures.length} ${failures.length === 1 ? 'member' : 'members'}: ${failures.map((f) => f.name).join(', ')}`
+          ),
+          {
+            userId: user?.id,
+            action: 'removeMembers',
+          }
+        );
+        // Clear only successful selections and reload
+        const failedIds = new Set(
+          selectedMembers.filter((m, i) => results[i].status === 'rejected').map((m) => m.id)
+        );
+        setSelectedMemberIds(failedIds);
+        await loadData();
+      }
     } catch (error) {
       errorHandler.handle(error, {
         userId: user?.id,
