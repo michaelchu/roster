@@ -180,7 +180,7 @@ export function EventsPage() {
 
         <TabsContent value="organizing" className="p-3 space-y-3 mt-0">
           {renderEventList(organizingEvents, isLoadingOrganizing, true)}
-          <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
+          <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">
             <Button onClick={() => navigate('/events/new')} className="w-full text-white shadow-lg">
               <Plus className="h-5 w-5 mr-2" />
               New Event
