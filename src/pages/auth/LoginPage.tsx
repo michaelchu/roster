@@ -107,6 +107,27 @@ export function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
 
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+
+            {/* Google Sign In Button */}
+            <Button
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading || loading}
+              variant="outline"
+              className="w-full"
+              size="sm"
+            >
+              {googleLoading ? 'Signing in...' : 'Continue with Google'}
+            </Button>
+
             <div className="text-center text-xs text-muted-foreground">
               Don't have an account?{' '}
               <Link to="/auth/register" className="text-primary hover:underline">
@@ -115,29 +136,6 @@ export function LoginPage() {
             </div>
           </div>
         </form>
-
-        <div className="bg-card rounded-lg p-3 border space-y-3">
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">or</span>
-            </div>
-          </div>
-
-          {/* Google Sign In Button */}
-          <Button
-            onClick={handleGoogleSignIn}
-            disabled={googleLoading || loading}
-            variant="outline"
-            className="w-full"
-            size="sm"
-          >
-            {googleLoading ? 'Signing in...' : 'Continue with Google'}
-          </Button>
-        </div>
       </div>
     </div>
   );
