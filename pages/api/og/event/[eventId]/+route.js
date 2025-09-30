@@ -2,7 +2,7 @@ import { createCanvas, loadImage, registerFont } from 'canvas'
 import { serverEventService } from '../../../../../src/services/server-services.js'
 import { formatEventDateTime } from '../../../../../src/lib/utils.js'
 
-export async function GET(pageContext) {
+async function GET(pageContext) {
   try {
     const { eventId } = pageContext.routeParams
 
@@ -104,3 +104,5 @@ export async function GET(pageContext) {
     return new Response('Error generating image', { status: 500 })
   }
 }
+
+export const route = GET

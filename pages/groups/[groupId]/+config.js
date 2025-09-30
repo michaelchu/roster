@@ -13,9 +13,6 @@ export default {
     return `Join our group! ${memberText}${eventText}${description}`
   },
 
-  // Additional meta configuration
-  meta: {
-    charset: 'UTF-8',
-    viewport: 'width=device-width, initial-scale=1.0'
-  }
+  Head: './+Head.jsx',
+  passToClient: ['data']
 }

@@ -13,9 +13,6 @@ export default {
     return `${location} ${cost}`.trim()
   },
 
-  // Additional meta configuration
-  meta: {
-    charset: 'UTF-8',
-    viewport: 'width=device-width, initial-scale=1.0'
-  }
+  Head: './+Head.jsx',
+  passToClient: ['data']
 }

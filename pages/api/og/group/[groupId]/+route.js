@@ -1,7 +1,7 @@
 import { createCanvas, loadImage } from 'canvas'
 import { serverGroupService } from '../../../../../src/services/server-services.js'
 
-export async function GET(pageContext) {
+async function GET(pageContext) {
   try {
     const { groupId } = pageContext.routeParams
 
@@ -131,3 +131,5 @@ export async function GET(pageContext) {
     return new Response('Error generating image', { status: 500 })
   }
 }
+
+export const route = GET
