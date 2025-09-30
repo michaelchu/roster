@@ -121,7 +121,7 @@ export function LoginPage() {
             </div>
 
             {error && (
-              <div className="text-xs text-destructive-foreground bg-destructive/10 p-2 rounded">
+              <div className="text-xs text-red-700 bg-red-50 p-2 rounded border border-red-200">
                 {error}
               </div>
             )}
