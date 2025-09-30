@@ -1,3 +1,4 @@
+import React from 'react';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 
 interface FormDrawerProps {
