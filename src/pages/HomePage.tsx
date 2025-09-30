@@ -315,9 +315,6 @@ export function HomePage() {
             </div>
 
             <div className="bg-card rounded-lg border overflow-hidden">
-              <div className="p-3 border-b bg-muted">
-                <h3 className="text-sm font-medium">About This App</h3>
-              </div>
               <div className="p-3">
                 <div className="text-xs text-muted-foreground space-y-3">
                   <div>
