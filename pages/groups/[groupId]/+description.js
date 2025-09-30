@@ -1,4 +1,7 @@
 export default (pageContext) => {
+  if (!pageContext?.data) {
+    return 'Join our community'
+  }
   const { group, memberCount = 0, eventCount = 0 } = pageContext.data
   if (!group) {
     return 'Join our community'
