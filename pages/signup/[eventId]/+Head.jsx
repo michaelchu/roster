@@ -1,5 +1,4 @@
 import { usePageContext } from 'vike-react/usePageContext'
-import { formatEventDateTime } from '../../../src/lib/utils.js'
 
 export default function Head() {
   const pageContext = usePageContext()
@@ -11,7 +10,9 @@ export default function Head() {
 
   const eventTitle = `${event.name} - Let's play!`
   const eventDescription = `Join us! ${event.location ? `📍 ${event.location}` : ''} ${event.cost ? `💰 ${event.cost}` : '💰 Free'}`
-  const baseUrl = process.env.VITE_APP_URL || 'http://localhost:3000'
+  const baseUrl = typeof window !== 'undefined'
+    ? window.location.origin
+    : (import.meta.env.VITE_APP_URL || 'http://localhost:3000')
   const eventImage = `${baseUrl}/api/og/event/${event.id}`
   const eventUrl = `${baseUrl}/signup/${event.id}`
 
