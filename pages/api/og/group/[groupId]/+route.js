@@ -39,7 +39,10 @@ async function GET(pageContext) {
     // Group title (large, bold)
     ctx.fillStyle = '#333333'
     ctx.font = 'bold 64px Arial, sans-serif'
-    const titleText = group.name
+    const maxTitleLength = 30
+    const titleText = group.name.length > maxTitleLength
+      ? group.name.substring(0, maxTitleLength) + '...'
+      : group.name
     ctx.fillText(titleText, 80, 100)
 
     // Group stats (medium)

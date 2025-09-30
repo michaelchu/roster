@@ -36,7 +36,10 @@ async function GET(pageContext) {
     // Event title (large, bold)
     ctx.fillStyle = '#333333'
     ctx.font = 'bold 64px Arial, sans-serif'
-    const titleText = `${event.name}`
+    const maxTitleLength = 30
+    const titleText = event.name.length > maxTitleLength
+      ? event.name.substring(0, maxTitleLength) + '...'
+      : event.name
     ctx.fillText(titleText, 80, 100)
 
     // Event date/time (medium)
