@@ -80,10 +80,19 @@ async function GET(pageContext) {
     const buttonHeight = 80
     const cornerRadius = 25
 
-    // Button background
+    // Button background (manual rounded rectangle for node-canvas compatibility)
     ctx.fillStyle = '#4CAF50'
     ctx.beginPath()
-    ctx.roundRect(buttonX, buttonY, buttonWidth, buttonHeight, cornerRadius)
+    ctx.moveTo(buttonX + cornerRadius, buttonY)
+    ctx.lineTo(buttonX + buttonWidth - cornerRadius, buttonY)
+    ctx.arcTo(buttonX + buttonWidth, buttonY, buttonX + buttonWidth, buttonY + cornerRadius, cornerRadius)
+    ctx.lineTo(buttonX + buttonWidth, buttonY + buttonHeight - cornerRadius)
+    ctx.arcTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - cornerRadius, buttonY + buttonHeight, cornerRadius)
+    ctx.lineTo(buttonX + cornerRadius, buttonY + buttonHeight)
+    ctx.arcTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - cornerRadius, cornerRadius)
+    ctx.lineTo(buttonX, buttonY + cornerRadius)
+    ctx.arcTo(buttonX, buttonY, buttonX + cornerRadius, buttonY, cornerRadius)
+    ctx.closePath()
     ctx.fill()
 
     // Button text
