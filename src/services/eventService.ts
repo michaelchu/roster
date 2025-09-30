@@ -242,10 +242,12 @@ export const eventService = {
     const eventIds = eventsData.map((e) => e.id);
 
     // Fetch all participants for these events to get accurate counts
-    const { data: allParticipants } = await supabase
+    const { data: allParticipants, error: participantsError } = await supabase
       .from('participants')
       .select('event_id, id')
       .in('event_id', eventIds);
+
+    if (participantsError) throw errorHandler.fromSupabaseError(participantsError);
 
     // Create a map of event_id to participant count
     const participantCountMap = new Map<string, number>();
