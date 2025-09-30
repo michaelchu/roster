@@ -25,6 +25,7 @@ export const mockSupabaseClient = {
     single: vi.fn().mockReturnThis(),
     match: vi.fn().mockReturnThis(),
   })),
+  rpc: vi.fn().mockResolvedValue({ data: 1, error: null }),
 };
 
 // Mock the supabase module

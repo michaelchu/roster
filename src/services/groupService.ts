@@ -54,6 +54,8 @@ export interface GroupStats {
   total_registrations: number;
 }
 
+export type GroupAdmin = Tables<'group_admins'>;
+
 // Validation function for group data
 function validateGroupData(group: Partial<Group>): void {
   if (group.name !== undefined) {
@@ -428,5 +430,68 @@ export const groupService = {
       const group = item.groups;
       return Array.isArray(group) ? group[0] : group;
     });
+  },
+
+  async isGroupAdmin(groupId: string, userId: string): Promise<boolean> {
+    // Check if user is the group owner
+    const { data: group, error: groupError } = await supabase
+      .from('groups')
+      .select('organizer_id')
+      .eq('id', groupId)
+      .single();
+
+    if (groupError) throw errorHandler.fromSupabaseError(groupError);
+    if (!group) return false;
+
+    // User is admin if they are the owner
+    if (group.organizer_id === userId) return true;
+
+    // Check if user is in the group_admins table
+    const { data: adminRecord, error: adminError } = await supabase
+      .from('group_admins')
+      .select('id')
+      .eq('group_id', groupId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (adminError) throw errorHandler.fromSupabaseError(adminError);
+
+    return adminRecord !== null;
+  },
+
+  async addGroupAdmin(groupId: string, userId: string): Promise<void> {
+    const { error } = await supabase.from('group_admins').insert({
+      group_id: groupId,
+      user_id: userId,
+    });
+
+    if (error) {
+      // Ignore unique constraint violations (admin already exists)
+      if (error.code !== '23505') {
+        throw errorHandler.fromSupabaseError(error);
+      }
+    }
+  },
+
+  async removeGroupAdmin(groupId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('group_admins')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+
+    if (error) throw errorHandler.fromSupabaseError(error);
+  },
+
+  async getGroupAdmins(groupId: string): Promise<GroupAdmin[]> {
+    const { data, error } = await supabase
+      .from('group_admins')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw errorHandler.fromSupabaseError(error);
+
+    return data || [];
   },
 };

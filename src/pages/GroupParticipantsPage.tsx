@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, ArrowUpDown, UsersRound } from 'lucide-react';
+import { Search, ArrowUpDown, UsersRound, UserPlus, UserMinus, UserCog } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService, type GroupParticipant, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -27,6 +27,8 @@ export function GroupParticipantsPage() {
   const { user, loading: authLoading } = useAuth();
   const [group, setGroup] = useState<Group | null>(null);
   const [groupLoading, setGroupLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [showSortDrawer, setShowSortDrawer] = useState(false);
@@ -58,12 +60,32 @@ export function GroupParticipantsPage() {
     return await groupService.getGroupParticipants(groupId);
   }, [groupId]);
 
+  const checkAdminStatus = useCallback(async () => {
+    if (!groupId || !user?.id) {
+      setIsAdmin(false);
+      setAdminLoading(false);
+      return;
+    }
+
+    try {
+      setAdminLoading(true);
+      const adminStatus = await groupService.isGroupAdmin(groupId, user.id);
+      setIsAdmin(adminStatus);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    } finally {
+      setAdminLoading(false);
+    }
+  }, [groupId, user?.id]);
+
   useEffect(() => {
     if (user) {
       loadGroup();
       loadParticipants(loadParticipantsCallback);
+      checkAdminStatus();
     }
-  }, [user, loadGroup, loadParticipants, loadParticipantsCallback]);
+  }, [user, loadGroup, loadParticipants, loadParticipantsCallback, checkAdminStatus]);
 
   const sortedParticipants = (participants: GroupParticipant[]) => {
     const sorted = [...participants];
@@ -99,7 +121,7 @@ export function GroupParticipantsPage() {
     ) || []
   );
 
-  if (authLoading || groupLoading) {
+  if (authLoading || groupLoading || adminLoading) {
     return <ParticipantsPageSkeleton />;
   }
 
@@ -147,6 +169,51 @@ export function GroupParticipantsPage() {
       />
 
       <div className="p-3 space-y-3">
+        {/* Quick Actions - Only visible to admins */}
+        {isAdmin && (
+          <div className="bg-card rounded-lg p-3 border">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-medium">Quick Actions</h2>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-20 flex-col gap-2"
+                onClick={() => {
+                  // TODO: Implement manage admins functionality
+                }}
+              >
+                <UserCog className="h-5 w-5" />
+                <span className="text-xs">Manage</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-20 flex-col gap-2"
+                onClick={() => {
+                  // TODO: Implement add members functionality
+                }}
+              >
+                <UserPlus className="h-5 w-5" />
+                <span className="text-xs">Add</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-20 flex-col gap-2"
+                onClick={() => {
+                  // TODO: Implement remove members functionality
+                }}
+                disabled={!participants || participants.length === 0}
+              >
+                <UserMinus className="h-5 w-5" />
+                <span className="text-xs">Remove</span>
+              </Button>
+            </div>
+          </div>
+        )}
+
         {!participants || participants.length === 0 ? (
           <div className="bg-card rounded-lg p-6 border text-center">
             <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-3" />

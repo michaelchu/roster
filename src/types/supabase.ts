@@ -56,6 +56,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: 'events_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'events_organizer_id_fkey';
             columns: ['organizer_id'];
             isOneToOne: false;
@@ -69,11 +76,40 @@ export type Database = {
             referencedRelation: 'events';
             referencedColumns: ['id'];
           },
+        ];
+      };
+      group_admins: {
+        Row: {
+          created_at: string;
+          group_id: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          group_id: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          group_id?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
           {
-            foreignKeyName: 'events_group_id_fkey';
+            foreignKeyName: 'group_admins_group_id_fkey';
             columns: ['group_id'];
             isOneToOne: false;
             referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'group_admins_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizers';
             referencedColumns: ['id'];
           },
         ];
@@ -262,7 +298,7 @@ export type Database = {
           notes?: string | null;
           phone?: string | null;
           responses?: Json;
-          slot_number?: number;
+          slot_number: number;
           user_id?: string | null;
         };
         Update: {
