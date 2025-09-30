@@ -1,11 +1,11 @@
-import { eventService } from '../../../src/services/index.js'
+import { serverEventService } from '../../../src/services/server-services.js'
 
 export async function data(pageContext) {
   const { eventId } = pageContext.routeParams
 
   try {
-    // Use existing eventService to fetch event data
-    const event = await eventService.getEventById(eventId)
+    // Use server-compatible eventService for SSR data fetching
+    const event = await serverEventService.getEventById(eventId)
 
     if (!event) {
       throw new Error(`Event with ID ${eventId} not found`)

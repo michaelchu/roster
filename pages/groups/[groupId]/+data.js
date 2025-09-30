@@ -1,11 +1,11 @@
-import { groupService } from '../../../src/services/index.js'
+import { serverGroupService } from '../../../src/services/server-services.js'
 
 export async function data(pageContext) {
   const { groupId } = pageContext.routeParams
 
   try {
-    // Use existing groupService to fetch group data
-    const group = await groupService.getGroupById(groupId)
+    // Use server-compatible groupService for SSR data fetching
+    const group = await serverGroupService.getGroupById(groupId)
 
     if (!group) {
       throw new Error(`Group with ID ${groupId} not found`)
