@@ -59,18 +59,19 @@ export function AddMembersPage() {
       // Get all events in this group
       const events = await groupService.getGroupEvents(groupId);
 
-      // Get all participants from those events
-      const allParticipants: ParticipantWithEvent[] = [];
-      for (const event of events) {
-        const participants = await participantService.getParticipantsByEventId(event.id);
-        allParticipants.push(
-          ...participants.map((p) => ({
-            ...p,
-            eventName: event.name,
-            eventId: event.id,
-          }))
-        );
-      }
+      // Get all participants from those events in parallel
+      const allParticipants: ParticipantWithEvent[] = (
+        await Promise.all(
+          events.map(async (event) => {
+            const participants = await participantService.getParticipantsByEventId(event.id);
+            return participants.map((p) => ({
+              ...p,
+              eventName: event.name,
+              eventId: event.id,
+            }));
+          })
+        )
+      ).flat();
 
       // Get existing group members to filter them out
       const existingMembers = await groupService.getGroupParticipants(groupId);
