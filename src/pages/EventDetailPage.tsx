@@ -810,7 +810,12 @@ export function EventDetailPage() {
           }`}
           size="default"
         >
-          {userRegistration ? (
+          {isEventCompleted(event.datetime, event.end_datetime) ? (
+            <>
+              <UserX className="h-5 w-5 mr-2" />
+              Registration Closed
+            </>
+          ) : userRegistration ? (
             <>
               <UserCheck className="h-5 w-5 mr-2" />
               Modify Registration
