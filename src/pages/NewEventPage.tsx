@@ -160,7 +160,7 @@ export function NewEventPage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav title="Create Event" showBackButton backPath="/events" sticky />
 
-      <form id="create-event-form" onSubmit={handleSubmit} className="px-4 py-3 space-y-4">
+      <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm">
             Event Name *

@@ -25,7 +25,7 @@ export function ActionButton({
   loadingText = 'Loading...',
 }: ActionButtonProps) {
   return (
-    <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
+    <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">
       <Button
         type={type}
         form={form}
