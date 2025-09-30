@@ -460,7 +460,6 @@ export function EditEventPage() {
         {/* Delete Event Button */}
         <Button
           variant="destructive"
-          size="sm"
           className="w-full"
           onClick={() => setShowDeleteDialog(true)}
           disabled={loading}

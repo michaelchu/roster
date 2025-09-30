@@ -286,7 +286,6 @@ export function EditGroupPage() {
           {/* Delete Group Button */}
           <Button
             variant="destructive"
-            size="sm"
             className="w-full"
             onClick={() => setShowDeleteDialog(true)}
             disabled={saving || deleting}
