@@ -71,7 +71,7 @@ export function ProfilePage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav title="Profile" showBackButton backPath="/settings" sticky />
 
-      <form onSubmit={handleSubmit} className="p-3 space-y-3">
+      <form id="profile-form" onSubmit={handleSubmit} className="p-3 space-y-3">
         <div className="bg-card rounded-lg border overflow-hidden">
           <div className="p-3 border-b bg-muted">
             <div className="flex items-center gap-3">
@@ -139,11 +139,7 @@ export function ProfilePage() {
       </form>
 
       {/* Save Button above navbar */}
-      <ActionButton
-        onClick={() => handleSubmit(new Event('submit') as unknown as React.FormEvent)}
-        loading={loading}
-        loadingText="Saving..."
-      >
+      <ActionButton type="submit" form="profile-form" loading={loading} loadingText="Saving...">
         <Save className="h-5 w-5 mr-2" />
         Save Changes
       </ActionButton>
