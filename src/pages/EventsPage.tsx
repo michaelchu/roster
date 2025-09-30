@@ -9,7 +9,7 @@ import { eventService, type Event } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
-import { formatEventDateTime, isEventInPast } from '@/lib/utils';
+import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
 
 export function EventsPage() {
   const navigate = useNavigate();
@@ -34,19 +34,19 @@ export function EventsPage() {
   const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByOrganizer(user.id);
-    return allEvents.filter((event) => !isEventInPast(event.datetime));
+    return allEvents.filter((event) => !isEventCompleted(event.datetime, event.end_datetime));
   }, [user]);
 
   const loadJoinedEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByParticipant(user.id);
-    return allEvents.filter((event) => !isEventInPast(event.datetime));
+    return allEvents.filter((event) => !isEventCompleted(event.datetime, event.end_datetime));
   }, [user]);
 
   const loadArchivedEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByOrganizer(user.id);
-    return allEvents.filter((event) => isEventInPast(event.datetime));
+    return allEvents.filter((event) => isEventCompleted(event.datetime, event.end_datetime));
   }, [user]);
 
   useEffect(() => {

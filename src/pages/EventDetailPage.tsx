@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { Label } from '@/components/ui/label';
-import { formatEventDateTime, isEventInPast } from '@/lib/utils';
+import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -804,7 +804,7 @@ export function EventDetailPage() {
       >
         <Button
           onClick={() => openSignupDrawer()}
-          disabled={isEventInPast(event.datetime)}
+          disabled={isEventCompleted(event.datetime, event.end_datetime)}
           className={`w-full text-white shadow-lg ${
             userRegistration ? 'bg-primary hover:bg-primary/90' : 'bg-primary hover:bg-primary/90'
           }`}
