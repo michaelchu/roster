@@ -9,7 +9,7 @@ import { eventService, type Event } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
-import { formatEventDateTime } from '@/lib/utils';
+import { formatEventDateTime, isEventInPast } from '@/lib/utils';
 
 export function EventsPage() {
   const navigate = useNavigate();
@@ -24,6 +24,11 @@ export function EventsPage() {
     data: joinedEvents,
     execute: loadJoinedEvents,
   } = useLoadingState<Event[]>([]);
+  const {
+    isLoading: isLoadingArchived,
+    data: archivedEvents,
+    execute: loadArchivedEvents,
+  } = useLoadingState<Event[]>([]);
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
 
   const loadOrganizingEventsCallback = useCallback(async () => {
@@ -36,17 +41,26 @@ export function EventsPage() {
     return await eventService.getEventsByParticipant(user.id);
   }, [user]);
 
+  const loadArchivedEventsCallback = useCallback(async () => {
+    if (!user) return [];
+    const allEvents = await eventService.getEventsByOrganizer(user.id);
+    return allEvents.filter((event) => isEventInPast(event.datetime));
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       loadOrganizingEvents(loadOrganizingEventsCallback);
       loadJoinedEvents(loadJoinedEventsCallback);
+      loadArchivedEvents(loadArchivedEventsCallback);
     }
   }, [
     user,
     loadOrganizingEvents,
     loadJoinedEvents,
+    loadArchivedEvents,
     loadOrganizingEventsCallback,
     loadJoinedEventsCallback,
+    loadArchivedEventsCallback,
   ]);
 
   const duplicateEvent = async (event: Event) => {
@@ -175,6 +189,9 @@ export function EventsPage() {
             <TabsTrigger value="joined" className="flex-1">
               Joined
             </TabsTrigger>
+            <TabsTrigger value="archive" className="flex-1">
+              Archive
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -190,6 +207,10 @@ export function EventsPage() {
 
         <TabsContent value="joined" className="p-3 space-y-3 mt-0">
           {renderEventList(joinedEvents, isLoadingJoined, false)}
+        </TabsContent>
+
+        <TabsContent value="archive" className="p-3 space-y-3 mt-0">
+          {renderEventList(archivedEvents, isLoadingArchived, false)}
         </TabsContent>
       </Tabs>
     </div>

@@ -52,3 +52,13 @@ export function formatEventDateTime(date: string | Date): string {
     hour12: true,
   });
 }
+
+/**
+ * Checks if an event is in the past based on its datetime
+ * @param datetime Event datetime string or null
+ * @returns True if event is in the past, false otherwise
+ */
+export function isEventInPast(datetime: string | null): boolean {
+  if (!datetime) return false;
+  return new Date(datetime) < new Date();
+}
