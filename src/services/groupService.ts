@@ -494,4 +494,49 @@ export const groupService = {
 
     return data || [];
   },
+
+  async addParticipantsToGroupBatch(
+    groupId: string,
+    participantIds: string[]
+  ): Promise<{ added: number; skipped: number; failed: number }> {
+    const { data, error } = await supabase.rpc('add_participants_to_group', {
+      p_group_id: groupId,
+      p_participant_ids: participantIds,
+    });
+
+    if (error) throw errorHandler.fromSupabaseError(error);
+
+    if (!data || data.length === 0) {
+      return { added: 0, skipped: 0, failed: participantIds.length };
+    }
+
+    const result = data[0];
+    return {
+      added: result.added_count || 0,
+      skipped: result.skipped_count || 0,
+      failed: result.failed_count || 0,
+    };
+  },
+
+  async removeParticipantsFromGroupBatch(
+    groupId: string,
+    participantIds: string[]
+  ): Promise<{ removed: number; failed: number }> {
+    const { data, error } = await supabase.rpc('remove_participants_from_group', {
+      p_group_id: groupId,
+      p_participant_ids: participantIds,
+    });
+
+    if (error) throw errorHandler.fromSupabaseError(error);
+
+    if (!data || data.length === 0) {
+      return { removed: 0, failed: participantIds.length };
+    }
+
+    const result = data[0];
+    return {
+      removed: result.removed_count || 0,
+      failed: result.failed_count || 0,
+    };
+  },
 };

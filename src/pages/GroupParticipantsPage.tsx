@@ -161,12 +161,7 @@ export function GroupParticipantsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-14">
-      <TopNav
-        title={`${group.name} Members`}
-        showBackButton
-        backPath={`/groups/${groupId}`}
-        sticky
-      />
+      <TopNav title="Group Members" showBackButton backPath={`/groups/${groupId}`} sticky />
 
       <div className="p-3 space-y-3">
         {/* Quick Actions - Only visible to admins */}
@@ -180,9 +175,7 @@ export function GroupParticipantsPage() {
                 variant="outline"
                 size="sm"
                 className="h-20 flex-col gap-2"
-                onClick={() => {
-                  // TODO: Implement manage admins functionality
-                }}
+                onClick={() => navigate(`/groups/${groupId}/manage-roles`)}
               >
                 <UserCog className="h-5 w-5" />
                 <span className="text-xs">Manage</span>
@@ -191,9 +184,7 @@ export function GroupParticipantsPage() {
                 variant="outline"
                 size="sm"
                 className="h-20 flex-col gap-2"
-                onClick={() => {
-                  // TODO: Implement add members functionality
-                }}
+                onClick={() => navigate(`/groups/${groupId}/add-members`)}
               >
                 <UserPlus className="h-5 w-5" />
                 <span className="text-xs">Add</span>
@@ -202,9 +193,7 @@ export function GroupParticipantsPage() {
                 variant="outline"
                 size="sm"
                 className="h-20 flex-col gap-2"
-                onClick={() => {
-                  // TODO: Implement remove members functionality
-                }}
+                onClick={() => navigate(`/groups/${groupId}/remove-members`)}
                 disabled={!participants || participants.length === 0}
               >
                 <UserMinus className="h-5 w-5" />
