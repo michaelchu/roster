@@ -1,5 +1,6 @@
 import React from 'react';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { cn } from '@/lib/utils';
 
 interface FormDrawerProps {
   open: boolean;
@@ -12,7 +13,7 @@ interface FormDrawerProps {
 export function FormDrawer({ open, onOpenChange, children, footer, className }: FormDrawerProps) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className={`max-h-[90vh] p-0 ${className || ''}`}>
+      <DrawerContent className={cn('max-h-[90vh] p-0', className)}>
         <div className="overflow-y-auto flex-1 px-3">{children}</div>
         {footer && (
           <>
