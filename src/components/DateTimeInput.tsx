@@ -85,7 +85,7 @@ export function DateTimeInput({ value, onChange, id, className }: DateTimeInputP
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={date} onSelect={handleDateChange} initialFocus />
+          <Calendar mode="single" selected={date} onSelect={handleDateChange} autoFocus />
         </PopoverContent>
       </Popover>
 
