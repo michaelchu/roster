@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { FormDrawer } from '@/components/FormDrawer';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { errorHandler } from '@/lib/errorHandler';
@@ -857,7 +857,7 @@ export function EventDetailPage() {
       </div>
 
       {/* Signup Drawer */}
-      <Drawer
+      <FormDrawer
         open={showSignupDrawer}
         onOpenChange={(open) => {
           if (!open) {
@@ -865,224 +865,209 @@ export function EventDetailPage() {
           }
           setShowSignupDrawer(open);
         }}
-      >
-        <DrawerContent className="max-h-[90vh] p-0">
-          <div className="border-b p-3">
-            <h2 className="text-lg font-semibold">
-              {isClaimingForOther
-                ? 'Claim Spot'
-                : userRegistration
-                  ? 'Modify Registration'
-                  : 'Join Event'}
-            </h2>
-            {isClaimingForOther && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Leave name empty to claim under your name
-              </p>
-            )}
-          </div>
-          <div className="overflow-y-auto flex-1 px-3">
-            <form id="signup-form" onSubmit={handleSignup} className="space-y-2 pb-3">
-              <Tabs defaultValue="registration" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="registration">Registration</TabsTrigger>
-                  <TabsTrigger value="notes">Notes</TabsTrigger>
-                </TabsList>
-                <TabsContent value="registration" className="space-y-2 mt-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="signup-name" className="text-xs">
-                      Name {!isClaimingForOther && '*'}
-                    </Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      value={signupForm.name}
-                      onChange={(e) =>
-                        setSignupForm((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                      required={!isClaimingForOther}
-                      autoComplete="off"
-                      className="h-9 text-sm"
-                      placeholder={isClaimingForOther ? 'Leave empty to claim under your name' : ''}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="signup-email" className="text-xs">
-                      Email (optional)
-                    </Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      value={signupForm.email}
-                      onChange={(e) =>
-                        setSignupForm((prev) => ({
-                          ...prev,
-                          email: e.target.value,
-                        }))
-                      }
-                      autoComplete="off"
-                      className="h-9 text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="signup-phone" className="text-xs">
-                      Phone (optional)
-                    </Label>
-                    <Input
-                      id="signup-phone"
-                      type="tel"
-                      value={signupForm.phone}
-                      onChange={(e) =>
-                        setSignupForm((prev) => ({
-                          ...prev,
-                          phone: e.target.value,
-                        }))
-                      }
-                      autoComplete="off"
-                      className="h-9 text-sm"
-                    />
-                  </div>
-
-                  {event?.custom_fields && event.custom_fields.length > 0 && (
-                    <div className="border-t pt-4">
-                      <h3 className="text-sm font-medium mb-2">Additional Information</h3>
-                      {event.custom_fields.map((field) => (
-                        <div key={field.id} className="space-y-1.5 mb-2">
-                          <Label htmlFor={`signup-${field.id}`} className="text-xs">
-                            {field.label} {field.required && '*'}
-                          </Label>
-                          {field.type === 'select' && field.options ? (
-                            <Select
-                              value={signupForm.responses[field.id || ''] || ''}
-                              onValueChange={(value) =>
-                                setSignupForm((prev) => ({
-                                  ...prev,
-                                  responses: {
-                                    ...prev.responses,
-                                    [field.id || '']: value,
-                                  },
-                                }))
-                              }
-                            >
-                              <SelectTrigger className="h-9 text-sm">
-                                <SelectValue placeholder="Select..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {field.options.map((option: string) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Input
-                              id={`signup-${field.id}`}
-                              type={field.type}
-                              value={signupForm.responses[field.id || ''] || ''}
-                              onChange={(e) =>
-                                setSignupForm((prev) => ({
-                                  ...prev,
-                                  responses: {
-                                    ...prev.responses,
-                                    [field.id || '']: e.target.value,
-                                  },
-                                }))
-                              }
-                              required={field.required}
-                              autoComplete="off"
-                              className="h-9 text-sm"
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="notes" className="space-y-2 mt-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="signup-notes" className="text-xs">
-                      Notes (optional)
-                    </Label>
-                    <Textarea
-                      id="signup-notes"
-                      value={signupForm.notes}
-                      onChange={(e) =>
-                        setSignupForm((prev) => ({
-                          ...prev,
-                          notes: e.target.value,
-                        }))
-                      }
-                      placeholder="Any additional notes or comments..."
-                      className="min-h-[100px] text-sm"
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-
-              {signupError && (
-                <div className="text-xs text-destructive-foreground bg-destructive/10 p-1.5 rounded">
-                  {signupError}
-                </div>
-              )}
-            </form>
-          </div>
-          <div className="border-t border-border"></div>
-          <div className="p-3">
-            <div className="flex gap-1.5 w-full">
-              {userRegistration && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1 py-1"
-                  onClick={() => setShowWithdrawDialog(true)}
-                  disabled={submitting}
-                >
-                  <UserX className="h-4 w-4 mr-2" />
-                  Withdraw
-                </Button>
-              )}
-              {!userRegistration && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 py-1"
-                  onClick={quickFillFromProfile}
-                  disabled={!canQuickFill || submitting}
-                >
-                  <Zap className="h-4 w-4 mr-2" />
-                  Quick Fill
-                </Button>
-              )}
+        footer={
+          <div className="flex gap-1.5 w-full">
+            {userRegistration && !isClaimingForOther && (
               <Button
-                type="submit"
-                form="signup-form"
+                variant="destructive"
                 size="sm"
-                className="flex-1 bg-primary hover:bg-primary/90 text-white py-1"
+                className="flex-1 py-1"
+                onClick={() => setShowWithdrawDialog(true)}
                 disabled={submitting}
               >
-                {submitting
-                  ? isClaimingForOther
-                    ? 'Claiming...'
-                    : userRegistration
-                      ? 'Updating...'
-                      : 'Joining...'
-                  : isClaimingForOther
-                    ? 'Claim Spot'
-                    : userRegistration
-                      ? 'Update Registration'
-                      : 'Join Event'}
+                <UserX className="h-4 w-4 mr-2" />
+                Withdraw
               </Button>
-            </div>
+            )}
+            {!userRegistration && !isClaimingForOther && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 py-1"
+                onClick={quickFillFromProfile}
+                disabled={!canQuickFill || submitting}
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Quick Fill
+              </Button>
+            )}
+            <Button
+              type="submit"
+              form="signup-form"
+              size="sm"
+              className="flex-1 bg-primary hover:bg-primary/90 text-white py-1"
+              disabled={submitting}
+            >
+              {submitting
+                ? isClaimingForOther
+                  ? 'Claiming...'
+                  : userRegistration
+                    ? 'Updating...'
+                    : 'Joining...'
+                : isClaimingForOther
+                  ? 'Claim'
+                  : userRegistration
+                    ? 'Update'
+                    : 'Join Event'}
+            </Button>
           </div>
-        </DrawerContent>
-      </Drawer>
+        }
+      >
+        <form id="signup-form" onSubmit={handleSignup} className="space-y-2 pt-3 pb-3">
+          <Tabs defaultValue="registration" className="w-full">
+            <TabsList className="w-full h-10">
+              <TabsTrigger value="registration" className="flex-1">
+                Registration
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex-1">
+                Notes
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="registration" className="space-y-2 mt-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="signup-name" className="text-xs">
+                  Name {!isClaimingForOther && '*'}
+                </Label>
+                <Input
+                  id="signup-name"
+                  type="text"
+                  value={signupForm.name}
+                  onChange={(e) =>
+                    setSignupForm((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                  required={!isClaimingForOther}
+                  autoComplete="off"
+                  className="h-9 text-sm"
+                  placeholder={isClaimingForOther ? 'Leave empty to claim under your name' : ''}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="signup-email" className="text-xs">
+                  Email (optional)
+                </Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  value={signupForm.email}
+                  onChange={(e) =>
+                    setSignupForm((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                  autoComplete="off"
+                  className="h-9 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="signup-phone" className="text-xs">
+                  Phone (optional)
+                </Label>
+                <Input
+                  id="signup-phone"
+                  type="tel"
+                  value={signupForm.phone}
+                  onChange={(e) =>
+                    setSignupForm((prev) => ({
+                      ...prev,
+                      phone: e.target.value,
+                    }))
+                  }
+                  autoComplete="off"
+                  className="h-9 text-sm"
+                />
+              </div>
+
+              {event?.custom_fields && event.custom_fields.length > 0 && (
+                <div className="pt-2">
+                  <h3 className="text-sm font-medium">Additional Information</h3>
+                  {event.custom_fields.map((field) => (
+                    <div key={field.id} className="space-y-1.5 mb-2">
+                      <Label htmlFor={`signup-${field.id}`} className="text-xs">
+                        {field.label} {field.required && '*'}
+                      </Label>
+                      {field.type === 'select' && field.options ? (
+                        <Select
+                          value={signupForm.responses[field.id || ''] || ''}
+                          onValueChange={(value) =>
+                            setSignupForm((prev) => ({
+                              ...prev,
+                              responses: {
+                                ...prev.responses,
+                                [field.id || '']: value,
+                              },
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="h-9 text-sm">
+                            <SelectValue placeholder="Select..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {field.options.map((option: string) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          id={`signup-${field.id}`}
+                          type={field.type}
+                          value={signupForm.responses[field.id || ''] || ''}
+                          onChange={(e) =>
+                            setSignupForm((prev) => ({
+                              ...prev,
+                              responses: {
+                                ...prev.responses,
+                                [field.id || '']: e.target.value,
+                              },
+                            }))
+                          }
+                          required={field.required}
+                          autoComplete="off"
+                          className="h-9 text-sm"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="notes" className="space-y-2 mt-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="signup-notes" className="text-xs">
+                  Notes (optional)
+                </Label>
+                <Textarea
+                  id="signup-notes"
+                  value={signupForm.notes}
+                  onChange={(e) =>
+                    setSignupForm((prev) => ({
+                      ...prev,
+                      notes: e.target.value,
+                    }))
+                  }
+                  placeholder="Any additional notes or comments..."
+                  className="min-h-[300px] text-sm"
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {signupError && (
+            <div className="text-xs text-destructive-foreground bg-destructive/10 p-1.5 rounded">
+              {signupError}
+            </div>
+          )}
+        </form>
+      </FormDrawer>
 
       {/* Participant Details Sheet */}
       <Sheet

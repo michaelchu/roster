@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { Plus, Calendar, Users, Copy } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
@@ -9,12 +10,9 @@ import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 
-type TabType = 'organizing' | 'joined';
-
 export function EventsPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>('organizing');
   const {
     isLoading: isLoadingOrganizing,
     data: organizingEvents,
@@ -85,130 +83,121 @@ export function EventsPage() {
     );
   }
 
-  const currentEvents = activeTab === 'organizing' ? organizingEvents : joinedEvents;
-  const isLoading = activeTab === 'organizing' ? isLoadingOrganizing : isLoadingJoined;
-  const showDuplicateButton = activeTab === 'organizing';
+  const renderEventList = (events: Event[] | null, isLoading: boolean, showDuplicate: boolean) => {
+    if (isLoading) {
+      return <EventListSkeleton count={3} />;
+    }
+
+    if (!events || events.length === 0) {
+      return (
+        <div className="bg-card rounded-lg p-3 border text-center">
+          <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+          <h2 className="text-base font-medium mb-2">
+            {showDuplicate ? 'No Events Yet' : 'No Joined Events'}
+          </h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            {showDuplicate
+              ? 'Create your first event to start managing registrations'
+              : "You haven't joined any events yet"}
+          </p>
+          {showDuplicate && (
+            <Button size="sm" className="w-full" onClick={() => navigate('/events/new')}>
+              <Plus className="h-4 w-4 mr-1" />
+              Create Event
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {events.map((event) => (
+          <div key={event.id} className="bg-card border rounded-lg overflow-hidden relative">
+            <button
+              onClick={() => navigate(`/signup/${event.id}`)}
+              className="w-full p-3 text-left hover:bg-muted transition-colors"
+            >
+              <div className="pr-8 mb-3">
+                <h3 className="text-sm font-semibold truncate leading-tight">{event.name}</h3>
+                {event.group_name && (
+                  <p className="text-xs text-muted-foreground leading-tight">{event.group_name}</p>
+                )}
+              </div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                {event.datetime && (
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3 flex-shrink-0" />
+                    <span>
+                      {new Date(event.datetime).toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Users className="h-3 w-3" />
+                  <span className="font-medium">{event.participant_count || 0}</span>
+                </div>
+              </div>
+            </button>
+            {showDuplicate && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-muted-foreground/10"
+                disabled={duplicatingEventId === event.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  duplicateEvent(event);
+                }}
+              >
+                {duplicatingEventId === event.id ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background pb-32">
       <TopNav title="My Events" sticky />
 
-      {/* Tab Bar */}
-      <div className="bg-card border-b px-3 py-2">
-        <div className="flex rounded-lg bg-muted p-1">
-          <button
-            onClick={() => setActiveTab('organizing')}
-            className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-colors ${
-              activeTab === 'organizing'
-                ? 'bg-card text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Organizing
-          </button>
-          <button
-            onClick={() => setActiveTab('joined')}
-            className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-colors ${
-              activeTab === 'joined'
-                ? 'bg-card text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Joined
-          </button>
+      <Tabs defaultValue="organizing" className="w-full">
+        <div className="bg-card border-b px-3 py-2">
+          <TabsList className="w-full h-10">
+            <TabsTrigger value="organizing" className="flex-1">
+              Organizing
+            </TabsTrigger>
+            <TabsTrigger value="joined" className="flex-1">
+              Joined
+            </TabsTrigger>
+          </TabsList>
         </div>
-      </div>
 
-      <div className="p-3 space-y-3">
-        {isLoading ? (
-          <EventListSkeleton count={3} />
-        ) : currentEvents && currentEvents.length === 0 ? (
-          <div className="bg-card rounded-lg p-3 border text-center">
-            <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <h2 className="text-base font-medium mb-2">
-              {activeTab === 'organizing' ? 'No Events Yet' : 'No Joined Events'}
-            </h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              {activeTab === 'organizing'
-                ? 'Create your first event to start managing registrations'
-                : "You haven't joined any events yet"}
-            </p>
-            {activeTab === 'organizing' && (
-              <Button size="sm" className="w-full" onClick={() => navigate('/events/new')}>
-                <Plus className="h-4 w-4 mr-1" />
-                Create Event
-              </Button>
-            )}
+        <TabsContent value="organizing" className="p-3 space-y-3 mt-0">
+          {renderEventList(organizingEvents, isLoadingOrganizing, true)}
+          <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
+            <Button onClick={() => navigate('/events/new')} className="w-full text-white shadow-lg">
+              <Plus className="h-5 w-5 mr-2" />
+              New Event
+            </Button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {(currentEvents || []).map((event) => (
-              <div key={event.id} className="bg-card border rounded-lg overflow-hidden relative">
-                <button
-                  onClick={() => navigate(`/signup/${event.id}`)}
-                  className="w-full p-3 text-left hover:bg-muted transition-colors"
-                >
-                  <div className="pr-8 mb-3">
-                    <h3 className="text-sm font-semibold truncate leading-tight">{event.name}</h3>
-                    {event.group_name && (
-                      <p className="text-xs text-muted-foreground leading-tight">
-                        {event.group_name}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    {event.datetime && (
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3 w-3 flex-shrink-0" />
-                        <span>
-                          {new Date(event.datetime).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      <span className="font-medium">{event.participant_count || 0}</span>
-                    </div>
-                  </div>
-                </button>
-                {showDuplicateButton && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-muted-foreground/10"
-                    disabled={duplicatingEventId === event.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      duplicateEvent(event);
-                    }}
-                  >
-                    {duplicatingEventId === event.id ? (
-                      <LoadingSpinner size="sm" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+        </TabsContent>
 
-      {/* New Event Button above navbar - only show for organizing tab */}
-      {activeTab === 'organizing' && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2">
-          <Button onClick={() => navigate('/events/new')} className="w-full text-white shadow-lg">
-            <Plus className="h-5 w-5 mr-2" />
-            New Event
-          </Button>
-        </div>
-      )}
+        <TabsContent value="joined" className="p-3 space-y-3 mt-0">
+          {renderEventList(joinedEvents, isLoadingJoined, false)}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
