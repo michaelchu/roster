@@ -337,6 +337,14 @@ export type Database = {
         Args: { p_event_id: string; p_user_id?: string };
         Returns: number;
       };
+      get_user_display_name: {
+        Args: { user_id: string };
+        Returns: string;
+      };
+      get_user_profile: {
+        Args: { user_id: string };
+        Returns: { id: string; name: string; email: string; created_at: string }[];
+      };
       nanoid: {
         Args: { size?: number };
         Returns: string;
