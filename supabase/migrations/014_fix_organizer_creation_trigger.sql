@@ -6,7 +6,15 @@ CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS trigger AS $$
 BEGIN
     INSERT INTO organizers (id, name)
-    VALUES (NEW.id, NULL)
+    VALUES (
+        NEW.id,
+        COALESCE(
+            NEW.raw_user_meta_data->>'name',
+            NEW.raw_user_meta_data->>'full_name',
+            NEW.raw_user_meta_data->>'given_name',
+            NEW.email
+        )
+    )
     ON CONFLICT (id) DO NOTHING;
     RETURN NEW;
 END;
