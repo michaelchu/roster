@@ -33,15 +33,18 @@ vi.mock('@/lib/errorHandler', () => ({
   },
 }));
 
-// Mock react-router hooks
+// Mock react-router hooks with shared variables for dynamic test values
 const mockNavigate = vi.fn();
+let mockType = 'event';
+let mockId = 'test-event-id';
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useParams: () => ({ type: 'event', id: 'test-event-id' }),
+    useParams: () => ({ type: mockType, id: mockId }),
     useNavigate: () => mockNavigate,
-    useLocation: () => ({ pathname: '/invite/event/test-event-id' }),
+    useLocation: () => ({ pathname: `/invite/${mockType}/${mockId}` }),
   };
 });
 
@@ -92,6 +95,12 @@ describe('InviteConfirmationPage', () => {
   });
 
   describe('Event Invites', () => {
+    beforeEach(() => {
+      // Set mock variables for event routes
+      mockType = 'event';
+      mockId = 'test-event-id';
+    });
+
     it('shows loading skeleton initially', () => {
       mockUseAuth.mockReturnValue({
         user: null,
@@ -298,9 +307,13 @@ describe('InviteConfirmationPage', () => {
     });
   });
 
-  // Group invite tests are skipped because useParams is mocked to return event type
-  // These tests can be re-enabled when we have a way to test multiple param values
-  describe.skip('Group Invites', () => {
+  describe('Group Invites', () => {
+    beforeEach(() => {
+      // Set mock variables for group routes
+      mockType = 'group';
+      mockId = 'test-group-id';
+    });
+
     it('shows sign in button for unauthenticated users', async () => {
       mockUseAuth.mockReturnValue({
         user: null,
