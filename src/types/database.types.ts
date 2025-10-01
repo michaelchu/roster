@@ -16,24 +16,6 @@ export type ResponseRecord = Record<string, FormResponse>;
 export interface Database {
   public: {
     Tables: {
-      organizers: {
-        Row: {
-          id: string;
-          name: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id: string;
-          name?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
       events: {
         Row: {
           id: string;
@@ -193,7 +175,23 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_user_display_name: {
+        Args: {
+          user_id: string;
+        };
+        Returns: string;
+      };
+      get_user_profile: {
+        Args: {
+          user_id: string;
+        };
+        Returns: {
+          id: string;
+          name: string;
+          email: string;
+          created_at: string;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

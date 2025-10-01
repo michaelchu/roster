@@ -6,6 +6,7 @@ import type { Organizer } from '@/services/organizerService';
 export const mockOrganizer: Organizer = {
   id: '550e8400-e29b-41d4-a716-446655440000',
   name: 'John Organizer',
+  email: 'john@organizer.com',
   created_at: '2024-01-01T00:00:00Z',
 };
 

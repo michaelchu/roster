@@ -3,13 +3,7 @@ import { describe, it, beforeEach, expect, vi } from 'vitest';
 // Mock Supabase - must be hoisted
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockReturnThis(),
-    })),
+    rpc: vi.fn(),
   },
 }));
 
@@ -26,14 +20,35 @@ describe('organizerService', () => {
   });
 
   describe('getOrganizerById', () => {
-    it('should return null on error (error handling logic)', async () => {
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
-      };
+    it('should return organizer data from RPC', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: [
+          {
+            id: 'user-1',
+            name: 'John Doe',
+            email: 'john@example.com',
+            created_at: '2023-01-01T00:00:00Z',
+          },
+        ],
+        error: null,
+      });
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
+      const result = await organizerService.getOrganizerById('user-1');
+
+      expect(result).toEqual({
+        id: 'user-1',
+        name: 'John Doe',
+        email: 'john@example.com',
+        created_at: '2023-01-01T00:00:00Z',
+      });
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('get_user_profile', { user_id: 'user-1' });
+    });
+
+    it('should return null on error', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: 'Not found' },
+      });
 
       const result = await organizerService.getOrganizerById('nonexistent');
 
@@ -42,111 +57,43 @@ describe('organizerService', () => {
         message: 'Not found',
       });
     });
+
+    it('should return null when no data returned', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      const result = await organizerService.getOrganizerById('nonexistent');
+
+      expect(result).toBeNull();
+    });
   });
 
-  describe('ensureOrganizerExists', () => {
-    it('should create organizer if not exists', async () => {
-      // Mock getOrganizerById to return null
-      const getQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
-      };
-
-      // Mock createOrganizer
-      const createQueryChain = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { id: 'user-1', name: 'John', created_at: '2023-01-01T00:00:00Z' },
-          error: null,
-        }),
-      };
-
-      mockSupabase.from
-        .mockReturnValueOnce(getQueryChain as ReturnType<typeof mockSupabase.from>)
-        .mockReturnValueOnce(createQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      await organizerService.ensureOrganizerExists('user-1', 'John');
-
-      expect(createQueryChain.insert).toHaveBeenCalledWith({
-        id: 'user-1',
-        name: 'John',
+  describe('getOrganizerDisplayName', () => {
+    it('should return display name from RPC', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: 'John Doe',
+        error: null,
       });
+
+      const result = await organizerService.getOrganizerDisplayName('user-1');
+
+      expect(result).toBe('John Doe');
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('get_user_display_name', { user_id: 'user-1' });
     });
 
-    it('should not create organizer if already exists', async () => {
-      // Mock getOrganizerById to return existing organizer
-      const getQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { id: 'user-1', name: 'John', created_at: '2023-01-01T00:00:00Z' },
-          error: null,
-        }),
-      };
-
-      mockSupabase.from.mockReturnValueOnce(getQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      await organizerService.ensureOrganizerExists('user-1', 'John');
-
-      // Should only call from once (for getOrganizerById)
-      expect(mockSupabase.from).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle null name parameter', async () => {
-      const getQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
-      };
-
-      const createQueryChain = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { id: 'user-1', name: null, created_at: '2023-01-01T00:00:00Z' },
-          error: null,
-        }),
-      };
-
-      mockSupabase.from
-        .mockReturnValueOnce(getQueryChain as ReturnType<typeof mockSupabase.from>)
-        .mockReturnValueOnce(createQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      await organizerService.ensureOrganizerExists('user-1', null);
-
-      expect(createQueryChain.insert).toHaveBeenCalledWith({
-        id: 'user-1',
-        name: null,
+    it('should return "Unknown" on error', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: 'Not found' },
       });
-    });
 
-    it('should handle undefined name parameter', async () => {
-      const getQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
-      };
+      const result = await organizerService.getOrganizerDisplayName('nonexistent');
 
-      const createQueryChain = {
-        insert: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({
-          data: { id: 'user-1', name: null, created_at: '2023-01-01T00:00:00Z' },
-          error: null,
-        }),
-      };
-
-      mockSupabase.from
-        .mockReturnValueOnce(getQueryChain as ReturnType<typeof mockSupabase.from>)
-        .mockReturnValueOnce(createQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      await organizerService.ensureOrganizerExists('user-1');
-
-      expect(createQueryChain.insert).toHaveBeenCalledWith({
-        id: 'user-1',
-        name: null,
+      expect(result).toBe('Unknown');
+      expect(console.error).toHaveBeenCalledWith('Error fetching organizer display name:', {
+        message: 'Not found',
       });
     });
   });
