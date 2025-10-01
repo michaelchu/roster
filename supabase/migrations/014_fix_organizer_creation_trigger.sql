@@ -2,10 +2,14 @@
 -- This migration updates the handle_new_user function to properly handle
 -- cases where no name is provided in user metadata
 
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
-    INSERT INTO organizers (id, name)
+    INSERT INTO public.organizers (id, name)
     VALUES (
         NEW.id,
         COALESCE(
@@ -18,7 +22,7 @@ BEGIN
     ON CONFLICT (id) DO NOTHING;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Create or replace the trigger on auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
