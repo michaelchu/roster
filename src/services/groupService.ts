@@ -539,4 +539,17 @@ export const groupService = {
       failed: result.failed_count || 0,
     };
   },
+
+  async checkUserGroupMembership(userId: string, groupId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('group_participants')
+      .select('id')
+      .eq('group_id', groupId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) throw errorHandler.fromSupabaseError(error);
+
+    return data !== null;
+  },
 };
