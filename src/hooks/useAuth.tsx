@@ -45,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Check if there's a pending invite after login
           const pendingInviteStr = localStorage.getItem('pendingInvite');
           if (pendingInviteStr) {
+            // Remove the pending invite so it doesn't trigger again
+            localStorage.removeItem('pendingInvite');
             try {
               const pendingInvite = JSON.parse(pendingInviteStr);
               if (pendingInvite.type && pendingInvite.id) {
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             } catch (error) {
               console.error('Error parsing pending invite:', error);
+              // Malformed pendingInvite was already removed above
             }
           }
         }
