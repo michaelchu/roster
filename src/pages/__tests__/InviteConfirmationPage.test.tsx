@@ -109,7 +109,7 @@ describe('InviteConfirmationPage', () => {
       expect(screen.queryByText('Event Invitation')).not.toBeInTheDocument();
     });
 
-    it('shows sign in button for unauthenticated users', async () => {
+    it('shows RSVP as guest and sign in buttons for unauthenticated users', async () => {
       mockUseAuth.mockReturnValue({
         user: null,
         session: null,
@@ -127,7 +127,11 @@ describe('InviteConfirmationPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Event Invitation')).toBeInTheDocument();
         expect(screen.getByText('Test Event')).toBeInTheDocument();
-        expect(screen.getByText('Sign in to join')).toBeInTheDocument();
+        expect(screen.getByText('RSVP as Guest')).toBeInTheDocument();
+        expect(screen.getByText('Sign in to manage RSVP')).toBeInTheDocument();
+        expect(
+          screen.getByText(/Create an account to easily modify or cancel your RSVP later/)
+        ).toBeInTheDocument();
       });
     });
 
@@ -147,10 +151,10 @@ describe('InviteConfirmationPage', () => {
       renderWithRouter(<InviteConfirmationPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Sign in to join')).toBeInTheDocument();
+        expect(screen.getByText('Sign in to manage RSVP')).toBeInTheDocument();
       });
 
-      const signInButton = screen.getByText('Sign in to join');
+      const signInButton = screen.getByText('Sign in to manage RSVP');
       fireEvent.click(signInButton);
 
       // Check localStorage has pending invite
@@ -165,7 +169,32 @@ describe('InviteConfirmationPage', () => {
       );
     });
 
-    it('shows join button for authenticated non-member', async () => {
+    it('navigates to signup page when RSVP as guest clicked', async () => {
+      mockUseAuth.mockReturnValue({
+        user: null,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      vi.mocked(eventService.getEventById).mockResolvedValue(mockEvent);
+
+      renderWithRouter(<InviteConfirmationPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('RSVP as Guest')).toBeInTheDocument();
+      });
+
+      const rsvpButton = screen.getByText('RSVP as Guest');
+      fireEvent.click(rsvpButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/signup/test-event-id');
+    });
+
+    it('shows RSVP button for authenticated non-member', async () => {
       mockUseAuth.mockReturnValue({
         user: mockUser as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         session: null,
@@ -182,11 +211,11 @@ describe('InviteConfirmationPage', () => {
       renderWithRouter(<InviteConfirmationPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Join Event')).toBeInTheDocument();
+        expect(screen.getByText('RSVP to Event')).toBeInTheDocument();
       });
     });
 
-    it('joins event and navigates to event detail when join clicked', async () => {
+    it('navigates to event signup when authenticated user clicks RSVP', async () => {
       mockUseAuth.mockReturnValue({
         user: mockUser as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         session: null,
@@ -199,43 +228,17 @@ describe('InviteConfirmationPage', () => {
 
       vi.mocked(eventService.getEventById).mockResolvedValue(mockEvent);
       vi.mocked(participantService.getParticipantByUserAndEvent).mockResolvedValue(null);
-      vi.mocked(participantService.createParticipant).mockResolvedValue({
-        id: 'participant-123',
-        event_id: 'test-event-id',
-        name: 'Test User',
-        email: 'test@example.com',
-        phone: null,
-        notes: null,
-        user_id: 'user-123',
-        claimed_by_user_id: null,
-        responses: {},
-        created_at: '2024-01-01T00:00:00Z',
-        slot_number: 1,
-      });
 
       renderWithRouter(<InviteConfirmationPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Join Event')).toBeInTheDocument();
+        expect(screen.getByText('RSVP to Event')).toBeInTheDocument();
       });
 
-      const joinButton = screen.getByText('Join Event');
-      fireEvent.click(joinButton);
+      const rsvpButton = screen.getByText('RSVP to Event');
+      fireEvent.click(rsvpButton);
 
-      await waitFor(() => {
-        expect(participantService.createParticipant).toHaveBeenCalledWith({
-          event_id: 'test-event-id',
-          name: 'Test User',
-          email: 'test@example.com',
-          phone: null,
-          notes: null,
-          responses: {},
-          user_id: 'user-123',
-          claimed_by_user_id: null,
-        });
-
-        expect(mockNavigate).toHaveBeenCalledWith('/signup/test-event-id');
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('/signup/test-event-id');
     });
 
     it('shows already registered message for existing members', async () => {

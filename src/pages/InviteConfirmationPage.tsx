@@ -6,7 +6,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { eventService, participantService, groupService } from '@/services';
 import type { Event } from '@/services/eventService';
 import type { Group } from '@/services/groupService';
-import { errorHandler } from '@/lib/errorHandler';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { formatEventDateTime } from '@/lib/utils';
 import { Calendar, MapPin, Users, UserPlus, CheckCircle, ArrowRight } from 'lucide-react';
@@ -28,7 +27,6 @@ export function InviteConfirmationPage() {
   const [eventData, setEventData] = useState<Event | null>(null);
   const [groupData, setGroupData] = useState<Group | null>(null);
   const [isMember, setIsMember] = useState(false);
-  const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -94,34 +92,10 @@ export function InviteConfirmationPage() {
     navigate(`/auth/login?returnUrl=${encodeURIComponent(location.pathname)}`);
   };
 
-  const handleJoinEvent = async () => {
-    if (!user || !eventData) return;
-
-    setJoining(true);
-    try {
-      await participantService.createParticipant({
-        event_id: eventData.id,
-        name: user.user_metadata?.full_name || user.email || 'Guest',
-        email: user.email || null,
-        phone: user.user_metadata?.phone || null,
-        notes: null,
-        responses: {},
-        user_id: user.id,
-        claimed_by_user_id: null,
-      });
-
-      errorHandler.success('Successfully joined event!');
-      navigate(`/signup/${eventData.id}`);
-    } catch (err) {
-      console.error('Error joining event:', err);
-      errorHandler.handle(err, {
-        userId: user.id,
-        action: 'joinEventFromInvite',
-        metadata: { eventId: eventData.id },
-      });
-    } finally {
-      setJoining(false);
-    }
+  const handleRSVPAsGuest = () => {
+    if (!eventData) return;
+    // Navigate directly to the event signup page for guest RSVP
+    navigate(`/signup/${eventData.id}`);
   };
 
   const handleViewEvent = () => {
@@ -236,12 +210,20 @@ export function InviteConfirmationPage() {
             {!user ? (
               <div className="text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Sign in to join this event and manage your registration
+                  RSVP as a guest or sign in to manage your registration
                 </p>
-                <Button onClick={handleSignInClick} className="w-full">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Sign in to join
-                </Button>
+                <div className="space-y-2">
+                  <Button onClick={handleRSVPAsGuest} className="w-full">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    RSVP as Guest
+                  </Button>
+                  <Button onClick={handleSignInClick} variant="outline" className="w-full">
+                    Sign in to manage RSVP
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground pt-2 border-t">
+                  💡 Create an account to easily modify or cancel your RSVP later
+                </p>
               </div>
             ) : isMember ? (
               <div className="text-center space-y-3">
@@ -263,9 +245,9 @@ export function InviteConfirmationPage() {
                 <p className="text-sm text-muted-foreground">
                   Join this event to secure your spot and receive updates
                 </p>
-                <Button onClick={handleJoinEvent} disabled={joining} className="w-full">
+                <Button onClick={handleRSVPAsGuest} className="w-full">
                   <UserPlus className="h-4 w-4 mr-2" />
-                  {joining ? 'Joining...' : 'Join Event'}
+                  RSVP to Event
                 </Button>
               </div>
             )}
