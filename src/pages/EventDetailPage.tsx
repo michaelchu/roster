@@ -427,8 +427,6 @@ export function EventDetailPage() {
     }));
   };
 
-  const canQuickFill = user && (user.user_metadata?.full_name || user.email);
-
   // Helper functions for claimed spot detection
   const isClaimedSpot = (participant: Participant) => {
     if (!user) return false;
@@ -864,7 +862,7 @@ export function EventDetailPage() {
                 size="sm"
                 className="flex-1 py-1"
                 onClick={quickFillFromProfile}
-                disabled={!canQuickFill || submitting}
+                disabled={submitting}
               >
                 <Zap className="h-4 w-4 mr-2" />
                 Quick Fill
