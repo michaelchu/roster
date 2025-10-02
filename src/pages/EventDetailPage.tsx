@@ -414,7 +414,10 @@ export function EventDetailPage() {
   };
 
   const quickFillFromProfile = () => {
-    if (!user) return;
+    if (!user) {
+      navigate('/auth/login');
+      return;
+    }
 
     setSignupForm((prev) => ({
       ...prev,
