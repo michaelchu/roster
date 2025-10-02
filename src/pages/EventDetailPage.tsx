@@ -251,14 +251,15 @@ export function EventDetailPage() {
   };
 
   const openSignupDrawer = (slotNumber?: number) => {
-    // Redirect to login if user is not authenticated
-    if (!user) {
+    // Determine if this is for claiming a spot for someone else
+    const isClaiming = slotNumber !== undefined;
+
+    // Only require authentication for claiming spots for others
+    if (isClaiming && !user) {
       navigate('/auth/login');
       return;
     }
 
-    // Determine if this is for claiming a spot for someone else
-    const isClaiming = slotNumber !== undefined;
     setIsClaimingForOther(isClaiming);
 
     if (isClaiming) {
