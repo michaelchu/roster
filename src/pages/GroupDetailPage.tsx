@@ -58,8 +58,7 @@ export function GroupDetailPage() {
   const handleInvite = useCallback(async () => {
     if (!group) return;
 
-    // Stub invite link - in the future this would generate a proper invite token
-    const inviteLink = `${window.location.origin}/groups/join/${group.id}?invite=stub-token-${Date.now()}`;
+    const inviteLink = `${window.location.origin}/invite/group/${group.id}`;
 
     const fallbackCopy = () => {
       if (typeof window !== 'undefined' && typeof window.prompt === 'function') {

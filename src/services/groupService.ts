@@ -539,4 +539,25 @@ export const groupService = {
       failed: result.failed_count || 0,
     };
   },
+
+  async checkUserGroupMembership(
+    userId: string,
+    groupId: string,
+    guestEmail?: string
+  ): Promise<boolean> {
+    let query = supabase.from('group_participants').select('id').eq('group_id', groupId);
+
+    // Check both user_id and guest_email if provided
+    if (guestEmail) {
+      query = query.or(`user_id.eq.${userId},guest_email.eq.${guestEmail}`);
+    } else {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query.maybeSingle();
+
+    if (error) throw errorHandler.fromSupabaseError(error);
+
+    return data !== null;
+  },
 };

@@ -66,6 +66,7 @@ interface EventData {
   organizer_id: string;
   is_private: boolean | null;
   custom_fields: CustomField[];
+  group_id: string | null;
 }
 
 /**
@@ -174,8 +175,8 @@ export function EventDetailPage() {
   };
 
   const shareEvent = () => {
-    const url = `${window.location.origin}/signup/${eventId}`;
-    const shareText = `Sign up for ${event?.name} ${url}`;
+    const url = `${window.location.origin}/invite/event/${eventId}`;
+    const shareText = `Join ${event?.name} ${url}`;
 
     if (navigator.share) {
       navigator.share({
@@ -183,7 +184,7 @@ export function EventDetailPage() {
       });
     } else {
       navigator.clipboard.writeText(shareText);
-      alert('Signup link copied to clipboard!');
+      alert('Invite link copied to clipboard!');
     }
   };
 
@@ -251,14 +252,17 @@ export function EventDetailPage() {
   };
 
   const openSignupDrawer = (slotNumber?: number) => {
-    // Redirect to login if user is not authenticated
-    if (!user) {
+    // Determine if this is for claiming a spot for someone else
+    const isClaiming = slotNumber !== undefined;
+
+    // Require authentication for:
+    // 1. Claiming spots for others
+    // 2. Events that belong to a group
+    if (!user && (isClaiming || event?.group_id)) {
       navigate('/auth/login');
       return;
     }
 
-    // Determine if this is for claiming a spot for someone else
-    const isClaiming = slotNumber !== undefined;
     setIsClaimingForOther(isClaiming);
 
     if (isClaiming) {
@@ -413,7 +417,10 @@ export function EventDetailPage() {
   };
 
   const quickFillFromProfile = () => {
-    if (!user) return;
+    if (!user) {
+      navigate('/auth/login');
+      return;
+    }
 
     setSignupForm((prev) => ({
       ...prev,
@@ -422,8 +429,6 @@ export function EventDetailPage() {
       phone: user.user_metadata?.phone || prev.phone,
     }));
   };
-
-  const canQuickFill = user && (user.user_metadata?.full_name || user.email);
 
   // Helper functions for claimed spot detection
   const isClaimedSpot = (participant: Participant) => {
@@ -860,7 +865,7 @@ export function EventDetailPage() {
                 size="sm"
                 className="flex-1 py-1"
                 onClick={quickFillFromProfile}
-                disabled={!canQuickFill || submitting}
+                disabled={submitting}
               >
                 <Zap className="h-4 w-4 mr-2" />
                 Quick Fill

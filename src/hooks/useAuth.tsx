@@ -41,6 +41,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem('returnUrl');
           const isSafeRelativePath = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
           navigate(isSafeRelativePath ? returnUrl : '/');
+        } else {
+          // Check if there's a pending invite after login
+          const pendingInviteStr = localStorage.getItem('pendingInvite');
+          if (pendingInviteStr) {
+            // Remove the pending invite so it doesn't trigger again
+            localStorage.removeItem('pendingInvite');
+            try {
+              const pendingInvite = JSON.parse(pendingInviteStr);
+              if (pendingInvite.type && pendingInvite.id) {
+                // Navigate to invite page to complete the flow
+                navigate(`/invite/${pendingInvite.type}/${pendingInvite.id}`);
+              }
+            } catch (error) {
+              console.error('Error parsing pending invite:', error);
+              // Malformed pendingInvite was already removed above
+            }
+          }
         }
       }
     });

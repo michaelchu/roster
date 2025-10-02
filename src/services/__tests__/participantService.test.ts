@@ -87,20 +87,54 @@ describe('participantService', () => {
       );
     });
 
-    it('should require authentication for self-registration', async () => {
+    it('should allow guest participants without user_id', async () => {
+      const mockQueryChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'p2',
+            event_id: 'event-1',
+            name: 'Jane Doe',
+            email: 'jane@example.com',
+            phone: null,
+            notes: null,
+            user_id: null,
+            claimed_by_user_id: null,
+            slot_number: 1,
+            created_at: '2023-01-01',
+            responses: {},
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
       const newParticipant = {
         event_id: 'event-1',
         name: 'Jane Doe',
         email: 'jane@example.com',
         phone: null,
         notes: null,
-        user_id: null, // No user_id
+        user_id: null, // Guest participant
         responses: {},
         claimed_by_user_id: null,
       };
 
-      await expect(participantService.createParticipant(newParticipant)).rejects.toThrow(
-        'Authentication required for event registration'
+      const result = await participantService.createParticipant(newParticipant);
+
+      expect(result).toBeDefined();
+      expect(result.name).toBe('Jane Doe');
+      expect(result.user_id).toBeNull();
+      // Verify insert was called with guest participant data
+      expect(mockQueryChain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Jane Doe',
+          user_id: null,
+          claimed_by_user_id: null,
+        })
       );
     });
   });

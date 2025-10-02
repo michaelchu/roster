@@ -24,14 +24,17 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { InviteConfirmationPage } from '@/pages/InviteConfirmationPage';
 
 function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Hide bottom nav on auth pages and signup pages (but only hide signup pages for non-authenticated users)
+  // Hide bottom nav on auth pages, signup pages, and invite pages (but only hide signup pages for non-authenticated users)
   const hideBottomNav =
-    location.pathname.startsWith('/auth') || (location.pathname.startsWith('/signup') && !user);
+    location.pathname.startsWith('/auth') ||
+    location.pathname.startsWith('/invite') ||
+    (location.pathname.startsWith('/signup') && !user);
 
   return (
     <>
@@ -52,6 +55,7 @@ function AppContent() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/invite/:type/:id" element={<InviteConfirmationPage />} />
         <Route path="/signup/:eventId" element={<EventDetailPage />} />
         <Route
           path="*"
