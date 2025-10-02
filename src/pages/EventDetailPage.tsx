@@ -254,8 +254,10 @@ export function EventDetailPage() {
     // Determine if this is for claiming a spot for someone else
     const isClaiming = slotNumber !== undefined;
 
-    // Only require authentication for claiming spots for others
-    if (isClaiming && !user) {
+    // Require authentication for:
+    // 1. Claiming spots for others
+    // 2. Events that belong to a group
+    if (!user && (isClaiming || event.group_id)) {
       navigate('/auth/login');
       return;
     }

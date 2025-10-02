@@ -209,21 +209,36 @@ export function InviteConfirmationPage() {
           <div className="bg-card rounded-lg border p-4">
             {!user ? (
               <div className="text-center space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  RSVP as a guest or sign in to manage your registration
-                </p>
-                <div className="space-y-2">
-                  <Button onClick={handleRSVPAsGuest} className="w-full">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    RSVP as Guest
-                  </Button>
-                  <Button onClick={handleSignInClick} variant="outline" className="w-full">
-                    Sign in to manage RSVP
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground pt-2 border-t">
-                  💡 Create an account to easily modify or cancel your RSVP later
-                </p>
+                {eventData.group_id ? (
+                  // Group events require authentication
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      This event is part of a group. Please sign in to RSVP.
+                    </p>
+                    <Button onClick={handleSignInClick} className="w-full">
+                      Sign in to RSVP
+                    </Button>
+                  </>
+                ) : (
+                  // Standalone events allow guest RSVP
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      RSVP as a guest or sign in to manage your registration
+                    </p>
+                    <div className="space-y-2">
+                      <Button onClick={handleRSVPAsGuest} className="w-full">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        RSVP as Guest
+                      </Button>
+                      <Button onClick={handleSignInClick} variant="outline" className="w-full">
+                        Sign in to manage RSVP
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-2 border-t">
+                      💡 Create an account to easily modify or cancel your RSVP later
+                    </p>
+                  </>
+                )}
               </div>
             ) : isMember ? (
               <div className="text-center space-y-3">
