@@ -66,6 +66,7 @@ interface EventData {
   organizer_id: string;
   is_private: boolean | null;
   custom_fields: CustomField[];
+  group_id: string | null;
 }
 
 /**
@@ -257,7 +258,7 @@ export function EventDetailPage() {
     // Require authentication for:
     // 1. Claiming spots for others
     // 2. Events that belong to a group
-    if (!user && (isClaiming || event.group_id)) {
+    if (!user && (isClaiming || event?.group_id)) {
       navigate('/auth/login');
       return;
     }
