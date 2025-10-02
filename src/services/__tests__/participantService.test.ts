@@ -87,21 +87,23 @@ describe('participantService', () => {
       );
     });
 
-    it('should require authentication for self-registration', async () => {
+    it('should allow guest participants without user_id', async () => {
       const newParticipant = {
         event_id: 'event-1',
         name: 'Jane Doe',
         email: 'jane@example.com',
         phone: null,
         notes: null,
-        user_id: null, // No user_id
+        user_id: null, // Guest participant
         responses: {},
         claimed_by_user_id: null,
       };
 
-      await expect(participantService.createParticipant(newParticipant)).rejects.toThrow(
-        'Authentication required for event registration'
-      );
+      const result = await participantService.createParticipant(newParticipant);
+
+      expect(result).toBeDefined();
+      expect(result.name).toBe('Jane Doe');
+      expect(result.user_id).toBeNull();
     });
   });
 
