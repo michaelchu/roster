@@ -151,11 +151,6 @@ export const participantService = {
       }
     }
 
-    // Validate that user_id is provided for self-registrations
-    if (!options?.claimingUserId && !participant.user_id) {
-      throw new Error('Authentication required for event registration');
-    }
-
     // Get the next slot number for this participant
     const { data: slotData, error: slotError } = await supabase.rpc('get_next_slot_number', {
       p_event_id: participant.event_id,
