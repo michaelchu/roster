@@ -8,7 +8,7 @@ import type { Event } from '@/services/eventService';
 import type { Group } from '@/services/groupService';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { formatEventDateTime } from '@/lib/utils';
-import { Calendar, UserPlus, CheckCircle, ArrowRight } from 'lucide-react';
+import { Calendar, Users, UserPlus, CheckCircle, ArrowRight } from 'lucide-react';
 
 type InviteType = 'event' | 'group';
 
