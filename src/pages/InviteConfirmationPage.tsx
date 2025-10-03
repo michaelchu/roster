@@ -154,12 +154,16 @@ export function InviteConfirmationPage() {
                 <div className="grid grid-cols-2 divide-x divide-border">
                   <div className="text-sm text-muted-foreground p-3">
                     <div className="font-medium text-foreground">Start</div>
-                    <div>{eventData.datetime ? formatEventDateTime(eventData.datetime) : 'Not set'}</div>
+                    <div>
+                      {eventData.datetime ? formatEventDateTime(eventData.datetime) : 'Not set'}
+                    </div>
                   </div>
                   <div className="text-sm text-muted-foreground p-3">
                     <div className="font-medium text-foreground">End</div>
                     <div>
-                      {eventData.end_datetime ? formatEventDateTime(eventData.end_datetime) : 'Not set'}
+                      {eventData.end_datetime
+                        ? formatEventDateTime(eventData.end_datetime)
+                        : 'Not set'}
                     </div>
                   </div>
                 </div>
