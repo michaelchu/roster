@@ -8,7 +8,7 @@ import type { Event } from '@/services/eventService';
 import type { Group } from '@/services/groupService';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { formatEventDateTime } from '@/lib/utils';
-import { Calendar, MapPin, Users, UserPlus, CheckCircle, ArrowRight } from 'lucide-react';
+import { Calendar, UserPlus, CheckCircle, ArrowRight } from 'lucide-react';
 
 type InviteType = 'event' | 'group';
 
@@ -138,68 +138,82 @@ export function InviteConfirmationPage() {
         <div className="p-3 space-y-3">
           {/* Event Info Card */}
           <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="p-4 space-y-3">
-              <div>
-                <h2 className="text-lg font-semibold mb-1">{eventData.name}</h2>
+            <div>
+              {/* Event Name */}
+              <div className="p-3 border-b border-border">
+                <h2 className="text-lg font-semibold">{eventData.name}</h2>
                 {eventData.is_private && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs mt-1">
                     Private
                   </Badge>
                 )}
               </div>
 
-              {eventData.datetime && (
-                <div className="flex items-start gap-2 text-sm">
-                  <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">Start</div>
-                    <div className="text-muted-foreground">
-                      {formatEventDateTime(eventData.datetime)}
+              {/* Top row: Start and End times */}
+              {(eventData.datetime || eventData.end_datetime) && (
+                <div className="grid grid-cols-2 divide-x divide-border">
+                  <div className="text-sm text-muted-foreground p-3">
+                    <div className="font-medium text-foreground">Start</div>
+                    <div>{eventData.datetime ? formatEventDateTime(eventData.datetime) : 'Not set'}</div>
+                  </div>
+                  <div className="text-sm text-muted-foreground p-3">
+                    <div className="font-medium text-foreground">End</div>
+                    <div>
+                      {eventData.end_datetime ? formatEventDateTime(eventData.end_datetime) : 'Not set'}
                     </div>
                   </div>
                 </div>
               )}
 
-              {eventData.end_datetime && (
-                <div className="flex items-start gap-2 text-sm">
-                  <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">End</div>
-                    <div className="text-muted-foreground">
-                      {formatEventDateTime(eventData.end_datetime)}
-                    </div>
+              {/* Registration Deadline section */}
+              {(eventData.datetime || eventData.end_datetime) && (
+                <>
+                  <div className="border-t border-border"></div>
+                  <div className="text-sm text-muted-foreground p-3">
+                    <div className="font-medium text-foreground">Registration Deadline</div>
+                    <div>None</div>
                   </div>
-                </div>
+                </>
               )}
 
+              {/* Horizontal divider between registration deadline and location */}
+              {(eventData.datetime || eventData.end_datetime) && eventData.location && (
+                <div className="border-t border-border"></div>
+              )}
+
+              {/* Location */}
               {eventData.location && (
-                <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">Location</div>
-                    <div className="text-muted-foreground">{eventData.location}</div>
-                  </div>
+                <div className="text-sm text-muted-foreground p-3">
+                  <div className="font-medium text-foreground">Location</div>
+                  <div>{eventData.location}</div>
                 </div>
               )}
 
+              {/* Horizontal divider */}
+              {eventData.location && eventData.max_participants && (
+                <div className="border-t border-border"></div>
+              )}
+
+              {/* Capacity */}
               {eventData.max_participants && (
-                <div className="flex items-start gap-2 text-sm">
-                  <Users className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                <div className="text-sm text-muted-foreground p-3">
+                  <div className="font-medium text-foreground">Capacity</div>
                   <div>
-                    <div className="font-medium">Capacity</div>
-                    <div className="text-muted-foreground">
-                      {eventData.participant_count || 0} / {eventData.max_participants} participants
-                    </div>
+                    {eventData.participant_count || 0} / {eventData.max_participants} participants
                   </div>
                 </div>
               )}
 
+              {/* Horizontal divider */}
+              {(eventData.location || eventData.max_participants) && eventData.description && (
+                <div className="border-t border-border"></div>
+              )}
+
+              {/* Description */}
               {eventData.description && (
-                <div className="pt-2 border-t">
-                  <div className="text-sm font-medium mb-1">Description</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {eventData.description}
-                  </p>
+                <div className="text-sm text-foreground p-3">
+                  <div className="font-medium text-foreground mb-1">Description</div>
+                  <p className="leading-relaxed">{eventData.description}</p>
                 </div>
               )}
             </div>
