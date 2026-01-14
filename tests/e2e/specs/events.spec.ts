@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { register, logout, clearAuth } from '../fixtures/auth';
+import { register, logout, clearAuth, getUserId } from '../fixtures/auth';
 import { generateTestEmail, generateTestName, createTestEvent, getTestDb } from '../fixtures/database';
 import {
   createEventViaUI,
@@ -140,8 +140,7 @@ test.describe('Event Management Flow', () => {
       await register(page, testUser);
 
       // Get user ID from session
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       expect(userId).toBeTruthy();
 
@@ -176,8 +175,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       const event = await createTestEvent(userId!, {
         name: generateTestName('Public Event'),
@@ -220,8 +218,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       const event = await createTestEvent(userId!, {
         name: generateTestName('Event to Delete'),
@@ -254,8 +251,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       const publicEvent = await createTestEvent(userId!, {
         name: generateTestName('Public Event'),
@@ -283,8 +279,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       const privateEvent = await createTestEvent(userId!, {
         name: generateTestName('Private Event'),
@@ -311,8 +306,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       const privateEvent = await createTestEvent(userId!, {
         name: generateTestName('My Private Event'),
@@ -335,8 +329,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       const originalEvent = await createTestEvent(userId!, {
         name: generateTestName('Original Event'),
@@ -374,8 +367,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       const originalEvent = await createTestEvent(userId!, {
         name: generateTestName('Event with Labels'),
@@ -420,8 +412,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       const event = await createTestEvent(userId!, {
         name: generateTestName('Event with Participants'),
@@ -461,8 +452,7 @@ test.describe('Event Management Flow', () => {
       };
       await register(page, testUser);
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const userId = user?.id;
+      const userId = await getUserId(page);
 
       // Create multiple events
       const event1 = await createTestEvent(userId!, {

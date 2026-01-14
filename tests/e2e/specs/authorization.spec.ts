@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { register, logout, clearAuth } from '../fixtures/auth';
+import { register, logout, clearAuth, getUserId } from '../fixtures/auth';
 import {
   generateTestEmail,
   generateTestName,
@@ -21,8 +21,8 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: org1 } } = await getTestDb().auth.getUser();
-      const org1Event = await createTestEvent(org1?.id!, {
+      const org1Id = await getUserId(page);
+      const org1Event = await createTestEvent(org1Id!, {
         name: generateTestName('Organizer 1 Event'),
       });
 
@@ -53,13 +53,12 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      
-      const myEvent1 = await createTestEvent(user?.id!, {
+      const userId = await getUserId(page);
+      const myEvent1 = await createTestEvent(userId!, {
         name: generateTestName('My Event 1'),
       });
 
-      const myEvent2 = await createTestEvent(user?.id!, {
+      const myEvent2 = await createTestEvent(userId!, {
         name: generateTestName('My Event 2'),
       });
 
@@ -81,8 +80,8 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: org1 } } = await getTestDb().auth.getUser();
-      const privateEvent = await createTestEvent(org1?.id!, {
+      const org1Id = await getUserId(page);
+      const privateEvent = await createTestEvent(org1Id!, {
         name: generateTestName('Other Org Private Event'),
         is_private: true,
       });
@@ -111,8 +110,8 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: owner } } = await getTestDb().auth.getUser();
-      const event = await createTestEvent(owner?.id!, {
+      const ownerId = await getUserId(page);
+      const event = await createTestEvent(ownerId!, {
         name: generateTestName('Protected Event'),
       });
 
@@ -153,8 +152,8 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: org1 } } = await getTestDb().auth.getUser();
-      const org1Group = await createTestGroup(org1?.id!, {
+      const org1Id = await getUserId(page);
+      const org1Group = await createTestGroup(org1Id!, {
         name: generateTestName('Organizer 1 Group'),
       });
 
@@ -185,8 +184,8 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: owner } } = await getTestDb().auth.getUser();
-      const group = await createTestGroup(owner?.id!, {
+      const ownerId = await getUserId(page);
+      const group = await createTestGroup(ownerId!, {
         name: generateTestName('Admin Test Group'),
       });
 
@@ -198,12 +197,12 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: admin } } = await getTestDb().auth.getUser();
-
+      const adminId = await getUserId(page);
       // Add as group admin
       await getTestDb().from('group_admins').insert({
         group_id: group.id,
-        user_id: admin?.id!,
+        user_id: adminId!,
+      });
       });
 
       // Admin should be able to access group
@@ -222,8 +221,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: owner } } = await getTestDb().auth.getUser();
-      const group = await createTestGroup(owner?.id!, {
+      const group = await createTestGroup(ownerId!, {
         name: generateTestName('Managed Group'),
       });
 
@@ -256,8 +254,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: organizer } } = await getTestDb().auth.getUser();
-      const event = await createTestEvent(organizer?.id!, {
+      const event = await createTestEvent(organizerId!, {
         name: generateTestName('Data Isolation Event'),
       });
 
@@ -268,7 +265,6 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: part1 } } = await getTestDb().auth.getUser();
 
       // Register with personal info
       await page.goto(`/events/${event.id}`);
@@ -318,8 +314,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: organizer } } = await getTestDb().auth.getUser();
-      const event = await createTestEvent(organizer?.id!, {
+      const event = await createTestEvent(organizerId!, {
         name: generateTestName('Edit Protection Event'),
       });
 
@@ -331,13 +326,12 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: part1 } } = await getTestDb().auth.getUser();
 
       const { data: part1Registration } = await getTestDb()
         .from('participants')
         .insert({
           event_id: event.id,
-          user_id: part1?.id,
+          user_id: part1Id,
           name: 'Original Name',
           email: part1?.email!,
         })
@@ -381,8 +375,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const publicEvent = await createTestEvent(user?.id!, {
+      const publicEvent = await createTestEvent(userId!, {
         name: generateTestName('Public Event'),
         is_private: false,
       });
@@ -404,8 +397,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user } } = await getTestDb().auth.getUser();
-      const privateEvent = await createTestEvent(user?.id!, {
+      const privateEvent = await createTestEvent(userId!, {
         name: generateTestName('Secret Private Event'),
         is_private: true,
       });
@@ -432,8 +424,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: organizer } } = await getTestDb().auth.getUser();
-      const publicEvent = await createTestEvent(organizer?.id!, {
+      const publicEvent = await createTestEvent(organizerId!, {
         name: generateTestName('Open Public Event'),
         is_private: false,
       });
@@ -463,8 +454,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: organizer } } = await getTestDb().auth.getUser();
-      const privateEvent = await createTestEvent(organizer?.id!, {
+      const privateEvent = await createTestEvent(organizerId!, {
         name: generateTestName('Private Registration Event'),
         is_private: true,
       });
@@ -492,8 +482,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: owner } } = await getTestDb().auth.getUser();
-      const event = await createTestEvent(owner?.id!, {
+      const event = await createTestEvent(ownerId!, {
         name: generateTestName('RLS Test Event'),
       });
 
@@ -531,8 +520,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      const { data: { user: organizer } } = await getTestDb().auth.getUser();
-      const event = await createTestEvent(organizer?.id!, {
+      const event = await createTestEvent(organizerId!, {
         name: generateTestName('Delete Protection Event'),
       });
 
@@ -558,7 +546,7 @@ test.describe('Authorization and Access Control', () => {
       const { error } = await getTestDb()
         .from('participants')
         .delete()
-        .eq('id', participant?.id!);
+        .eq('id', participantId!);
 
       // RLS should prevent deletion
       expect(error).not.toBeNull();
@@ -567,7 +555,7 @@ test.describe('Authorization and Access Control', () => {
       const { data: stillExists } = await getTestDb()
         .from('participants')
         .select('*')
-        .eq('id', participant?.id!)
+        .eq('id', participantId!)
         .single();
 
       expect(stillExists).not.toBeNull();
