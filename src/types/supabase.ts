@@ -1,10 +1,30 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '13.0.5';
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
@@ -63,13 +83,6 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'events_organizer_id_fkey';
-            columns: ['organizer_id'];
-            isOneToOne: false;
-            referencedRelation: 'organizers';
-            referencedColumns: ['id'];
-          },
-          {
             foreignKeyName: 'events_parent_event_id_fkey';
             columns: ['parent_event_id'];
             isOneToOne: false;
@@ -77,6 +90,71 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      feature_flag_overrides: {
+        Row: {
+          created_at: string;
+          enabled: boolean;
+          feature_flag_key: string;
+          group_id: string | null;
+          id: string;
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          enabled: boolean;
+          feature_flag_key: string;
+          group_id?: string | null;
+          id?: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          enabled?: boolean;
+          feature_flag_key?: string;
+          group_id?: string | null;
+          id?: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'feature_flag_overrides_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      feature_flags: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          enabled: boolean;
+          id: string;
+          key: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          enabled?: boolean;
+          id?: string;
+          key: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          enabled?: boolean;
+          id?: string;
+          key?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       group_admins: {
         Row: {
@@ -103,13 +181,6 @@ export type Database = {
             columns: ['group_id'];
             isOneToOne: false;
             referencedRelation: 'groups';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'group_admins_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'organizers';
             referencedColumns: ['id'];
           },
         ];
@@ -181,15 +252,7 @@ export type Database = {
           name?: string;
           organizer_id?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'groups_organizer_id_fkey';
-            columns: ['organizer_id'];
-            isOneToOne: false;
-            referencedRelation: 'organizers';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       labels: {
         Row: {
@@ -219,24 +282,6 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
-      };
-      organizers: {
-        Row: {
-          created_at: string | null;
-          id: string;
-          name: string | null;
-        };
-        Insert: {
-          created_at?: string | null;
-          id?: string;
-          name?: string | null;
-        };
-        Update: {
-          created_at?: string | null;
-          id?: string;
-          name?: string | null;
-        };
-        Relationships: [];
       };
       participant_labels: {
         Row: {
@@ -331,27 +376,33 @@ export type Database = {
     Functions: {
       add_participants_to_group: {
         Args: { p_group_id: string; p_participant_ids: string[] };
-        Returns: { added_count: number; skipped_count: number; failed_count: number }[];
+        Returns: {
+          added_count: number;
+          failed_count: number;
+          skipped_count: number;
+        }[];
       };
       get_next_slot_number: {
         Args: { p_event_id: string; p_user_id?: string };
         Returns: number;
       };
-      get_user_display_name: {
-        Args: { user_id: string };
-        Returns: string;
-      };
+      get_user_display_name: { Args: { user_id: string }; Returns: string };
       get_user_profile: {
         Args: { user_id: string };
-        Returns: { id: string; name: string; email: string; created_at: string }[];
+        Returns: {
+          created_at: string;
+          email: string;
+          id: string;
+          name: string;
+        }[];
       };
-      nanoid: {
-        Args: { size?: number };
-        Returns: string;
-      };
+      nanoid: { Args: { size?: number }; Returns: string };
       remove_participants_from_group: {
         Args: { p_group_id: string; p_participant_ids: string[] };
-        Returns: { removed_count: number; failed_count: number }[];
+        Returns: {
+          failed_count: number;
+          removed_count: number;
+        }[];
       };
     };
     Enums: {
@@ -479,6 +530,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

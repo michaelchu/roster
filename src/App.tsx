@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { FeatureFlagsProvider } from '@/hooks/useFeatureFlags';
 import { FontSizeProvider } from '@/hooks/useFontSize';
 import { ThemeProvider } from '@/components/theme-provider';
 import { MobileOnly } from '@/components/MobileOnly';
@@ -88,8 +89,10 @@ function App() {
           <MobileOnly>
             <Router>
               <AuthProvider>
-                <AppContent />
-                <Toaster />
+                <FeatureFlagsProvider>
+                  <AppContent />
+                  <Toaster />
+                </FeatureFlagsProvider>
               </AuthProvider>
             </Router>
           </MobileOnly>
