@@ -30,8 +30,10 @@ import { InviteConfirmationPage } from '@/pages/InviteConfirmationPage';
 // Component that redirects / to /events if home_page flag is disabled
 function HomePageOrRedirect() {
   const isHomePageEnabled = useFeatureFlag('home_page');
+  const { user } = useAuth();
 
-  if (!isHomePageEnabled) {
+  // Only redirect logged-in users when home page is disabled
+  if (!isHomePageEnabled && user) {
     return <Navigate to="/events" replace />;
   }
 
