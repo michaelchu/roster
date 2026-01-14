@@ -251,31 +251,37 @@ export async function claimAdditionalSpot(
   eventId: string,
   guestData: ParticipantFormData = {}
 ) {
+  // Reload the page to ensure the UI reflects the user's registration
   await page.goto(`/signup/${eventId}`);
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000); // Give time for participant list to load
 
   // Look for "Claim" button in empty slot (small button next to "Available slot")
-  const claimButton = page.getByRole('button', { name: /^claim$/i });
+  // The button only appears when: user is registered, event has max_participants, and there are empty slots
+  const claimButton = page.locator('button:has-text("Claim")').first(); // Use first one in the slot
   await claimButton.waitFor({ state: 'visible', timeout: 10000 });
   await claimButton.click();
 
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
 
-  // Fill guest details if provided
+  // Fill guest details if provided - name is optional for claims
   if (guestData.name) {
     const nameInput = page.locator('#signup-name');
-    if (await nameInput.count() > 0) {
-      await nameInput.fill(guestData.name);
-    }
+    await nameInput.waitFor({ state: 'visible', timeout: 5000 });
+    await nameInput.fill(guestData.name);
   }
 
-  // Submit - button text is "Claim" when claiming additional spot
-  const submitButton = page.getByRole('button', { name: /^claim$/i }).last();
+  // Submit - find the submit button
+  // After clicking the first Claim button, a drawer opens with a form
+  // The submit button is in the footer with text "Claim"
+  const submitButton = page.locator('button[type="submit"][form="signup-form"]');
   await submitButton.waitFor({ state: 'visible', timeout: 10000 });
   await submitButton.click();
 
-  await page.waitForTimeout(2000);
+  // Wait for submission to complete - drawer should close and participant list should update
+  await page.waitForTimeout(4000);
+  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+  await page.waitForTimeout(1000);
 }
 
 /**
