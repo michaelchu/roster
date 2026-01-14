@@ -1,5 +1,10 @@
 // Feature flag keys - union type of all available feature flags
-export type FeatureFlagKey = 'groups_feature' | 'csv_export' | 'quick_fill' | 'event_duplication';
+export type FeatureFlagKey =
+  | 'groups_feature'
+  | 'csv_export'
+  | 'quick_fill'
+  | 'event_duplication'
+  | 'home_page';
 
 // Feature flags interface mapping keys to boolean values
 export interface FeatureFlags {
@@ -7,14 +12,16 @@ export interface FeatureFlags {
   csv_export: boolean;
   quick_fill: boolean;
   event_duplication: boolean;
+  home_page: boolean;
 }
 
-// Default feature flag values (all enabled by default)
+// Default feature flag values
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   groups_feature: true,
   csv_export: true,
   quick_fill: true,
   event_duplication: true,
+  home_page: true,
 };
 
 // Database types for feature flags

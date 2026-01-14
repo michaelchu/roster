@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Calendar, Users, CreditCard, Bookmark, UsersRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { supabase } from '@/lib/supabase';
 import { TopNav } from '@/components/TopNav';
 import { type Participant } from '@/services/participantService';
@@ -29,6 +30,7 @@ interface UpcomingEvent {
 export function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isHomePageEnabled = useFeatureFlag('home_page');
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [timePeriod, setTimePeriod] = useState<'all' | 'week' | 'month' | 'year'>('all');
@@ -157,6 +159,24 @@ export function HomePage() {
       setLoading(false);
     }
   };
+
+  // Show coming soon message if home page is disabled
+  if (!isHomePageEnabled) {
+    return (
+      <div className="min-h-screen bg-background pb-14">
+        <TopNav title="Roster" />
+        <div className="p-3">
+          <div className="bg-card rounded-lg p-6 border text-center">
+            <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+            <h2 className="text-base font-medium mb-2">Coming Soon</h2>
+            <p className="text-xs text-muted-foreground">
+              The home page is currently being updated. Please check back soon!
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-14">
