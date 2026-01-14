@@ -118,7 +118,7 @@ export function RegisterPage() {
             </div>
 
             {/* Google Sign Up Button */}
-            <div id="google-signup-button" className="w-full" />
+            <div id="google-signup-button" className="flex justify-center" />
 
             <div className="text-center text-xs text-muted-foreground">
               Already have an account?{' '}

@@ -118,7 +118,7 @@ export function LoginPage() {
             </div>
 
             {/* Google Sign In Button */}
-            <div id="google-signin-button" className="w-full" />
+            <div id="google-signin-button" className="flex justify-center" />
 
             <div className="text-center text-xs text-muted-foreground">
               Don't have an account?{' '}

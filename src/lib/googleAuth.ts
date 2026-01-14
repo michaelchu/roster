@@ -77,7 +77,6 @@ export function initializeGoogleButton(
             text: 'continue_with',
             shape: 'rectangular',
             logo_alignment: 'left',
-            width: buttonContainer.offsetWidth || 300,
           });
         } else {
           onError(new Error(`Container with id "${containerId}" not found`));
