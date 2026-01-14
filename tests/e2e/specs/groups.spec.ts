@@ -62,11 +62,11 @@ test.describe('Group Management Flow', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
-      // Should be redirected or show sign-in required
-      const url = page.url();
+      // Should show "Sign In Required" message with button
       const hasSignInButton = await page.getByRole('button', { name: /sign in/i }).isVisible().catch(() => false);
+      const hasSignInMessage = await page.getByText(/sign in required/i).isVisible().catch(() => false);
       
-      expect(url.includes('/auth') || hasSignInButton).toBe(true);
+      expect(hasSignInButton || hasSignInMessage).toBe(true);
     });
   });
 
@@ -87,16 +87,18 @@ test.describe('Group Management Flow', () => {
       // Navigate to edit page
       await page.goto(`/groups/${group.id}/edit`);
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000); // Wait for form to populate
 
-      // Update fields
-      await page.fill('input[name="name"]', generateTestName('Updated Group Name'));
-      await page.fill('textarea[name="description"]', 'Updated description');
+      // Update fields - use IDs
+      await page.fill('#name', generateTestName('Updated Group Name'));
+      await page.fill('#description', 'Updated description');
 
       // Save
       const submitButton = page.getByRole('button', { name: /save|update/i });
       await submitButton.click();
 
       await page.waitForURL((url) => !url.pathname.includes('/edit'), { timeout: 10000 });
+      await page.waitForTimeout(2000); // Wait for database update
 
       // Verify update
       const { data: updated } = await getTestDb()
@@ -167,22 +169,28 @@ test.describe('Group Management Flow', () => {
       // Create event with group assignment
       await page.goto('/events/new');
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000); // Wait for form to load
 
-      const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      const datetimeString = futureDate.toISOString().slice(0, 16);
+      // Fill basic event details using IDs
+      await page.fill('#name', generateTestName('Group Event'));
+      await page.fill('#location', 'Test Location');
 
-      await page.fill('input[name="name"]', generateTestName('Group Event'));
-      await page.fill('input[name="datetime"]', datetimeString);
-      await page.fill('input[name="location"]', 'Test Location');
-
-      // Select group (if dropdown exists)
-      const groupSelect = page.locator('select[name="group_id"], select[name="group"]');
-      if (await groupSelect.count() > 0) {
-        await groupSelect.selectOption(group.id);
+      // Select group from dropdown - this is a shadcn Select component
+      // Look for the select trigger button
+      const groupSelectTrigger = page.locator('button[role="combobox"]').or(page.locator('#group')).or(page.locator('[id*="group"]'));
+      if (await groupSelectTrigger.count() > 0) {
+        await groupSelectTrigger.first().click();
+        await page.waitForTimeout(500);
+        
+        // Try to find and click the group option
+        const groupOption = page.getByText(group.name).or(page.locator(`[data-value="${group.id}"]`));
+        if (await groupOption.count() > 0) {
+          await groupOption.first().click();
+        }
       }
 
       // Submit
-      const submitButton = page.getByRole('button', { name: /create|save/i });
+      const submitButton = page.getByRole('button', { name: /create/i });
       await submitButton.click();
 
       await page.waitForURL((url) => url.pathname !== '/events/new', { timeout: 10000 });

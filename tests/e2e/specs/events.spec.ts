@@ -158,9 +158,10 @@ test.describe('Event Management Flow', () => {
 
       await editEventViaUI(page, event.id, updates);
 
-      // Verify changes
-      await page.goto(`/events/${event.id}`);
+      // Verify changes - navigate to event detail page
+      await page.goto(`/signup/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
       
       await expect(page.getByText(updates.name)).toBeVisible();
       await expect(page.getByText(updates.description)).toBeVisible();

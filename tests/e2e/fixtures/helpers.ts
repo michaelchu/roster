@@ -300,6 +300,7 @@ export interface GroupFormData {
 export async function createGroupViaUI(page: Page, groupData: Partial<GroupFormData> = {}) {
   await page.goto('/groups/new');
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(500); // Wait for auth check and form load
 
   const name = groupData.name || generateTestName('Group');
   await page.fill('#name', name);
@@ -311,6 +312,7 @@ export async function createGroupViaUI(page: Page, groupData: Partial<GroupFormD
   if (groupData.isPrivate !== undefined) {
     // Privacy toggle is a button, not a checkbox
     const privateButton = page.locator('button:has-text("Private Group"), button:has-text("Public Group")');
+    await privateButton.waitFor({ state: 'visible', timeout: 5000 });
     const buttonText = await privateButton.textContent();
     const isCurrentlyPrivate = buttonText?.includes('Private');
     
@@ -319,8 +321,8 @@ export async function createGroupViaUI(page: Page, groupData: Partial<GroupFormD
     }
   }
 
-  // Submit
-  const submitButton = page.getByRole('button', { name: /create|save/i });
+  // Submit - button text is "Create Group"
+  const submitButton = page.getByRole('button', { name: /create group/i });
   await submitButton.click();
 
   await page.waitForURL((url) => url.pathname !== '/groups/new', { timeout: 10000 });
