@@ -69,11 +69,11 @@ export async function createTestUser(email: string, password: string) {
 }
 
 /**
- * Delete a test user by email
+ * Delete a test user
+ * Note: Deleting users requires service role access
+ * For now, we'll just sign out and let cleanup happen via database triggers
  */
-export async function deleteTestUser(_userId: string) {
-  // Note: Deleting users requires service role access
-  // For now, we'll just sign out and let cleanup happen via database triggers
+export async function deleteTestUser() {
   await testDb.auth.signOut();
 }
 

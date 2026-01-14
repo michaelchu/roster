@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { clearAuth, isAuthenticated } from '../fixtures/auth';
+import { clearAuth } from '../fixtures/auth';
 import { generateTestEmail } from '../fixtures/database';
 
 /**
