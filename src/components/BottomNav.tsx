@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Calendar, UsersRound, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 
 const navItems = [
   { icon: Home, label: 'Home', path: '/' },
@@ -13,11 +14,15 @@ const navItems = [
 export function BottomNav() {
   const location = useLocation();
   const { user } = useAuth();
+  const isHomePageEnabled = useFeatureFlag('home_page');
 
   // Hide navigation for non-authenticated users
   if (!user) {
     return null;
   }
+
+  // Filter out Home nav item if home_page flag is disabled
+  const visibleNavItems = navItems.filter((item) => item.path !== '/' || isHomePageEnabled);
 
   return (
     <nav
@@ -26,7 +31,7 @@ export function BottomNav() {
       aria-label="Main navigation"
     >
       <div className="flex justify-around items-center h-14">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
           return (
