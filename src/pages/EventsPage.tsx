@@ -124,12 +124,6 @@ export function EventsPage() {
           <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
           <h2 className="text-base font-medium mb-2">{title}</h2>
           <p className="text-xs text-muted-foreground mb-4">{description}</p>
-          {showDuplicate && (
-            <Button size="sm" className="w-full" onClick={() => navigate('/events/new')}>
-              <Plus className="h-4 w-4 mr-1" />
-              Create Event
-            </Button>
-          )}
         </div>
       );
     }
@@ -208,7 +202,7 @@ export function EventsPage() {
           {renderEventList(organizingEvents, isLoadingOrganizing, true)}
           <ActionButton onClick={() => navigate('/events/new')}>
             <Plus className="h-5 w-5 mr-2" />
-            New Event
+            Create Event
           </ActionButton>
         </TabsContent>
 

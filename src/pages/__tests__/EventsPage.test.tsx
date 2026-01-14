@@ -124,7 +124,7 @@ describe('EventsPage', () => {
     expect(screen.getByText('My Events')).toBeInTheDocument();
     expect(screen.getByText('Organizing')).toBeInTheDocument();
     expect(screen.getByText('Joined')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'New Event' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Event' })).toBeInTheDocument();
   });
 
   it('shows empty state when no events', () => {
@@ -154,6 +154,7 @@ describe('EventsPage', () => {
     expect(
       screen.getByText('Create your first event to start managing registrations')
     ).toBeInTheDocument();
+    // ActionButton is still visible (renamed from "New Event" to "Create Event")
     expect(screen.getByRole('button', { name: 'Create Event' })).toBeInTheDocument();
   });
 });
