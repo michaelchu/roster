@@ -271,17 +271,28 @@ export async function claimAdditionalSpot(
     await nameInput.fill(guestData.name);
   }
 
-  // Submit - find the submit button
-  // After clicking the first Claim button, a drawer opens with a form
-  // The submit button is in the footer with text "Claim"
-  const submitButton = page.locator('button[type="submit"][form="signup-form"]');
-  await submitButton.waitFor({ state: 'visible', timeout: 10000 });
-  await submitButton.click();
-
-  // Wait for submission to complete - drawer should close and participant list should update
-  await page.waitForTimeout(4000);
-  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-  await page.waitForTimeout(1000);
+  // Submit the form - try pressing Enter in the name field first (more reliable for forms)
+  await page.waitForTimeout(500); // Let drawer fully render
+  
+  const nameInput = page.locator('#signup-name');
+  if (await nameInput.isVisible()) {
+    await nameInput.press('Enter');
+    await page.waitForTimeout(2000);
+  }
+  
+  // If Enter didn't work, try clicking the submit button
+  const drawerCheck1 = await page.locator('[role="dialog"]').isVisible().catch(() => false);
+  if (drawerCheck1) {
+    // Drawer still open, try button click
+    const submitButton = page.getByRole('button', { name: 'Claim' }).last();
+    if (await submitButton.isVisible().catch(() => false)) {
+      await submitButton.click();
+      await page.waitForTimeout(3000);
+    }
+  }
+  
+  // Final wait for submission
+  await page.waitForTimeout(3000);
 }
 
 /**

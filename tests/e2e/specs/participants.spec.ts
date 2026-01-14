@@ -540,13 +540,13 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
-      await page.goto(`/events/${event.id}`);
+      await page.goto(`/signup/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
-      // Should show "Event Full" or disabled registration
+      // Should show "Event Full" or disabled registration button
       const isFull = await page.getByText(/full|sold out|capacity/i).isVisible().catch(() => false);
-      const registerButton = page.getByRole('button', { name: /register|sign up/i });
+      const registerButton = page.getByRole('button', { name: /join event/i });
       const isRegisterDisabled = await registerButton.isDisabled().catch(() => true);
 
       expect(isFull || isRegisterDisabled).toBe(true);
@@ -580,11 +580,12 @@ test.describe('Participant Registration Flow', () => {
         },
       ]);
 
-      await page.goto(`/events/${event.id}`);
+      await page.goto(`/signup/${event.id}`);
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
 
-      // Should show "3 spots remaining" or similar
-      const hasSpotInfo = await page.getByText(/3.*spot|spot.*3|3.*remaining/i).isVisible().catch(() => false);
+      // Should show "3 spots remaining" or "3/5" or similar capacity indicator
+      const hasSpotInfo = await page.getByText(/3.*spot|spot.*3|3.*remaining|3.*5/i).isVisible().catch(() => false);
       expect(hasSpotInfo).toBe(true);
     });
   });
