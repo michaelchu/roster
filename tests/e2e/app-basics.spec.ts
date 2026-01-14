@@ -36,16 +36,16 @@ test.describe('Smoke Tests - Basic App Functionality', () => {
     await expect(page).toHaveTitle(/Roster/);
     await expect(page.locator('#root')).toBeAttached();
     
-    // Check for 404 content if it exists
-    const notFoundText = page.getByText(/page not found|not found/i);
+    // Wait a moment for React Router to render the 404 page
+    await page.waitForTimeout(500);
+    
+    // Check for 404 content - should show "Page not found" text
+    const notFoundText = page.getByText('Page not found');
+    await expect(notFoundText).toBeVisible();
+    
+    // Should have "Go back" button
     const goBackButton = page.getByRole('button', { name: /go back/i });
-    
-    // At least one indicator should be present
-    const hasNotFound = await notFoundText.count() > 0;
-    const hasGoBack = await goBackButton.count() > 0;
-    
-    // Verify some 404 indicator exists (flexible check)
-    expect(hasNotFound || hasGoBack).toBe(true);
+    await expect(goBackButton).toBeVisible();
   });
 
   test('app handles network offline gracefully', async ({ page }) => {
