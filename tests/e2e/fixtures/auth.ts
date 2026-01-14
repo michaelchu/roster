@@ -87,6 +87,10 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
  * Clear all auth state and storage
  */
 export async function clearAuth(page: Page) {
+  // Navigate to a valid origin first to enable storage access
+  await page.goto('/');
+  await page.waitForLoadState('domcontentloaded');
+  
   await page.context().clearCookies();
   await page.evaluate(() => {
     localStorage.clear();
