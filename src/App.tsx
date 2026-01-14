@@ -1,6 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
-import { FeatureFlagsProvider } from '@/hooks/useFeatureFlags';
+import { FeatureFlagsProvider, useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { FontSizeProvider } from '@/hooks/useFontSize';
 import { ThemeProvider } from '@/components/theme-provider';
 import { MobileOnly } from '@/components/MobileOnly';
@@ -27,6 +27,17 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { InviteConfirmationPage } from '@/pages/InviteConfirmationPage';
 
+// Component that redirects / to /events if home_page flag is disabled
+function HomePageOrRedirect() {
+  const isHomePageEnabled = useFeatureFlag('home_page');
+
+  if (!isHomePageEnabled) {
+    return <Navigate to="/events" replace />;
+  }
+
+  return <HomePage />;
+}
+
 function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
@@ -40,7 +51,7 @@ function AppContent() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePageOrRedirect />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/new" element={<NewEventPage />} />
         <Route path="/events/:eventId/edit" element={<EditEventPage />} />
