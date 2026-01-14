@@ -63,6 +63,7 @@ describe('NewEventPage', () => {
       signIn: vi.fn(),
       signUp: vi.fn(),
       signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -93,6 +94,7 @@ describe('NewEventPage', () => {
       signIn: vi.fn(),
       signUp: vi.fn(),
       signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -116,6 +118,7 @@ describe('NewEventPage', () => {
       signIn: vi.fn(),
       signUp: vi.fn(),
       signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -134,6 +137,7 @@ describe('NewEventPage', () => {
       signIn: vi.fn(),
       signUp: vi.fn(),
       signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
     });
 
