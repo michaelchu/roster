@@ -3,6 +3,11 @@ import { describe, it, beforeEach, expect, vi } from 'vitest';
 // Mock the auth hook
 vi.mock('@/hooks/useAuth');
 
+// Mock Google auth helper
+vi.mock('@/lib/googleAuth', () => ({
+  initializeGoogleButton: vi.fn(),
+}));
+
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import type { ReactElement } from 'react';
@@ -25,6 +30,7 @@ describe('RegisterPage', () => {
       signIn: vi.fn(),
       signUp: vi.fn(),
       signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
     });
   });
@@ -38,10 +44,10 @@ describe('RegisterPage', () => {
     expect(screen.getByRole('button', { name: 'Sign Up' })).toBeInTheDocument();
   });
 
-  it('renders Google sign up button', () => {
+  it('renders Google sign up button container', () => {
     renderWithRouter(<RegisterPage />);
 
-    expect(screen.getByRole('button', { name: 'Sign up with Google' })).toBeInTheDocument();
+    expect(document.getElementById('google-signup-button')).toBeInTheDocument();
   });
 
   it('renders sign in link', () => {
