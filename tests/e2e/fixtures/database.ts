@@ -71,7 +71,7 @@ export async function createTestUser(email: string, password: string) {
 /**
  * Delete a test user by email
  */
-export async function deleteTestUser(userId: string) {
+export async function deleteTestUser(_userId: string) {
   // Note: Deleting users requires service role access
   // For now, we'll just sign out and let cleanup happen via database triggers
   await testDb.auth.signOut();
@@ -80,7 +80,19 @@ export async function deleteTestUser(userId: string) {
 /**
  * Create a test event
  */
-export async function createTestEvent(organizerId: string, eventData?: Partial<any>) {
+export async function createTestEvent(
+  organizerId: string,
+  eventData?: Partial<{
+    name: string;
+    description: string;
+    datetime: string;
+    location: string;
+    is_private: boolean;
+    custom_fields: unknown[];
+    max_participants: number | null;
+    group_id: string | null;
+  }>
+) {
   const { data, error } = await testDb
     .from('events')
     .insert({
@@ -118,7 +130,14 @@ export async function deleteTestEvent(eventId: string) {
 /**
  * Create a test group
  */
-export async function createTestGroup(organizerId: string, groupData?: Partial<any>) {
+export async function createTestGroup(
+  organizerId: string,
+  groupData?: Partial<{
+    name: string;
+    description: string;
+    is_private: boolean;
+  }>
+) {
   const { data, error } = await testDb
     .from('groups')
     .insert({
@@ -151,7 +170,15 @@ export async function deleteTestGroup(groupId: string) {
 /**
  * Create a test participant
  */
-export async function createTestParticipant(eventId: string, participantData?: Partial<any>) {
+export async function createTestParticipant(
+  eventId: string,
+  participantData?: Partial<{
+    name: string;
+    email: string;
+    user_id: string | null;
+    responses: Record<string, unknown>;
+  }>
+) {
   const { data, error } = await testDb
     .from('participants')
     .insert({

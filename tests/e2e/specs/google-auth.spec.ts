@@ -145,10 +145,8 @@ test.describe('Google OAuth Authentication', () => {
       // Should no longer be on login page
       expect(page.url()).not.toContain('/auth/login');
       
-      // User should be authenticated
-      // Note: This may not work with mocks, but tests the flow
-      const authenticated = await isAuthenticated(page);
-      // In a real environment with proper Supabase mock, this would be true
+      // User should be authenticated (if mocks work correctly)
+      // Note: Full authentication may not work without complete Supabase mock
     });
 
     test('failed Google sign-in shows error message', async ({ page }) => {
@@ -169,9 +167,8 @@ test.describe('Google OAuth Authentication', () => {
       // Should still be on login page
       await expect(page).toHaveURL(/\/auth\/login/);
       
-      // Error message should be visible (check for error styling)
-      const errorExists = await page.locator('[class*="red"], [class*="error"]').isVisible();
-      // May or may not show error depending on implementation
+      // Error message may be visible depending on implementation
+      // (check for error styling if needed in future)
     });
 
     test('Google sign-in respects returnUrl parameter', async ({ page }) => {
@@ -191,10 +188,8 @@ test.describe('Google OAuth Authentication', () => {
       // Should redirect to returnUrl after successful auth
       await page.waitForTimeout(2000);
       
-      // Should redirect to /events (if mocks work correctly)
+      // In production with full Supabase integration, would redirect to /events
       // Note: Full redirect may not work without complete Supabase mock
-      const url = page.url();
-      // In production, would redirect to /events
     });
   });
 
@@ -207,9 +202,8 @@ test.describe('Google OAuth Authentication', () => {
       // Google Sign-In should be available on register page too
       const googleButtonContainer = page.locator('#google-signin-button');
       
-      // Check if container exists (may vary by implementation)
-      const containerCount = await googleButtonContainer.count();
-      // Register page may or may not have Google Sign-In
+      // Verify container exists (implementation may vary)
+      await expect(googleButtonContainer).toBeAttached();
     });
 
     test('Google sign-in creates new account for first-time users', async ({ page }) => {
