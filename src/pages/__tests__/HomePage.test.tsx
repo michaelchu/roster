@@ -53,9 +53,11 @@ describe('HomePage', () => {
 
     renderWithRouter(<HomePage />);
 
-    expect(screen.getByText('Welcome to Roster')).toBeInTheDocument();
-    expect(screen.getByText('Sign in to create and manage your events')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
+    expect(screen.getByText('Stop Managing. Start Organizing.')).toBeInTheDocument();
+    expect(
+      screen.getByText(/The mobile-first app that turns event chaos into seamless coordination/i)
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Get Started Free' }).length).toBeGreaterThan(0);
   });
 
   it('renders quick actions for authenticated users', () => {

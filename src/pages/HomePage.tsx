@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Users, CreditCard, Bookmark, UsersRound } from 'lucide-react';
+import { Calendar, Users, CreditCard, Bookmark, UsersRound, Smartphone } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { TopNav } from '@/components/TopNav';
@@ -303,49 +303,167 @@ export function HomePage() {
           </>
         ) : (
           <>
-            <div className="bg-card rounded-lg p-6 border text-center">
-              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-              <h2 className="text-base font-medium mb-2">Welcome to Roster</h2>
-              <p className="text-xs text-muted-foreground mb-4">
-                Sign in to create and manage your events
-              </p>
-              <Button className="w-full" onClick={() => navigate('/auth/login')}>
-                Sign In
-              </Button>
+            {/* Hero Section */}
+            <div className="bg-gradient-to-b from-primary/5 to-background rounded-lg p-6 border text-center">
+              <div className="mb-4">
+                <h1 className="text-2xl font-bold mb-3">Stop Managing. Start Organizing.</h1>
+                <p className="text-sm text-muted-foreground">
+                  The mobile-first app that turns event chaos into seamless coordination
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Button className="w-full" size="lg" onClick={() => navigate('/auth/register')}>
+                  Get Started Free
+                </Button>
+                <button
+                  onClick={() => navigate('/auth/login')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Already have an account? Sign in
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">No credit card required</p>
             </div>
 
+            {/* Pain Points Section */}
             <div className="bg-card rounded-lg border overflow-hidden">
-              <div className="p-3">
-                <div className="text-xs text-muted-foreground space-y-3">
-                  <div>
-                    <p className="mb-2">
-                      Roster is a mobile-first event management platform designed to streamline
-                      event registration and participant management. Create events, manage signups,
-                      and track attendance all from your mobile device.
-                    </p>
-                  </div>
+              <div className="p-3 border-b">
+                <h2 className="text-sm font-semibold">Sound Familiar?</h2>
+              </div>
+              <div className="p-3 space-y-2">
+                <div className="flex items-start gap-2 text-xs">
+                  <span className="text-base">📱</span>
+                  <p>Endless group chat chaos trying to track RSVPs</p>
+                </div>
+                <div className="flex items-start gap-2 text-xs">
+                  <span className="text-base">📊</span>
+                  <p>Juggling spreadsheets for attendance and details</p>
+                </div>
+                <div className="flex items-start gap-2 text-xs">
+                  <span className="text-base">⏰</span>
+                  <p>Last-minute scrambles to confirm who's coming</p>
+                </div>
+                <div className="flex items-start gap-2 text-xs">
+                  <span className="text-base">📧</span>
+                  <p>Manually messaging updates to everyone</p>
+                </div>
+              </div>
+            </div>
 
-                  <div>
-                    <div className="font-medium text-foreground mb-2">Install the Mobile App</div>
-                    <div className="space-y-2">
-                      <div>
-                        <div className="font-medium">For iPhone/iPad:</div>
-                        <div>1. Open this website in Safari</div>
-                        <div>2. Tap the Share button (square with arrow)</div>
-                        <div>3. Select "Add to Home Screen"</div>
-                        <div>4. Tap "Add" to confirm</div>
-                      </div>
-
-                      <div>
-                        <div className="font-medium">For Android:</div>
-                        <div>1. Open this website in Chrome</div>
-                        <div>2. Tap the menu (three dots)</div>
-                        <div>3. Select "Add to Home screen"</div>
-                        <div>4. Tap "Add" to confirm</div>
-                      </div>
+            {/* Feature Highlights Section */}
+            <div className="bg-card rounded-lg border overflow-hidden">
+              <div className="p-3 border-b">
+                <h2 className="text-sm font-semibold">How Roster Helps</h2>
+              </div>
+              <div className="divide-y">
+                <div className="p-3 flex gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Smartphone className="h-5 w-5 text-primary" />
                     </div>
                   </div>
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Mobile-First Design</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Manage everything from your phone - create events in under 60 seconds
+                    </p>
+                  </div>
                 </div>
+                <div className="p-3 flex gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Smart Participant Tracking</h3>
+                    <p className="text-xs text-muted-foreground">
+                      See who's in, who's out, and get real-time updates
+                    </p>
+                  </div>
+                </div>
+                <div className="p-3 flex gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-primary" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Never Miss a Beat</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Upcoming events dashboard keeps you and your group organized
+                    </p>
+                  </div>
+                </div>
+                <div className="p-3 flex gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <UsersRound className="h-5 w-5 text-primary" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Simple Group Management</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Organize recurring events and reuse your groups effortlessly
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* How It Works Section */}
+            <div className="bg-card rounded-lg border overflow-hidden">
+              <div className="p-3 border-b">
+                <h2 className="text-sm font-semibold">How It Works</h2>
+              </div>
+              <div className="p-3 space-y-3">
+                <div className="flex gap-3">
+                  <Badge className="h-6 w-6 rounded-full flex items-center justify-center p-0 flex-shrink-0">
+                    1
+                  </Badge>
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Create Your Group</h3>
+                    <p className="text-xs text-muted-foreground">Add members once, reuse forever</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Badge className="h-6 w-6 rounded-full flex items-center justify-center p-0 flex-shrink-0">
+                    2
+                  </Badge>
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Set Up Events</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Quick forms, custom fields, all the details
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Badge className="h-6 w-6 rounded-full flex items-center justify-center p-0 flex-shrink-0">
+                    3
+                  </Badge>
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Track & Manage</h3>
+                    <p className="text-xs text-muted-foreground">
+                      See RSVPs, send updates, stay organized
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Final CTA Section */}
+            <div className="bg-card rounded-lg p-6 border text-center">
+              <h2 className="text-lg font-semibold mb-3">Ready to Simplify Your Events?</h2>
+              <div className="space-y-2">
+                <Button className="w-full" size="lg" onClick={() => navigate('/auth/register')}>
+                  Get Started Free
+                </Button>
+                <button
+                  onClick={() => navigate('/auth/login')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Already organizing? Sign in
+                </button>
               </div>
             </div>
           </>
