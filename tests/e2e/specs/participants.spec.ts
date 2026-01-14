@@ -184,6 +184,7 @@ test.describe('Participant Registration Flow', () => {
       const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Multi-Spot Event'),
+        max_participants: 10, // Need max_participants for claim button to appear
       });
 
       // Register self first
@@ -224,6 +225,7 @@ test.describe('Participant Registration Flow', () => {
       const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Name Generation Event'),
+        max_participants: 10, // Need max_participants for claim button to appear
       });
 
       // Register self
@@ -259,6 +261,7 @@ test.describe('Participant Registration Flow', () => {
       const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Slot Number Event'),
+        max_participants: 10, // Need max_participants for claim button to appear
       });
 
       // Register self

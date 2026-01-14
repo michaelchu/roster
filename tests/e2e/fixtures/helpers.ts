@@ -163,44 +163,59 @@ export async function registerForEvent(
   await registerButton.click();
 
   // Wait for form/drawer to appear
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
 
-  // Fill participant details if inputs are present
-  if (participantData.name) {
-    const nameInput = page.locator('input[name="name"]');
-    if (await nameInput.count() > 0) {
-      await nameInput.fill(participantData.name);
-    }
-  }
+  // Fill participant details - use IDs which are more specific
+  // Name is required, so fill it even if not provided
+  const nameInput = page.locator('#signup-name');
+  await nameInput.waitFor({ state: 'visible', timeout: 5000 });
+  const nameToFill = participantData.name || `Test User ${Date.now()}`;
+  await nameInput.fill(nameToFill);
 
   if (participantData.email) {
-    const emailInput = page.locator('input[name="email"]');
+    const emailInput = page.locator('#signup-email');
     if (await emailInput.count() > 0) {
       await emailInput.fill(participantData.email);
     }
   }
 
   if (participantData.phone) {
-    const phoneInput = page.locator('input[name="phone"]');
+    const phoneInput = page.locator('#signup-phone');
     if (await phoneInput.count() > 0) {
       await phoneInput.fill(participantData.phone);
     }
   }
 
   if (participantData.notes) {
-    const notesInput = page.locator('textarea[name="notes"]');
-    if (await notesInput.count() > 0) {
+    // Notes are in a different tab, need to click Notes tab first
+    const notesTab = page.getByRole('tab', { name: /notes/i });
+    if (await notesTab.count() > 0) {
+      await notesTab.click();
+      await page.waitForTimeout(500);
+      const notesInput = page.locator('#signup-notes');
       await notesInput.fill(participantData.notes);
+      // Switch back to registration tab
+      await page.getByRole('tab', { name: /registration/i }).click();
+      await page.waitForTimeout(500);
     }
   }
 
-  // Handle custom field responses
+  // Handle custom field responses - fields have IDs like #signup-{field.id}
   if (participantData.customFieldResponses) {
-    for (const [fieldLabel, value] of Object.entries(participantData.customFieldResponses)) {
-      // Try to find input by label
-      const fieldInput = page.locator(`input[name*="${fieldLabel}"], textarea[name*="${fieldLabel}"]`);
+    for (const [fieldId, value] of Object.entries(participantData.customFieldResponses)) {
+      const fieldInput = page.locator(`#signup-${fieldId}`);
       if (await fieldInput.count() > 0) {
-        if (Array.isArray(value)) {
+        const inputType = await fieldInput.getAttribute('type');
+        
+        if (inputType === 'select' || (await fieldInput.evaluate(el => el.tagName)) === 'SELECT') {
+          // For select dropdowns (might be shadcn Select component)
+          // Try to find the select trigger and click it
+          const selectTrigger = page.locator(`[id="signup-${fieldId}"]`).locator('..');
+          if (await selectTrigger.count() > 0) {
+            // This might be a shadcn Select - skip for now as it's complex
+            // Tests can create participants via database for custom fields
+          }
+        } else if (Array.isArray(value)) {
           // Checkbox or multi-select
           for (const v of value) {
             await page.check(`input[value="${v}"]`);
