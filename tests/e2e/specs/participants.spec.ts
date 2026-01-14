@@ -65,6 +65,7 @@ test.describe('Participant Registration Flow', () => {
       const organizerEmail = generateTestEmail('org');
       await register(page, { email: organizerEmail, password: 'TestPassword123!' });
 
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('User ID Test Event'),
       });
@@ -98,6 +99,8 @@ test.describe('Participant Registration Flow', () => {
       });
 
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Custom Fields Event'),
         custom_fields: [
@@ -139,6 +142,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('No Double Registration'),
       });
@@ -175,6 +180,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Multi-Spot Event'),
       });
@@ -190,6 +197,7 @@ test.describe('Participant Registration Flow', () => {
       });
 
       // Verify both registrations exist
+      const userId = await getUserId(page);
       const { data: participants } = await getTestDb()
         .from('participants')
         .select('*')
@@ -212,6 +220,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Name Generation Event'),
       });
@@ -245,6 +255,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Slot Number Event'),
       });
@@ -287,6 +299,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('View Participants'),
       });
@@ -320,6 +334,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Edit Participant'),
       });
@@ -357,7 +373,7 @@ test.describe('Participant Registration Flow', () => {
           const { data: updated } = await getTestDb()
             .from('participants')
             .select('*')
-            .eq('id', participantId!)
+            .eq('id', participant?.id!)
             .single();
 
           expect(updated?.name).toBe('Updated Name');
@@ -372,6 +388,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Delete Participant'),
       });
@@ -405,7 +423,7 @@ test.describe('Participant Registration Flow', () => {
         const { data: deleted } = await getTestDb()
           .from('participants')
           .select('*')
-          .eq('id', participantId!)
+          .eq('id', participant?.id!)
           .maybeSingle();
 
         expect(deleted).toBeNull();
@@ -419,6 +437,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Bulk Delete'),
       });
@@ -488,6 +508,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Full Event'),
         max_participants: 2,
@@ -534,6 +556,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Limited Spots'),
         max_participants: 5,
@@ -569,6 +593,8 @@ test.describe('Participant Registration Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Validation Event'),
       });

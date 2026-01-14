@@ -77,6 +77,8 @@ test.describe('Group Management Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Original Group Name'),
         description: 'Original description',
@@ -115,6 +117,8 @@ test.describe('Group Management Flow', () => {
         password: 'TestPassword123!',
       });
 
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Group to Delete'),
       });
@@ -154,6 +158,8 @@ test.describe('Group Management Flow', () => {
 
       
       // Create group first
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Event Group'),
       });
@@ -198,6 +204,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Group with Events'),
       });
@@ -231,6 +239,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const organizerId = await getUserId(page);
       const group = await createTestGroup(organizerId!, {
         name: generateTestName('Auto Join Group'),
       });
@@ -249,7 +259,7 @@ test.describe('Group Management Flow', () => {
         password: 'TestPassword123!',
       });
 
-
+      const participantId = await getUserId(page);
       await registerForEvent(page, event.id);
 
       // Check if participant was added to group
@@ -272,6 +282,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Participant Count Group'),
       });
@@ -324,6 +336,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const organizerId = await getUserId(page);
       const group = await createTestGroup(organizerId!, {
         name: generateTestName('Dedup Group'),
       });
@@ -347,7 +361,7 @@ test.describe('Group Management Flow', () => {
         password: 'TestPassword123!',
       });
 
-
+      const participantId = await getUserId(page);
       await registerForEvent(page, event1.id);
       await registerForEvent(page, event2.id);
 
@@ -374,6 +388,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Stats Group'),
       });
@@ -422,6 +438,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('View Participants Group'),
       });
@@ -475,6 +493,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Bulk Add Group'),
       });
@@ -532,6 +552,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Remove Group'),
       });
@@ -555,7 +577,7 @@ test.describe('Group Management Flow', () => {
       // Add to group
       await getTestDb().from('group_participants').insert({
         group_id: group.id,
-        participant_id: participantId!,
+        participant_id: participant?.id!,
         user_id: null,
         guest_email: participant?.email,
       });
@@ -581,7 +603,7 @@ test.describe('Group Management Flow', () => {
           .from('group_participants')
           .select('*')
           .eq('group_id', group.id)
-          .eq('participant_id', participantId!);
+          .eq('participant_id', participant?.id!);
 
         expect(remaining?.length).toBe(0);
       }
@@ -596,6 +618,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
         name: generateTestName('Owner Group'),
       });
@@ -617,6 +641,8 @@ test.describe('Group Management Flow', () => {
       });
 
       
+
+      const ownerId = await getUserId(page);
       const group = await createTestGroup(ownerId!, {
         name: generateTestName('Protected Group'),
       });
