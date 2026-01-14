@@ -203,7 +203,6 @@ test.describe('Authorization and Access Control', () => {
         group_id: group.id,
         user_id: adminId!,
       });
-      });
 
       // Admin should be able to access group
       await page.goto(`/groups/${group.id}`);
@@ -221,6 +220,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const ownerId = await getUserId(page);
       const group = await createTestGroup(ownerId!, {
         name: generateTestName('Managed Group'),
       });
@@ -254,6 +254,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Data Isolation Event'),
       });
@@ -314,6 +315,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Edit Protection Event'),
       });
@@ -326,14 +328,14 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-
+      const part1Id = await getUserId(page);
       const { data: part1Registration } = await getTestDb()
         .from('participants')
         .insert({
           event_id: event.id,
           user_id: part1Id,
           name: 'Original Name',
-          email: part1?.email!,
+          email: generateTestEmail('editpart1'),
         })
         .select()
         .single();
@@ -375,6 +377,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const userId = await getUserId(page);
       const publicEvent = await createTestEvent(userId!, {
         name: generateTestName('Public Event'),
         is_private: false,
@@ -397,6 +400,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const userId = await getUserId(page);
       const privateEvent = await createTestEvent(userId!, {
         name: generateTestName('Secret Private Event'),
         is_private: true,
@@ -424,6 +428,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const organizerId = await getUserId(page);
       const publicEvent = await createTestEvent(organizerId!, {
         name: generateTestName('Open Public Event'),
         is_private: false,
@@ -454,6 +459,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const organizerId = await getUserId(page);
       const privateEvent = await createTestEvent(organizerId!, {
         name: generateTestName('Private Registration Event'),
         is_private: true,
@@ -482,6 +488,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const ownerId = await getUserId(page);
       const event = await createTestEvent(ownerId!, {
         name: generateTestName('RLS Test Event'),
       });
@@ -520,6 +527,7 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
+      const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Delete Protection Event'),
       });
@@ -546,7 +554,7 @@ test.describe('Authorization and Access Control', () => {
       const { error } = await getTestDb()
         .from('participants')
         .delete()
-        .eq('id', participantId!);
+        .eq('id', participant?.id!);
 
       // RLS should prevent deletion
       expect(error).not.toBeNull();
@@ -555,7 +563,7 @@ test.describe('Authorization and Access Control', () => {
       const { data: stillExists } = await getTestDb()
         .from('participants')
         .select('*')
-        .eq('id', participantId!)
+        .eq('id', participant?.id!)
         .single();
 
       expect(stillExists).not.toBeNull();
