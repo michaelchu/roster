@@ -584,9 +584,10 @@ test.describe('Participant Registration Flow', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
-      // Should show "3 spots remaining" or "3/5" or similar capacity indicator
-      const hasSpotInfo = await page.getByText(/3.*spot|spot.*3|3.*remaining|3.*5/i).isVisible().catch(() => false);
-      expect(hasSpotInfo).toBe(true);
+      // The UI shows "2/5 participants signed up" format, not "spots remaining"
+      // With max_participants=5 and 2 registered, we should see "2/5"
+      const hasCapacityInfo = await page.getByText(/2\/5.*participants|2.*5.*signed/i).isVisible().catch(() => false);
+      expect(hasCapacityInfo).toBe(true);
     });
   });
 
