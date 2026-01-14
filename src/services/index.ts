@@ -12,3 +12,5 @@ export type { Organizer } from './organizerService';
 
 export { groupService } from './groupService';
 export type { Group, GroupParticipant, GroupStats } from './groupService';
+
+export { featureFlagService } from './featureFlagService';
