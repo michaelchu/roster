@@ -134,7 +134,7 @@ test.describe('Google OAuth Authentication', () => {
 
       // Wait for mock Google button
       await page.waitForTimeout(1000);
-      const mockGoogleButton = page.locator('#mock-google-button');
+      const mockGoogleButton = page.locator('#mock-google-button').first();
       
       // Click Google Sign-In button
       await mockGoogleButton.click();
@@ -156,7 +156,7 @@ test.describe('Google OAuth Authentication', () => {
 
       // Wait for mock Google button
       await page.waitForTimeout(1000);
-      const mockGoogleButton = page.locator('#mock-google-button');
+      const mockGoogleButton = page.locator('#mock-google-button').first();
       
       // Click Google Sign-In button (will fail)
       await mockGoogleButton.click();
@@ -180,7 +180,7 @@ test.describe('Google OAuth Authentication', () => {
 
       // Wait for mock Google button
       await page.waitForTimeout(1000);
-      const mockGoogleButton = page.locator('#mock-google-button');
+      const mockGoogleButton = page.locator('#mock-google-button').first();
       
       // Click Google Sign-In
       await mockGoogleButton.click();
@@ -199,8 +199,8 @@ test.describe('Google OAuth Authentication', () => {
       await page.goto('/auth/register');
       await page.waitForLoadState('domcontentloaded');
 
-      // Google Sign-In should be available on register page too
-      const googleButtonContainer = page.locator('#google-signin-button');
+      // Google Sign-Up should be available on register page
+      const googleButtonContainer = page.locator('#google-signup-button');
       
       // Verify container exists (implementation may vary)
       await expect(googleButtonContainer).toBeAttached();
@@ -218,7 +218,7 @@ test.describe('Google OAuth Authentication', () => {
 
       // Wait for mock Google button
       await page.waitForTimeout(1000);
-      const mockGoogleButton = page.locator('#mock-google-button');
+      const mockGoogleButton = page.locator('#mock-google-button').first();
       
       // Click Google Sign-In
       if (await mockGoogleButton.count() > 0) {
@@ -252,7 +252,7 @@ test.describe('Google OAuth Authentication', () => {
       await page.waitForLoadState('domcontentloaded');
 
       await page.waitForTimeout(1000);
-      const mockGoogleButton = page.locator('#mock-google-button');
+      const mockGoogleButton = page.locator('#mock-google-button').first();
       
       if (await mockGoogleButton.count() > 0) {
         await mockGoogleButton.click();
@@ -286,7 +286,7 @@ test.describe('Google OAuth Authentication', () => {
       await page.waitForLoadState('domcontentloaded');
 
       await page.waitForTimeout(1000);
-      const mockGoogleButton = page.locator('#mock-google-button');
+      const mockGoogleButton = page.locator('#mock-google-button').first();
       
       if (await mockGoogleButton.count() > 0) {
         // Click and check for loading indicators
@@ -305,7 +305,7 @@ test.describe('Google OAuth Authentication', () => {
       await page.waitForLoadState('domcontentloaded');
 
       await page.waitForTimeout(1000);
-      const mockGoogleButton = page.locator('#mock-google-button');
+      const mockGoogleButton = page.locator('#mock-google-button').first();
       
       if (await mockGoogleButton.count() > 0) {
         // Check button is accessible

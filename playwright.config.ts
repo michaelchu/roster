@@ -10,15 +10,13 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
+    // Mobile-first viewport (MobileOnly component requires width < 768px)
+    viewport: { width: 375, height: 667 },
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      use: { ...devices['Desktop Chrome'], viewport: { width: 375, height: 667 } },
     },
   ],
   webServer: {

@@ -74,10 +74,10 @@ export async function logout(page: Page) {
 export async function isAuthenticated(page: Page): Promise<boolean> {
   await page.goto('/');
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(500); // Wait for auth to load
 
-  // Check for authenticated UI elements (adjust based on your app)
-  // Looking for bottom navigation or user-specific content
-  const bottomNav = page.locator('nav').filter({ hasText: /Events|Groups/i });
+  // Check for authenticated UI elements - bottom navigation should exist for logged in users
+  const bottomNav = page.locator('nav[role="navigation"][aria-label="Main navigation"]');
   const isNavVisible = await bottomNav.isVisible().catch(() => false);
 
   return isNavVisible;
