@@ -78,6 +78,7 @@ describe('EventDetailPage', () => {
       signIn: vi.fn(),
       signUp: vi.fn(),
       signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -95,6 +96,7 @@ describe('EventDetailPage', () => {
       signIn: vi.fn(),
       signUp: vi.fn(),
       signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -122,6 +124,7 @@ describe('EventDetailPage', () => {
       signIn: vi.fn(),
       signUp: vi.fn(),
       signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
     });
 

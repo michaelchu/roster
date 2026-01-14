@@ -109,6 +109,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -126,6 +127,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -152,6 +154,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -186,6 +189,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -211,6 +215,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -232,6 +237,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -258,6 +264,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -293,6 +300,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -322,6 +330,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -343,6 +352,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
@@ -364,6 +374,7 @@ describe('InviteConfirmationPage', () => {
         signIn: vi.fn(),
         signUp: vi.fn(),
         signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
       });
 
