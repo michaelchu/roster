@@ -33,7 +33,7 @@ export function getTestDb(): SupabaseClient<Database> {
  * Get admin database client for test setup (lazy initialization)
  * Uses service role key - bypasses RLS
  */
-function getAdminDb(): SupabaseClient<Database> {
+export function getAdminDb(): SupabaseClient<Database> {
   if (!_testAdminDb) {
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error(
