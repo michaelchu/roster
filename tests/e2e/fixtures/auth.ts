@@ -64,8 +64,7 @@ export async function register(page: Page, user: TestUser): Promise<string | nul
         }
       }
       return null;
-    } catch (e) {
-      console.error('Failed to extract user ID:', e);
+    } catch {
       return null;
     }
   });
@@ -121,7 +120,7 @@ export async function getUserId(page: Page): Promise<string | null> {
         }
       }
       return null;
-    } catch (e) {
+    } catch {
       return null;
     }
   });

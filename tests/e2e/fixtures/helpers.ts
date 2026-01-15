@@ -1,5 +1,5 @@
 import { Page, expect } from '@playwright/test';
-import { generateTestEmail, generateTestName } from './database';
+import { generateTestName } from './database';
 
 /**
  * Event creation helpers
