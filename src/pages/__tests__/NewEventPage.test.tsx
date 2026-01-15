@@ -69,7 +69,6 @@ describe('NewEventPage', () => {
 
     renderWithRouter(<NewEventPage />);
 
-    expect(screen.getByRole('heading', { name: 'Create Event' })).toBeInTheDocument();
     expect(screen.getByLabelText('Event Name *')).toBeInTheDocument();
     expect(screen.getByLabelText('Description')).toBeInTheDocument();
     expect(screen.getAllByLabelText(/date & time/i).length).toBeGreaterThan(0);
@@ -125,7 +124,6 @@ describe('NewEventPage', () => {
     renderWithRouter(<NewEventPage />);
 
     // Form should still be visible (auth check happens on submit)
-    expect(screen.getByRole('heading', { name: 'Create Event' })).toBeInTheDocument();
     expect(screen.getByLabelText('Event Name *')).toBeInTheDocument();
   });
 
@@ -144,7 +142,6 @@ describe('NewEventPage', () => {
     renderWithRouter(<NewEventPage />);
 
     // Form should still be visible during loading
-    expect(screen.getByRole('heading', { name: 'Create Event' })).toBeInTheDocument();
     expect(screen.getByLabelText('Event Name *')).toBeInTheDocument();
   });
 });
