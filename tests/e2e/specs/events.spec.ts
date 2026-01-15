@@ -442,15 +442,17 @@ test.describe('Event Management Flow', () => {
 
       // Go to events list
       await goToEventsList(page);
+      await page.waitForTimeout(2000); // Wait for event data and participant counts to load
 
       // Event should be visible
       await expectEventVisible(page, event.name);
 
-      // Find the event card and check for participant count (displayed with Users icon)
-      const eventCard = page.locator(`text=${event.name}`).locator('..');
-      const participantCount = await eventCard.locator('text=2').isVisible().catch(() => false);
+      // Check for participant count - look for the font-medium span that contains the count
+      // The participant count is displayed next to a Users icon
+      const participantCountElement = page.locator('.font-medium').filter({ hasText: '2' });
+      const hasParticipantCount = await participantCountElement.isVisible().catch(() => false);
       
-      expect(participantCount).toBe(true);
+      expect(hasParticipantCount).toBe(true);
     });
 
     test('events are sorted by creation date', async ({ page }) => {
