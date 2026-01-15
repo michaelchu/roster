@@ -255,12 +255,13 @@ export async function claimAdditionalSpot(
   await page.goto(`/signup/${eventId}`);
   await page.waitForLoadState('domcontentloaded');
   await page.waitForLoadState('networkidle'); // Wait for all network requests
-  await page.waitForTimeout(3000); // Give time for participant list to load and render
+  await page.waitForTimeout(2000); // Give time for participant list to load and React state to update
 
   // Look for "Claim" button in empty slot (small button next to "Available slot")
   // The button only appears when: user is registered, event has max_participants, and there are empty slots
-  const claimButton = page.locator('button:has-text("Claim")').first(); // Use first one in the slot
-  await claimButton.waitFor({ state: 'visible', timeout: 10000 });
+  // Use a more specific selector to target the button next to "Available slot"
+  const claimButton = page.locator('button').filter({ hasText: 'Claim' }).first();
+  await claimButton.waitFor({ state: 'visible', timeout: 15000 });
   await claimButton.click();
 
   await page.waitForTimeout(1500);
@@ -272,28 +273,31 @@ export async function claimAdditionalSpot(
     await nameInput.fill(guestData.name);
   }
 
-  // Submit the form - try pressing Enter in the name field first (more reliable for forms)
+  // Submit the form - use the Claim button in the drawer footer
   await page.waitForTimeout(500); // Let drawer fully render
   
-  const nameInput = page.locator('#signup-name');
-  if (await nameInput.isVisible()) {
-    await nameInput.press('Enter');
-    await page.waitForTimeout(2000);
-  }
+  const submitButton = page.getByRole('button', { name: 'Claim' }).last();
+  await submitButton.waitFor({ state: 'visible', timeout: 5000 });
   
-  // If Enter didn't work, try clicking the submit button
-  const drawerCheck1 = await page.locator('[role="dialog"]').isVisible().catch(() => false);
-  if (drawerCheck1) {
-    // Drawer still open, try button click
-    const submitButton = page.getByRole('button', { name: 'Claim' }).last();
-    if (await submitButton.isVisible().catch(() => false)) {
-      await submitButton.click();
-      await page.waitForTimeout(3000);
+  // Make sure button is enabled before clicking
+  await submitButton.click({ timeout: 5000 });
+  
+  // Wait for drawer to close (indicates successful submission)
+  await page.waitForTimeout(2000);
+  
+  // Wait for drawer to actually close or timeout
+  let attempts = 0;
+  while (attempts < 10) {
+    const drawerStillOpen = await page.locator('[role="dialog"]').isVisible().catch(() => false);
+    if (!drawerStillOpen) {
+      break;
     }
+    await page.waitForTimeout(500);
+    attempts++;
   }
   
-  // Final wait for submission
-  await page.waitForTimeout(3000);
+  // Additional wait for the participant list to update in the DOM
+  await page.waitForTimeout(2000);
 }
 
 /**

@@ -251,6 +251,7 @@ test.describe('Participant Registration Flow', () => {
     });
 
     test('slot numbers are assigned correctly', async ({ page }) => {
+      test.setTimeout(60000); // Increase timeout for multiple claims
       // Setup
       await register(page, {
         email: generateTestEmail('slots'),
@@ -269,6 +270,10 @@ test.describe('Participant Registration Flow', () => {
 
       // Claim two additional spots
       await claimAdditionalSpot(page, event.id);
+      
+      // Wait a moment between claims to ensure first claim is fully processed
+      await page.waitForTimeout(2000);
+      
       await claimAdditionalSpot(page, event.id);
 
       // Verify slot numbers

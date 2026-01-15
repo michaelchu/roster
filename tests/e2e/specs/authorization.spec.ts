@@ -577,12 +577,11 @@ test.describe('Authorization and Access Control', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
-      // Without auth, the page should still load but not allow event creation
-      // Check that we're not able to create an event (form submission would fail)
+      // Without auth, the page should redirect to login
       const url = page.url();
       
-      // The page loads but user will be null, so form submission will do nothing
-      expect(url).toContain('/events/new');
+      // The user should be redirected to login page
+      expect(url).toContain('/auth/login');
     });
 
     test('concurrent sessions work correctly', async ({ browser }) => {
