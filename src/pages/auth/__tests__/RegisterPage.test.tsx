@@ -39,6 +39,7 @@ describe('RegisterPage', () => {
     renderWithRouter(<RegisterPage />);
 
     expect(screen.getByRole('heading', { name: 'Sign Up' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Full Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign Up' })).toBeInTheDocument();
@@ -60,12 +61,15 @@ describe('RegisterPage', () => {
   it('allows user to enter form data', () => {
     renderWithRouter(<RegisterPage />);
 
+    const nameInput = screen.getByLabelText('Full Name');
     const emailInput = screen.getByLabelText('Email');
     const passwordInput = screen.getByLabelText('Password');
 
+    fireEvent.change(nameInput, { target: { value: 'John Doe' } });
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
+    expect(nameInput).toHaveValue('John Doe');
     expect(emailInput).toHaveValue('test@example.com');
     expect(passwordInput).toHaveValue('password123');
   });

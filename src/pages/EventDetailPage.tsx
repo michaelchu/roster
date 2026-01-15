@@ -291,10 +291,11 @@ export function EventDetailPage() {
       });
     } else {
       // Reset form for new registration
+      // Prepopulate name with user's full_name if available
       setSignupForm({
-        name: '',
-        email: '',
-        phone: '',
+        name: user?.user_metadata?.full_name || '',
+        email: user?.email || '',
+        phone: user?.user_metadata?.phone || '',
         notes: '',
         responses: {},
       });
@@ -339,6 +340,7 @@ export function EventDetailPage() {
             // targetSlotNumber: claimingSlotNumber || undefined,
             claimingUserId: user?.id,
             claimingUserName: user?.user_metadata?.full_name || user?.email || 'User',
+            claimingUserEmail: user?.email || undefined,
           };
 
           try {

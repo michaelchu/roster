@@ -4,6 +4,52 @@
 --
 -- Run with: npx supabase db reset
 
+-- Helper function to create or get user
+CREATE OR REPLACE FUNCTION get_or_create_user(user_email TEXT, user_name TEXT) RETURNS UUID AS $$
+DECLARE
+    user_uuid UUID;
+BEGIN
+    SELECT id INTO user_uuid FROM auth.users WHERE email = user_email LIMIT 1;
+    
+    IF user_uuid IS NULL THEN
+        INSERT INTO auth.users (
+            instance_id, id, aud, role, email, encrypted_password,
+            email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+            created_at, updated_at, confirmation_sent_at
+        ) VALUES (
+            '00000000-0000-0000-0000-000000000000',
+            gen_random_uuid(),
+            'authenticated',
+            'authenticated',
+            user_email,
+            crypt('password123', gen_salt('bf')),
+            NOW(),
+            '{"provider":"email","providers":["email"]}',
+            jsonb_build_object('full_name', user_name),
+            NOW(),
+            NOW(),
+            NOW()
+        ) RETURNING id INTO user_uuid;
+        
+        INSERT INTO auth.identities (
+            id, provider_id, user_id, identity_data, provider,
+            last_sign_in_at, created_at, updated_at
+        ) VALUES (
+            gen_random_uuid(),
+            user_uuid::text,
+            user_uuid,
+            jsonb_build_object('sub', user_uuid::text, 'email', user_email),
+            'email',
+            NOW(),
+            NOW(),
+            NOW()
+        );
+    END IF;
+    
+    RETURN user_uuid;
+END;
+$$ LANGUAGE plpgsql;
+
 DO $$
 DECLARE
     -- Seed target user
@@ -11,6 +57,16 @@ DECLARE
     target_password TEXT := 'password123';
     -- Get user ID from email
     organizer_user_id UUID;
+    
+    -- Additional test users
+    alex_user_id UUID;
+    sarah_user_id UUID;
+    mike_user_id UUID;
+    david_user_id UUID;
+    emily_user_id UUID;
+    james_user_id UUID;
+    lisa_user_id UUID;
+    maya_user_id UUID;
     
     -- Group IDs
     sports_group_id TEXT;
@@ -98,6 +154,22 @@ target_email,
     END IF;
     
     RAISE NOTICE 'Using organizer ID: %', organizer_user_id;
+    
+    -- ========================================
+    -- CREATE ADDITIONAL TEST USERS
+    -- ========================================
+    
+    -- Create test users
+    alex_user_id := get_or_create_user('alex.johnson@example.com', 'Alex Johnson');
+    sarah_user_id := get_or_create_user('sarah.chen@example.com', 'Sarah Chen');
+    mike_user_id := get_or_create_user('mike.torres@example.com', 'Mike Torres');
+    david_user_id := get_or_create_user('david.kim@example.com', 'David Kim');
+    emily_user_id := get_or_create_user('emily.rodriguez@example.com', 'Emily Rodriguez');
+    james_user_id := get_or_create_user('james.wilson@example.com', 'James Wilson');
+    lisa_user_id := get_or_create_user('lisa.wang@example.com', 'Lisa Wang');
+    maya_user_id := get_or_create_user('maya.patel@example.com', 'Maya Patel');
+    
+    RAISE NOTICE 'Created additional test users';
     
     -- ========================================
     -- CREATE GROUPS
@@ -373,71 +445,91 @@ target_email,
     -- ADD PARTICIPANTS TO EVENTS
     -- ========================================
     
-    -- Badminton participants
+    -- Badminton participants (group event - authenticated users)
     IF badminton_event_id IS NOT NULL THEN
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND email = 'alex.johnson@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, responses)
-            VALUES (badminton_event_id, 'Alex Johnson', 'alex.johnson@example.com', '+14155551001', '{"experience": "Intermediate"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND user_id = organizer_user_id) THEN
+            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
+            VALUES (badminton_event_id, 'Test User', 'test_user@example.com', '+14155550000', organizer_user_id, '{"experience": "Intermediate"}'::jsonb);
         END IF;
         
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND email = 'sarah.chen@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, responses)
-            VALUES (badminton_event_id, 'Sarah Chen', 'sarah.chen@example.com', '+14155551002', '{"experience": "Beginner"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND user_id = alex_user_id) THEN
+            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
+            VALUES (badminton_event_id, 'Alex Johnson', 'alex.johnson@example.com', '+14155551001', alex_user_id, '{"experience": "Intermediate"}'::jsonb);
         END IF;
         
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND email = 'mike.torres@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, responses)
-            VALUES (badminton_event_id, 'Mike Torres', 'mike.torres@example.com', '+14155551003', '{"experience": "Advanced"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND user_id = sarah_user_id) THEN
+            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
+            VALUES (badminton_event_id, 'Sarah Chen', 'sarah.chen@example.com', '+14155551002', sarah_user_id, '{"experience": "Beginner"}'::jsonb);
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND user_id = mike_user_id) THEN
+            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
+            VALUES (badminton_event_id, 'Mike Torres', 'mike.torres@example.com', '+14155551003', mike_user_id, '{"experience": "Advanced"}'::jsonb);
         END IF;
         
         RAISE NOTICE 'Added participants to Badminton event';
     END IF;
     
-    -- Basketball participants
+    -- Basketball participants (group event - authenticated users)
     IF basketball_event_id IS NOT NULL THEN
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = basketball_event_id AND email = 'alex.johnson@example.com') THEN
-            INSERT INTO participants (event_id, name, email, responses)
-            VALUES (basketball_event_id, 'Alex Johnson', 'alex.johnson@example.com', '{"position": "Guard"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = basketball_event_id AND user_id = organizer_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (basketball_event_id, 'Test User', 'test_user@example.com', organizer_user_id, '{"position": "Guard"}'::jsonb);
         END IF;
         
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = basketball_event_id AND email = 'david.kim@example.com') THEN
-            INSERT INTO participants (event_id, name, email, responses)
-            VALUES (basketball_event_id, 'David Kim', 'david.kim@example.com', '{"position": "Forward"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = basketball_event_id AND user_id = alex_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (basketball_event_id, 'Alex Johnson', 'alex.johnson@example.com', alex_user_id, '{"position": "Guard"}'::jsonb);
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = basketball_event_id AND user_id = david_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (basketball_event_id, 'David Kim', 'david.kim@example.com', david_user_id, '{"position": "Forward"}'::jsonb);
         END IF;
         
         RAISE NOTICE 'Added participants to Basketball event';
     END IF;
     
-    -- Hackathon participants
+    -- Hackathon participants (group event - authenticated users)
     IF hackathon_event_id IS NOT NULL THEN
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND email = 'emily.rodriguez@example.com') THEN
-            INSERT INTO participants (event_id, name, email, responses)
-            VALUES (hackathon_event_id, 'Emily Rodriguez', 'emily.rodriguez@example.com', '{"skill_level": "Senior Dev", "dietary": "Vegetarian"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND user_id = organizer_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (hackathon_event_id, 'Test User', 'test_user@example.com', organizer_user_id, '{"skill_level": "Senior Dev", "dietary": ""}'::jsonb);
         END IF;
         
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND email = 'james.wilson@example.com') THEN
-            INSERT INTO participants (event_id, name, email, responses)
-            VALUES (hackathon_event_id, 'James Wilson', 'james.wilson@example.com', '{"skill_level": "Junior Dev", "dietary": ""}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND user_id = emily_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (hackathon_event_id, 'Emily Rodriguez', 'emily.rodriguez@example.com', emily_user_id, '{"skill_level": "Senior Dev", "dietary": "Vegetarian"}'::jsonb);
         END IF;
         
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND email = 'lisa.wang@example.com') THEN
-            INSERT INTO participants (event_id, name, email, responses)
-            VALUES (hackathon_event_id, 'Lisa Wang', 'lisa.wang@example.com', '{"skill_level": "Designer", "dietary": "Vegan"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND user_id = james_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (hackathon_event_id, 'James Wilson', 'james.wilson@example.com', james_user_id, '{"skill_level": "Junior Dev", "dietary": ""}'::jsonb);
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND user_id = lisa_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (hackathon_event_id, 'Lisa Wang', 'lisa.wang@example.com', lisa_user_id, '{"skill_level": "Designer", "dietary": "Vegan"}'::jsonb);
         END IF;
         
         RAISE NOTICE 'Added participants to Hackathon event';
     END IF;
     
-    -- Workshop participants
+    -- Workshop participants (group event - authenticated users)
     IF workshop_event_id IS NOT NULL THEN
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = workshop_event_id AND email = 'sarah.chen@example.com') THEN
-            INSERT INTO participants (event_id, name, email, responses)
-            VALUES (workshop_event_id, 'Sarah Chen', 'sarah.chen@example.com', '{"experience": "Basic"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = workshop_event_id AND user_id = organizer_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (workshop_event_id, 'Test User', 'test_user@example.com', organizer_user_id, '{"experience": "Intermediate"}'::jsonb);
         END IF;
         
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = workshop_event_id AND email = 'maya.patel@example.com') THEN
-            INSERT INTO participants (event_id, name, email, responses)
-            VALUES (workshop_event_id, 'Maya Patel', 'maya.patel@example.com', '{"experience": "Intermediate"}'::jsonb);
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = workshop_event_id AND user_id = sarah_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (workshop_event_id, 'Sarah Chen', 'sarah.chen@example.com', sarah_user_id, '{"experience": "Basic"}'::jsonb);
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = workshop_event_id AND user_id = maya_user_id) THEN
+            INSERT INTO participants (event_id, name, email, user_id, responses)
+            VALUES (workshop_event_id, 'Maya Patel', 'maya.patel@example.com', maya_user_id, '{"experience": "Intermediate"}'::jsonb);
         END IF;
         
         RAISE NOTICE 'Added participants to Workshop event';

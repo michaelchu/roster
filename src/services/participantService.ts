@@ -127,6 +127,7 @@ export const participantService = {
       targetSlotNumber?: number;
       claimingUserId?: string;
       claimingUserName?: string;
+      claimingUserEmail?: string;
     }
   ): Promise<Participant> {
     // Generate claim name if name is empty and claiming options are provided
@@ -151,13 +152,22 @@ export const participantService = {
       }
     }
 
+    // Determine email for the participant
+    // When claiming a spot: use the claimer's email (allows multiple claims per user)
+    // When self-registering: use the provided email
+    let finalEmail = participant.email || null;
+    if (options?.claimingUserId && options?.claimingUserEmail) {
+      // Use claimer's email for claimed spots to satisfy group_participants constraint
+      finalEmail = options.claimingUserEmail;
+    }
+
     // Note: slot_number is NOT set here - it will be assigned by the database trigger
     // assign_participant_slot_trigger which calls get_next_slot_number
     // Using Partial to allow omitting slot_number despite it being required in the type
     const insertData = {
       event_id: participant.event_id,
       name: finalName,
-      email: participant.email || null,
+      email: finalEmail,
       phone: participant.phone || null,
       notes: participant.notes || null,
       // For claimed spots: user_id = null, claimed_by_user_id = claimer
