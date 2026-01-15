@@ -38,7 +38,7 @@ describe('RegisterPage', () => {
   it('renders registration form', () => {
     renderWithRouter(<RegisterPage />);
 
-    expect(screen.getByRole('heading', { name: 'Sign Up' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Roster/ })).toBeInTheDocument();
     expect(screen.getByLabelText('Full Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();

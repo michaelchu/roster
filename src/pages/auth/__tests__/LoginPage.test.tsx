@@ -36,7 +36,7 @@ describe('LoginPage', () => {
   it('renders login form', () => {
     renderWithRouter(<LoginPage />);
 
-    expect(screen.getByRole('heading', { name: 'Sign In' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Roster/ })).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
