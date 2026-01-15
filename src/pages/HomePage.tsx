@@ -160,7 +160,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-background pb-14">
-      <TopNav title="Roster" />
+      <TopNav title="Roster" sticky />
 
       <div className="p-3 space-y-3">
         {user ? (
