@@ -39,6 +39,14 @@ jobs:
       - name: Run unit tests
         run: npm run test -- --run
 
+      - name: Setup Supabase CLI
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        uses: supabase/setup-cli@v1
+
+      - name: Start Supabase local instance
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        run: supabase start
+
       - name: Cache Playwright browsers
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         uses: actions/cache@v3
@@ -53,6 +61,9 @@ jobs:
       - name: Run E2E tests
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         run: npm run test:e2e
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
 
       - name: Build project
         run: npm run build
