@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Plus, Trash2, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService, groupService, type Group } from '@/services';
-import { errorHandler } from '@/lib/errorHandler';
+import { errorHandler, ValidationError } from '@/lib/errorHandler';
 import { ActionButton } from '@/components/ActionButton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
@@ -122,15 +122,48 @@ export function NewEventPage() {
     e.preventDefault();
     if (!user) return;
 
+    // Client-side validation for past dates
+    const now = new Date();
+    if (formData.datetime) {
+      const startDate = new Date(formData.datetime);
+      if (startDate < now) {
+        errorHandler.handle(
+          new ValidationError('Start date validation failed', 'Start date cannot be in the past'),
+          {
+            userId: user.id,
+            action: 'validateEventDates',
+          }
+        );
+        return;
+      }
+    }
+
+    if (formData.end_datetime) {
+      const endDate = new Date(formData.end_datetime);
+      if (endDate < now) {
+        errorHandler.handle(
+          new ValidationError('End date validation failed', 'End date cannot be in the past'),
+          {
+            userId: user.id,
+            action: 'validateEventDates',
+          }
+        );
+        return;
+      }
+    }
+
     // Client-side validation for end date
     if (formData.datetime && formData.end_datetime) {
       const startDate = new Date(formData.datetime);
       const endDate = new Date(formData.end_datetime);
       if (endDate <= startDate) {
-        errorHandler.handle(new Error('End date must be after start date'), {
-          userId: user.id,
-          action: 'validateEventDates',
-        });
+        errorHandler.handle(
+          new ValidationError('Date range validation failed', 'End date must be after start date'),
+          {
+            userId: user.id,
+            action: 'validateEventDates',
+          }
+        );
         return;
       }
     }

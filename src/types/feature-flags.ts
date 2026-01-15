@@ -4,7 +4,8 @@ export type FeatureFlagKey =
   | 'csv_export'
   | 'quick_fill'
   | 'event_duplication'
-  | 'home_page';
+  | 'home_page'
+  | 'notifications';
 
 // Feature flags interface mapping keys to boolean values
 export interface FeatureFlags {
@@ -13,15 +14,18 @@ export interface FeatureFlags {
   quick_fill: boolean;
   event_duplication: boolean;
   home_page: boolean;
+  notifications: boolean;
 }
 
-// Default feature flag values
+// Default feature flag values - all disabled by default as fallback
+// The database is the source of truth for actual values
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
-  groups_feature: true,
-  csv_export: true,
-  quick_fill: true,
-  event_duplication: true,
-  home_page: true,
+  groups_feature: false,
+  csv_export: false,
+  quick_fill: false,
+  event_duplication: false,
+  home_page: false,
+  notifications: false,
 };
 
 // Database types for feature flags

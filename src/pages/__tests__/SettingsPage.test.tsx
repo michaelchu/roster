@@ -20,6 +20,11 @@ vi.mock('@/components/theme-provider', () => ({
   }),
 }));
 
+// Mock feature flags hook
+vi.mock('@/hooks/useFeatureFlags', () => ({
+  useFeatureFlag: () => true, // Enable notifications by default in tests
+}));
+
 // Mock MobileOnly component
 vi.mock('@/components/MobileOnly', () => ({
   MobileOnly: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

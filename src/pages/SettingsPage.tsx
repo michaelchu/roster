@@ -15,6 +15,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useFontSize, type FontSize } from '@/hooks/useFontSize';
 import { useTheme } from '@/components/theme-provider';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import {
   User,
   LogOut,
@@ -36,6 +37,7 @@ export function SettingsPage() {
   const { user, signOut, loading } = useAuth();
   const { fontSize, setFontSize } = useFontSize();
   const { theme, setTheme } = useTheme();
+  const notificationsEnabled = useFeatureFlag('notifications');
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState('10');
@@ -104,44 +106,49 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="p-3 border-b bg-muted">
-              <h3 className="text-sm font-medium">Notifications</h3>
-            </div>
-
-            <div className="divide-y">
-              <div className="p-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                  <Label
-                    htmlFor="email-notifications"
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    Email Notifications
-                  </Label>
-                </div>
-                <Switch
-                  id="email-notifications"
-                  checked={emailNotifications}
-                  onCheckedChange={setEmailNotifications}
-                />
+          {notificationsEnabled && (
+            <div className="bg-card rounded-lg border overflow-hidden">
+              <div className="p-3 border-b bg-muted">
+                <h3 className="text-sm font-medium">Notifications</h3>
               </div>
 
-              <div className="p-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                  <Label htmlFor="sms-notifications" className="text-sm font-medium cursor-pointer">
-                    SMS Notifications
-                  </Label>
+              <div className="divide-y">
+                <div className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-muted-foreground" />
+                    <Label
+                      htmlFor="email-notifications"
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      Email Notifications
+                    </Label>
+                  </div>
+                  <Switch
+                    id="email-notifications"
+                    checked={emailNotifications}
+                    onCheckedChange={setEmailNotifications}
+                  />
                 </div>
-                <Switch
-                  id="sms-notifications"
-                  checked={smsNotifications}
-                  onCheckedChange={setSmsNotifications}
-                />
+
+                <div className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                    <Label
+                      htmlFor="sms-notifications"
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      SMS Notifications
+                    </Label>
+                  </div>
+                  <Switch
+                    id="sms-notifications"
+                    checked={smsNotifications}
+                    onCheckedChange={setSmsNotifications}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-3 border-b bg-muted">
