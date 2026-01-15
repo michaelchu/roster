@@ -254,7 +254,8 @@ export async function claimAdditionalSpot(
   // Reload the page to ensure the UI reflects the user's registration
   await page.goto(`/signup/${eventId}`);
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(2000); // Give time for participant list to load
+  await page.waitForLoadState('networkidle'); // Wait for all network requests
+  await page.waitForTimeout(3000); // Give time for participant list to load and render
 
   // Look for "Claim" button in empty slot (small button next to "Available slot")
   // The button only appears when: user is registered, event has max_participants, and there are empty slots
