@@ -194,7 +194,7 @@ export function EditGroupPage() {
       await groupService.deleteGroup(group.id, shouldDeleteEvents);
 
       const message = shouldDeleteEvents
-        ? 'Group and its events deleted successfully'
+        ? 'Group, events, and all participant data permanently deleted'
         : 'Group deleted successfully. Events have been kept.';
       errorHandler.success(message);
 
@@ -372,9 +372,12 @@ export function EditGroupPage() {
                     : 'border-border hover:border-destructive/50'
                 }`}
               >
-                <div className="font-medium text-sm">Delete Events</div>
+                <div className="font-medium text-sm text-destructive">
+                  Delete Events Permanently
+                </div>
                 <div className="text-xs text-muted-foreground">
-                  All events and their participants will be permanently deleted
+                  All events, participant data (names, emails, responses), and labels will be
+                  permanently deleted and cannot be recovered
                 </div>
               </button>
             </div>
