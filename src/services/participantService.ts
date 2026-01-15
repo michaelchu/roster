@@ -151,16 +151,10 @@ export const participantService = {
       }
     }
 
-    // Get the next slot number for this participant
-    const { data: slotData, error: slotError } = await supabase.rpc('get_next_slot_number', {
-      p_event_id: participant.event_id,
-      p_user_id: options?.claimingUserId || participant.user_id || undefined,
-    });
-
-    if (slotError) throw slotError;
-    const slotNumber = slotData as number;
-
-    const insertData: TablesInsert<'participants'> = {
+    // Note: slot_number is NOT set here - it will be assigned by the database trigger
+    // assign_participant_slot_trigger which calls get_next_slot_number
+    // Using Partial to allow omitting slot_number despite it being required in the type
+    const insertData = {
       event_id: participant.event_id,
       name: finalName,
       email: participant.email || null,
@@ -171,8 +165,8 @@ export const participantService = {
       user_id: options?.claimingUserId ? null : participant.user_id,
       claimed_by_user_id: options?.claimingUserId || null,
       responses: participant.responses as Json,
-      slot_number: slotNumber,
-    };
+      // slot_number omitted - will be assigned by database trigger before insert completes
+    } as TablesInsert<'participants'>;
 
     const { data, error } = await supabase
       .from('participants')

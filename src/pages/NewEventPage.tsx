@@ -34,8 +34,15 @@ interface CustomField {
 export function NewEventPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth/login');
+    }
+  }, [user, authLoading, navigate]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',

@@ -32,8 +32,9 @@ export async function login(page: Page, user: TestUser) {
 
 /**
  * Register a new user account
+ * Returns the user ID from the session
  */
-export async function register(page: Page, user: TestUser) {
+export async function register(page: Page, user: TestUser): Promise<string | null> {
   await page.goto('/auth/register');
   await page.waitForLoadState('domcontentloaded');
 
@@ -49,6 +50,26 @@ export async function register(page: Page, user: TestUser) {
   await page.waitForURL((url) => !url.pathname.includes('/auth/register'), {
     timeout: 10000,
   });
+
+  // Extract user ID from Supabase session in localStorage
+  const userId = await page.evaluate(() => {
+    try {
+      // Supabase stores auth session in localStorage with key like 'sb-{project-ref}-auth-token'
+      const keys = Object.keys(localStorage).filter(key => key.includes('auth-token'));
+      if (keys.length > 0) {
+        const sessionData = localStorage.getItem(keys[0]);
+        if (sessionData) {
+          const session = JSON.parse(sessionData);
+          return session?.user?.id || null;
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  return userId;
 }
 
 /**
@@ -81,6 +102,28 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
   const isNavVisible = await bottomNav.isVisible().catch(() => false);
 
   return isNavVisible;
+}
+
+/**
+ * Get current user ID from browser session
+ * Returns null if not authenticated
+ */
+export async function getUserId(page: Page): Promise<string | null> {
+  return await page.evaluate(() => {
+    try {
+      const keys = Object.keys(localStorage).filter(key => key.includes('auth-token'));
+      if (keys.length > 0) {
+        const sessionData = localStorage.getItem(keys[0]);
+        if (sessionData) {
+          const session = JSON.parse(sessionData);
+          return session?.user?.id || null;
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
 }
 
 /**

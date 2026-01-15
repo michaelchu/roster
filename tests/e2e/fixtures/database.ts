@@ -7,10 +7,15 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.TEST_SUPABASE_U
 const supabaseKey =
   process.env.VITE_SUPABASE_ANON_KEY || process.env.TEST_SUPABASE_ANON_KEY || '';
 
+// Service role key for test fixtures (bypasses RLS for setup)
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
 let _testDb: SupabaseClient<Database> | null = null;
+let _testAdminDb: SupabaseClient<Database> | null = null;
 
 /**
  * Get test database client (lazy initialization)
+ * Uses anon key - respects RLS
  */
 export function getTestDb(): SupabaseClient<Database> {
   if (!_testDb) {
@@ -22,6 +27,22 @@ export function getTestDb(): SupabaseClient<Database> {
     _testDb = createClient<Database>(supabaseUrl, supabaseKey);
   }
   return _testDb;
+}
+
+/**
+ * Get admin database client for test setup (lazy initialization)
+ * Uses service role key - bypasses RLS
+ */
+export function getAdminDb(): SupabaseClient<Database> {
+  if (!_testAdminDb) {
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error(
+        'Supabase service role key not found. Set SUPABASE_SERVICE_ROLE_KEY environment variable.'
+      );
+    }
+    _testAdminDb = createClient<Database>(supabaseUrl, supabaseServiceKey);
+  }
+  return _testAdminDb;
 }
 
 // Legacy export for backward compatibility
@@ -79,6 +100,7 @@ export async function deleteTestUser() {
 
 /**
  * Create a test event
+ * Uses admin client to bypass RLS
  */
 export async function createTestEvent(
   organizerId: string,
@@ -93,7 +115,7 @@ export async function createTestEvent(
     group_id: string | null;
   }>
 ) {
-  const { data, error } = await testDb
+  const { data, error } = await getAdminDb()
     .from('events')
     .insert({
       organizer_id: organizerId,
@@ -129,6 +151,7 @@ export async function deleteTestEvent(eventId: string) {
 
 /**
  * Create a test group
+ * Uses admin client to bypass RLS
  */
 export async function createTestGroup(
   organizerId: string,
@@ -138,7 +161,7 @@ export async function createTestGroup(
     is_private: boolean;
   }>
 ) {
-  const { data, error } = await testDb
+  const { data, error } = await getAdminDb()
     .from('groups')
     .insert({
       organizer_id: organizerId,
