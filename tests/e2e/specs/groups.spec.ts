@@ -176,18 +176,15 @@ test.describe('Group Management Flow', () => {
       await page.fill('#location', 'Test Location');
 
       // Select group from dropdown - this is a shadcn Select component
-      // Look for the select trigger button
-      const groupSelectTrigger = page.locator('button[role="combobox"]').or(page.locator('#group')).or(page.locator('[id*="group"]'));
-      if (await groupSelectTrigger.count() > 0) {
-        await groupSelectTrigger.first().click();
-        await page.waitForTimeout(500);
-        
-        // Try to find and click the group option
-        const groupOption = page.getByText(group.name).or(page.locator(`[data-value="${group.id}"]`));
-        if (await groupOption.count() > 0) {
-          await groupOption.first().click();
-        }
-      }
+      // Click the select trigger
+      const groupSelectTrigger = page.locator('#group');
+      await groupSelectTrigger.click();
+      await page.waitForTimeout(1000); // Wait for dropdown to open
+      
+      // Click the group option by text (shadcn renders SelectItem in a portal)
+      // Use getByRole to find the option element
+      const groupOption = page.getByRole('option', { name: group.name });
+      await groupOption.click({ timeout: 10000 });
 
       // Submit
       const submitButton = page.getByRole('button', { name: /create/i });
@@ -231,10 +228,12 @@ test.describe('Group Management Flow', () => {
 
       // Go to group detail page
       await goToGroup(page, group.id);
+      await page.waitForTimeout(2000); // Wait for group data and events to load
 
-      // Should show event count or list of events
+      // Should show event count or list of events - be more flexible with match
       const hasEventCount = await page.getByText(/2.*event/i).isVisible().catch(() => false);
-      expect(hasEventCount).toBe(true);
+      const hasEventText = await page.getByText('2 events').isVisible().catch(() => false);
+      expect(hasEventCount || hasEventText).toBe(true);
     });
   });
 
@@ -331,9 +330,10 @@ test.describe('Group Management Flow', () => {
 
       // Go to group page
       await goToGroup(page, group.id);
+      await page.waitForTimeout(1000); // Wait for group data to load
 
-      // Should show participant count
-      const hasCount = await page.getByText(/2.*participant|participant.*2/i).isVisible().catch(() => false);
+      // Should show member count (UI uses "members" not "participants")
+      const hasCount = await page.getByText(/2.*member|member.*2/i).isVisible().catch(() => false);
       expect(hasCount).toBe(true);
     });
 
@@ -486,6 +486,7 @@ test.describe('Group Management Flow', () => {
       // Navigate to group participants page
       await page.goto(`/groups/${group.id}/participants`);
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(2000); // Wait for participants to load
 
       // Verify participants are visible
       const hasMember1 = await page.getByText('Group Member 1').isVisible().catch(() => false);
@@ -634,11 +635,14 @@ test.describe('Group Management Flow', () => {
 
       // Owner should see edit/delete buttons
       await goToGroup(page, group.id);
+      await page.waitForTimeout(1000); // Wait for page to load
 
-      const hasEditButton = await page.getByRole('button', { name: /edit/i }).isVisible().catch(() => false);
-      const hasDeleteButton = await page.getByRole('button', { name: /delete/i }).isVisible().catch(() => false);
+      // Edit button is a plain button element in the action footer
+      const hasEditButton = await page.getByText('Edit', { exact: false }).isVisible().catch(() => false);
+      const hasInviteButton = await page.getByText('Invite', { exact: false }).isVisible().catch(() => false);
 
-      expect(hasEditButton || hasDeleteButton).toBe(true);
+      // Should see edit or invite button (both indicate owner access)
+      expect(hasEditButton || hasInviteButton).toBe(true);
     });
 
     test('non-owner cannot edit group', async ({ page }) => {
