@@ -37,6 +37,8 @@ export function EditGroupPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [eventCount, setEventCount] = useState<number>(0);
+  const [deleteChoice, setDeleteChoice] = useState<'keep' | 'delete'>('keep');
 
   useEffect(() => {
     if (!groupId) {
@@ -95,6 +97,19 @@ export function EditGroupPage() {
             description: data.description || '',
             is_private: data.is_private ?? false,
           });
+
+          // Load event count for delete dialog
+          groupService
+            .getGroupStats(groupId)
+            .then((stats) => {
+              if (!cancelled) {
+                setEventCount(stats.event_count);
+              }
+            })
+            .catch(() => {
+              // Silently fail - event count is nice-to-have for UI
+            });
+
           setInitialLoading(false);
         }
       } catch (error) {
@@ -175,9 +190,14 @@ export function EditGroupPage() {
 
     setDeleting(true);
     try {
-      await groupService.deleteGroup(group.id);
+      const shouldDeleteEvents = deleteChoice === 'delete';
+      await groupService.deleteGroup(group.id, shouldDeleteEvents);
 
-      errorHandler.success('Group deleted successfully');
+      const message = shouldDeleteEvents
+        ? 'Group and its events deleted successfully'
+        : 'Group deleted successfully. Events have been kept.';
+      errorHandler.success(message);
+
       // Close dialog before navigate to avoid setState on unmounted component
       setShowDeleteDialog(false);
       navigate('/groups');
@@ -315,10 +335,51 @@ export function EditGroupPage() {
           <DialogHeader>
             <DialogTitle>Delete Group</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this group? All events and participants will be
-              permanently removed. This action cannot be undone.
+              {eventCount > 0 ? (
+                <>
+                  This group has {eventCount} event{eventCount !== 1 ? 's' : ''}. What would you
+                  like to do with {eventCount !== 1 ? 'them' : 'it'}?
+                </>
+              ) : (
+                <>Are you sure you want to delete this group? This action cannot be undone.</>
+              )}
             </DialogDescription>
           </DialogHeader>
+
+          {eventCount > 0 && (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setDeleteChoice('keep')}
+                className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
+                  deleteChoice === 'keep'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <div className="font-medium text-sm">Keep Events</div>
+                <div className="text-xs text-muted-foreground">
+                  Events will remain in your event list, unassociated with any group
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDeleteChoice('delete')}
+                className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
+                  deleteChoice === 'delete'
+                    ? 'border-destructive bg-destructive/10'
+                    : 'border-border hover:border-destructive/50'
+                }`}
+              >
+                <div className="font-medium text-sm">Delete Events</div>
+                <div className="text-xs text-muted-foreground">
+                  All events and their participants will be permanently deleted
+                </div>
+              </button>
+            </div>
+          )}
+
           <DialogFooter className="flex-col gap-2 sm:flex-row">
             <Button
               variant="outline"
@@ -334,7 +395,9 @@ export function EditGroupPage() {
               disabled={deleting}
               className="w-full sm:w-auto"
             >
-              {deleting ? 'Deleting...' : 'Delete Group'}
+              {deleting
+                ? 'Deleting...'
+                : `Delete Group${eventCount > 0 && deleteChoice === 'delete' ? ' & Events' : ''}`}
             </Button>
           </DialogFooter>
         </DialogContent>

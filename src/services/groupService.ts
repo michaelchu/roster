@@ -200,10 +200,26 @@ export const groupService = {
     return data;
   },
 
-  async deleteGroup(groupId: string): Promise<void> {
+  async deleteGroup(groupId: string, deleteEvents: boolean = false): Promise<void> {
     // Validate session before deleting group
     await requireValidSession();
 
+    if (deleteEvents) {
+      // Delete all events in the group first
+      const { error: eventsError } = await supabase.from('events').delete().eq('group_id', groupId);
+
+      if (eventsError) throw eventsError;
+    } else {
+      // Unassociate events from the group (set group_id to null)
+      const { error: eventsError } = await supabase
+        .from('events')
+        .update({ group_id: null })
+        .eq('group_id', groupId);
+
+      if (eventsError) throw eventsError;
+    }
+
+    // Now delete the group
     const { error } = await supabase.from('groups').delete().eq('id', groupId);
 
     if (error) throw error;

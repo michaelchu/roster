@@ -363,18 +363,50 @@ describe('groupService', () => {
   });
 
   describe('deleteGroup', () => {
-    it('should delete a group by ID', async () => {
-      const mockQueryChain = {
+    it('should delete a group by ID and unassociate events by default', async () => {
+      const eventUpdateChain = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      };
+
+      const groupDeleteChain = {
         delete: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
+      mockSupabase.from
+        .mockReturnValueOnce(eventUpdateChain as ReturnType<typeof mockSupabase.from>)
+        .mockReturnValueOnce(groupDeleteChain as ReturnType<typeof mockSupabase.from>);
 
       await groupService.deleteGroup('group-1');
 
+      expect(mockSupabase.from).toHaveBeenCalledWith('events');
+      expect(eventUpdateChain.update).toHaveBeenCalledWith({ group_id: null });
       expect(mockSupabase.from).toHaveBeenCalledWith('groups');
-      expect(mockQueryChain.eq).toHaveBeenCalledWith('id', 'group-1');
+      expect(groupDeleteChain.eq).toHaveBeenCalledWith('id', 'group-1');
+    });
+
+    it('should delete events when deleteEvents is true', async () => {
+      const eventDeleteChain = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      };
+
+      const groupDeleteChain = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      };
+
+      mockSupabase.from
+        .mockReturnValueOnce(eventDeleteChain as ReturnType<typeof mockSupabase.from>)
+        .mockReturnValueOnce(groupDeleteChain as ReturnType<typeof mockSupabase.from>);
+
+      await groupService.deleteGroup('group-1', true);
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('events');
+      expect(eventDeleteChain.delete).toHaveBeenCalled();
+      expect(mockSupabase.from).toHaveBeenCalledWith('groups');
+      expect(groupDeleteChain.eq).toHaveBeenCalledWith('id', 'group-1');
     });
 
     it('should throw error if delete fails', async () => {
