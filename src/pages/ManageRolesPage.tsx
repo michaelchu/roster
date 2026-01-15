@@ -215,12 +215,7 @@ export function ManageRolesPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav
-        title="Manage Roles"
-        showBackButton
-        backPath={`/groups/${groupId}/participants`}
-        sticky
-      />
+      <TopNav title="Manage Roles" showBackButton sticky />
 
       <div className="p-3 space-y-6">
         {/* Section 1: Group Owner */}

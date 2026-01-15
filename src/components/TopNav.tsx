@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +20,7 @@ export function TopNav({
   className,
 }: TopNavProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleBack = () => {
     if (onBack) {
@@ -27,7 +28,20 @@ export function TopNav({
     } else if (backPath) {
       navigate(backPath);
     } else {
-      navigate(-1);
+      // Check if there's navigation state or if we should use a default fallback
+      if (window.history.state && window.history.state.idx > 0) {
+        // There's history within the app, safe to go back
+        navigate(-1);
+      } else {
+        // No history or first page, provide a sensible default based on current path
+        if (location.pathname.startsWith('/signup/')) {
+          navigate('/events');
+        } else if (location.pathname.startsWith('/groups/')) {
+          navigate('/groups');
+        } else {
+          navigate('/');
+        }
+      }
     }
   };
 
