@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { errorHandler } from './errorHandler';
+import { toast } from '@/hooks/use-toast';
 
 /**
  * Validates the current user session and redirects to login if invalid
@@ -13,7 +13,11 @@ export async function validateSession() {
 
   if (error || !session || !session.user) {
     // Session is invalid or expired
-    errorHandler.error('Your session has expired. Please sign in again.');
+    toast({
+      variant: 'destructive',
+      title: 'Session Expired',
+      description: 'Your session has expired. Please sign in again.',
+    });
 
     // Store current path to return after login
     const currentPath = window.location.pathname;
