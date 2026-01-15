@@ -4,7 +4,7 @@ import {
   generateTestEmail,
   generateTestName,
   createTestEvent,
-  getTestDb,
+  getAdminDb,
 } from '../fixtures/database';
 import {
   registerForEvent,
@@ -50,7 +50,7 @@ test.describe('Participant Registration Flow', () => {
       });
 
       // Verify registration
-      const { data: participants } = await getTestDb()
+      const { data: participants } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('event_id', event.id);
@@ -81,7 +81,7 @@ test.describe('Participant Registration Flow', () => {
       await registerForEvent(page, event.id);
 
       // Check database
-      const { data: registrations } = await getTestDb()
+      const { data: registrations } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('event_id', event.id)
@@ -125,7 +125,7 @@ test.describe('Participant Registration Flow', () => {
       });
 
       // Verify custom fields were saved
-      const { data: participants } = await getTestDb()
+      const { data: participants } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('event_id', event.id);
@@ -199,7 +199,7 @@ test.describe('Participant Registration Flow', () => {
 
       // Verify both registrations exist
       const userId = await getUserId(page);
-      const { data: participants } = await getTestDb()
+      const { data: participants } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('event_id', event.id);
@@ -237,7 +237,7 @@ test.describe('Participant Registration Flow', () => {
       await claimAdditionalSpot(page, event.id, {});
 
       // Check if auto-generated name follows pattern
-      const { data: participants } = await getTestDb()
+      const { data: participants } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('event_id', event.id);
@@ -272,7 +272,7 @@ test.describe('Participant Registration Flow', () => {
       await claimAdditionalSpot(page, event.id);
 
       // Verify slot numbers
-      const { data: participants } = await getTestDb()
+      const { data: participants } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('event_id', event.id)
@@ -309,7 +309,7 @@ test.describe('Participant Registration Flow', () => {
       });
 
       // Add some participants directly to database
-      await getTestDb().from('participants').insert([
+      await getAdminDb().from('participants').insert([
         {
           event_id: event.id,
           name: 'Participant One',
@@ -343,7 +343,7 @@ test.describe('Participant Registration Flow', () => {
         name: generateTestName('Edit Participant'),
       });
 
-      const { data: participant } = await getTestDb()
+      const { data: participant } = await getAdminDb()
         .from('participants')
         .insert({
           event_id: event.id,
@@ -373,7 +373,7 @@ test.describe('Participant Registration Flow', () => {
           await page.waitForTimeout(1000);
 
           // Verify update in database
-          const { data: updated } = await getTestDb()
+          const { data: updated } = await getAdminDb()
             .from('participants')
             .select('*')
             .eq('id', participant?.id!)
@@ -397,7 +397,7 @@ test.describe('Participant Registration Flow', () => {
         name: generateTestName('Delete Participant'),
       });
 
-      const { data: participant } = await getTestDb()
+      const { data: participant } = await getAdminDb()
         .from('participants')
         .insert({
           event_id: event.id,
@@ -423,7 +423,7 @@ test.describe('Participant Registration Flow', () => {
         }
 
         // Verify deletion
-        const { data: deleted } = await getTestDb()
+        const { data: deleted } = await getAdminDb()
           .from('participants')
           .select('*')
           .eq('id', participant?.id!)
@@ -447,7 +447,7 @@ test.describe('Participant Registration Flow', () => {
       });
 
       // Create multiple participants
-      const { data: participants } = await getTestDb()
+      const { data: participants } = await getAdminDb()
         .from('participants')
         .insert([
           {
@@ -492,7 +492,7 @@ test.describe('Participant Registration Flow', () => {
           }
 
           // Verify deletions
-          const { data: remaining } = await getTestDb()
+          const { data: remaining } = await getAdminDb()
             .from('participants')
             .select('*')
             .eq('event_id', event.id);
@@ -519,7 +519,7 @@ test.describe('Participant Registration Flow', () => {
       });
 
       // Fill event to capacity
-      await getTestDb().from('participants').insert([
+      await getAdminDb().from('participants').insert([
         {
           event_id: event.id,
           name: 'Participant 1',
@@ -567,7 +567,7 @@ test.describe('Participant Registration Flow', () => {
       });
 
       // Add 2 participants
-      await getTestDb().from('participants').insert([
+      await getAdminDb().from('participants').insert([
         {
           event_id: event.id,
           name: 'Participant 1',

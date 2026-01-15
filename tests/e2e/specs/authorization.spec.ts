@@ -5,7 +5,6 @@ import {
   generateTestName,
   createTestEvent,
   createTestGroup,
-  getTestDb,
   getAdminDb,
 } from '../fixtures/database';
 
@@ -136,7 +135,7 @@ test.describe('Authorization and Access Control', () => {
       expect(isDeleteVisible).toBe(false);
 
       // Verify event still exists
-      const { data: stillExists } = await getTestDb()
+      const { data: stillExists } = await getAdminDb()
         .from('events')
         .select('*')
         .eq('id', event.id)
@@ -333,7 +332,7 @@ test.describe('Authorization and Access Control', () => {
       });
 
       const part1Id = await getUserId(page);
-      const { data: part1Registration } = await getTestDb()
+      const { data: part1Registration } = await getAdminDb()
         .from('participants')
         .insert({
           event_id: event.id,
@@ -363,7 +362,7 @@ test.describe('Authorization and Access Control', () => {
 
       // If no participants list is visible to non-organizers, count should be 0
       // Or verify registration data hasn't changed
-      const { data: unchanged } = await getTestDb()
+      const { data: unchanged } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('id', part1Registration?.id!)
@@ -511,7 +510,7 @@ test.describe('Authorization and Access Control', () => {
       // Verify the attacker cannot update the event via direct DB call
       // Note: In a real scenario, the client-side Supabase client uses the user's auth token
       // For this test, we'll verify the event name remains unchanged
-      const { data: unchanged } = await getTestDb()
+      const { data: unchanged } = await getAdminDb()
         .from('events')
         .select('name')
         .eq('id', event.id)
@@ -532,7 +531,7 @@ test.describe('Authorization and Access Control', () => {
         name: generateTestName('Delete Protection Event'),
       });
 
-      const { data: participant } = await getTestDb()
+      const { data: participant } = await getAdminDb()
         .from('participants')
         .insert({
           event_id: event.id,
@@ -552,7 +551,7 @@ test.describe('Authorization and Access Control', () => {
 
       // Verify participant still exists (RLS should prevent deletion from UI)
       // The attacker has no UI access to delete this participant
-      const { data: stillExists } = await getTestDb()
+      const { data: stillExists } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('id', participant?.id!)

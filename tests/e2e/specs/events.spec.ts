@@ -382,16 +382,15 @@ test.describe('Event Management Flow', () => {
         name: generateTestName('Event with Labels'),
       });
 
-      // Create label for original event
-      await getTestDb().from('labels').insert({
+      // Create label for original event (use admin DB to bypass RLS)
+      await getAdminDb().from('labels').insert({
         event_id: originalEvent.id,
         name: 'VIP',
         color: '#FF0000',
       });
 
       // Duplicate event via service
-      const testDb = getTestDb();
-      const { data: duplicatedEvent } = await testDb
+      const { data: duplicatedEvent } = await getAdminDb()
         .from('events')
         .select('*')
         .eq('parent_event_id', originalEvent.id)
@@ -399,7 +398,7 @@ test.describe('Event Management Flow', () => {
 
       if (duplicatedEvent) {
         // Check if labels were copied
-        const { data: copiedLabels } = await testDb
+        const { data: copiedLabels } = await getAdminDb()
           .from('labels')
           .select('*')
           .eq('event_id', duplicatedEvent.id);
@@ -427,8 +426,8 @@ test.describe('Event Management Flow', () => {
         name: generateTestName('Event with Participants'),
       });
 
-      // Add some participants
-      await getTestDb().from('participants').insert([
+      // Add some participants (use admin DB to bypass RLS)
+      await getAdminDb().from('participants').insert([
         {
           event_id: event.id,
           name: 'Participant 1',

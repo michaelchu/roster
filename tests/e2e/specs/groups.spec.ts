@@ -5,7 +5,7 @@ import {
   generateTestName,
   createTestEvent,
   createTestGroup,
-  getTestDb,
+  getAdminDb,
 } from '../fixtures/database';
 import {
   createGroupViaUI,
@@ -101,7 +101,7 @@ test.describe('Group Management Flow', () => {
       await page.waitForTimeout(2000); // Wait for database update
 
       // Verify update
-      const { data: updated } = await getTestDb()
+      const { data: updated } = await getAdminDb()
         .from('groups')
         .select('*')
         .eq('id', group.id)
@@ -140,7 +140,7 @@ test.describe('Group Management Flow', () => {
         await page.waitForURL((url) => url.pathname !== `/groups/${group.id}`, { timeout: 5000 });
 
         // Verify deletion in database
-        const { data: deleted } = await getTestDb()
+        const { data: deleted } = await getAdminDb()
           .from('groups')
           .select('*')
           .eq('id', group.id)
@@ -196,7 +196,7 @@ test.describe('Group Management Flow', () => {
       await page.waitForURL((url) => url.pathname !== '/events/new', { timeout: 10000 });
 
       // Verify event is assigned to group
-      const { data: events } = await getTestDb()
+      const { data: events } = await getAdminDb()
         .from('events')
         .select('*')
         .eq('group_id', group.id);
@@ -273,7 +273,7 @@ test.describe('Group Management Flow', () => {
       // Check if participant was added to group
       await page.waitForTimeout(2000); // Wait for trigger to fire
 
-      const { data: groupParticipants } = await getTestDb()
+      const { data: groupParticipants } = await getAdminDb()
         .from('group_participants')
         .select('*')
         .eq('group_id', group.id)
@@ -302,7 +302,7 @@ test.describe('Group Management Flow', () => {
       });
 
       // Add participants
-      const { data: participants } = await getTestDb().from('participants').insert([
+      const { data: participants } = await getAdminDb().from('participants').insert([
         {
           event_id: event.id,
           name: 'Participant 1',
@@ -319,7 +319,7 @@ test.describe('Group Management Flow', () => {
 
       // Add to group manually
       if (participants) {
-        await getTestDb().from('group_participants').insert(
+        await getAdminDb().from('group_participants').insert(
           participants.map((p) => ({
             group_id: group.id,
             participant_id: p.id,
@@ -376,7 +376,7 @@ test.describe('Group Management Flow', () => {
       await page.waitForTimeout(2000);
 
       // Check group_participants - should only have ONE entry despite two registrations
-      const { data: groupParticipants } = await getTestDb()
+      const { data: groupParticipants } = await getAdminDb()
         .from('group_participants')
         .select('*')
         .eq('group_id', group.id)
@@ -414,7 +414,7 @@ test.describe('Group Management Flow', () => {
       });
 
       // Add participants
-      await getTestDb().from('participants').insert([
+      await getAdminDb().from('participants').insert([
         {
           event_id: event1.id,
           name: 'Part 1',
@@ -458,7 +458,7 @@ test.describe('Group Management Flow', () => {
       });
 
       // Add participants
-      const { data: participants } = await getTestDb().from('participants').insert([
+      const { data: participants } = await getAdminDb().from('participants').insert([
         {
           event_id: event.id,
           name: 'Group Member 1',
@@ -473,7 +473,7 @@ test.describe('Group Management Flow', () => {
 
       // Add to group
       if (participants) {
-        await getTestDb().from('group_participants').insert(
+        await getAdminDb().from('group_participants').insert(
           participants.map((p) => ({
             group_id: group.id,
             participant_id: p.id,
@@ -514,7 +514,7 @@ test.describe('Group Management Flow', () => {
       });
 
       // Add participants to event
-      const { data: participants } = await getTestDb().from('participants').insert([
+      const { data: participants } = await getAdminDb().from('participants').insert([
         {
           event_id: event.id,
           name: 'To Add 1',
@@ -543,7 +543,7 @@ test.describe('Group Management Flow', () => {
           await page.waitForTimeout(1000);
 
           // Verify they were added
-          const { data: groupMembers } = await getTestDb()
+          const { data: groupMembers } = await getAdminDb()
             .from('group_participants')
             .select('*')
             .eq('group_id', group.id);
@@ -572,7 +572,7 @@ test.describe('Group Management Flow', () => {
       });
 
       // Add participant
-      const { data: participant } = await getTestDb()
+      const { data: participant } = await getAdminDb()
         .from('participants')
         .insert({
           event_id: event.id,
@@ -583,7 +583,7 @@ test.describe('Group Management Flow', () => {
         .single();
 
       // Add to group
-      await getTestDb().from('group_participants').insert({
+      await getAdminDb().from('group_participants').insert({
         group_id: group.id,
         participant_id: participant?.id!,
         user_id: null,
@@ -607,7 +607,7 @@ test.describe('Group Management Flow', () => {
         }
 
         // Verify removal
-        const { data: remaining } = await getTestDb()
+        const { data: remaining } = await getAdminDb()
           .from('group_participants')
           .select('*')
           .eq('group_id', group.id)
