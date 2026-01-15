@@ -229,7 +229,7 @@ export function EditGroupPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav title="Edit Group" showBackButton backPath={`/groups/${group.id}`} />
+      <TopNav title="Edit Group" showBackButton />
 
       <div className="p-3">
         <form id="edit-group-form" onSubmit={handleSubmit} className="space-y-6">
