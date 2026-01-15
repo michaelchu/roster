@@ -197,7 +197,7 @@ export function NewEventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-20">
       <TopNav showBackButton sticky />
 
       <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-4">
@@ -433,17 +433,16 @@ export function NewEventPage() {
             </div>
           )}
         </div>
-      </form>
 
-      {/* Create Event Button */}
-      <ActionButton
-        type="submit"
-        form="create-event-form"
-        loading={loading}
-        loadingText="Creating..."
-      >
-        Create Event
-      </ActionButton>
+        {/* Create Event Button */}
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+        >
+          {loading ? 'Creating...' : 'Create Event'}
+        </Button>
+      </form>
     </div>
   );
 }

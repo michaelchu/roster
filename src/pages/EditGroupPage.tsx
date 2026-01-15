@@ -248,8 +248,8 @@ export function EditGroupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-32">
-      <TopNav showBackButton />
+    <div className="min-h-screen bg-background pb-20">
+      <TopNav showBackButton sticky />
 
       <div className="p-3">
         <form id="edit-group-form" onSubmit={handleSubmit} className="space-y-6">
@@ -305,8 +305,8 @@ export function EditGroupPage() {
 
           {/* Delete Group Button */}
           <Button
-            variant="destructive"
-            className="w-full"
+            variant="outline"
+            className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={() => setShowDeleteDialog(true)}
             disabled={saving || deleting}
             type="button"
@@ -314,20 +314,27 @@ export function EditGroupPage() {
             <Trash2 className="h-4 w-4 mr-2" />
             Delete Group
           </Button>
+
+          {/* Save Changes Button */}
+          <Button
+            type="submit"
+            disabled={saving || deleting}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+          >
+            {saving ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </Button>
         </form>
       </div>
-
-      {/* Save Changes Button above navbar */}
-      <ActionButton
-        type="submit"
-        form="edit-group-form"
-        loading={saving}
-        disabled={deleting}
-        loadingText="Saving..."
-      >
-        <Save className="h-4 w-4 mr-2" />
-        Save Changes
-      </ActionButton>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -385,14 +392,6 @@ export function EditGroupPage() {
 
           <DialogFooter className="flex-col gap-2 sm:flex-row">
             <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-              disabled={deleting}
-              className="w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button
               variant="destructive"
               onClick={confirmDelete}
               disabled={deleting}
@@ -401,6 +400,14 @@ export function EditGroupPage() {
               {deleting
                 ? 'Deleting...'
                 : `Delete Group${eventCount > 0 && deleteChoice === 'delete' ? ' & Events' : ''}`}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={deleting}
+              className="w-full sm:w-auto"
+            >
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>

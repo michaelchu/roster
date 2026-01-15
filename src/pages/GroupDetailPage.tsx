@@ -204,13 +204,9 @@ export function GroupDetailPage() {
             <div className="p-6 text-center">
               <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
               <h3 className="text-base font-medium mb-2">No Events Yet</h3>
-              <p className="text-xs text-muted-foreground mb-4">
+              <p className="text-xs text-muted-foreground">
                 Create your first event for this group
               </p>
-              <Button size="sm" onClick={() => navigate(`/events/new?group=${group.id}`)}>
-                <Plus className="h-4 w-4 mr-1" />
-                Create Event
-              </Button>
             </div>
           ) : (
             <div className="divide-y">
@@ -251,11 +247,14 @@ export function GroupDetailPage() {
         </div>
       </div>
 
-      {/* Add Event Button above navbar */}
-      <ActionButton onClick={() => navigate(`/events/new?group=${group.id}`)}>
-        <Plus className="h-5 w-5 mr-2" />
-        Add Event
-      </ActionButton>
+      {/* Add Event Button */}
+      <button
+        onClick={() => navigate(`/events/new?group=${group.id}`)}
+        className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg drop-shadow-md flex items-center justify-center font-medium transition-all"
+        aria-label="Add Event"
+      >
+        <Plus className="h-5 w-5" />
+      </button>
     </div>
   );
 }

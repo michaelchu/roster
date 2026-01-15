@@ -68,7 +68,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-16">
       <TopNav showBackButton backPath="/settings" sticky />
 
       <form id="profile-form" onSubmit={handleSubmit} className="p-3 space-y-3">
@@ -136,13 +136,23 @@ export function ProfilePage() {
             </div>
           </div>
         </div>
-      </form>
 
-      {/* Save Button above navbar */}
-      <ActionButton type="submit" form="profile-form" loading={loading} loadingText="Saving...">
-        <Save className="h-5 w-5 mr-2" />
-        Save Changes
-      </ActionButton>
+        {/* Save Changes Button */}
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+        >
+          {loading ? (
+            'Saving...'
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
+        </Button>
+      </form>
     </div>
   );
 }

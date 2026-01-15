@@ -242,7 +242,11 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <Button variant="destructive" className="w-full" onClick={handleSignOut}>
+          <Button
+            variant="outline"
+            className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleSignOut}
+          >
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>

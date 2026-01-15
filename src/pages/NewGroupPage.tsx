@@ -92,7 +92,7 @@ export function NewGroupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-16">
       <TopNav showBackButton sticky />
 
       <form id="create-group-form" onSubmit={handleSubmit} className="p-3 space-y-4">
@@ -167,16 +167,16 @@ export function NewGroupPage() {
               : 'Anyone with the link can view and join this group'}
           </p>
         </div>
-      </form>
 
-      <ActionButton
-        type="submit"
-        form="create-group-form"
-        loading={loading}
-        loadingText="Creating Group..."
-      >
-        Create Group
-      </ActionButton>
+        {/* Create Group Button */}
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+        >
+          {loading ? 'Creating Group...' : 'Create Group'}
+        </Button>
+      </form>
     </div>
   );
 }

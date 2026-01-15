@@ -55,21 +55,21 @@ export function GroupsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav sticky />
-
       <Tabs defaultValue="groups" className="w-full">
-        <div className="bg-card border-b px-3 py-2">
-          <TabsList className="w-full h-10">
-            <TabsTrigger value="groups" className="flex-1">
-              Groups
-            </TabsTrigger>
-            <TabsTrigger value="contacts" className="flex-1">
-              Contacts
-            </TabsTrigger>
-          </TabsList>
+        <div className="sticky top-0 z-20 bg-background">
+          <TopNav />
+          <div className="bg-card border-b px-3 py-2">
+            <TabsList className="w-full h-10">
+              <TabsTrigger value="groups" className="flex-1">
+                Groups
+              </TabsTrigger>
+              <TabsTrigger value="contacts" className="flex-1">
+                Contacts
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </div>
-
-        <TabsContent value="groups" className="p-3 space-y-3 mt-0">
+        <TabsContent value="groups" className="p-3 space-y-3 mt-0 pb-24">
           {isLoading ? (
             <EventListSkeleton count={3} />
           ) : groups && groups.length === 0 ? (
@@ -119,10 +119,6 @@ export function GroupsPage() {
               </div>
             </div>
           )}
-          <ActionButton onClick={() => navigate('/groups/new')}>
-            <Plus className="h-5 w-5 mr-2" />
-            New Group
-          </ActionButton>
         </TabsContent>
 
         <TabsContent value="contacts" className="p-3 space-y-3 mt-0">
@@ -154,6 +150,14 @@ export function GroupsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      <button
+        onClick={() => navigate('/groups/new')}
+        className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg drop-shadow-md flex items-center justify-center font-medium transition-all"
+        aria-label="New Group"
+      >
+        <Plus className="h-5 w-5" />
+      </button>
     </div>
   );
 }

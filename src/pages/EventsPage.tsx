@@ -181,29 +181,25 @@ export function EventsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav sticky />
-
       <Tabs defaultValue="organizing" className="w-full">
-        <div className="bg-card border-b px-3 py-2">
-          <TabsList className="w-full h-10">
-            <TabsTrigger value="organizing" className="flex-1">
-              Organizing
-            </TabsTrigger>
-            <TabsTrigger value="joined" className="flex-1">
-              Joined
-            </TabsTrigger>
-            <TabsTrigger value="archive" className="flex-1">
-              Archive
-            </TabsTrigger>
-          </TabsList>
+        <div className="sticky top-0 z-20 bg-background">
+          <TopNav />
+          <div className="bg-card border-b px-3 py-2">
+            <TabsList className="w-full h-10">
+              <TabsTrigger value="organizing" className="flex-1">
+                Organizing
+              </TabsTrigger>
+              <TabsTrigger value="joined" className="flex-1">
+                Joined
+              </TabsTrigger>
+              <TabsTrigger value="archive" className="flex-1">
+                Archive
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </div>
-
-        <TabsContent value="organizing" className="p-3 space-y-3 mt-0">
+        <TabsContent value="organizing" className="p-3 space-y-3 mt-0 pb-24">
           {renderEventList(organizingEvents, isLoadingOrganizing, true)}
-          <ActionButton onClick={() => navigate('/events/new')}>
-            <Plus className="h-5 w-5 mr-2" />
-            Create Event
-          </ActionButton>
         </TabsContent>
 
         <TabsContent value="joined" className="p-3 space-y-3 mt-0">
@@ -217,6 +213,14 @@ export function EventsPage() {
           })}
         </TabsContent>
       </Tabs>
+
+      <button
+        onClick={() => navigate('/events/new')}
+        className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg drop-shadow-md flex items-center justify-center font-medium transition-all"
+        aria-label="Create Event"
+      >
+        <Plus className="h-5 w-5" />
+      </button>
     </div>
   );
 }

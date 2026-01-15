@@ -853,7 +853,7 @@ export function EventDetailPage() {
               <Button
                 variant="destructive"
                 size="sm"
-                className="flex-1 py-1"
+                className="flex-1 h-10"
                 onClick={() => setShowWithdrawDialog(true)}
                 disabled={submitting}
               >
@@ -865,7 +865,7 @@ export function EventDetailPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 py-1"
+                className="flex-1 h-10"
                 onClick={quickFillFromProfile}
                 disabled={submitting}
               >
@@ -877,20 +877,30 @@ export function EventDetailPage() {
               type="submit"
               form="signup-form"
               size="sm"
-              className="flex-1 bg-primary hover:bg-primary/90 text-white py-1"
+              className="flex-1 bg-primary hover:bg-primary/90 text-white h-10"
               disabled={submitting}
             >
-              {submitting
-                ? isClaimingForOther
-                  ? 'Claiming...'
-                  : userRegistration
-                    ? 'Updating...'
-                    : 'Joining...'
-                : isClaimingForOther
-                  ? 'Claim'
-                  : userRegistration
-                    ? 'Update'
-                    : 'Join Event'}
+              {submitting ? (
+                isClaimingForOther ? (
+                  'Claiming...'
+                ) : userRegistration ? (
+                  'Updating...'
+                ) : (
+                  'Joining...'
+                )
+              ) : isClaimingForOther ? (
+                'Claim'
+              ) : userRegistration ? (
+                <>
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Update
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Join Event
+                </>
+              )}
             </Button>
           </div>
         }
