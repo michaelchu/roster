@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { register, logout, clearAuth, getUserId } from '../fixtures/auth';
-import { generateTestEmail, generateTestName, createTestEvent, getTestDb } from '../fixtures/database';
+import {
+  generateTestEmail,
+  generateTestName,
+  createTestEvent,
+  getTestDb,
+  getAdminDb,
+} from '../fixtures/database';
 import {
   createEventViaUI,
   editEventViaUI,
@@ -202,8 +208,8 @@ test.describe('Event Management Flow', () => {
 
       await page.waitForURL((url) => !url.pathname.includes('/edit'), { timeout: 10000 });
 
-      // Verify the change was saved
-      const { data: updatedEvent } = await getTestDb()
+      // Verify the change was saved (use admin DB to bypass RLS)
+      const { data: updatedEvent } = await getAdminDb()
         .from('events')
         .select('is_private')
         .eq('id', event.id)
@@ -234,8 +240,8 @@ test.describe('Event Management Flow', () => {
       await goToEventsList(page);
       await expectEventNotVisible(page, event.name);
 
-      // Verify event was actually deleted from database
-      const { data: deletedEvent } = await getTestDb()
+      // Verify event was actually deleted from database (use admin DB to bypass RLS)
+      const { data: deletedEvent } = await getAdminDb()
         .from('events')
         .select('*')
         .eq('id', event.id)
