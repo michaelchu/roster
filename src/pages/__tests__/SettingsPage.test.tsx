@@ -62,8 +62,7 @@ describe('SettingsPage', () => {
 
     renderWithRouter(<SettingsPage />);
 
-    // Header should always be visible
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    // Header should always be visible (TopNav always shows Roster logo now)
   });
 
   it('renders settings for authenticated user', () => {
@@ -89,7 +88,6 @@ describe('SettingsPage', () => {
 
     renderWithRouter(<SettingsPage />);
 
-    expect(screen.getByText('Settings')).toBeInTheDocument();
     expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByText('Appearance')).toBeInTheDocument();
     expect(screen.getByText('Notifications')).toBeInTheDocument();

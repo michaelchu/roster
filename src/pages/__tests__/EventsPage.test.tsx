@@ -75,7 +75,7 @@ describe('EventsPage', () => {
     expect(skeletons.length).toBeGreaterThan(0);
 
     // Should not show main content or sign-in prompt
-    expect(screen.queryByText('My Events')).not.toBeInTheDocument();
+    expect(screen.queryByText('Organizing')).not.toBeInTheDocument();
     expect(screen.queryByText('Sign In Required')).not.toBeInTheDocument();
   });
 
@@ -121,7 +121,6 @@ describe('EventsPage', () => {
 
     renderWithRouter(<EventsPage />);
 
-    expect(screen.getByText('My Events')).toBeInTheDocument();
     expect(screen.getByText('Organizing')).toBeInTheDocument();
     expect(screen.getByText('Joined')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Event' })).toBeInTheDocument();

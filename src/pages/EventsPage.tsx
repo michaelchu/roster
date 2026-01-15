@@ -181,7 +181,7 @@ export function EventsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav title="My Events" sticky />
+      <TopNav sticky />
 
       <Tabs defaultValue="organizing" className="w-full">
         <div className="bg-card border-b px-3 py-2">

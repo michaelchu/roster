@@ -3,7 +3,6 @@ import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TopNavProps {
-  title?: string;
   showBackButton?: boolean;
   backPath?: string;
   onBack?: () => void;
@@ -12,7 +11,6 @@ interface TopNavProps {
 }
 
 export function TopNav({
-  title,
   showBackButton = false,
   backPath,
   onBack,
@@ -59,12 +57,10 @@ export function TopNav({
             showBackButton ? 'max-w-[calc(100%-6rem)]' : 'max-w-full'
           )}
         >
-          <span>{title || 'Roster'}</span>
-          {(title === 'Roster' || !title) && (
-            <span className="text-[10px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent -translate-y-1">
-              BETA
-            </span>
-          )}
+          <span>Roster</span>
+          <span className="text-[10px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent -translate-y-1">
+            BETA
+          </span>
         </h1>
       </div>
     </div>

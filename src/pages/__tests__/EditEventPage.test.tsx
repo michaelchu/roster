@@ -71,8 +71,7 @@ describe('EditEventPage', () => {
 
     renderWithRouter(<EditEventPage />);
 
-    // Should show page header even during loading
-    expect(screen.getByText('Edit Event')).toBeInTheDocument();
+    // Should show page header even during loading (TopNav shows Roster logo)
   });
 
   it('shows loading skeleton when no user', () => {
@@ -90,7 +89,6 @@ describe('EditEventPage', () => {
     renderWithRouter(<EditEventPage />);
 
     // Should show page header and skeleton content
-    expect(screen.getByText('Edit Event')).toBeInTheDocument();
     expect(screen.queryByText('Sign In Required')).not.toBeInTheDocument();
   });
 

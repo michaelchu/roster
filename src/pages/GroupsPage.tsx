@@ -55,7 +55,7 @@ export function GroupsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav title="Groups" sticky />
+      <TopNav sticky />
 
       <Tabs defaultValue="groups" className="w-full">
         <div className="bg-card border-b px-3 py-2">

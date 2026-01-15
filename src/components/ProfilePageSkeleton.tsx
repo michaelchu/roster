@@ -13,7 +13,7 @@ import { TopNav } from '@/components/TopNav';
 export function ProfilePageSkeleton() {
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav title="Profile" showBackButton sticky />
+      <TopNav showBackButton sticky />
 
       <div className="p-3 space-y-3">
         {/* Profile Header */}

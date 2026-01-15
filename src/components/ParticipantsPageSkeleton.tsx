@@ -10,7 +10,7 @@ import { Search } from 'lucide-react';
 export function ParticipantsPageSkeleton() {
   return (
     <div className="min-h-screen bg-background pb-14">
-      <TopNav title="All Participants" sticky />
+      <TopNav sticky />
 
       <div className="p-3 space-y-3">
         {/* Search Bar */}

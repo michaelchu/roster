@@ -79,7 +79,6 @@ describe('ProfilePage', () => {
 
     renderWithRouter(<ProfilePage />);
 
-    expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByLabelText('Full Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Email Address')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();

@@ -9,7 +9,7 @@ import { TopNav } from '@/components/TopNav';
 export function SettingsPageSkeleton() {
   return (
     <div className="min-h-screen bg-background pb-14">
-      <TopNav title="Settings" />
+      <TopNav />
 
       <div className="p-3 space-y-3">
         {/* User Profile Section */}

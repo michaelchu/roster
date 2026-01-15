@@ -12,7 +12,7 @@ import { TopNav } from '@/components/TopNav';
 export function EditEventPageSkeleton() {
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav title="Edit Event" showBackButton sticky />
+      <TopNav showBackButton sticky />
 
       <div className="p-3 space-y-3">
         {/* Basic Event Info */}
