@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/supabase';
 import { errorHandler, ValidationError } from '@/lib/errorHandler';
+import { requireValidSession } from '@/lib/sessionValidator';
 
 // Extended Group type with additional computed properties
 export interface Group extends Tables<'groups'> {
@@ -151,6 +152,9 @@ export const groupService = {
   async createGroup(
     group: Omit<Group, 'id' | 'created_at' | 'event_count' | 'participant_count'>
   ): Promise<Group> {
+    // Validate session before creating group
+    await requireValidSession();
+
     // Validate input data
     validateGroupData(group);
 
@@ -171,6 +175,9 @@ export const groupService = {
   },
 
   async updateGroup(groupId: string, updates: Partial<Group>): Promise<Group> {
+    // Validate session before updating group
+    await requireValidSession();
+
     // Validate input data
     validateGroupData(updates);
 
@@ -194,6 +201,9 @@ export const groupService = {
   },
 
   async deleteGroup(groupId: string): Promise<void> {
+    // Validate session before deleting group
+    await requireValidSession();
+
     const { error } = await supabase.from('groups').delete().eq('id', groupId);
 
     if (error) throw error;

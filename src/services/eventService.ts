@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate, Json } from '@/types/app.types';
 import { errorHandler, ValidationError } from '@/lib/errorHandler';
 import { safeValidateEvent, validateCustomFields, type CustomField } from '@/lib/validation';
+import { requireValidSession } from '@/lib/sessionValidator';
 
 // Extended Event type with additional computed properties and properly typed custom_fields
 export interface Event extends Omit<Tables<'events'>, 'custom_fields'> {
@@ -80,6 +81,9 @@ export const eventService = {
   },
 
   async createEvent(event: Omit<Event, 'id' | 'created_at' | 'participant_count'>): Promise<Event> {
+    // Validate session before creating event
+    await requireValidSession();
+
     // Database will auto-generate nanoid, so we don't need to generate it here
 
     // Validate input data (without id since it will be auto-generated)
@@ -123,6 +127,9 @@ export const eventService = {
   },
 
   async updateEvent(eventId: string, updates: Partial<Event>): Promise<Event> {
+    // Validate session before updating event
+    await requireValidSession();
+
     const updateData: TablesUpdate<'events'> = {};
 
     if (updates.name !== undefined) updateData.name = updates.name;
@@ -151,12 +158,18 @@ export const eventService = {
   },
 
   async deleteEvent(eventId: string): Promise<void> {
+    // Validate session before deleting event
+    await requireValidSession();
+
     const { error } = await supabase.from('events').delete().eq('id', eventId);
 
     if (error) throw error;
   },
 
   async duplicateEvent(eventId: string, organizerId: string): Promise<Event> {
+    // Validate session before duplicating event
+    await requireValidSession();
+
     const { data: originalEvent, error: fetchError } = await supabase
       .from('events')
       .select('*')

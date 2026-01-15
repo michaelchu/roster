@@ -15,6 +15,12 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+// Mock session validator - must be hoisted
+vi.mock('@/lib/sessionValidator', () => ({
+  requireValidSession: vi.fn().mockResolvedValue({ id: 'test-user-id' }),
+  validateSession: vi.fn().mockResolvedValue({ id: 'test-user-id' }),
+}));
+
 import { groupService } from '../groupService';
 import { supabase } from '@/lib/supabase';
 import { ValidationError } from '@/lib/errorHandler';
