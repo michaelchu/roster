@@ -10,7 +10,6 @@ import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
-import { ActionButton } from '@/components/ActionButton';
 
 export function EventsPage() {
   const navigate = useNavigate();

@@ -8,7 +8,6 @@ import { TopNav } from '@/components/TopNav';
 import { groupService, type Group, type GroupContact } from '@/services';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton } from '@/components/LoadingStates';
-import { ActionButton } from '@/components/ActionButton';
 
 export function GroupsPage() {
   const navigate = useNavigate();

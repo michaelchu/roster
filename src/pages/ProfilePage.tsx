@@ -9,7 +9,6 @@ import { User, Save } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { errorHandler } from '@/lib/errorHandler';
 import { ProfilePageSkeleton } from '@/components/ProfilePageSkeleton';
-import { ActionButton } from '@/components/ActionButton';
 
 export function ProfilePage() {
   const navigate = useNavigate();

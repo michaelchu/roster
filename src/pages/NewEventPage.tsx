@@ -17,7 +17,6 @@ import { Plus, Trash2, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService, groupService, type Group } from '@/services';
 import { errorHandler, ValidationError } from '@/lib/errorHandler';
-import { ActionButton } from '@/components/ActionButton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { fromLocalInputValue } from '@/lib/utils';

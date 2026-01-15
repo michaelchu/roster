@@ -9,7 +9,6 @@ import { Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
-import { ActionButton } from '@/components/ActionButton';
 
 export function NewGroupPage() {
   const navigate = useNavigate();

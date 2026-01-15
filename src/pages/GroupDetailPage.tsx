@@ -11,7 +11,6 @@ import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton } from '@/components/LoadingStates';
 import type { Tables } from '@/types/app.types';
 import { formatEventDateTime } from '@/lib/utils';
-import { ActionButton } from '@/components/ActionButton';
 
 interface GroupEvent extends Tables<'events'> {
   participant_count?: number;

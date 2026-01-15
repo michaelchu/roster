@@ -20,7 +20,6 @@ import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { Save, Trash2 } from 'lucide-react';
 import type { Group } from '@/services/groupService';
-import { ActionButton } from '@/components/ActionButton';
 
 export function EditGroupPage() {
   const { groupId } = useParams<{ groupId: string }>();
