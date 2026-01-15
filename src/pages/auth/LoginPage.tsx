@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { initializeGoogleButton } from '@/lib/googleAuth';
+import { TopNav } from '@/components/TopNav';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -58,10 +59,11 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-card border-b">
-        <div className="flex items-center justify-center px-4 py-2">
-          <h1 className="text-lg font-semibold">Sign In</h1>
-        </div>
+      <div
+        onClick={() => navigate('/')}
+        className="cursor-pointer hover:opacity-80 transition-opacity"
+      >
+        <TopNav />
       </div>
 
       <div className="p-3 space-y-3">
