@@ -1,10 +1,11 @@
 import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, UsersRound, Calendar, Users } from 'lucide-react';
+import { Plus, UsersRound, Calendar, Users, Contact } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
-import { groupService, type Group } from '@/services';
+import { groupService, type Group, type GroupContact } from '@/services';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton } from '@/components/LoadingStates';
 import { ActionButton } from '@/components/ActionButton';
@@ -13,17 +14,28 @@ export function GroupsPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { isLoading, data: groups, execute: loadGroups } = useLoadingState<Group[]>([]);
+  const {
+    isLoading: isLoadingContacts,
+    data: contacts,
+    execute: loadContacts,
+  } = useLoadingState<GroupContact[]>([]);
 
   const loadGroupsCallback = useCallback(async () => {
     if (!user) return [];
     return await groupService.getGroupsByOrganizer(user.id);
   }, [user]);
 
+  const loadContactsCallback = useCallback(async () => {
+    if (!user) return [];
+    return await groupService.getAllContactsFromGroups(user.id);
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       loadGroups(loadGroupsCallback);
+      loadContacts(loadContactsCallback);
     }
-  }, [user, loadGroups, loadGroupsCallback]);
+  }, [user, loadGroups, loadGroupsCallback, loadContacts, loadContactsCallback]);
 
   if (loading) {
     return <EventListSkeleton />;
@@ -43,23 +55,33 @@ export function GroupsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav title="My Groups" sticky />
+      <TopNav title="Groups" sticky />
 
-      <div className="p-3 space-y-3">
-        {isLoading ? (
-          <EventListSkeleton count={3} />
-        ) : groups && groups.length === 0 ? (
-          <div className="bg-card rounded-lg p-6 border text-center">
-            <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <h2 className="text-base font-medium mb-2">No Groups Yet</h2>
-            <p className="text-xs text-muted-foreground">
-              Groups help you organize recurring events for the same participants
-            </p>
-          </div>
-        ) : (
-          <>
+      <Tabs defaultValue="groups" className="w-full">
+        <div className="bg-card border-b px-3 py-2">
+          <TabsList className="w-full h-10">
+            <TabsTrigger value="groups" className="flex-1">
+              Groups
+            </TabsTrigger>
+            <TabsTrigger value="contacts" className="flex-1">
+              Contacts
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="groups" className="p-3 space-y-3 mt-0">
+          {isLoading ? (
+            <EventListSkeleton count={3} />
+          ) : groups && groups.length === 0 ? (
+            <div className="bg-card rounded-lg p-6 border text-center">
+              <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <h2 className="text-base font-medium mb-2">No Groups Yet</h2>
+              <p className="text-xs text-muted-foreground">
+                Groups help you organize recurring events for the same participants
+              </p>
+            </div>
+          ) : (
             <div className="bg-card rounded-lg border overflow-hidden">
-              {/* Groups List */}
               <div className="divide-y">
                 {(groups || []).map((group) => (
                   <button
@@ -96,15 +118,42 @@ export function GroupsPage() {
                 ))}
               </div>
             </div>
-          </>
-        )}
-      </div>
+          )}
+          <ActionButton onClick={() => navigate('/groups/new')}>
+            <Plus className="h-5 w-5 mr-2" />
+            New Group
+          </ActionButton>
+        </TabsContent>
 
-      {/* New Group Button above navbar */}
-      <ActionButton onClick={() => navigate('/groups/new')}>
-        <Plus className="h-5 w-5 mr-2" />
-        New Group
-      </ActionButton>
+        <TabsContent value="contacts" className="p-3 space-y-3 mt-0">
+          {isLoadingContacts ? (
+            <EventListSkeleton count={3} />
+          ) : contacts && contacts.length === 0 ? (
+            <div className="bg-card rounded-lg p-6 border text-center">
+              <Contact className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <h2 className="text-base font-medium mb-2">No Contacts Yet</h2>
+              <p className="text-xs text-muted-foreground">
+                Participants from your group events will appear here
+              </p>
+            </div>
+          ) : (
+            <div className="bg-card rounded-lg border overflow-hidden">
+              <div className="divide-y">
+                {(contacts || []).map((contact) => (
+                  <div key={contact.id} className="p-3">
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-sm font-medium">{contact.name}</h3>
+                      {contact.email && (
+                        <p className="text-xs text-muted-foreground">{contact.email}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

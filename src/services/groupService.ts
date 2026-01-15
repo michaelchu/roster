@@ -17,6 +17,14 @@ export interface GroupParticipant extends Tables<'participants'> {
   group_joined_at: string;
 }
 
+export interface GroupContact {
+  id: string;
+  name: string;
+  email: string | null;
+  user_id: string | null;
+  first_seen: string;
+}
+
 // Internal interfaces for the nested Supabase query results
 interface GroupParticipantQueryResult {
   joined_at: string;
@@ -390,6 +398,66 @@ export const groupService = {
         throw errorHandler.fromSupabaseError(error);
       }
     }
+  },
+
+  async getAllContactsFromGroups(organizerId: string): Promise<GroupContact[]> {
+    // Get all groups for this organizer
+    const { data: groups, error: groupsError } = await supabase
+      .from('groups')
+      .select('id')
+      .eq('organizer_id', organizerId);
+
+    if (groupsError) throw errorHandler.fromSupabaseError(groupsError);
+    if (!groups || groups.length === 0) return [];
+
+    const groupIds = groups.map((g) => g.id);
+
+    // Get all participants from these groups
+    const { data: groupParticipantsData, error: participantsError } = await supabase
+      .from('group_participants')
+      .select(
+        `
+        joined_at,
+        participants!inner (
+          id,
+          name,
+          email,
+          user_id
+        )
+      `
+      )
+      .in('group_id', groupIds)
+      .order('joined_at', { ascending: true });
+
+    if (participantsError) throw errorHandler.fromSupabaseError(participantsError);
+    if (!groupParticipantsData) return [];
+
+    // Deduplicate by stable identifier (user_id or email)
+    const contactsMap = new Map<string, GroupContact>();
+
+    groupParticipantsData.forEach(
+      (item: {
+        joined_at: string;
+        participants: { id: string; name: string; email: string | null; user_id: string | null };
+      }) => {
+        const participant = item.participants;
+        const stableKey = participant.user_id || participant.email || participant.id;
+
+        // Only keep the first occurrence (earliest joined_at)
+        if (!contactsMap.has(stableKey)) {
+          contactsMap.set(stableKey, {
+            id: participant.id,
+            name: participant.name,
+            email: participant.email,
+            user_id: participant.user_id,
+            first_seen: item.joined_at,
+          });
+        }
+      }
+    );
+
+    // Return sorted by name
+    return Array.from(contactsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   },
 
   async removeParticipantFromGroup(groupId: string, participantId: string): Promise<void> {
