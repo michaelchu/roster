@@ -1,177 +1,493 @@
--- Seed data for development and testing
--- This file provides sample data to test nanoid event functionality
--- IDEMPOTENT: Safe to run multiple times without creating duplicates
+-- Comprehensive Seed Data for Development
+-- Creates groups, events (with and without groups), and participants
+-- IDEMPOTENT: Safe to run multiple times
 --
--- IMPORTANT: Replace YOUR_USER_ID_HERE with your actual user ID from auth.users
--- To find your user ID, check Supabase Dashboard > Authentication > Users
--- Example: '8a8e0db2-6427-4e1e-969d-c35d8cfe4a82'
+-- Run with: npx supabase db reset
 
--- Sample events with nanoid IDs (these will be auto-generated)
--- Using INSERT...ON CONFLICT for idempotency based on unique name+organizer combination
 DO $$
 DECLARE
-    user_id UUID := 'YOUR_USER_ID_HERE';
+    -- Seed target user
+    target_email TEXT := 'test_user@example.com';
+    target_password TEXT := 'password123';
+    -- Get user ID from email
+    organizer_user_id UUID;
+    
+    -- Group IDs
+    sports_group_id TEXT;
+    tech_group_id TEXT;
+    
+    -- Event IDs
     badminton_event_id TEXT;
+    basketball_event_id TEXT;
+    hackathon_event_id TEXT;
     workshop_event_id TEXT;
-    holiday_event_id TEXT;
-    yoga_event_id TEXT;
+    standalone_yoga_id TEXT;
+    standalone_party_id TEXT;
 BEGIN
-    -- Insert events only if they don't already exist (check by name + organizer_id)
-
-    -- Badminton Event
+    -- Get or create the seed user
+    SELECT id INTO organizer_user_id
+    FROM auth.users
+    WHERE email = target_email
+    LIMIT 1;
+    
+    IF organizer_user_id IS NULL THEN
+        RAISE NOTICE 'User % not found. Creating test user...', target_email;
+        
+        -- Create user in auth.users (simulating email signup)
+        INSERT INTO auth.users (
+            instance_id,
+            id,
+            aud,
+            role,
+            email,
+            encrypted_password,
+            email_confirmed_at,
+            confirmation_token,
+            recovery_token,
+            email_change_token_new,
+            email_change,
+            raw_app_meta_data,
+            raw_user_meta_data,
+            created_at,
+            updated_at,
+            is_super_admin,
+            confirmation_sent_at
+        ) VALUES (
+            '00000000-0000-0000-0000-000000000000',
+            gen_random_uuid(),
+            'authenticated',
+            'authenticated',
+target_email,
+            crypt(target_password, gen_salt('bf')),
+            NOW(),
+            '',
+            '',
+            '',
+            '',
+            '{"provider":"email","providers":["email"]}',
+            '{}',
+            NOW(),
+            NOW(),
+            false,
+            NOW()
+        )
+        RETURNING id INTO organizer_user_id;
+        
+        -- Create corresponding identity
+        INSERT INTO auth.identities (
+            id,
+            provider_id,
+            user_id,
+            identity_data,
+            provider,
+            last_sign_in_at,
+            created_at,
+            updated_at
+        ) VALUES (
+            gen_random_uuid(),
+            organizer_user_id::text,
+            organizer_user_id,
+            jsonb_build_object('sub', organizer_user_id::text, 'email', target_email),
+            'email',
+            NOW(),
+            NOW(),
+            NOW()
+        );
+        
+        RAISE NOTICE 'Created test user with email: %, password: %', target_email, target_password;
+    END IF;
+    
+    RAISE NOTICE 'Using organizer ID: %', organizer_user_id;
+    
+    -- ========================================
+    -- CREATE GROUPS
+    -- ========================================
+    
+    -- Sports & Recreation Group
+    SELECT id INTO sports_group_id
+    FROM groups
+    WHERE name = 'Sports & Recreation' AND organizer_id = organizer_user_id;
+    
+    IF sports_group_id IS NULL THEN
+        INSERT INTO groups (organizer_id, name, description, is_private)
+        VALUES (
+            organizer_user_id,
+            'Sports & Recreation',
+            'Organizing regular sports activities for the community. Join us for badminton, basketball, and more!',
+            false
+        )
+        RETURNING id INTO sports_group_id;
+        RAISE NOTICE 'Created Sports & Recreation group: %', sports_group_id;
+    ELSE
+        RAISE NOTICE 'Sports & Recreation group exists: %', sports_group_id;
+    END IF;
+    
+    -- Tech Meetup Group
+    SELECT id INTO tech_group_id
+    FROM groups
+    WHERE name = 'Tech Meetup SF' AND organizer_id = organizer_user_id;
+    
+    IF tech_group_id IS NULL THEN
+        INSERT INTO groups (organizer_id, name, description, is_private)
+        VALUES (
+            organizer_user_id,
+            'Tech Meetup SF',
+            'Monthly meetups for developers and tech enthusiasts in San Francisco',
+            false
+        )
+        RETURNING id INTO tech_group_id;
+        RAISE NOTICE 'Created Tech Meetup group: %', tech_group_id;
+    ELSE
+        RAISE NOTICE 'Tech Meetup group exists: %', tech_group_id;
+    END IF;
+    
+    -- ========================================
+    -- CREATE EVENTS (WITH GROUPS)
+    -- ========================================
+    
+    -- Badminton Event (in Sports group)
     SELECT id INTO badminton_event_id
     FROM events
-    WHERE name = 'Weekly Thursday Badminton' AND organizer_id = user_id;
-
+    WHERE name = 'Thursday Badminton' AND organizer_id = organizer_user_id;
+    
     IF badminton_event_id IS NULL THEN
-        INSERT INTO events (organizer_id, name, description, datetime, location, is_private, custom_fields, max_participants)
-        VALUES (user_id, 'Weekly Thursday Badminton', 'Join us every Thursday for badminton at the community center. All skill levels welcome!', '2024-12-12T19:00:00Z', 'Community Sports Center', false, '[{"id": "dietary", "label": "Dietary Restrictions", "type": "text", "required": false}, {"id": "experience", "label": "Playing Experience", "type": "select", "required": true, "options": ["Beginner", "Intermediate", "Advanced"]}]'::jsonb, 20)
+        INSERT INTO events (
+            organizer_id, name, description, datetime, end_datetime,
+            location, is_private, custom_fields, max_participants, group_id
+        )
+        VALUES (
+            organizer_user_id,
+            'Thursday Badminton',
+            'Weekly badminton session. All skill levels welcome! Bring your own racket or borrow one.',
+            (CURRENT_DATE + INTERVAL '3 days' + TIME '19:00:00')::timestamptz,
+            (CURRENT_DATE + INTERVAL '3 days' + TIME '21:00:00')::timestamptz,
+            'Community Sports Center, Court 2',
+            false,
+            '[{
+                "id": "experience",
+                "label": "Playing Experience",
+                "type": "select",
+                "required": true,
+                "options": ["Beginner", "Intermediate", "Advanced"]
+            }]'::jsonb,
+            20,
+            sports_group_id
+        )
         RETURNING id INTO badminton_event_id;
-        RAISE NOTICE 'Created Badminton event with ID: %', badminton_event_id;
+        RAISE NOTICE 'Created Badminton event: %', badminton_event_id;
     ELSE
-        RAISE NOTICE 'Badminton event already exists with ID: %', badminton_event_id;
+        RAISE NOTICE 'Badminton event exists: %', badminton_event_id;
     END IF;
-
-    -- Team Building Workshop
+    
+    -- Basketball Event (in Sports group)
+    SELECT id INTO basketball_event_id
+    FROM events
+    WHERE name = 'Weekend Basketball Pickup' AND organizer_id = organizer_user_id;
+    
+    IF basketball_event_id IS NULL THEN
+        INSERT INTO events (
+            organizer_id, name, description, datetime, end_datetime,
+            location, is_private, custom_fields, max_participants, group_id
+        )
+        VALUES (
+            organizer_user_id,
+            'Weekend Basketball Pickup',
+            'Casual pickup basketball game. Just show up and play!',
+            (CURRENT_DATE + INTERVAL '5 days' + TIME '10:00:00')::timestamptz,
+            (CURRENT_DATE + INTERVAL '5 days' + TIME '12:00:00')::timestamptz,
+            'Golden Gate Park Basketball Courts',
+            false,
+            '[{
+                "id": "position",
+                "label": "Preferred Position",
+                "type": "select",
+                "required": false,
+                "options": ["Guard", "Forward", "Center", "No preference"]
+            }]'::jsonb,
+            10,
+            sports_group_id
+        )
+        RETURNING id INTO basketball_event_id;
+        RAISE NOTICE 'Created Basketball event: %', basketball_event_id;
+    ELSE
+        RAISE NOTICE 'Basketball event exists: %', basketball_event_id;
+    END IF;
+    
+    -- Hackathon Event (in Tech group)
+    SELECT id INTO hackathon_event_id
+    FROM events
+    WHERE name = 'AI Hackathon 2026' AND organizer_id = organizer_user_id;
+    
+    IF hackathon_event_id IS NULL THEN
+        INSERT INTO events (
+            organizer_id, name, description, datetime, end_datetime,
+            location, is_private, custom_fields, max_participants, group_id
+        )
+        VALUES (
+            organizer_user_id,
+            'AI Hackathon 2026',
+            '24-hour hackathon focused on AI/ML applications. Form teams or join solo!',
+            (CURRENT_DATE + INTERVAL '10 days' + TIME '09:00:00')::timestamptz,
+            (CURRENT_DATE + INTERVAL '11 days' + TIME '09:00:00')::timestamptz,
+            'TechHub SF, 123 Market St',
+            false,
+            '[{
+                "id": "skill_level",
+                "label": "Coding Experience",
+                "type": "select",
+                "required": true,
+                "options": ["Student", "Junior Dev", "Senior Dev", "Designer"]
+            }, {
+                "id": "dietary",
+                "label": "Dietary Restrictions",
+                "type": "text",
+                "required": false
+            }]'::jsonb,
+            50,
+            tech_group_id
+        )
+        RETURNING id INTO hackathon_event_id;
+        RAISE NOTICE 'Created Hackathon event: %', hackathon_event_id;
+    ELSE
+        RAISE NOTICE 'Hackathon event exists: %', hackathon_event_id;
+    END IF;
+    
+    -- Workshop Event (in Tech group)
     SELECT id INTO workshop_event_id
     FROM events
-    WHERE name = 'Team Building Workshop' AND organizer_id = user_id;
-
+    WHERE name = 'React 19 Workshop' AND organizer_id = organizer_user_id;
+    
     IF workshop_event_id IS NULL THEN
-        INSERT INTO events (organizer_id, name, description, datetime, location, is_private, custom_fields, max_participants)
-        VALUES (user_id, 'Team Building Workshop', 'Private workshop for company team building activities', '2024-12-15T14:00:00Z', 'Conference Room A', true, '[{"id": "department", "label": "Department", "type": "text", "required": true}]'::jsonb, 15)
+        INSERT INTO events (
+            organizer_id, name, description, datetime, end_datetime,
+            location, is_private, custom_fields, max_participants, group_id
+        )
+        VALUES (
+            organizer_user_id,
+            'React 19 Workshop',
+            'Hands-on workshop covering React 19 new features. Bring your laptop!',
+            (CURRENT_DATE + INTERVAL '7 days' + TIME '18:00:00')::timestamptz,
+            (CURRENT_DATE + INTERVAL '7 days' + TIME '20:00:00')::timestamptz,
+            'WeWork SoMa, Conference Room A',
+            false,
+            '[{
+                "id": "experience",
+                "label": "React Experience",
+                "type": "select",
+                "required": true,
+                "options": ["Never used", "Basic", "Intermediate", "Expert"]
+            }]'::jsonb,
+            30,
+            tech_group_id
+        )
         RETURNING id INTO workshop_event_id;
-        RAISE NOTICE 'Created Workshop event with ID: %', workshop_event_id;
+        RAISE NOTICE 'Created Workshop event: %', workshop_event_id;
     ELSE
-        RAISE NOTICE 'Workshop event already exists with ID: %', workshop_event_id;
+        RAISE NOTICE 'Workshop event exists: %', workshop_event_id;
     END IF;
-
-    -- Holiday Party Planning
-    SELECT id INTO holiday_event_id
+    
+    -- ========================================
+    -- CREATE STANDALONE EVENTS (NO GROUP)
+    -- ========================================
+    
+    -- Yoga Event
+    SELECT id INTO standalone_yoga_id
     FROM events
-    WHERE name = 'Holiday Party Planning' AND organizer_id = user_id;
-
-    IF holiday_event_id IS NULL THEN
-        INSERT INTO events (organizer_id, name, description, datetime, location, is_private, custom_fields, max_participants)
-        VALUES (user_id, 'Holiday Party Planning', 'Planning meeting for the upcoming holiday celebration', '2024-12-20T18:30:00Z', 'Main Office', false, '[{"id": "role", "label": "Planning Role", "type": "select", "required": false, "options": ["Decorations", "Food & Catering", "Entertainment", "Logistics", "Just Attending"]}]'::jsonb, 50)
-        RETURNING id INTO holiday_event_id;
-        RAISE NOTICE 'Created Holiday event with ID: %', holiday_event_id;
+    WHERE name = 'Morning Yoga in the Park' AND organizer_id = organizer_user_id;
+    
+    IF standalone_yoga_id IS NULL THEN
+        INSERT INTO events (
+            organizer_id, name, description, datetime, end_datetime,
+            location, is_private, custom_fields, max_participants, group_id
+        )
+        VALUES (
+            organizer_user_id,
+            'Morning Yoga in the Park',
+            'Start your day with relaxing yoga session outdoors. Perfect for beginners!',
+            (CURRENT_DATE + INTERVAL '2 days' + TIME '07:00:00')::timestamptz,
+            (CURRENT_DATE + INTERVAL '2 days' + TIME '08:00:00')::timestamptz,
+            'Dolores Park, Near Playground',
+            false,
+            '[{
+                "id": "level",
+                "label": "Yoga Experience",
+                "type": "select",
+                "required": true,
+                "options": ["Complete Beginner", "Some Experience", "Regular Practitioner"]
+            }, {
+                "id": "mat",
+                "label": "Need yoga mat?",
+                "type": "select",
+                "required": true,
+                "options": ["Yes, please", "No, bringing my own"]
+            }]'::jsonb,
+            25,
+            NULL
+        )
+        RETURNING id INTO standalone_yoga_id;
+        RAISE NOTICE 'Created Yoga event: %', standalone_yoga_id;
     ELSE
-        RAISE NOTICE 'Holiday event already exists with ID: %', holiday_event_id;
+        RAISE NOTICE 'Yoga event exists: %', standalone_yoga_id;
     END IF;
-
-    -- Morning Yoga Session
-    SELECT id INTO yoga_event_id
+    
+    -- Holiday Party Event
+    SELECT id INTO standalone_party_id
     FROM events
-    WHERE name = 'Morning Yoga Session' AND organizer_id = user_id;
-
-    IF yoga_event_id IS NULL THEN
-        INSERT INTO events (organizer_id, name, description, datetime, location, is_private, custom_fields, max_participants)
-        VALUES (user_id, 'Morning Yoga Session', 'Start your day with a relaxing yoga session in the park', '2024-12-25T07:00:00Z', 'Central Park Pavilion', false, '[{"id": "level", "label": "Yoga Experience Level", "type": "select", "required": true, "options": ["Complete Beginner", "Some Experience", "Regular Practitioner"]}, {"id": "mat", "label": "Need to borrow a yoga mat?", "type": "select", "required": true, "options": ["Yes, please", "No, bringing my own"]}]'::jsonb, 25)
-        RETURNING id INTO yoga_event_id;
-        RAISE NOTICE 'Created Yoga event with ID: %', yoga_event_id;
+    WHERE name = 'New Year Party 2026' AND organizer_id = organizer_user_id;
+    
+    IF standalone_party_id IS NULL THEN
+        INSERT INTO events (
+            organizer_id, name, description, datetime, end_datetime,
+            location, is_private, custom_fields, max_participants, group_id
+        )
+        VALUES (
+            organizer_user_id,
+            'New Year Party 2026',
+            'Celebrate the new year with food, drinks, and great company! RSVP to let us know you''re coming.',
+            (CURRENT_DATE + INTERVAL '14 days' + TIME '20:00:00')::timestamptz,
+            (CURRENT_DATE + INTERVAL '15 days' + TIME '02:00:00')::timestamptz,
+            'Private Venue, Address TBD',
+            false,
+            '[{
+                "id": "plus_one",
+                "label": "Bringing a plus one?",
+                "type": "select",
+                "required": true,
+                "options": ["Just me", "Bringing someone"]
+            }, {
+                "id": "dietary",
+                "label": "Dietary Restrictions",
+                "type": "text",
+                "required": false
+            }]'::jsonb,
+            100,
+            NULL
+        )
+        RETURNING id INTO standalone_party_id;
+        RAISE NOTICE 'Created Party event: %', standalone_party_id;
     ELSE
-        RAISE NOTICE 'Yoga event already exists with ID: %', yoga_event_id;
+        RAISE NOTICE 'Party event exists: %', standalone_party_id;
     END IF;
-
-    -- Add sample guest participants (idempotent - check if they already exist)
+    
+    -- ========================================
+    -- ADD PARTICIPANTS TO EVENTS
+    -- ========================================
+    
     -- Badminton participants
     IF badminton_event_id IS NOT NULL THEN
-        -- Alex Johnson
         IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND email = 'alex.johnson@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
-            VALUES (badminton_event_id, 'Alex Johnson', 'alex.johnson@example.com', '+1234567890', NULL, '{"dietary": "Vegetarian", "experience": "Intermediate"}'::jsonb);
-            RAISE NOTICE 'Added participant: Alex Johnson to Badminton event';
-        ELSE
-            RAISE NOTICE 'Alex Johnson already registered for Badminton event';
+            INSERT INTO participants (event_id, name, email, phone, responses)
+            VALUES (badminton_event_id, 'Alex Johnson', 'alex.johnson@example.com', '+14155551001', '{"experience": "Intermediate"}'::jsonb);
         END IF;
-
-        -- Sarah Chen
+        
         IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND email = 'sarah.chen@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
-            VALUES (badminton_event_id, 'Sarah Chen', 'sarah.chen@example.com', '+1234567891', NULL, '{"dietary": "", "experience": "Beginner"}'::jsonb);
-            RAISE NOTICE 'Added participant: Sarah Chen to Badminton event';
-        ELSE
-            RAISE NOTICE 'Sarah Chen already registered for Badminton event';
+            INSERT INTO participants (event_id, name, email, phone, responses)
+            VALUES (badminton_event_id, 'Sarah Chen', 'sarah.chen@example.com', '+14155551002', '{"experience": "Beginner"}'::jsonb);
         END IF;
-
-        -- Mike Torres
+        
         IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = badminton_event_id AND email = 'mike.torres@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
-            VALUES (badminton_event_id, 'Mike Torres', 'mike.torres@example.com', '+1234567892', NULL, '{"dietary": "No restrictions", "experience": "Advanced"}'::jsonb);
-            RAISE NOTICE 'Added participant: Mike Torres to Badminton event';
-        ELSE
-            RAISE NOTICE 'Mike Torres already registered for Badminton event';
+            INSERT INTO participants (event_id, name, email, phone, responses)
+            VALUES (badminton_event_id, 'Mike Torres', 'mike.torres@example.com', '+14155551003', '{"experience": "Advanced"}'::jsonb);
         END IF;
+        
+        RAISE NOTICE 'Added participants to Badminton event';
     END IF;
-
-    -- Holiday party participants
-    IF holiday_event_id IS NOT NULL THEN
-        -- David Kim
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = holiday_event_id AND email = 'david.kim@example.com') THEN
-            INSERT INTO participants (event_id, name, email, user_id, responses)
-            VALUES (holiday_event_id, 'David Kim', 'david.kim@example.com', NULL, '{"role": "Food & Catering"}'::jsonb);
-            RAISE NOTICE 'Added participant: David Kim to Holiday Party event';
-        ELSE
-            RAISE NOTICE 'David Kim already registered for Holiday Party event';
+    
+    -- Basketball participants
+    IF basketball_event_id IS NOT NULL THEN
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = basketball_event_id AND email = 'alex.johnson@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (basketball_event_id, 'Alex Johnson', 'alex.johnson@example.com', '{"position": "Guard"}'::jsonb);
         END IF;
-
-        -- Emily Rodriguez
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = holiday_event_id AND email = 'emily.rodriguez@example.com') THEN
-            INSERT INTO participants (event_id, name, email, user_id, responses)
-            VALUES (holiday_event_id, 'Emily Rodriguez', 'emily.rodriguez@example.com', NULL, '{"role": "Decorations"}'::jsonb);
-            RAISE NOTICE 'Added participant: Emily Rodriguez to Holiday Party event';
-        ELSE
-            RAISE NOTICE 'Emily Rodriguez already registered for Holiday Party event';
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = basketball_event_id AND email = 'david.kim@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (basketball_event_id, 'David Kim', 'david.kim@example.com', '{"position": "Forward"}'::jsonb);
         END IF;
-
-        -- Lisa Wang
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = holiday_event_id AND email = 'lisa.wang@example.com') THEN
-            INSERT INTO participants (event_id, name, email, user_id, responses)
-            VALUES (holiday_event_id, 'Lisa Wang', 'lisa.wang@example.com', NULL, '{"role": "Entertainment"}'::jsonb);
-            RAISE NOTICE 'Added participant: Lisa Wang to Holiday Party event';
-        ELSE
-            RAISE NOTICE 'Lisa Wang already registered for Holiday Party event';
-        END IF;
+        
+        RAISE NOTICE 'Added participants to Basketball event';
     END IF;
-
-    -- Yoga session participants
-    IF yoga_event_id IS NOT NULL THEN
-        -- Maya Patel
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = yoga_event_id AND email = 'maya.patel@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
-            VALUES (yoga_event_id, 'Maya Patel', 'maya.patel@example.com', '+1234567893', NULL, '{"level": "Regular Practitioner", "mat": "No, bringing my own"}'::jsonb);
-            RAISE NOTICE 'Added participant: Maya Patel to Yoga event';
-        ELSE
-            RAISE NOTICE 'Maya Patel already registered for Yoga event';
+    
+    -- Hackathon participants
+    IF hackathon_event_id IS NOT NULL THEN
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND email = 'emily.rodriguez@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (hackathon_event_id, 'Emily Rodriguez', 'emily.rodriguez@example.com', '{"skill_level": "Senior Dev", "dietary": "Vegetarian"}'::jsonb);
         END IF;
-
-        -- James Wilson
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = yoga_event_id AND email = 'james.wilson@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
-            VALUES (yoga_event_id, 'James Wilson', 'james.wilson@example.com', NULL, NULL, '{"level": "Complete Beginner", "mat": "Yes, please"}'::jsonb);
-            RAISE NOTICE 'Added participant: James Wilson to Yoga event';
-        ELSE
-            RAISE NOTICE 'James Wilson already registered for Yoga event';
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND email = 'james.wilson@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (hackathon_event_id, 'James Wilson', 'james.wilson@example.com', '{"skill_level": "Junior Dev", "dietary": ""}'::jsonb);
         END IF;
-
-        -- Anna Schmidt
-        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = yoga_event_id AND email = 'anna.schmidt@example.com') THEN
-            INSERT INTO participants (event_id, name, email, phone, user_id, responses)
-            VALUES (yoga_event_id, 'Anna Schmidt', 'anna.schmidt@example.com', '+1234567894', NULL, '{"level": "Some Experience", "mat": "Yes, please"}'::jsonb);
-            RAISE NOTICE 'Added participant: Anna Schmidt to Yoga event';
-        ELSE
-            RAISE NOTICE 'Anna Schmidt already registered for Yoga event';
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = hackathon_event_id AND email = 'lisa.wang@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (hackathon_event_id, 'Lisa Wang', 'lisa.wang@example.com', '{"skill_level": "Designer", "dietary": "Vegan"}'::jsonb);
         END IF;
+        
+        RAISE NOTICE 'Added participants to Hackathon event';
     END IF;
-
-    -- Test nanoid generation
-    RAISE NOTICE 'Seed data processing complete!';
-    RAISE NOTICE 'Sample nanoid: %', nanoid(10);
-    RAISE NOTICE 'Created events for user: %', user_id;
-
+    
+    -- Workshop participants
+    IF workshop_event_id IS NOT NULL THEN
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = workshop_event_id AND email = 'sarah.chen@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (workshop_event_id, 'Sarah Chen', 'sarah.chen@example.com', '{"experience": "Basic"}'::jsonb);
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = workshop_event_id AND email = 'maya.patel@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (workshop_event_id, 'Maya Patel', 'maya.patel@example.com', '{"experience": "Intermediate"}'::jsonb);
+        END IF;
+        
+        RAISE NOTICE 'Added participants to Workshop event';
+    END IF;
+    
+    -- Yoga participants
+    IF standalone_yoga_id IS NOT NULL THEN
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = standalone_yoga_id AND email = 'maya.patel@example.com') THEN
+            INSERT INTO participants (event_id, name, email, phone, responses)
+            VALUES (standalone_yoga_id, 'Maya Patel', 'maya.patel@example.com', '+14155551004', '{"level": "Regular Practitioner", "mat": "No, bringing my own"}'::jsonb);
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = standalone_yoga_id AND email = 'anna.schmidt@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (standalone_yoga_id, 'Anna Schmidt', 'anna.schmidt@example.com', '{"level": "Complete Beginner", "mat": "Yes, please"}'::jsonb);
+        END IF;
+        
+        RAISE NOTICE 'Added participants to Yoga event';
+    END IF;
+    
+    -- Party participants
+    IF standalone_party_id IS NOT NULL THEN
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = standalone_party_id AND email = 'mike.torres@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (standalone_party_id, 'Mike Torres', 'mike.torres@example.com', '{"plus_one": "Bringing someone", "dietary": ""}'::jsonb);
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = standalone_party_id AND email = 'david.kim@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (standalone_party_id, 'David Kim', 'david.kim@example.com', '{"plus_one": "Just me", "dietary": "No shellfish"}'::jsonb);
+        END IF;
+        
+        IF NOT EXISTS (SELECT 1 FROM participants WHERE event_id = standalone_party_id AND email = 'lisa.wang@example.com') THEN
+            INSERT INTO participants (event_id, name, email, responses)
+            VALUES (standalone_party_id, 'Lisa Wang', 'lisa.wang@example.com', '{"plus_one": "Just me", "dietary": "Vegan"}'::jsonb);
+        END IF;
+        
+        RAISE NOTICE 'Added participants to Party event';
+    END IF;
+    
+    RAISE NOTICE '========================================';
+    RAISE NOTICE 'SEED DATA COMPLETE!';
+    RAISE NOTICE 'Created 2 groups, 6 events, and multiple participants';
+    RAISE NOTICE 'User: % (%)' , target_email, organizer_user_id;
+    RAISE NOTICE '========================================';
+    
 END $$;
 
--- Final verification - show created events
+-- Show summary
 SELECT 'Seed script completed successfully!' as status;
-SELECT id, name, is_private FROM events WHERE organizer_id = 'YOUR_USER_ID_HERE';
+SELECT COUNT(*) as total_groups FROM groups WHERE organizer_id IN (SELECT id FROM auth.users WHERE email = 'test_user@example.com');
+SELECT COUNT(*) as total_events FROM events WHERE organizer_id IN (SELECT id FROM auth.users WHERE email = 'test_user@example.com');
+SELECT COUNT(*) as total_participants FROM participants WHERE event_id IN (SELECT id FROM events WHERE organizer_id IN (SELECT id FROM auth.users WHERE email = 'test_user@example.com'));
