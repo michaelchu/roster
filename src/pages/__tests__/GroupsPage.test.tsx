@@ -14,6 +14,7 @@ const mockUseAuth = vi.mocked(useAuth);
 vi.mock('@/services', () => ({
   groupService: {
     getGroupsByOrganizer: vi.fn(),
+    getAllContactsFromGroups: vi.fn(),
   },
 }));
 
@@ -50,7 +51,7 @@ describe('GroupsPage', () => {
     renderWithRouter(<GroupsPage />);
 
     // Should show loading skeleton, not the main content
-    expect(screen.queryByText('My Groups')).not.toBeInTheDocument();
+    expect(screen.queryByText('Groups')).not.toBeInTheDocument();
   });
 
   it('redirects to sign in when no user', () => {
@@ -95,7 +96,9 @@ describe('GroupsPage', () => {
 
     renderWithRouter(<GroupsPage />);
 
-    expect(screen.getByText('My Groups')).toBeInTheDocument();
+    // Check for tab navigation which confirms page rendered
+    expect(screen.getByRole('tab', { name: 'Groups' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Contacts' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'New Group' })).toBeInTheDocument();
   });
 
