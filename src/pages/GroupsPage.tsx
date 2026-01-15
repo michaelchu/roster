@@ -52,13 +52,9 @@ export function GroupsPage() {
           <div className="bg-card rounded-lg p-6 border text-center">
             <UsersRound className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <h2 className="text-base font-medium mb-2">No Groups Yet</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Create your first group to organize events and manage participants
+            <p className="text-xs text-muted-foreground">
+              Groups help you organize recurring events for the same participants
             </p>
-            <Button className="w-full" onClick={() => navigate('/groups/new')}>
-              <Plus className="h-4 w-4 mr-1" />
-              Create Group
-            </Button>
           </div>
         ) : (
           <>

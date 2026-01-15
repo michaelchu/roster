@@ -124,8 +124,7 @@ describe('GroupsPage', () => {
 
     expect(screen.getByText('No Groups Yet')).toBeInTheDocument();
     expect(
-      screen.getByText('Create your first group to organize events and manage participants')
+      screen.getByText('Groups help you organize recurring events for the same participants')
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Create Group' })).toBeInTheDocument();
   });
 });
