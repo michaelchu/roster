@@ -40,3 +40,6 @@ test-results
 # Test and build artifacts
 playwright-report/
 test-results/
+
+# Claude Code settings
+.claude/settings.local.json

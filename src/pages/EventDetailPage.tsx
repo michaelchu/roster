@@ -38,6 +38,7 @@ import {
   ArrowUpDown,
   Zap,
 } from 'lucide-react';
+import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { TopNav } from '@/components/TopNav';
 import { Label } from '@/components/ui/label';
 import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
@@ -108,6 +109,15 @@ export function EventDetailPage() {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isClaimingForOther, setIsClaimingForOther] = useState(false);
   const [withdrawingParticipant, setWithdrawingParticipant] = useState<Participant | null>(null);
+  const [paymentSummary, setPaymentSummary] = useState({
+    total: 0,
+    paid: 0,
+    pending: 0,
+    waived: 0,
+  });
+
+  // Check if current user is the organizer
+  const isOrganizer = event?.organizer_id === user?.id;
 
   useEffect(() => {
     if (eventId) {
@@ -166,6 +176,12 @@ export function EventDetailPage() {
         );
 
         setUserRegistration(currentUserRegistration || null);
+
+        // Load payment summary if user is organizer
+        if (user && eventData.organizer_id === user.id) {
+          const summary = await participantService.getPaymentSummary(eventId);
+          setPaymentSummary(summary);
+        }
       }
     } catch (error) {
       console.error('Error loading event data:', error);
@@ -246,6 +262,29 @@ export function EventDetailPage() {
           participantName: participant.name,
           labelId: label.id,
           labelName: label.name,
+        },
+      });
+    }
+  };
+
+  const togglePaymentStatus = async (participant: Participant) => {
+    if (!isOrganizer) return;
+
+    try {
+      const newStatus = participant.payment_status === 'paid' ? 'pending' : 'paid';
+      await participantService.updatePaymentStatus(participant.id, newStatus);
+      errorHandler.success(
+        `Payment marked as ${newStatus === 'paid' ? 'paid' : 'pending'} for ${participant.name}`
+      );
+      setSelectedParticipant(null); // Close the sheet
+      loadEventData();
+    } catch (error) {
+      errorHandler.handle(error, {
+        userId: user?.id,
+        action: 'updatePaymentStatus',
+        metadata: {
+          participantId: participant.id,
+          participantName: participant.name,
         },
       });
     }
@@ -334,6 +373,9 @@ export function EventDetailPage() {
             responses: signupForm.responses,
             user_id: null, // Will be set by service based on claiming options
             claimed_by_user_id: null, // Will be set by the service
+            payment_status: 'pending' as const,
+            payment_marked_at: null,
+            payment_notes: null,
           };
           const claimingOptions = {
             // Don't pass targetSlotNumber - let database assign next available slot
@@ -360,6 +402,9 @@ export function EventDetailPage() {
             responses: signupForm.responses,
             user_id: user?.id || null,
             claimed_by_user_id: null,
+            payment_status: 'pending' as const,
+            payment_marked_at: null,
+            payment_notes: null,
           });
         }
       }
@@ -582,6 +627,44 @@ export function EventDetailPage() {
           </div>
         )}
 
+        {/* Payment Summary (Organizer Only) */}
+        {isOrganizer && participants.length > 0 && (
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="px-3 py-2 border-b bg-muted">
+              <h3 className="text-sm font-medium">Payment Status</h3>
+            </div>
+            <div className="p-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{paymentSummary.paid}</div>
+                  <div className="text-xs text-muted-foreground">Paid</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-600">{paymentSummary.pending}</div>
+                  <div className="text-xs text-muted-foreground">Pending</div>
+                </div>
+                {paymentSummary.waived > 0 && (
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{paymentSummary.waived}</div>
+                    <div className="text-xs text-muted-foreground">Waived</div>
+                  </div>
+                )}
+                {paymentSummary.waived === 0 && (
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {paymentSummary.total > 0
+                        ? Math.round((paymentSummary.paid / paymentSummary.total) * 100)
+                        : 0}
+                      %
+                    </div>
+                    <div className="text-xs text-muted-foreground">Collection</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Participants List */}
         <div className="bg-card rounded-lg border overflow-hidden">
           <div className="px-3 py-2 border-b bg-muted flex items-center justify-between">
@@ -663,8 +746,14 @@ export function EventDetailPage() {
                 const claimNumber = getClaimBadgeNumber(participant);
                 const displayName = getDisplayName(participant);
 
+                const isOrganizerItem =
+                  participant.user_id === event.organizer_id && participant.slot_number === 1;
+
                 slots.push(
-                  <div key={participant.id} className="p-3 hover:bg-muted transition-colors">
+                  <div
+                    key={participant.id}
+                    className={`p-3 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
+                  >
                     <div className="flex items-start gap-3">
                       <div className="text-xs text-muted-foreground font-mono flex-shrink-0 mt-1">
                         {participant.slot_number}.
@@ -690,12 +779,9 @@ export function EventDetailPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            {participant.user_id === event.organizer_id &&
-                              participant.slot_number === 1 && (
-                                <Badge variant="outline" className="text-xs h-5 px-2">
-                                  Organizer
-                                </Badge>
-                              )}
+                            {isOrganizer && participant.payment_status !== 'pending' && (
+                              <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                            )}
                             {isOwnClaimedSpot && (
                               <Button
                                 size="sm"
@@ -1083,6 +1169,35 @@ export function EventDetailPage() {
                     </div>
                   </div>
                 </div>
+
+                {isOrganizer && (
+                  <div className="space-y-1.5">
+                    <h3 className="text-sm font-medium">Payment Status</h3>
+                    <div className="flex items-center gap-2">
+                      <PaymentStatusBadge status={selectedParticipant.payment_status} size="md" />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => togglePaymentStatus(selectedParticipant)}
+                        className="text-xs h-7 px-3"
+                      >
+                        {selectedParticipant.payment_status === 'paid'
+                          ? 'Mark as Pending'
+                          : 'Mark as Paid'}
+                      </Button>
+                    </div>
+                    {selectedParticipant.payment_marked_at && (
+                      <div className="text-xs text-muted-foreground">
+                        Updated: {new Date(selectedParticipant.payment_marked_at).toLocaleString()}
+                      </div>
+                    )}
+                    {selectedParticipant.payment_notes && (
+                      <div className="text-xs text-muted-foreground">
+                        Notes: {selectedParticipant.payment_notes}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {event.custom_fields && event.custom_fields.length > 0 && (
                   <div className="space-y-1.5">

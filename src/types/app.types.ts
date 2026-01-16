@@ -23,3 +23,6 @@ export interface CustomField {
 // Response types for form data
 export type FormResponse = string | number | string[];
 export type ResponseRecord = Record<string, FormResponse>;
+
+// Payment tracking types
+export type PaymentStatus = 'pending' | 'paid' | 'waived';

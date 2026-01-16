@@ -71,6 +71,9 @@ describe('participantService', () => {
           email: null,
           phone: null,
           notes: null,
+          payment_status: 'pending',
+          payment_marked_at: null,
+          payment_notes: null,
         },
         { claimingUserId: 'user-1', claimingUserName: 'John' }
       );
@@ -121,6 +124,9 @@ describe('participantService', () => {
         user_id: null, // Guest participant
         responses: {},
         claimed_by_user_id: null,
+        payment_status: 'pending' as const,
+        payment_marked_at: null,
+        payment_notes: null,
       };
 
       const result = await participantService.createParticipant(newParticipant);
@@ -215,6 +221,9 @@ describe('participantService', () => {
           event_id: 'event-1',
           claimed_by_user_id: null,
           created_at: '2023-01-01',
+          payment_status: 'pending' as const,
+          payment_marked_at: null,
+          payment_notes: null,
         },
       ];
 
@@ -248,6 +257,9 @@ describe('participantService', () => {
           event_id: 'event-1',
           claimed_by_user_id: null,
           created_at: '2023-01-01',
+          payment_status: 'pending' as const,
+          payment_marked_at: null,
+          payment_notes: null,
         },
       ];
 
@@ -285,6 +297,9 @@ describe('participantService', () => {
           event_id: 'event-1',
           claimed_by_user_id: null,
           created_at: '2023-01-01',
+          payment_status: 'pending' as const,
+          payment_marked_at: null,
+          payment_notes: null,
         },
       ];
 

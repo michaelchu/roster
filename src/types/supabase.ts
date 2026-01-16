@@ -328,6 +328,9 @@ export type Database = {
           id: string;
           name: string;
           notes: string | null;
+          payment_marked_at: string | null;
+          payment_notes: string | null;
+          payment_status: string;
           phone: string | null;
           responses: Json;
           slot_number: number;
@@ -341,6 +344,9 @@ export type Database = {
           id?: string;
           name: string;
           notes?: string | null;
+          payment_marked_at?: string | null;
+          payment_notes?: string | null;
+          payment_status?: string;
           phone?: string | null;
           responses?: Json;
           slot_number: number;
@@ -354,6 +360,9 @@ export type Database = {
           id?: string;
           name?: string;
           notes?: string | null;
+          payment_marked_at?: string | null;
+          payment_notes?: string | null;
+          payment_status?: string;
           phone?: string | null;
           responses?: Json;
           slot_number?: number;
@@ -385,6 +394,10 @@ export type Database = {
       get_next_slot_number: {
         Args: { p_event_id: string; p_user_id?: string };
         Returns: number;
+      };
+      get_or_create_user: {
+        Args: { user_email: string; user_name: string };
+        Returns: string;
       };
       get_user_display_name: { Args: { user_id: string }; Returns: string };
       get_user_profile: {
