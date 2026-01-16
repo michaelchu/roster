@@ -92,7 +92,7 @@ export function NewGroupPage() {
 
   return (
     <div className="min-h-screen bg-background pb-16">
-      <TopNav showBackButton sticky />
+      <TopNav showCloseButton sticky />
 
       <form id="create-group-form" onSubmit={handleSubmit} className="p-3 space-y-4">
         {/* Group Name */}

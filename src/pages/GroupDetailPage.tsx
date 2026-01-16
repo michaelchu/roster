@@ -128,7 +128,7 @@ export function GroupDetailPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav showBackButton sticky />
+      <TopNav sticky />
 
       <div className="p-3 space-y-3">
         {/* Group Info Card */}

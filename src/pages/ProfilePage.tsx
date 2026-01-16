@@ -68,7 +68,7 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background pb-16">
-      <TopNav showBackButton backPath="/settings" sticky />
+      <TopNav showCloseButton closePath="/settings" sticky />
 
       <form id="profile-form" onSubmit={handleSubmit} className="p-3 space-y-3">
         <div className="bg-card rounded-lg border overflow-hidden">

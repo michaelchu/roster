@@ -235,7 +235,7 @@ export function RemoveMembersPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav showBackButton sticky />
+      <TopNav showCloseButton sticky />
 
       <div className="p-3 space-y-4">
         {/* Header Info */}

@@ -12,7 +12,7 @@ import { TopNav } from '@/components/TopNav';
 export function EventDetailSkeleton() {
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav showBackButton sticky />
+      <TopNav sticky />
 
       <div className="p-3 space-y-3">
         {/* Event Info Card Skeleton */}

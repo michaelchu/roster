@@ -266,7 +266,7 @@ export function EditEventPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <TopNav showBackButton sticky />
+      <TopNav showCloseButton sticky />
 
       <div className="p-3 space-y-3">
         <div className="bg-card rounded-lg p-3 border space-y-3">

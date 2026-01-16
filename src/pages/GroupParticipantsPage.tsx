@@ -161,7 +161,7 @@ export function GroupParticipantsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-14">
-      <TopNav showBackButton sticky />
+      <TopNav sticky />
 
       <div className="p-3 space-y-3">
         {/* Quick Actions - Only visible to admins */}

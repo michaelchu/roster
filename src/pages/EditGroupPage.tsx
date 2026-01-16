@@ -248,7 +248,7 @@ export function EditGroupPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <TopNav showBackButton sticky />
+      <TopNav showCloseButton sticky />
 
       <div className="p-3">
         <form id="edit-group-form" onSubmit={handleSubmit} className="space-y-6">

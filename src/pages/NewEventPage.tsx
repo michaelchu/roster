@@ -197,7 +197,7 @@ export function NewEventPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <TopNav showBackButton sticky />
+      <TopNav showCloseButton sticky />
 
       <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-4">
         <div className="space-y-2">

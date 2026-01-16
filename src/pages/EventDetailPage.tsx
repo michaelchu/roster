@@ -485,7 +485,7 @@ export function EventDetailPage() {
 
   return (
     <div className={`min-h-screen bg-background ${user ? 'pb-32' : 'pb-20'}`}>
-      <TopNav showBackButton={!!user} sticky />
+      <TopNav sticky />
 
       <div className="p-3 space-y-3">
         {/* Event Info */}
