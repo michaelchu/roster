@@ -146,7 +146,7 @@ describe('InviteConfirmationPage', () => {
       });
     });
 
-    it('stores pending invite and navigates to login when sign in clicked', async () => {
+    it('navigates to login with returnUrl when sign in clicked', async () => {
       mockUseAuth.mockReturnValue({
         user: null,
         session: null,
@@ -169,16 +169,8 @@ describe('InviteConfirmationPage', () => {
       const signInButton = screen.getByText('Sign in to manage RSVP');
       fireEvent.click(signInButton);
 
-      // Check localStorage has pending invite
-      const pendingInvite = localStorage.getItem('pendingInvite');
-      expect(pendingInvite).toBeTruthy();
-      const parsed = JSON.parse(pendingInvite!);
-      expect(parsed).toEqual({ type: 'event', id: 'test-event-id' });
-
-      // Check navigation to login
-      expect(mockNavigate).toHaveBeenCalledWith(
-        '/auth/login?returnUrl=%2Finvite%2Fevent%2Ftest-event-id'
-      );
+      // Check navigation to login with returnUrl pointing to event page
+      expect(mockNavigate).toHaveBeenCalledWith('/auth/login?returnUrl=%2Fsignup%2Ftest-event-id');
     });
 
     it('navigates to signup page when RSVP as guest clicked', async () => {
