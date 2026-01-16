@@ -3,6 +3,7 @@ import { Page } from '@playwright/test';
 export interface TestUser {
   email: string;
   password: string;
+  fullName?: string;
   id?: string;
 }
 
@@ -40,6 +41,8 @@ export async function register(page: Page, user: TestUser): Promise<string | nul
 
   await page.waitForSelector('input[type="email"]', { state: 'visible' });
 
+  // Fill in full name (required field)
+  await page.fill('input[id="fullName"]', user.fullName || 'Test User');
   await page.fill('input[type="email"]', user.email);
   await page.fill('input[type="password"]', user.password);
 
@@ -93,15 +96,25 @@ export async function logout(page: Page) {
  * Check if user is currently authenticated
  */
 export async function isAuthenticated(page: Page): Promise<boolean> {
+  // First check if there's a valid session in localStorage
+  const userId = await getUserId(page);
+  if (!userId) {
+    return false;
+  }
+
+  // Navigate to home and wait for authenticated UI
   await page.goto('/');
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForTimeout(500); // Wait for auth to load
 
   // Check for authenticated UI elements - bottom navigation should exist for logged in users
+  // Wait longer for the UI to render based on auth state
   const bottomNav = page.locator('nav[role="navigation"][aria-label="Main navigation"]');
-  const isNavVisible = await bottomNav.isVisible().catch(() => false);
-
-  return isNavVisible;
+  try {
+    await bottomNav.waitFor({ state: 'visible', timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**

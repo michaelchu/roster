@@ -42,6 +42,7 @@ test.describe('Authentication Flow', () => {
       await page.goto('/auth/register');
       await page.waitForLoadState('domcontentloaded');
 
+      await page.fill('input[id="fullName"]', 'Test User');
       await page.fill('input[type="email"]', generateTestEmail('weakpass'));
       await page.fill('input[type="password"]', '123'); // Too short
       await page.click('button[type="submit"]');
@@ -66,6 +67,7 @@ test.describe('Authentication Flow', () => {
       await page.goto('/auth/register');
       await page.waitForLoadState('domcontentloaded');
 
+      await page.fill('input[id="fullName"]', 'Test User');
       await page.fill('input[type="email"]', email);
       await page.fill('input[type="password"]', password);
       await page.click('button[type="submit"]');

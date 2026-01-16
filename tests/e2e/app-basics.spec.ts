@@ -71,7 +71,9 @@ test.describe('Smoke Tests - Basic App Functionality', () => {
     if (await signInButton.isVisible()) {
       await signInButton.click();
       await expect(page).toHaveURL(/\/auth\/login/);
-      await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+      // Check for login form elements (email input and Roster logo)
+      await expect(page.getByRole('heading', { name: /roster/i })).toBeVisible();
+      await expect(page.locator('input[type="email"]')).toBeVisible();
     }
   });
 });

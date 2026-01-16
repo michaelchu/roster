@@ -332,7 +332,8 @@ test.describe('Google OAuth Authentication', () => {
 
       // Page should still load, even if Google button doesn't
       await expect(page.locator('#root')).toBeAttached();
-      await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+      // Check for Roster logo and login form
+      await expect(page.getByRole('heading', { name: /roster/i })).toBeVisible();
       
       // Email/password form should still be available
       await expect(page.locator('input[type="email"]')).toBeVisible();
