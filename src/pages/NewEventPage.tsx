@@ -205,10 +205,11 @@ export function NewEventPage() {
       <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-4">
         {/* Header when creating event for a group */}
         {selectedGroup && (
-          <div className="pb-2 border-b">
-            <h2 className="text-base font-semibold">Create an event for {selectedGroup.name}</h2>
+          <div className="pb-3 border-b">
+            <h2 className="text-base font-semibold break-words">{selectedGroup.name}</h2>
           </div>
         )}
+
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm">
             Event Name *
