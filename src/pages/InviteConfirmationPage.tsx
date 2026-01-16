@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,15 +12,9 @@ import { Calendar, Users, UserPlus, CheckCircle, ArrowRight } from 'lucide-react
 
 type InviteType = 'event' | 'group';
 
-interface PendingInvite {
-  type: InviteType;
-  id: string;
-}
-
 export function InviteConfirmationPage() {
   const { type, id } = useParams<{ type: InviteType; id: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
