@@ -279,7 +279,16 @@ export const participantService = {
     eventName: string,
     customFields: CustomField[]
   ): Promise<void> {
-    const headers = ['Name', 'Email', 'Phone', 'Notes', 'Payment Status', 'Payment Date', 'Payment Notes', 'Labels'];
+    const headers = [
+      'Name',
+      'Email',
+      'Phone',
+      'Notes',
+      'Payment Status',
+      'Payment Date',
+      'Payment Notes',
+      'Labels',
+    ];
 
     customFields?.forEach((field) => {
       headers.push(field.label);

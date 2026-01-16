@@ -37,7 +37,6 @@ import {
   UserX,
   ArrowUpDown,
   Zap,
-  DollarSign,
 } from 'lucide-react';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { TopNav } from '@/components/TopNav';
@@ -277,6 +276,7 @@ export function EventDetailPage() {
       errorHandler.success(
         `Payment marked as ${newStatus === 'paid' ? 'paid' : 'pending'} for ${participant.name}`
       );
+      setSelectedParticipant(null); // Close the sheet
       loadEventData();
     } catch (error) {
       errorHandler.handle(error, {
@@ -625,10 +625,7 @@ export function EventDetailPage() {
         {isOrganizer && participants.length > 0 && (
           <div className="bg-card rounded-lg border overflow-hidden">
             <div className="px-3 py-2 border-b bg-muted">
-              <h3 className="text-sm font-medium flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Payment Status
-              </h3>
+              <h3 className="text-sm font-medium">Payment Status</h3>
             </div>
             <div className="p-3">
               <div className="grid grid-cols-3 gap-3">
@@ -743,8 +740,14 @@ export function EventDetailPage() {
                 const claimNumber = getClaimBadgeNumber(participant);
                 const displayName = getDisplayName(participant);
 
+                const isOrganizerItem =
+                  participant.user_id === event.organizer_id && participant.slot_number === 1;
+
                 slots.push(
-                  <div key={participant.id} className="p-3 hover:bg-muted transition-colors">
+                  <div
+                    key={participant.id}
+                    className={`p-3 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
+                  >
                     <div className="flex items-start gap-3">
                       <div className="text-xs text-muted-foreground font-mono flex-shrink-0 mt-1">
                         {participant.slot_number}.
@@ -770,12 +773,9 @@ export function EventDetailPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            {participant.user_id === event.organizer_id &&
-                              participant.slot_number === 1 && (
-                                <Badge variant="outline" className="text-xs h-5 px-2">
-                                  Organizer
-                                </Badge>
-                              )}
+                            {isOrganizer && participant.payment_status !== 'pending' && (
+                              <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                            )}
                             {isOwnClaimedSpot && (
                               <Button
                                 size="sm"
@@ -814,9 +814,6 @@ export function EventDetailPage() {
                           })()}
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {isOrganizer && (
-                            <PaymentStatusBadge status={participant.payment_status} size="sm" />
-                          )}
                           {participant.labels?.map((label) => (
                             <Badge key={label.id} variant="outline" className="text-xs h-5">
                               {label.name}
