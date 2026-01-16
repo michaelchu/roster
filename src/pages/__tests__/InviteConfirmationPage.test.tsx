@@ -273,6 +273,10 @@ describe('InviteConfirmationPage', () => {
         responses: {},
         created_at: '2024-01-01T00:00:00Z',
         slot_number: 1,
+        labels: [],
+        payment_status: 'pending',
+        payment_marked_at: null,
+        payment_notes: null,
       });
 
       renderWithRouter(<InviteConfirmationPage />);

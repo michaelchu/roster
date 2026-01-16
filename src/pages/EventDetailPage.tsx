@@ -373,7 +373,7 @@ export function EventDetailPage() {
             responses: signupForm.responses,
             user_id: null, // Will be set by service based on claiming options
             claimed_by_user_id: null, // Will be set by the service
-            payment_status: 'pending',
+            payment_status: 'pending' as const,
             payment_marked_at: null,
             payment_notes: null,
           };
@@ -402,7 +402,7 @@ export function EventDetailPage() {
             responses: signupForm.responses,
             user_id: user?.id || null,
             claimed_by_user_id: null,
-            payment_status: 'pending',
+            payment_status: 'pending' as const,
             payment_marked_at: null,
             payment_notes: null,
           });
