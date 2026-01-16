@@ -30,7 +30,7 @@ export function ManageRolesPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [group, setGroup] = useState<Group | null>(null);
-  const [owner, setOwner] = useState<Organizer | null>(null);
+  const [ownerName, setOwnerName] = useState<string>('Unknown');
   const [admins, setAdmins] = useState<AdminWithDetails[]>([]);
   const [members, setMembers] = useState<MemberWithRole[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,9 +57,11 @@ export function ManageRolesPage() {
 
       setGroup(groupData);
 
-      // Load owner details
-      const ownerData = await organizerService.getOrganizerById(groupData.organizer_id);
-      setOwner(ownerData);
+      // Load owner display name
+      const ownerDisplayName = await organizerService.getOrganizerDisplayName(
+        groupData.organizer_id
+      );
+      setOwnerName(ownerDisplayName);
 
       // Load current admins with their details
       const adminsData = await groupService.getGroupAdmins(groupId);
@@ -227,7 +229,7 @@ export function ManageRolesPage() {
           <div className="p-3 bg-muted rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium">{owner?.name || 'Unknown'}</div>
+                <div className="text-sm font-medium">{ownerName}</div>
                 <div className="text-xs text-muted-foreground">Full access to group</div>
               </div>
               <Badge variant="default">Owner</Badge>

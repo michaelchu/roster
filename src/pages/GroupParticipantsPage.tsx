@@ -164,6 +164,10 @@ export function GroupParticipantsPage() {
       <TopNav sticky />
 
       <div className="p-3 space-y-3">
+        {/* Group Name Header */}
+        <div className="pb-3 border-b">
+          <h2 className="text-base font-semibold break-words">{group.name}</h2>
+        </div>
         {/* Quick Actions - Only visible to admins */}
         {isAdmin && (
           <div className="bg-card rounded-lg p-3 border">
