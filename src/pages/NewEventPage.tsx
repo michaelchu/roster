@@ -195,11 +195,20 @@ export function NewEventPage() {
     }
   };
 
+  // Get selected group name for header
+  const selectedGroup = groups?.find((g) => g.id === formData.group_id);
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <TopNav showCloseButton sticky />
 
       <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-4">
+        {/* Header when creating event for a group */}
+        {selectedGroup && (
+          <div className="pb-2 border-b">
+            <h2 className="text-base font-semibold">Create an event for {selectedGroup.name}</h2>
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm">
             Event Name *
