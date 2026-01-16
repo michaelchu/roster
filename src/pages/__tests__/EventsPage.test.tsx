@@ -149,10 +149,8 @@ describe('EventsPage', () => {
 
     renderWithRouter(<EventsPage />);
 
-    expect(screen.getByText('No Events Yet')).toBeInTheDocument();
-    expect(
-      screen.getByText('Create your first event to start managing registrations')
-    ).toBeInTheDocument();
+    expect(screen.getByText('No Joined Events')).toBeInTheDocument();
+    expect(screen.getByText("You haven't joined any events yet")).toBeInTheDocument();
     // ActionButton is still visible (renamed from "New Event" to "Create Event")
     expect(screen.getByRole('button', { name: 'Create Event' })).toBeInTheDocument();
   });

@@ -180,16 +180,16 @@ export function EventsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
-      <Tabs defaultValue="organizing" className="w-full">
+      <Tabs defaultValue="joined" className="w-full">
         <div className="sticky top-0 z-20 bg-background">
           <TopNav />
           <div className="bg-card border-b px-3 py-2">
             <TabsList className="w-full h-10">
-              <TabsTrigger value="organizing" className="flex-1">
-                Organizing
-              </TabsTrigger>
               <TabsTrigger value="joined" className="flex-1">
                 Joined
+              </TabsTrigger>
+              <TabsTrigger value="organizing" className="flex-1">
+                Organizing
               </TabsTrigger>
               <TabsTrigger value="archive" className="flex-1">
                 Archive
@@ -197,12 +197,12 @@ export function EventsPage() {
             </TabsList>
           </div>
         </div>
-        <TabsContent value="organizing" className="p-3 space-y-3 mt-0 pb-24">
-          {renderEventList(organizingEvents, isLoadingOrganizing, true)}
-        </TabsContent>
-
         <TabsContent value="joined" className="p-3 space-y-3 mt-0">
           {renderEventList(joinedEvents, isLoadingJoined, false)}
+        </TabsContent>
+
+        <TabsContent value="organizing" className="p-3 space-y-3 mt-0 pb-24">
+          {renderEventList(organizingEvents, isLoadingOrganizing, true)}
         </TabsContent>
 
         <TabsContent value="archive" className="p-3 space-y-3 mt-0">
