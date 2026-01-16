@@ -15,6 +15,9 @@ export interface Participant extends Omit<Tables<'participants'>, 'responses' | 
   responses: ResponseRecord;
   slot_number: number;
   claimed_by_user_id: string | null;
+  payment_status: 'pending' | 'paid' | 'waived';
+  payment_marked_at: string | null;
+  payment_notes: string | null;
 }
 
 export type Label = Tables<'labels'>;
@@ -29,6 +32,9 @@ function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Part
     responses: (dbParticipant.responses as ResponseRecord) || {},
     slot_number: dbParticipant.slot_number || 0,
     claimed_by_user_id: dbParticipant.claimed_by_user_id || null,
+    payment_status: (dbParticipant.payment_status as 'pending' | 'paid' | 'waived') || 'pending',
+    payment_marked_at: dbParticipant.payment_marked_at || null,
+    payment_notes: dbParticipant.payment_notes || null,
   };
 }
 
@@ -273,7 +279,7 @@ export const participantService = {
     eventName: string,
     customFields: CustomField[]
   ): Promise<void> {
-    const headers = ['Name', 'Email', 'Phone', 'Notes', 'Labels'];
+    const headers = ['Name', 'Email', 'Phone', 'Notes', 'Payment Status', 'Payment Date', 'Payment Notes', 'Labels'];
 
     customFields?.forEach((field) => {
       headers.push(field.label);
@@ -285,6 +291,9 @@ export const participantService = {
         p.email || '',
         p.phone || '',
         p.notes || '',
+        p.payment_status || 'pending',
+        p.payment_marked_at ? new Date(p.payment_marked_at).toLocaleDateString() : '',
+        p.payment_notes || '',
         p.labels?.map((l) => l.name).join(', ') || '',
       ];
 
@@ -312,5 +321,64 @@ export const participantService = {
     a.download = `${eventName.replace(/[^a-z0-9]/gi, '_')}_participants.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  },
+
+  async updatePaymentStatus(
+    participantId: string,
+    paymentStatus: 'pending' | 'paid' | 'waived',
+    paymentNotes?: string
+  ): Promise<Participant> {
+    const updateData: TablesUpdate<'participants'> = {
+      payment_status: paymentStatus,
+      payment_marked_at: paymentStatus !== 'pending' ? new Date().toISOString() : null,
+      payment_notes: paymentNotes || null,
+    };
+
+    const { data, error } = await supabase
+      .from('participants')
+      .update(updateData)
+      .eq('id', participantId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Failed to update payment status');
+
+    return dbParticipantToParticipant(data);
+  },
+
+  async bulkUpdatePaymentStatus(
+    participantIds: string[],
+    paymentStatus: 'pending' | 'paid' | 'waived',
+    paymentNotes?: string
+  ): Promise<void> {
+    const updateData: TablesUpdate<'participants'> = {
+      payment_status: paymentStatus,
+      payment_marked_at: paymentStatus !== 'pending' ? new Date().toISOString() : null,
+      payment_notes: paymentNotes || null,
+    };
+
+    const { error } = await supabase
+      .from('participants')
+      .update(updateData)
+      .in('id', participantIds);
+
+    if (error) throw error;
+  },
+
+  async getPaymentSummary(eventId: string): Promise<{
+    total: number;
+    paid: number;
+    pending: number;
+    waived: number;
+  }> {
+    const participants = await this.getParticipantsByEventId(eventId);
+
+    return {
+      total: participants.length,
+      paid: participants.filter((p) => p.payment_status === 'paid').length,
+      pending: participants.filter((p) => p.payment_status === 'pending').length,
+      waived: participants.filter((p) => p.payment_status === 'waived').length,
+    };
   },
 };

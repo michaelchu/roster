@@ -37,7 +37,9 @@ import {
   UserX,
   ArrowUpDown,
   Zap,
+  DollarSign,
 } from 'lucide-react';
+import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { TopNav } from '@/components/TopNav';
 import { Label } from '@/components/ui/label';
 import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
@@ -108,6 +110,15 @@ export function EventDetailPage() {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isClaimingForOther, setIsClaimingForOther] = useState(false);
   const [withdrawingParticipant, setWithdrawingParticipant] = useState<Participant | null>(null);
+  const [paymentSummary, setPaymentSummary] = useState({
+    total: 0,
+    paid: 0,
+    pending: 0,
+    waived: 0,
+  });
+
+  // Check if current user is the organizer
+  const isOrganizer = event?.organizer_id === user?.id;
 
   useEffect(() => {
     if (eventId) {
@@ -166,6 +177,12 @@ export function EventDetailPage() {
         );
 
         setUserRegistration(currentUserRegistration || null);
+
+        // Load payment summary if user is organizer
+        if (user && eventData.organizer_id === user.id) {
+          const summary = await participantService.getPaymentSummary(eventId);
+          setPaymentSummary(summary);
+        }
       }
     } catch (error) {
       console.error('Error loading event data:', error);
@@ -246,6 +263,28 @@ export function EventDetailPage() {
           participantName: participant.name,
           labelId: label.id,
           labelName: label.name,
+        },
+      });
+    }
+  };
+
+  const togglePaymentStatus = async (participant: Participant) => {
+    if (!isOrganizer) return;
+
+    try {
+      const newStatus = participant.payment_status === 'paid' ? 'pending' : 'paid';
+      await participantService.updatePaymentStatus(participant.id, newStatus);
+      errorHandler.success(
+        `Payment marked as ${newStatus === 'paid' ? 'paid' : 'pending'} for ${participant.name}`
+      );
+      loadEventData();
+    } catch (error) {
+      errorHandler.handle(error, {
+        userId: user?.id,
+        action: 'updatePaymentStatus',
+        metadata: {
+          participantId: participant.id,
+          participantName: participant.name,
         },
       });
     }
@@ -582,6 +621,47 @@ export function EventDetailPage() {
           </div>
         )}
 
+        {/* Payment Summary (Organizer Only) */}
+        {isOrganizer && participants.length > 0 && (
+          <div className="bg-card rounded-lg border overflow-hidden">
+            <div className="px-3 py-2 border-b bg-muted">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                Payment Status
+              </h3>
+            </div>
+            <div className="p-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{paymentSummary.paid}</div>
+                  <div className="text-xs text-muted-foreground">Paid</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-600">{paymentSummary.pending}</div>
+                  <div className="text-xs text-muted-foreground">Pending</div>
+                </div>
+                {paymentSummary.waived > 0 && (
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{paymentSummary.waived}</div>
+                    <div className="text-xs text-muted-foreground">Waived</div>
+                  </div>
+                )}
+                {paymentSummary.waived === 0 && (
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {paymentSummary.total > 0
+                        ? Math.round((paymentSummary.paid / paymentSummary.total) * 100)
+                        : 0}
+                      %
+                    </div>
+                    <div className="text-xs text-muted-foreground">Collection</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Participants List */}
         <div className="bg-card rounded-lg border overflow-hidden">
           <div className="px-3 py-2 border-b bg-muted flex items-center justify-between">
@@ -734,6 +814,9 @@ export function EventDetailPage() {
                           })()}
                         </div>
                         <div className="flex flex-wrap gap-1 mt-1">
+                          {isOrganizer && (
+                            <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                          )}
                           {participant.labels?.map((label) => (
                             <Badge key={label.id} variant="outline" className="text-xs h-5">
                               {label.name}
@@ -1083,6 +1166,35 @@ export function EventDetailPage() {
                     </div>
                   </div>
                 </div>
+
+                {isOrganizer && (
+                  <div className="space-y-1.5">
+                    <h3 className="text-sm font-medium">Payment Status</h3>
+                    <div className="flex items-center gap-2">
+                      <PaymentStatusBadge status={selectedParticipant.payment_status} size="md" />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => togglePaymentStatus(selectedParticipant)}
+                        className="text-xs h-7 px-3"
+                      >
+                        {selectedParticipant.payment_status === 'paid'
+                          ? 'Mark as Pending'
+                          : 'Mark as Paid'}
+                      </Button>
+                    </div>
+                    {selectedParticipant.payment_marked_at && (
+                      <div className="text-xs text-muted-foreground">
+                        Updated: {new Date(selectedParticipant.payment_marked_at).toLocaleString()}
+                      </div>
+                    )}
+                    {selectedParticipant.payment_notes && (
+                      <div className="text-xs text-muted-foreground">
+                        Notes: {selectedParticipant.payment_notes}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {event.custom_fields && event.custom_fields.length > 0 && (
                   <div className="space-y-1.5">
