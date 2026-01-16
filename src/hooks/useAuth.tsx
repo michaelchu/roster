@@ -51,8 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
               const pendingInvite = JSON.parse(pendingInviteStr);
               if (pendingInvite.type && pendingInvite.id) {
-                // Navigate to invite page to complete the flow
-                navigate(`/invite/${pendingInvite.type}/${pendingInvite.id}`);
+                // Navigate directly to the event/group page
+                if (pendingInvite.type === 'event') {
+                  navigate(`/signup/${pendingInvite.id}`);
+                } else if (pendingInvite.type === 'group') {
+                  navigate(`/groups/${pendingInvite.id}`);
+                }
               }
             } catch (error) {
               console.error('Error parsing pending invite:', error);

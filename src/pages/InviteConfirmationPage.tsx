@@ -84,12 +84,11 @@ export function InviteConfirmationPage() {
   const handleSignInClick = () => {
     if (!type || !id) return;
 
-    // Store pending invite in localStorage
-    const pendingInvite: PendingInvite = { type, id };
-    localStorage.setItem('pendingInvite', JSON.stringify(pendingInvite));
+    // Determine the target page after login
+    const targetUrl = type === 'event' ? `/signup/${id}` : `/groups/${id}`;
 
-    // Navigate to login with return URL
-    navigate(`/auth/login?returnUrl=${encodeURIComponent(location.pathname)}`);
+    // Navigate to login with returnUrl pointing to the event/group page
+    navigate(`/auth/login?returnUrl=${encodeURIComponent(targetUrl)}`);
   };
 
   const handleRSVPAsGuest = () => {
