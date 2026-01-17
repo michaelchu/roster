@@ -3,12 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { eventService, participantService, groupService } from '@/services';
+import { eventService, groupService } from '@/services';
 import type { Event } from '@/services/eventService';
 import type { Group } from '@/services/groupService';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { formatEventDateTime } from '@/lib/utils';
-import { Calendar, Users, UserPlus, CheckCircle, ArrowRight } from 'lucide-react';
+import { Calendar, Users, UserPlus } from 'lucide-react';
 
 type InviteType = 'event' | 'group';
 
@@ -20,9 +20,7 @@ export function InviteConfirmationPage() {
   const [loading, setLoading] = useState(true);
   const [eventData, setEventData] = useState<Event | null>(null);
   const [groupData, setGroupData] = useState<Group | null>(null);
-  const [isMember, setIsMember] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [joining, setJoining] = useState(false);
 
   useEffect(() => {
     if (!type || !id) {
@@ -51,31 +49,29 @@ export function InviteConfirmationPage() {
         const event = await eventService.getEventById(id);
         setEventData(event);
 
-        // Check if user is already a participant
+        // Auto-redirect logged-in users to the event detail page
         if (user) {
-          const participant = await participantService.getParticipantByUserAndEvent(user.id, id);
-          setIsMember(!!participant);
+          navigate(`/signup/${id}`);
+          return;
         }
       } else if (type === 'group') {
         const group = await groupService.getGroupById(id);
         setGroupData(group);
 
-        // Check if user is already a group member, auto-join if not
+        // Auto-join and redirect logged-in users to the group page
         if (user) {
           const isGroupMember = await groupService.checkUserGroupMembership(user.id, id);
           if (!isGroupMember) {
             // Auto-join the group when user lands on invite page after signing in
             try {
               await groupService.addUserToGroup(id, user.id);
-              setIsMember(true);
             } catch (joinErr) {
               console.error('Error auto-joining group:', joinErr);
-              // Still show the page, user can try manual join
-              setIsMember(false);
+              // Still redirect, they can try manual join from group page
             }
-          } else {
-            setIsMember(true);
           }
+          navigate(`/groups/${id}`);
+          return;
         }
       }
     } catch (err) {
@@ -96,38 +92,6 @@ export function InviteConfirmationPage() {
 
     // Navigate to login with returnUrl pointing back to invite page
     navigate(`/auth/login?returnUrl=${encodeURIComponent(targetUrl)}`);
-  };
-
-  const handleRSVPAsGuest = () => {
-    if (!eventData) return;
-    // Navigate directly to the event signup page for guest RSVP
-    navigate(`/signup/${eventData.id}`);
-  };
-
-  const handleViewEvent = () => {
-    if (!eventData) return;
-    navigate(`/signup/${eventData.id}`);
-  };
-
-  const handleViewGroup = () => {
-    if (!groupData) return;
-    navigate(`/groups/${groupData.id}`);
-  };
-
-  const handleJoinGroup = async () => {
-    if (!groupData || !user) return;
-
-    setJoining(true);
-    try {
-      await groupService.addUserToGroup(groupData.id, user.id);
-      setIsMember(true);
-      // Optionally show success message
-    } catch (err) {
-      console.error('Error joining group:', err);
-      setError(err instanceof Error ? err.message : 'Failed to join group');
-    } finally {
-      setJoining(false);
-    }
   };
 
   if (loading || authLoading) {
@@ -245,67 +209,14 @@ export function InviteConfirmationPage() {
             </div>
           </div>
 
-          {/* Action Card */}
+          {/* Action Card - only shown for unauthenticated users (authenticated users are auto-redirected) */}
           <div className="bg-card rounded-lg border p-4">
-            {!user ? (
-              <div className="text-center space-y-3">
-                {eventData.group_id ? (
-                  // Group events require authentication
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      This event is part of a group. Please sign in to RSVP.
-                    </p>
-                    <Button onClick={handleSignInClick} className="w-full">
-                      Sign in to RSVP
-                    </Button>
-                  </>
-                ) : (
-                  // Standalone events allow guest RSVP
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      RSVP as a guest or sign in to manage your registration
-                    </p>
-                    <div className="space-y-2">
-                      <Button onClick={handleRSVPAsGuest} className="w-full">
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        RSVP as Guest
-                      </Button>
-                      <Button onClick={handleSignInClick} variant="outline" className="w-full">
-                        Sign in to manage RSVP
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground pt-2 border-t">
-                      💡 Create an account to easily modify or cancel your RSVP later
-                    </p>
-                  </>
-                )}
-              </div>
-            ) : isMember ? (
-              <div className="text-center space-y-3">
-                <div className="flex items-center justify-center gap-2 text-primary">
-                  <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">You're already registered!</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  You've already joined this event. Click below to view details or modify your
-                  registration.
-                </p>
-                <Button onClick={handleViewEvent} variant="outline" className="w-full">
-                  View Event Details
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Join this event to secure your spot and receive updates
-                </p>
-                <Button onClick={handleRSVPAsGuest} className="w-full">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  RSVP to Event
-                </Button>
-              </div>
-            )}
+            <div className="text-center space-y-3">
+              <p className="text-sm text-muted-foreground">Sign in to RSVP for this event</p>
+              <Button onClick={handleSignInClick} className="w-full">
+                Sign in to RSVP
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -349,48 +260,17 @@ export function InviteConfirmationPage() {
             </div>
           </div>
 
-          {/* Action Card */}
+          {/* Action Card - only shown for unauthenticated users (authenticated users are auto-redirected) */}
           <div className="bg-card rounded-lg border p-4">
-            {!user ? (
-              <div className="text-center space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Sign in to view this group and join its events
-                </p>
-                <Button onClick={handleSignInClick} className="w-full">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Sign in to join
-                </Button>
-              </div>
-            ) : isMember ? (
-              <div className="text-center space-y-3">
-                <div className="flex items-center justify-center gap-2 text-primary">
-                  <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">You're already a member!</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  You're part of this group. Click below to view events and manage your
-                  participation.
-                </p>
-                <Button onClick={handleViewGroup} variant="outline" className="w-full">
-                  View Group Details
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Join this group to stay updated on events and connect with other members
-                </p>
-                <Button onClick={handleJoinGroup} disabled={joining} className="w-full">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  {joining ? 'Joining...' : 'Join Group'}
-                </Button>
-                <Button onClick={handleViewGroup} variant="outline" className="w-full">
-                  View Group Details
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            )}
+            <div className="text-center space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Sign in to view this group and join its events
+              </p>
+              <Button onClick={handleSignInClick} className="w-full">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Sign in to join
+              </Button>
+            </div>
           </div>
         </div>
       </div>
