@@ -4,13 +4,16 @@
 --
 -- Run with: npx supabase db reset
 
+-- Pre-computed bcrypt hash for 'password123' (avoids pgcrypto dependency in production)
+-- Hash value: $2a$06$sqT1IsdU0sA6n9cItMFB/eSOozwb.puRR0iQBXPj4MQC/Aeu7zsly
+
 -- Helper function to create or get user
 CREATE OR REPLACE FUNCTION get_or_create_user(user_email TEXT, user_name TEXT) RETURNS UUID AS $$
 DECLARE
     user_uuid UUID;
 BEGIN
     SELECT id INTO user_uuid FROM auth.users WHERE email = user_email LIMIT 1;
-    
+
     IF user_uuid IS NULL THEN
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password,
@@ -22,7 +25,7 @@ BEGIN
             'authenticated',
             'authenticated',
             user_email,
-            crypt('password123', gen_salt('bf')),
+            '$2a$06$sqT1IsdU0sA6n9cItMFB/eSOozwb.puRR0iQBXPj4MQC/Aeu7zsly',
             NOW(),
             '{"provider":"email","providers":["email"]}',
             jsonb_build_object('full_name', user_name),
@@ -114,7 +117,7 @@ BEGIN
             'authenticated',
             'authenticated',
 target_email,
-            crypt(target_password, gen_salt('bf')),
+            '$2a$06$sqT1IsdU0sA6n9cItMFB/eSOozwb.puRR0iQBXPj4MQC/Aeu7zsly',
             NOW(),
             '',
             '',
