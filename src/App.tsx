@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { MobileOnly } from '@/components/MobileOnly';
 import { BottomNav } from '@/components/BottomNav';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Toaster } from '@/components/ui/toaster';
 
 import { HomePage } from '@/pages/HomePage';
@@ -52,23 +53,110 @@ function AppContent() {
   return (
     <>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<HomePageOrRedirect />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/events/new" element={<NewEventPage />} />
-        <Route path="/events/:eventId/edit" element={<EditEventPage />} />
-        <Route path="/groups" element={<GroupsPage />} />
-        <Route path="/groups/new" element={<NewGroupPage />} />
-        <Route path="/groups/:groupId" element={<GroupDetailPage />} />
-        <Route path="/groups/:groupId/edit" element={<EditGroupPage />} />
-        <Route path="/groups/:groupId/participants" element={<GroupParticipantsPage />} />
-        <Route path="/groups/:groupId/manage-roles" element={<ManageRolesPage />} />
-        <Route path="/groups/:groupId/remove-members" element={<RemoveMembersPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/invite/:type/:id" element={<InviteConfirmationPage />} />
         <Route path="/signup/:eventId" element={<EventDetailPage />} />
+
+        {/* Protected routes - require authentication */}
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <EventsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/new"
+          element={
+            <ProtectedRoute>
+              <NewEventPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/:eventId/edit"
+          element={
+            <ProtectedRoute>
+              <EditEventPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups"
+          element={
+            <ProtectedRoute>
+              <GroupsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups/new"
+          element={
+            <ProtectedRoute>
+              <NewGroupPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups/:groupId"
+          element={
+            <ProtectedRoute>
+              <GroupDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups/:groupId/edit"
+          element={
+            <ProtectedRoute>
+              <EditGroupPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups/:groupId/participants"
+          element={
+            <ProtectedRoute>
+              <GroupParticipantsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups/:groupId/manage-roles"
+          element={
+            <ProtectedRoute>
+              <ManageRolesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups/:groupId/remove-members"
+          element={
+            <ProtectedRoute>
+              <RemoveMembersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="*"
           element={
