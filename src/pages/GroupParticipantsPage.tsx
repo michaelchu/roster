@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { Search, ArrowUpDown, UsersRound, UserMinus, UserCog, LogOut } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
@@ -34,6 +42,7 @@ export function GroupParticipantsPage() {
   const [showSortDrawer, setShowSortDrawer] = useState(false);
   const [sortOption, setSortOption] = useState('latest');
   const [leavingGroup, setLeavingGroup] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const {
     isLoading: participantsLoading,
     data: participants,
@@ -80,7 +89,7 @@ export function GroupParticipantsPage() {
     }
   }, [groupId, user?.id]);
 
-  const handleLeaveGroup = useCallback(async () => {
+  const confirmLeaveGroup = useCallback(async () => {
     if (!groupId || !user?.id || !group) return;
 
     // Don't allow organizer to leave their own group
@@ -93,6 +102,7 @@ export function GroupParticipantsPage() {
     try {
       await groupService.leaveGroup(groupId, user.id);
       errorHandler.success('You have left the group');
+      setShowLeaveDialog(false);
       navigate('/groups');
     } catch (error) {
       console.error('Error leaving group:', error);
@@ -300,16 +310,12 @@ export function GroupParticipantsPage() {
                           />
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium truncate">{participant.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              Member since:{' '}
-                              {new Date(participant.group_joined_at).toLocaleDateString()}
-                            </div>
                           </div>
                           {canLeave && (
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              onClick={handleLeaveGroup}
+                              onClick={() => setShowLeaveDialog(true)}
                               disabled={leavingGroup}
                               className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
                             >
@@ -336,6 +342,38 @@ export function GroupParticipantsPage() {
         selectedValue={sortOption}
         onSelect={setSortOption}
       />
+
+      {/* Leave Group Confirmation Dialog */}
+      <Dialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Leave Group</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to leave this group? You will no longer have access to group
+              events and will need to be re-invited to rejoin.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button
+              variant="destructive"
+              onClick={confirmLeaveGroup}
+              disabled={leavingGroup}
+              className="w-full sm:w-auto"
+            >
+              {leavingGroup ? 'Leaving...' : 'Leave Group'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowLeaveDialog(false)}
+              disabled={leavingGroup}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
