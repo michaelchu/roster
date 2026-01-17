@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { Search, ArrowUpDown, UsersRound, UserMinus, UserCog } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import { UserAvatar } from '@/components/UserAvatar';
 import { groupService, type GroupParticipant, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
@@ -263,13 +264,15 @@ export function GroupParticipantsPage() {
                 ) : (
                   filteredParticipants.map((participant) => (
                     <div key={participant.id} className="w-full p-3 border-b last:border-b-0">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0 pr-2">
+                      <div className="flex items-start gap-3">
+                        <UserAvatar
+                          name={participant.name}
+                          avatarUrl={participant.avatar_url}
+                          size="sm"
+                        />
+                        <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium truncate">{participant.name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {participant.email || participant.phone || 'No contact info'}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
                             Member since:{' '}
                             {new Date(participant.group_joined_at).toLocaleDateString()}
                           </div>

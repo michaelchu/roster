@@ -7,7 +7,6 @@ RETURNS TABLE (
   organizer_id uuid,
   name text,
   description text,
-  is_private boolean,
   created_at timestamptz,
   event_count bigint,
   participant_count bigint
@@ -21,7 +20,6 @@ AS $$
     g.organizer_id,
     g.name,
     g.description,
-    g.is_private,
     g.created_at,
     COALESCE(e.event_count, 0) AS event_count,
     COALESCE(gp.participant_count, 0) AS participant_count

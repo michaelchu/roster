@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
-import { User, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import { UserAvatar } from '@/components/UserAvatar';
 import { errorHandler } from '@/lib/errorHandler';
 import { ProfilePageSkeleton } from '@/components/ProfilePageSkeleton';
 
@@ -74,9 +75,12 @@ export function ProfilePage() {
         <div className="bg-card rounded-lg border overflow-hidden">
           <div className="p-3 border-b bg-muted">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 bg-primary rounded-full flex items-center justify-center">
-                <User className="h-6 w-6 text-white" />
-              </div>
+              <UserAvatar
+                name={user.user_metadata?.full_name}
+                avatarUrl={user.user_metadata?.avatar_url}
+                size="lg"
+                showIcon={!user.user_metadata?.full_name}
+              />
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Edit Profile</div>
                 <div className="text-xs text-muted-foreground">

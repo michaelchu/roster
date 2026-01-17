@@ -50,6 +50,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
+import { UserAvatar } from '@/components/UserAvatar';
 
 type Participant = ServiceParticipant & {
   notes?: string | null;
@@ -758,11 +759,7 @@ export function EventDetailPage() {
                       <div className="text-xs text-muted-foreground font-mono flex-shrink-0 mt-1">
                         {participant.slot_number}.
                       </div>
-                      <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-medium text-white">
-                          {displayName.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      <UserAvatar name={displayName} size="sm" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0 flex-1">

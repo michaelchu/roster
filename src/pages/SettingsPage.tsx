@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
+import { UserAvatar } from '@/components/UserAvatar';
 import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
 
 export function SettingsPage() {
@@ -83,9 +84,12 @@ export function SettingsPage() {
           <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-3 border-b bg-muted">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-primary rounded-full flex items-center justify-center">
-                  <User className="h-5 w-5 text-white" />
-                </div>
+                <UserAvatar
+                  name={user.user_metadata?.full_name}
+                  avatarUrl={user.user_metadata?.avatar_url || user.user_metadata?.picture}
+                  size="md"
+                  showIcon={!user.user_metadata?.full_name}
+                />
                 <div>
                   <div className="text-sm font-medium">
                     {user.user_metadata?.full_name || 'User'}

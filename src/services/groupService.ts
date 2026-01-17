@@ -23,6 +23,7 @@ export interface GroupParticipant
     name: string;
   } | null;
   group_joined_at: string;
+  avatar_url: string | null;
 }
 
 export interface GroupContact {
@@ -258,6 +259,7 @@ export const groupService = {
       payment_status: null,
       slot_number: null,
       checked_in_at: null,
+      avatar_url: member.avatar_url || null,
     }));
   },
 

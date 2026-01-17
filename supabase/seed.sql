@@ -181,12 +181,11 @@ target_email,
     WHERE name = 'Sports & Recreation' AND organizer_id = organizer_user_id;
     
     IF sports_group_id IS NULL THEN
-        INSERT INTO groups (organizer_id, name, description, is_private)
+        INSERT INTO groups (organizer_id, name, description)
         VALUES (
             organizer_user_id,
             'Sports & Recreation',
-            'Organizing regular sports activities for the community. Join us for badminton, basketball, and more!',
-            false
+            'Organizing regular sports activities for the community. Join us for badminton, basketball, and more!'
         )
         RETURNING id INTO sports_group_id;
         RAISE NOTICE 'Created Sports & Recreation group: %', sports_group_id;
@@ -200,12 +199,11 @@ target_email,
     WHERE name = 'Tech Meetup SF' AND organizer_id = organizer_user_id;
     
     IF tech_group_id IS NULL THEN
-        INSERT INTO groups (organizer_id, name, description, is_private)
+        INSERT INTO groups (organizer_id, name, description)
         VALUES (
             organizer_user_id,
             'Tech Meetup SF',
-            'Monthly meetups for developers and tech enthusiasts in San Francisco',
-            false
+            'Monthly meetups for developers and tech enthusiasts in San Francisco'
         )
         RETURNING id INTO tech_group_id;
         RAISE NOTICE 'Created Tech Meetup group: %', tech_group_id;
@@ -225,7 +223,7 @@ target_email,
     IF badminton_event_id IS NULL THEN
         INSERT INTO events (
             organizer_id, name, description, datetime, end_datetime,
-            location, is_private, custom_fields, max_participants, group_id
+            location, custom_fields, max_participants, group_id
         )
         VALUES (
             organizer_user_id,
@@ -234,7 +232,6 @@ target_email,
             (CURRENT_DATE + INTERVAL '3 days' + TIME '19:00:00')::timestamptz,
             (CURRENT_DATE + INTERVAL '3 days' + TIME '21:00:00')::timestamptz,
             'Community Sports Center, Court 2',
-            false,
             '[{
                 "id": "experience",
                 "label": "Playing Experience",
@@ -259,7 +256,7 @@ target_email,
     IF basketball_event_id IS NULL THEN
         INSERT INTO events (
             organizer_id, name, description, datetime, end_datetime,
-            location, is_private, custom_fields, max_participants, group_id
+            location, custom_fields, max_participants, group_id
         )
         VALUES (
             organizer_user_id,
@@ -268,7 +265,6 @@ target_email,
             (CURRENT_DATE + INTERVAL '5 days' + TIME '10:00:00')::timestamptz,
             (CURRENT_DATE + INTERVAL '5 days' + TIME '12:00:00')::timestamptz,
             'Golden Gate Park Basketball Courts',
-            false,
             '[{
                 "id": "position",
                 "label": "Preferred Position",
@@ -293,7 +289,7 @@ target_email,
     IF hackathon_event_id IS NULL THEN
         INSERT INTO events (
             organizer_id, name, description, datetime, end_datetime,
-            location, is_private, custom_fields, max_participants, group_id
+            location, custom_fields, max_participants, group_id
         )
         VALUES (
             organizer_user_id,
@@ -302,7 +298,6 @@ target_email,
             (CURRENT_DATE + INTERVAL '10 days' + TIME '09:00:00')::timestamptz,
             (CURRENT_DATE + INTERVAL '11 days' + TIME '09:00:00')::timestamptz,
             'TechHub SF, 123 Market St',
-            false,
             '[{
                 "id": "skill_level",
                 "label": "Coding Experience",
@@ -332,7 +327,7 @@ target_email,
     IF workshop_event_id IS NULL THEN
         INSERT INTO events (
             organizer_id, name, description, datetime, end_datetime,
-            location, is_private, custom_fields, max_participants, group_id
+            location, custom_fields, max_participants, group_id
         )
         VALUES (
             organizer_user_id,
@@ -341,7 +336,6 @@ target_email,
             (CURRENT_DATE + INTERVAL '7 days' + TIME '18:00:00')::timestamptz,
             (CURRENT_DATE + INTERVAL '7 days' + TIME '20:00:00')::timestamptz,
             'WeWork SoMa, Conference Room A',
-            false,
             '[{
                 "id": "experience",
                 "label": "React Experience",
@@ -370,7 +364,7 @@ target_email,
     IF standalone_yoga_id IS NULL THEN
         INSERT INTO events (
             organizer_id, name, description, datetime, end_datetime,
-            location, is_private, custom_fields, max_participants, group_id
+            location, custom_fields, max_participants, group_id
         )
         VALUES (
             organizer_user_id,
@@ -379,7 +373,6 @@ target_email,
             (CURRENT_DATE + INTERVAL '2 days' + TIME '07:00:00')::timestamptz,
             (CURRENT_DATE + INTERVAL '2 days' + TIME '08:00:00')::timestamptz,
             'Dolores Park, Near Playground',
-            false,
             '[{
                 "id": "level",
                 "label": "Yoga Experience",
@@ -410,7 +403,7 @@ target_email,
     IF standalone_party_id IS NULL THEN
         INSERT INTO events (
             organizer_id, name, description, datetime, end_datetime,
-            location, is_private, custom_fields, max_participants, group_id
+            location, custom_fields, max_participants, group_id
         )
         VALUES (
             organizer_user_id,
@@ -419,7 +412,6 @@ target_email,
             (CURRENT_DATE + INTERVAL '14 days' + TIME '20:00:00')::timestamptz,
             (CURRENT_DATE + INTERVAL '15 days' + TIME '02:00:00')::timestamptz,
             'Private Venue, Address TBD',
-            false,
             '[{
                 "id": "plus_one",
                 "label": "Bringing a plus one?",

@@ -15,6 +15,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { UserMinus, AlertTriangle } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import { UserAvatar } from '@/components/UserAvatar';
 import { groupService, type Group } from '@/services';
 import type { GroupParticipant } from '@/services/groupService';
 import { errorHandler } from '@/lib/errorHandler';
@@ -274,14 +275,9 @@ export function RemoveMembersPage() {
                       checked={selectedMemberIds.has(member.id)}
                       onCheckedChange={(checked) => handleToggleMember(member.id, checked === true)}
                     />
+                    <UserAvatar name={member.name} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{member.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {member.email || member.phone || 'No contact info'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Joined {new Date(member.group_joined_at).toLocaleDateString()}
-                      </div>
                     </div>
                   </label>
                 ))}

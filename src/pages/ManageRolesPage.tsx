@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
 import { Shield, X, UserPlus } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import { UserAvatar } from '@/components/UserAvatar';
 import { groupService, organizerService, type Group } from '@/services';
 import type { GroupParticipant, GroupAdmin } from '@/services/groupService';
 import { errorHandler } from '@/lib/errorHandler';
@@ -251,7 +252,8 @@ export function ManageRolesPage() {
           ) : (
             <div className="divide-y">
               {admins.map((admin) => (
-                <div key={admin.id} className="p-3 flex items-center justify-between">
+                <div key={admin.id} className="p-3 flex items-center gap-3">
+                  <UserAvatar name={admin.displayName} size="sm" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">{admin.displayName}</div>
                     <div className="text-xs text-muted-foreground">
@@ -323,6 +325,7 @@ export function ManageRolesPage() {
                               handleToggleMember(member.id, checked === true)
                             }
                           />
+                          <UserAvatar name={member.name} size="sm" />
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium truncate">{member.name}</div>
                           </div>

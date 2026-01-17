@@ -401,6 +401,7 @@ export type Database = {
       get_group_members_with_user_info: {
         Args: { p_group_id: string };
         Returns: {
+          avatar_url: string;
           email: string;
           full_name: string;
           joined_at: string;
