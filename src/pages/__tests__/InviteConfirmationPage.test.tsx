@@ -169,8 +169,10 @@ describe('InviteConfirmationPage', () => {
       const signInButton = screen.getByText('Sign in to manage RSVP');
       fireEvent.click(signInButton);
 
-      // Check navigation to login with returnUrl pointing to event page
-      expect(mockNavigate).toHaveBeenCalledWith('/auth/login?returnUrl=%2Fsignup%2Ftest-event-id');
+      // Check navigation to login with returnUrl pointing back to invite page
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/auth/login?returnUrl=%2Finvite%2Fevent%2Ftest-event-id'
+      );
     });
 
     it('navigates to signup page when RSVP as guest clicked', async () => {

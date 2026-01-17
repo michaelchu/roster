@@ -60,10 +60,22 @@ export function InviteConfirmationPage() {
         const group = await groupService.getGroupById(id);
         setGroupData(group);
 
-        // Check if user is already a group member
+        // Check if user is already a group member, auto-join if not
         if (user) {
           const isGroupMember = await groupService.checkUserGroupMembership(user.id, id);
-          setIsMember(isGroupMember);
+          if (!isGroupMember) {
+            // Auto-join the group when user lands on invite page after signing in
+            try {
+              await groupService.addUserToGroup(id, user.id);
+              setIsMember(true);
+            } catch (joinErr) {
+              console.error('Error auto-joining group:', joinErr);
+              // Still show the page, user can try manual join
+              setIsMember(false);
+            }
+          } else {
+            setIsMember(true);
+          }
         }
       }
     } catch (err) {
@@ -79,10 +91,10 @@ export function InviteConfirmationPage() {
   const handleSignInClick = () => {
     if (!type || !id) return;
 
-    // Determine the target page after login
-    const targetUrl = type === 'event' ? `/signup/${id}` : `/groups/${id}`;
+    // Return to invite page after login so user can complete the join action
+    const targetUrl = `/invite/${type}/${id}`;
 
-    // Navigate to login with returnUrl pointing to the event/group page
+    // Navigate to login with returnUrl pointing back to invite page
     navigate(`/auth/login?returnUrl=${encodeURIComponent(targetUrl)}`);
   };
 
