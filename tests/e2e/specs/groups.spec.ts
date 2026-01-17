@@ -419,7 +419,7 @@ test.describe('Group Management Flow', () => {
   });
 
   test.describe('Direct Group Join via Invite Link', () => {
-    test('authenticated user can join group via invite link', async ({ page }) => {
+    test('authenticated user is auto-joined when visiting group invite link', async ({ page }) => {
       // Create organizer and group
       await register(page, {
         email: generateTestEmail('groupowner'),
@@ -441,23 +441,27 @@ test.describe('Group Management Flow', () => {
 
       const newUserId = await getUserId(page);
 
-      // Visit group invite link
+      // Visit group invite link - user should be auto-joined
       await page.goto(`/invite/group/${group.id}`);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000); // Wait for auto-join to complete
 
-      // Should see group info and "Join Group" button
+      // Should see group info and "already a member" confirmation
       const hasGroupName = await page.getByText(group.name).isVisible().catch(() => false);
       expect(hasGroupName).toBe(true);
 
-      const joinButton = page.getByRole('button', { name: /join group/i });
-      expect(await joinButton.isVisible()).toBe(true);
+      // Should see "already a member" message (auto-joined)
+      const alreadyMemberText = await page
+        .getByText(/already a member/i)
+        .isVisible()
+        .catch(() => false);
+      expect(alreadyMemberText).toBe(true);
 
-      // Click join button
-      await joinButton.click();
-      await page.waitForTimeout(2000);
+      // Should see "View Group Details" button (not "Join Group")
+      const viewButton = page.getByRole('button', { name: /view group details/i });
+      expect(await viewButton.isVisible()).toBe(true);
 
-      // Verify user was added to group
+      // Verify user was auto-added to group
       const { data: membership } = await getAdminDb()
         .from('group_participants')
         .select('*')
@@ -538,7 +542,7 @@ test.describe('Group Management Flow', () => {
       expect(await viewButton.isVisible()).toBe(true);
     });
 
-    test('user can join group then view group details', async ({ page }) => {
+    test('user is auto-joined and can view group details', async ({ page }) => {
       // Create organizer and group
       await register(page, {
         email: generateTestEmail('groupowner4'),
@@ -558,18 +562,12 @@ test.describe('Group Management Flow', () => {
         password: 'TestPassword123!',
       });
 
-      const userId = await getUserId(page);
-
-      // Visit invite link and join
+      // Visit invite link - auto-join happens automatically
       await page.goto(`/invite/group/${group.id}`);
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000); // Wait for auto-join to complete
 
-      const joinButton = page.getByRole('button', { name: /join group/i });
-      await joinButton.click();
-      await page.waitForTimeout(2000);
-
-      // After joining, should see "View Group Details" button
+      // After auto-joining, should see "View Group Details" button
       const viewButton = page.getByRole('button', { name: /view group details/i });
       expect(await viewButton.isVisible()).toBe(true);
 

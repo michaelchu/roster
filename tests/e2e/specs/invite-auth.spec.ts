@@ -15,7 +15,7 @@ import {
  * 1. Unauthenticated user visits event/group invite page
  * 2. Clicks "Sign in to manage RSVP" or "Sign in to join"
  * 3. Authenticates via login page (existing user) or registers (new user)
- * 4. Gets redirected to the event/group page (not back to invite page)
+ * 4. Gets redirected back to invite page which then auto-joins and shows confirmation
  *
  * Includes tests for:
  * - Existing user login from invite
@@ -69,23 +69,22 @@ test.describe('Event Invite Authentication Flow', () => {
       await expect(signInButton).toBeVisible();
       await signInButton.click();
 
-      // Should navigate to login page with returnUrl
+      // Should navigate to login page with returnUrl pointing back to invite page
       await page.waitForURL(/\/auth\/login/);
-      expect(page.url()).toContain(`returnUrl=%2Fsignup%2F${event.id}`);
+      expect(page.url()).toContain(`returnUrl=%2Finvite%2Fevent%2F${event.id}`);
 
       // Step 4: Login with existing user credentials
       await page.fill('input[type="email"]', organizerUser.email);
       await page.fill('input[type="password"]', organizerUser.password);
       await page.click('button[type="submit"]');
 
-      // Wait for redirect
+      // Wait for redirect back to invite page
       await page.waitForTimeout(2000);
 
-      // Step 5: Verify redirect to event signup page (not invite page)
-      expect(page.url()).toContain(`/signup/${event.id}`);
-      expect(page.url()).not.toContain('/invite/');
+      // Step 5: Verify redirect to invite page (where auto-join happens for groups, or shows options for events)
+      expect(page.url()).toContain(`/invite/event/${event.id}`);
 
-      // Verify event details are visible
+      // For events, user should see option to RSVP or already registered message
       await expect(page.getByText(event.name)).toBeVisible();
     });
 
@@ -120,14 +119,14 @@ test.describe('Event Invite Authentication Flow', () => {
       const signInButton = page.getByRole('button', { name: /sign in to manage rsvp/i });
       await signInButton.click();
 
-      // Should be on login page with correct returnUrl
+      // Should be on login page with correct returnUrl pointing back to invite page
       await page.waitForURL(/\/auth\/login/);
       const url = page.url();
-      expect(url).toContain(`returnUrl=%2Fsignup%2F${event.id}`);
+      expect(url).toContain(`returnUrl=%2Finvite%2Fevent%2F${event.id}`);
 
       // Note: Full Google OAuth flow requires mocking (see google-auth.spec.ts)
       // For this test, we verify the returnUrl is set correctly
-      // In production, after Google auth succeeds, user would be redirected to /signup/{eventId}
+      // In production, after Google auth succeeds, user would be redirected to /invite/event/{eventId}
     });
 
     test('guest RSVP button navigates directly to event page', async ({ page }) => {
@@ -242,14 +241,14 @@ test.describe('Event Invite Authentication Flow', () => {
       const signInButton = page.getByRole('button', { name: /sign in to manage rsvp/i });
       await signInButton.click();
 
-      // Should navigate to login page with returnUrl
+      // Should navigate to login page with returnUrl pointing back to invite page
       await page.waitForURL(/\/auth\/login/);
-      expect(page.url()).toContain(`returnUrl=%2Fsignup%2F${event.id}`);
+      expect(page.url()).toContain(`returnUrl=%2Finvite%2Fevent%2F${event.id}`);
 
       // Step 4: Click Sign Up link (should preserve returnUrl)
       await page.click('a:has-text("Sign Up")');
       await page.waitForURL(/\/auth\/register/);
-      expect(page.url()).toContain(`returnUrl=%2Fsignup%2F${event.id}`);
+      expect(page.url()).toContain(`returnUrl=%2Finvite%2Fevent%2F${event.id}`);
 
       // Step 5: Fill out registration form (using id selectors)
       const newUserEmail = generateTestEmail('new-invitee');
@@ -261,11 +260,11 @@ test.describe('Event Invite Authentication Flow', () => {
       // Wait for registration and redirect
       await page.waitForTimeout(3000);
 
-      // Step 6: Verify redirect to event signup page
+      // Step 6: Verify redirect to invite page
       const currentUrl = page.url();
-      expect(currentUrl).toContain(`/signup/${event.id}`);
+      expect(currentUrl).toContain(`/invite/event/${event.id}`);
 
-      // Verify user is logged in and on event page
+      // Verify user is logged in and on invite page showing event details
       await expect(page.getByText(event.name)).toBeVisible();
     });
 
@@ -301,14 +300,14 @@ test.describe('Event Invite Authentication Flow', () => {
       // Step 3: Click sign in button
       await signInButton.click();
 
-      // Should navigate to login page with returnUrl
+      // Should navigate to login page with returnUrl pointing back to invite page
       await page.waitForURL(/\/auth\/login/);
-      expect(page.url()).toContain(`returnUrl=%2Fgroups%2F${group.id}`);
+      expect(page.url()).toContain(`returnUrl=%2Finvite%2Fgroup%2F${group.id}`);
 
       // Step 4: Click Sign Up link (should preserve returnUrl)
       await page.click('a:has-text("Sign Up")');
       await page.waitForURL(/\/auth\/register/);
-      expect(page.url()).toContain(`returnUrl=%2Fgroups%2F${group.id}`);
+      expect(page.url()).toContain(`returnUrl=%2Finvite%2Fgroup%2F${group.id}`);
 
       // Step 5: Fill out registration form (using id selectors)
       const newUserEmail = generateTestEmail('new-group-invitee');
@@ -317,15 +316,27 @@ test.describe('Event Invite Authentication Flow', () => {
       await page.fill('#password', 'NewUserPassword123!');
       await page.click('button[type="submit"]');
 
-      // Wait for registration and redirect
+      // Wait for registration and redirect to invite page (auto-join happens there)
       await page.waitForTimeout(3000);
 
-      // Step 6: Verify redirect to group page
+      // Step 6: Verify redirect to invite page where auto-join happens
       const currentUrl = page.url();
-      expect(currentUrl).toContain(`/groups/${group.id}`);
+      expect(currentUrl).toContain(`/invite/group/${group.id}`);
 
-      // Verify user is logged in and on group page
+      // Verify user is logged in and sees "already a member" message (auto-joined)
       await expect(page.getByText(group.name)).toBeVisible();
+      await expect(page.getByText(/you're already a member/i)).toBeVisible();
+
+      // Step 7: Verify user was actually added to the group by checking database
+      const adminDb = getAdminDb();
+      const { data: membership } = await adminDb
+        .from('group_participants')
+        .select('*')
+        .eq('group_id', group.id)
+        .neq('user_id', organizerId) // Exclude organizer
+        .single();
+
+      expect(membership).toBeTruthy();
     });
   });
 
@@ -374,18 +385,18 @@ test.describe('Event Invite Authentication Flow', () => {
       await signInButton.click();
 
       await page.waitForURL(/\/auth\/login/);
-      
-      // Verify returnUrl is set correctly
-      expect(page.url()).toContain(`returnUrl=%2Fsignup%2F${event.id}`);
-      
+
+      // Verify returnUrl is set correctly to invite page
+      expect(page.url()).toContain(`returnUrl=%2Finvite%2Fevent%2F${event.id}`);
+
       await page.fill('input[type="email"]', organizerUser.email);
       await page.fill('input[type="password"]', organizerUser.password);
       await page.click('button[type="submit"]');
 
       await page.waitForTimeout(2000);
 
-      // Should redirect to event page
-      expect(page.url()).toContain(`/signup/${event.id}`);
+      // Should redirect to invite page
+      expect(page.url()).toContain(`/invite/event/${event.id}`);
     });
   });
 });
