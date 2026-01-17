@@ -8,6 +8,7 @@ vi.mock('@/services', () => ({
   groupService: {
     getGroupById: vi.fn(),
     getGroupParticipants: vi.fn(),
+    isGroupAdmin: vi.fn(),
   },
 }));
 

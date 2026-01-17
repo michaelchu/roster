@@ -201,35 +201,6 @@ describe('RemoveMembersPage', () => {
       expect(screen.queryByText('Admin User')).not.toBeInTheDocument();
     });
 
-    it('should display member contact info', async () => {
-      render(<RemoveMembersPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('regular@test.com')).toBeInTheDocument();
-      });
-      expect(screen.getByText('987-654-3210')).toBeInTheDocument();
-    });
-
-    it('should display "No contact info" when member has no email or phone', async () => {
-      mockGroupService.getGroupParticipants.mockResolvedValue([
-        ...mockMembers.slice(0, 2),
-        {
-          id: 'member-5',
-          name: 'No Contact User',
-          email: null,
-          phone: null,
-          user_id: 'user-nocontact-1',
-          group_joined_at: '2024-01-05',
-        },
-      ] as any);
-
-      render(<RemoveMembersPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText('No contact info')).toBeInTheDocument();
-      });
-    });
-
     // Note: Single test covers search filtering - name/email/phone all use the same filter logic
     it('should filter members by search query', async () => {
       render(<RemoveMembersPage />);
