@@ -32,9 +32,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - To re-seed local database: `psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed.sql`
 - **CI/CD automatically applies migrations to production** when code is pushed to main - no manual `db push` needed
 
-**IMPORTANT - Database Commands Requiring Explicit Permission:**
+**IMPORTANT - Commands Requiring Explicit Permission:**
 - **NEVER** run `npx supabase db reset` unless explicitly told to - this wipes all local data
 - **NEVER** run `npx supabase db push` unless explicitly told to - CI/CD handles production migrations automatically
+- **NEVER** run `git push` unless explicitly told to - only commit changes, don't push to remote
 
 ## High-Level Architecture
 
