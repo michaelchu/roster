@@ -115,39 +115,65 @@ describe('groupService', () => {
   });
 
   describe('getGroupById', () => {
-    it('should fetch a single group by ID', async () => {
-      const mockGroup = {
-        id: 'group-1',
-        name: 'Test Group',
-        organizer_id: 'organizer-1',
-        created_at: '2023-01-01T00:00:00Z',
-      };
+    it('should fetch a single group with counts via RPC', async () => {
+      const mockRpcData = [
+        {
+          id: 'group-1',
+          name: 'Test Group',
+          organizer_id: 'organizer-1',
+          description: 'Test description',
+          is_private: false,
+          created_at: '2023-01-01T00:00:00Z',
+          event_count: 5,
+          participant_count: 10,
+        },
+      ];
 
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: mockGroup, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
+      mockSupabase.rpc.mockResolvedValue({ data: mockRpcData, error: null });
 
       const result = await groupService.getGroupById('group-1');
 
-      expect(result).toEqual(mockGroup);
-      expect(mockSupabase.from).toHaveBeenCalledWith('groups');
-      expect(mockQueryChain.eq).toHaveBeenCalledWith('id', 'group-1');
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('get_group_by_id_with_counts', {
+        p_group_id: 'group-1',
+      });
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'group-1',
+          name: 'Test Group',
+          event_count: 5,
+          participant_count: 10,
+        })
+      );
     });
 
     it('should throw error when group not found', async () => {
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
+      mockSupabase.rpc.mockResolvedValue({ data: [], error: null });
 
       await expect(groupService.getGroupById('nonexistent')).rejects.toThrow('Group not found');
+    });
+
+    it('should convert bigint counts to numbers', async () => {
+      const mockRpcData = [
+        {
+          id: 'group-1',
+          name: 'Test Group',
+          organizer_id: 'organizer-1',
+          description: null,
+          is_private: false,
+          created_at: '2023-01-01T00:00:00Z',
+          event_count: BigInt(5),
+          participant_count: BigInt(10),
+        },
+      ];
+
+      mockSupabase.rpc.mockResolvedValue({ data: mockRpcData, error: null });
+
+      const result = await groupService.getGroupById('group-1');
+
+      expect(result.event_count).toBe(5);
+      expect(result.participant_count).toBe(10);
+      expect(typeof result.event_count).toBe('number');
+      expect(typeof result.participant_count).toBe('number');
     });
   });
 

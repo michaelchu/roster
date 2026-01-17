@@ -98,12 +98,25 @@ export const groupService = {
   },
 
   async getGroupById(groupId: string): Promise<Group> {
-    const { data, error } = await supabase.from('groups').select('*').eq('id', groupId).single();
+    // Use RPC function to get group with counts
+    const { data, error } = await supabase.rpc('get_group_by_id_with_counts', {
+      p_group_id: groupId,
+    });
 
-    if (error) throw error;
-    if (!data) throw new Error('Group not found');
+    if (error) throw errorHandler.fromSupabaseError(error);
+    if (!data || data.length === 0) throw new Error('Group not found');
 
-    return data;
+    const group = data[0];
+    return {
+      id: group.id,
+      organizer_id: group.organizer_id,
+      name: group.name,
+      description: group.description,
+      is_private: group.is_private,
+      created_at: group.created_at,
+      event_count: Number(group.event_count),
+      participant_count: Number(group.participant_count),
+    };
   },
 
   async createGroup(
