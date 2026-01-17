@@ -26,21 +26,6 @@ export interface GroupContact {
 }
 
 // Internal interfaces for the nested Supabase query results
-interface GroupParticipantQueryResult {
-  joined_at: string;
-  participants: Tables<'participants'> & {
-    events:
-      | {
-          id: string;
-          name: string;
-        }
-      | Array<{
-          id: string;
-          name: string;
-        }>;
-  };
-}
-
 interface EventWithParticipants extends Tables<'events'> {
   participants: Array<{ id: string } | null>;
 }
@@ -49,12 +34,11 @@ interface GroupQueryResult {
   groups: Tables<'groups'> | Array<Tables<'groups'>>;
 }
 
-interface GroupParticipantStatsQueryResult {
-  participants: {
-    user_id: string | null;
-    email: string | null;
-    id: string;
-  };
+interface GroupMemberWithUserInfo {
+  user_id: string;
+  joined_at: string;
+  email: string;
+  full_name: string;
 }
 
 export interface GroupStats {
@@ -263,7 +247,7 @@ export const groupService = {
     if (membersError) throw errorHandler.fromSupabaseError(membersError);
     if (!membersData || membersData.length === 0) return [];
 
-    return membersData.map((member: any) => ({
+    return (membersData as GroupMemberWithUserInfo[]).map((member) => ({
       id: member.user_id,
       user_id: member.user_id,
       name: member.full_name || member.email || 'Group Member',
