@@ -595,4 +595,14 @@ export const groupService = {
       participant_count: Number(group.participant_count),
     }));
   },
+
+  async leaveGroup(groupId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('group_participants')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+
+    if (error) throw errorHandler.fromSupabaseError(error);
+  },
 };

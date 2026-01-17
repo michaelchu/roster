@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, ArrowUpDown, UsersRound, UserMinus, UserCog } from 'lucide-react';
+import { Search, ArrowUpDown, UsersRound, UserMinus, UserCog, LogOut } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { UserAvatar } from '@/components/UserAvatar';
 import { groupService, type GroupParticipant, type Group } from '@/services';
@@ -33,6 +33,7 @@ export function GroupParticipantsPage() {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [showSortDrawer, setShowSortDrawer] = useState(false);
   const [sortOption, setSortOption] = useState('latest');
+  const [leavingGroup, setLeavingGroup] = useState(false);
   const {
     isLoading: participantsLoading,
     data: participants,
@@ -78,6 +79,28 @@ export function GroupParticipantsPage() {
       setAdminLoading(false);
     }
   }, [groupId, user?.id]);
+
+  const handleLeaveGroup = useCallback(async () => {
+    if (!groupId || !user?.id || !group) return;
+
+    // Don't allow organizer to leave their own group
+    if (group.organizer_id === user.id) {
+      errorHandler.handle(new Error('You cannot leave a group you created'));
+      return;
+    }
+
+    setLeavingGroup(true);
+    try {
+      await groupService.leaveGroup(groupId, user.id);
+      errorHandler.success('You have left the group');
+      navigate('/groups');
+    } catch (error) {
+      console.error('Error leaving group:', error);
+      errorHandler.handle(error);
+    } finally {
+      setLeavingGroup(false);
+    }
+  }, [groupId, user?.id, group, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -262,24 +285,42 @@ export function GroupParticipantsPage() {
                     <p className="text-sm text-muted-foreground">No members found</p>
                   </div>
                 ) : (
-                  filteredParticipants.map((participant) => (
-                    <div key={participant.id} className="w-full p-3 border-b last:border-b-0">
-                      <div className="flex items-start gap-3">
-                        <UserAvatar
-                          name={participant.name}
-                          avatarUrl={participant.avatar_url}
-                          size="sm"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">{participant.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Member since:{' '}
-                            {new Date(participant.group_joined_at).toLocaleDateString()}
+                  filteredParticipants.map((participant) => {
+                    const isCurrentUser = participant.user_id === user?.id;
+                    const isOrganizer = group?.organizer_id === user?.id;
+                    const canLeave = isCurrentUser && !isOrganizer;
+
+                    return (
+                      <div key={participant.id} className="w-full p-3 border-b last:border-b-0">
+                        <div className="flex items-center gap-3">
+                          <UserAvatar
+                            name={participant.name}
+                            avatarUrl={participant.avatar_url}
+                            size="sm"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">{participant.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Member since:{' '}
+                              {new Date(participant.group_joined_at).toLocaleDateString()}
+                            </div>
                           </div>
+                          {canLeave && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleLeaveGroup}
+                              disabled={leavingGroup}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
+                            >
+                              <LogOut className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Leave</span>
+                            </Button>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
