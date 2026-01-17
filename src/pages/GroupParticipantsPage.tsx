@@ -102,9 +102,9 @@ export function GroupParticipantsPage() {
       case 'nameDesc':
         return sorted.sort((a, b) => b.name.localeCompare(a.name));
       case 'eventAsc':
-        return sorted.sort((a, b) => a.event.name.localeCompare(b.event.name));
+        return sorted.sort((a, b) => (a.event?.name ?? '').localeCompare(b.event?.name ?? ''));
       case 'eventDesc':
-        return sorted.sort((a, b) => b.event.name.localeCompare(a.event.name));
+        return sorted.sort((a, b) => (b.event?.name ?? '').localeCompare(a.event?.name ?? ''));
       default:
         return sorted;
     }
@@ -116,7 +116,7 @@ export function GroupParticipantsPage() {
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.email ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.phone ?? '').includes(searchQuery) ||
-        p.event.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (p.event?.name ?? '').toLowerCase().includes(searchQuery.toLowerCase())
     ) || []
   );
 
