@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -178,16 +177,14 @@ export function RemoveMembersPage() {
     }
   };
 
-  // Filter by search query
-  const filteredMembers = members.filter(
+  // Filter out protected members (owner and admins) and apply search query
+  const removableMembers = members.filter((m) => !m.isProtected);
+  const filteredMembers = removableMembers.filter(
     (m) =>
       m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (m.email ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (m.phone ?? '').includes(searchQuery)
   );
-
-  // Count non-protected members
-  const removableMembers = members.filter((m) => !m.isProtected);
   const selectedCount = selectedMemberIds.size;
 
   // Loading state
@@ -238,95 +235,80 @@ export function RemoveMembersPage() {
       <TopNav showCloseButton sticky />
 
       <div className="p-3 space-y-4">
-        {/* Header Info */}
+        {/* Header */}
         <div className="space-y-1">
-          <div className="text-sm font-medium">
-            {members.length} {members.length === 1 ? 'member' : 'members'} total
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Select members to remove from the group. Owners and admins cannot be removed.
-          </p>
+          <h2 className="text-sm font-medium">Removable Members ({removableMembers.length})</h2>
+          <p className="text-xs text-muted-foreground">Select members to remove from the group</p>
         </div>
 
-        {/* Search */}
-        <div className="space-y-2">
-          <Label htmlFor="search">Search Members</Label>
-          <Input
-            id="search"
-            type="search"
-            placeholder="Search by name, email, or phone..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10"
-          />
-        </div>
-
-        {/* Member List */}
-        {filteredMembers.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-sm text-muted-foreground">No members found</p>
-          </div>
-        ) : (
+        <div className="space-y-3">
+          {/* Search */}
           <div className="space-y-2">
-            {filteredMembers.map((member) => (
-              <label
-                key={member.id}
-                className={`flex items-center gap-3 p-3 border rounded-lg ${
-                  member.isProtected
-                    ? 'bg-muted/50 cursor-not-allowed'
-                    : 'hover:bg-muted cursor-pointer'
-                }`}
-              >
-                <Checkbox
-                  checked={selectedMemberIds.has(member.id)}
-                  onCheckedChange={(checked) => handleToggleMember(member.id, checked === true)}
-                  disabled={member.isProtected}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{member.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {member.email || member.phone || 'No contact info'}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Joined {new Date(member.group_joined_at).toLocaleDateString()}
-                  </div>
+            <Label htmlFor="search" className="text-xs">
+              Search Members
+            </Label>
+            <Input
+              id="search"
+              type="search"
+              placeholder="Search by name, email, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 text-sm"
+            />
+          </div>
+
+          {/* Member List */}
+          {filteredMembers.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground">No members found</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-card rounded-lg border overflow-hidden divide-y">
+                {filteredMembers.map((member) => (
+                  <label
+                    key={member.id}
+                    className="flex items-center gap-3 p-3 hover:bg-muted cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={selectedMemberIds.has(member.id)}
+                      onCheckedChange={(checked) => handleToggleMember(member.id, checked === true)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">{member.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {member.email || member.phone || 'No contact info'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Joined {new Date(member.group_joined_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              {selectedCount > 0 && (
+                <div className="text-xs text-muted-foreground">
+                  {selectedCount} {selectedCount === 1 ? 'member' : 'members'} selected
                 </div>
-                <Badge
-                  variant={
-                    member.role === 'owner'
-                      ? 'default'
-                      : member.role === 'admin'
-                        ? 'secondary'
-                        : 'outline'
-                  }
-                >
-                  {member.role}
-                </Badge>
-              </label>
-            ))}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
-        {selectedCount > 0 && (
-          <div className="text-xs text-muted-foreground">
-            {selectedCount} {selectedCount === 1 ? 'member' : 'members'} selected
-          </div>
-        )}
-
-        {removableMembers.length === 0 && (
-          <div className="p-4 border rounded-lg bg-muted/50">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-sm font-medium">No Members to Remove</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  All current members are either the owner or admins, who cannot be removed through
-                  this page.
-                </p>
+          {removableMembers.length === 0 && (
+            <div className="p-4 bg-card border rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">No Members to Remove</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    All current members are either the owner or admins
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Remove Button */}

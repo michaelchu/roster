@@ -26,14 +26,20 @@ export function ActionButton({
   loadingText = 'Loading...',
   size = 'default',
 }: ActionButtonProps) {
+  const isDisabled = loading || disabled;
+
   return (
     <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2">
       <Button
         type={type}
         form={form}
         onClick={onClick}
-        className="w-full text-white shadow-lg drop-shadow-md bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-        disabled={loading || disabled}
+        className={`w-full text-white shadow-lg drop-shadow-md ${
+          isDisabled
+            ? 'bg-muted text-muted-foreground cursor-not-allowed'
+            : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+        }`}
+        disabled={isDisabled}
         size={size}
       >
         {loading ? (

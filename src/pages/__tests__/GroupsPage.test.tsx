@@ -14,7 +14,6 @@ const mockUseAuth = vi.mocked(useAuth);
 vi.mock('@/services', () => ({
   groupService: {
     getGroupsByOrganizer: vi.fn(),
-    getAllContactsFromGroups: vi.fn(),
   },
 }));
 
@@ -96,9 +95,7 @@ describe('GroupsPage', () => {
 
     renderWithRouter(<GroupsPage />);
 
-    // Check for tab navigation which confirms page rendered
-    expect(screen.getByRole('tab', { name: 'Groups' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Contacts' })).toBeInTheDocument();
+    // Check for New Group button which confirms page rendered
     expect(screen.getByRole('button', { name: 'New Group' })).toBeInTheDocument();
   });
 

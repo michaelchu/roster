@@ -380,7 +380,7 @@ describe('InviteConfirmationPage', () => {
       renderWithRouter(<InviteConfirmationPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('View Group Events')).toBeInTheDocument();
+        expect(screen.getByText('View Group Details')).toBeInTheDocument();
       });
     });
   });

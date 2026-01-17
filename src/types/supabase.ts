@@ -188,27 +188,21 @@ export type Database = {
       group_participants: {
         Row: {
           group_id: string;
-          guest_email: string | null;
           id: string;
           joined_at: string;
-          participant_id: string;
-          user_id: string | null;
+          user_id: string;
         };
         Insert: {
           group_id: string;
-          guest_email?: string | null;
           id?: string;
           joined_at?: string;
-          participant_id: string;
-          user_id?: string | null;
+          user_id: string;
         };
         Update: {
           group_id?: string;
-          guest_email?: string | null;
           id?: string;
           joined_at?: string;
-          participant_id?: string;
-          user_id?: string | null;
+          user_id?: string;
         };
         Relationships: [
           {

@@ -22,6 +22,7 @@ export function InviteConfirmationPage() {
   const [groupData, setGroupData] = useState<Group | null>(null);
   const [isMember, setIsMember] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [joining, setJoining] = useState(false);
 
   useEffect(() => {
     if (!type || !id) {
@@ -99,6 +100,22 @@ export function InviteConfirmationPage() {
   const handleViewGroup = () => {
     if (!groupData) return;
     navigate(`/groups/${groupData.id}`);
+  };
+
+  const handleJoinGroup = async () => {
+    if (!groupData || !user) return;
+
+    setJoining(true);
+    try {
+      await groupService.addUserToGroup(groupData.id, user.id);
+      setIsMember(true);
+      // Optionally show success message
+    } catch (err) {
+      console.error('Error joining group:', err);
+      setError(err instanceof Error ? err.message : 'Failed to join group');
+    } finally {
+      setJoining(false);
+    }
   };
 
   if (loading || authLoading) {
@@ -355,11 +372,14 @@ export function InviteConfirmationPage() {
             ) : (
               <div className="text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  To join this group, register for one of its events. View the group to see
-                  available events.
+                  Join this group to stay updated on events and connect with other members
                 </p>
+                <Button onClick={handleJoinGroup} disabled={joining} className="w-full">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  {joining ? 'Joining...' : 'Join Group'}
+                </Button>
                 <Button onClick={handleViewGroup} variant="outline" className="w-full">
-                  View Group Events
+                  View Group Details
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>

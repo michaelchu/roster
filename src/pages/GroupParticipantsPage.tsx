@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, ArrowUpDown, UsersRound, UserPlus, UserMinus, UserCog } from 'lucide-react';
+import { Search, ArrowUpDown, UsersRound, UserMinus, UserCog } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService, type GroupParticipant, type Group } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -174,7 +173,7 @@ export function GroupParticipantsPage() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-medium">Quick Actions</h2>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -183,15 +182,6 @@ export function GroupParticipantsPage() {
               >
                 <UserCog className="h-5 w-5" />
                 <span className="text-xs">Manage</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-20 flex-col gap-2"
-                onClick={() => navigate(`/groups/${groupId}/add-members`)}
-              >
-                <UserPlus className="h-5 w-5" />
-                <span className="text-xs">Add</span>
               </Button>
               <Button
                 variant="outline"
@@ -272,19 +262,7 @@ export function GroupParticipantsPage() {
                   </div>
                 ) : (
                   filteredParticipants.map((participant) => (
-                    <button
-                      type="button"
-                      key={participant.id}
-                      className="w-full text-left p-3 hover:bg-muted transition-colors cursor-pointer"
-                      onClick={() => navigate(`/signup/${participant.event.id}`)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          navigate(`/signup/${participant.event.id}`);
-                        }
-                      }}
-                      aria-label={`View event ${participant.event.name}`}
-                    >
+                    <div key={participant.id} className="w-full p-3 border-b last:border-b-0">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0 pr-2">
                           <div className="text-sm font-medium truncate">{participant.name}</div>
@@ -292,20 +270,12 @@ export function GroupParticipantsPage() {
                             {participant.email || participant.phone || 'No contact info'}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            Joined via: {participant.event.name}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
                             Member since:{' '}
                             {new Date(participant.group_joined_at).toLocaleDateString()}
                           </div>
                         </div>
-                        <div className="text-xs text-muted-foreground flex-shrink-0">
-                          <Badge variant="outline" className="text-xs h-5">
-                            Member
-                          </Badge>
-                        </div>
                       </div>
-                    </button>
+                    </div>
                   ))
                 )}
               </div>

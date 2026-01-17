@@ -78,19 +78,16 @@ describe('groupService', () => {
         eventCountChain as ReturnType<typeof mockSupabase.from>
       );
 
-      // Mock participant count query
-      const participantCountChain = {
+      // Mock member count query (now uses count instead of fetching participant data)
+      const memberCountChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({
-          data: [
-            { participants: { user_id: 'user-1', email: 'user1@example.com', id: 'p1' } },
-            { participants: { user_id: 'user-2', email: 'user2@example.com', id: 'p2' } },
-          ],
+          count: 2,
           error: null,
         }),
       };
       mockSupabase.from.mockReturnValueOnce(
-        participantCountChain as ReturnType<typeof mockSupabase.from>
+        memberCountChain as ReturnType<typeof mockSupabase.from>
       );
 
       const result = await groupService.getGroupsByOrganizer('organizer-1');
@@ -120,7 +117,7 @@ describe('groupService', () => {
       expect(result).toEqual([]);
     });
 
-    it('should deduplicate participants by stable identifier', async () => {
+    it('should count group members correctly', async () => {
       const mockGroups = [
         {
           id: 'group-1',
@@ -146,25 +143,21 @@ describe('groupService', () => {
         eventCountChain as ReturnType<typeof mockSupabase.from>
       );
 
-      // Mock duplicate participants (same user_id)
-      const participantCountChain = {
+      // Mock member count (direct group membership)
+      const memberCountChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({
-          data: [
-            { participants: { user_id: 'user-1', email: 'user1@example.com', id: 'p1' } },
-            { participants: { user_id: 'user-1', email: 'user1@example.com', id: 'p2' } },
-            { participants: { user_id: null, email: 'guest@example.com', id: 'p3' } },
-          ],
+          count: 2,
           error: null,
         }),
       };
       mockSupabase.from.mockReturnValueOnce(
-        participantCountChain as ReturnType<typeof mockSupabase.from>
+        memberCountChain as ReturnType<typeof mockSupabase.from>
       );
 
       const result = await groupService.getGroupsByOrganizer('organizer-1');
 
-      // Should only count 2 unique participants (user-1 and guest)
+      // Should count 2 group members
       expect(result[0].participant_count).toBe(2);
     });
   });
@@ -479,44 +472,70 @@ describe('groupService', () => {
   });
 
   describe('getGroupParticipants', () => {
-    it('should fetch and deduplicate participants', async () => {
-      const mockParticipants = [
-        {
-          joined_at: '2023-01-01T00:00:00Z',
-          participants: {
-            id: 'p1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            user_id: 'user-1',
-            events: { id: 'event-1', name: 'Event 1' },
-          },
-        },
-        {
-          joined_at: '2023-01-02T00:00:00Z',
-          participants: {
-            id: 'p2',
-            name: 'John Doe',
-            email: 'john@example.com',
-            user_id: 'user-1',
-            events: { id: 'event-2', name: 'Event 2' },
-          },
-        },
+    it('should fetch group members and their details', async () => {
+      const mockMembers = [
+        { user_id: 'user-1', joined_at: '2023-01-01T00:00:00Z' },
+        { user_id: 'user-2', joined_at: '2023-01-02T00:00:00Z' },
       ];
 
-      const mockQueryChain = {
+      // Mock the group_participants query
+      const membersQueryChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockParticipants, error: null }),
+        order: vi.fn().mockResolvedValue({ data: mockMembers, error: null }),
       };
 
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
+      mockSupabase.from.mockReturnValueOnce(
+        membersQueryChain as ReturnType<typeof mockSupabase.from>
+      );
+
+      // Mock the participant details lookups for each member
+      const participantQueryChain1 = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: {
+            name: 'John Doe',
+            email: 'john@example.com',
+            phone: null,
+            event_id: 'event-1',
+            created_at: '2023-01-01T00:00:00Z',
+          },
+          error: null,
+        }),
+      };
+
+      const participantQueryChain2 = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: {
+            name: 'Jane Smith',
+            email: 'jane@example.com',
+            phone: null,
+            event_id: 'event-2',
+            created_at: '2023-01-02T00:00:00Z',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from
+        .mockReturnValueOnce(participantQueryChain1 as ReturnType<typeof mockSupabase.from>)
+        .mockReturnValueOnce(participantQueryChain2 as ReturnType<typeof mockSupabase.from>);
 
       const result = await groupService.getGroupParticipants('group-1');
 
-      // Should only return 1 unique participant (deduplicated by user_id)
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
       expect(result[0].user_id).toBe('user-1');
+      expect(result[0].name).toBe('John Doe');
       expect(result[0]).toHaveProperty('group_joined_at');
+      expect(result[1].user_id).toBe('user-2');
+      expect(result[1].name).toBe('Jane Smith');
     });
   });
 
@@ -531,19 +550,16 @@ describe('groupService', () => {
         eventCountChain as ReturnType<typeof mockSupabase.from>
       );
 
-      // Mock participant count
-      const participantCountChain = {
+      // Mock member count
+      const memberCountChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({
-          data: [
-            { participants: { user_id: 'user-1', email: 'user1@example.com', id: 'p1' } },
-            { participants: { user_id: 'user-2', email: 'user2@example.com', id: 'p2' } },
-          ],
+          count: 2,
           error: null,
         }),
       };
       mockSupabase.from.mockReturnValueOnce(
-        participantCountChain as ReturnType<typeof mockSupabase.from>
+        memberCountChain as ReturnType<typeof mockSupabase.from>
       );
 
       // Mock total registrations
@@ -566,7 +582,7 @@ describe('groupService', () => {
   });
 
   describe('addParticipantToGroup', () => {
-    it('should add participant to group with stable identifiers', async () => {
+    it('should add participant to group if they have a user_id', async () => {
       const participantQueryChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -588,10 +604,28 @@ describe('groupService', () => {
 
       expect(insertChain.insert).toHaveBeenCalledWith({
         group_id: 'group-1',
-        participant_id: 'participant-1',
         user_id: 'user-1',
-        guest_email: null,
       });
+    });
+
+    it('should not add guest participants (no user_id)', async () => {
+      const participantQueryChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { user_id: null, email: 'guest@example.com' },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from.mockReturnValueOnce(
+        participantQueryChain as ReturnType<typeof mockSupabase.from>
+      );
+
+      await groupService.addParticipantToGroup('group-1', 'participant-1');
+
+      // Should not attempt to insert
+      expect(mockSupabase.from).toHaveBeenCalledTimes(1); // Only the participant query
     });
 
     it('should handle duplicate participant gracefully', async () => {
@@ -616,6 +650,66 @@ describe('groupService', () => {
       await expect(
         groupService.addParticipantToGroup('group-1', 'participant-1')
       ).resolves.not.toThrow();
+    });
+  });
+
+  describe('addUserToGroup', () => {
+    it('should add user to group directly', async () => {
+      const checkMembershipChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+
+      const insertChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+
+      mockSupabase.from
+        .mockReturnValueOnce(checkMembershipChain as ReturnType<typeof mockSupabase.from>)
+        .mockReturnValueOnce(insertChain as ReturnType<typeof mockSupabase.from>);
+
+      await groupService.addUserToGroup('group-1', 'user-1');
+
+      expect(insertChain.insert).toHaveBeenCalledWith({
+        group_id: 'group-1',
+        user_id: 'user-1',
+      });
+    });
+
+    it('should not add user if already a member', async () => {
+      const checkMembershipChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'existing' }, error: null }),
+      };
+
+      mockSupabase.from.mockReturnValueOnce(
+        checkMembershipChain as ReturnType<typeof mockSupabase.from>
+      );
+
+      await groupService.addUserToGroup('group-1', 'user-1');
+
+      // Should only call checkMembership, not insert
+      expect(mockSupabase.from).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle duplicate insert gracefully', async () => {
+      const checkMembershipChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+
+      const insertChain = {
+        insert: vi.fn().mockResolvedValue({ error: { code: '23505' } }),
+      };
+
+      mockSupabase.from
+        .mockReturnValueOnce(checkMembershipChain as ReturnType<typeof mockSupabase.from>)
+        .mockReturnValueOnce(insertChain as ReturnType<typeof mockSupabase.from>);
+
+      await expect(groupService.addUserToGroup('group-1', 'user-1')).resolves.not.toThrow();
     });
   });
 
@@ -650,7 +744,7 @@ describe('groupService', () => {
       expect(deleteChain.eq).toHaveBeenCalledWith('user_id', 'user-1');
     });
 
-    it('should remove guest participant by email', async () => {
+    it('should throw error for guest participants (no user_id)', async () => {
       const participantQueryChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -660,22 +754,13 @@ describe('groupService', () => {
         }),
       };
 
-      const deleteChain = {
-        delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-      };
+      mockSupabase.from.mockReturnValueOnce(
+        participantQueryChain as ReturnType<typeof mockSupabase.from>
+      );
 
-      deleteChain.eq = vi.fn().mockImplementation(() => {
-        return { ...deleteChain, error: null };
-      });
-
-      mockSupabase.from
-        .mockReturnValueOnce(participantQueryChain as ReturnType<typeof mockSupabase.from>)
-        .mockReturnValueOnce(deleteChain as ReturnType<typeof mockSupabase.from>);
-
-      await groupService.removeParticipantFromGroup('group-1', 'participant-1');
-
-      expect(deleteChain.eq).toHaveBeenCalledWith('guest_email', 'guest@example.com');
+      await expect(
+        groupService.removeParticipantFromGroup('group-1', 'participant-1')
+      ).rejects.toThrow('Cannot remove participant: user not found');
     });
   });
 

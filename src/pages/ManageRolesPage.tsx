@@ -8,14 +8,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
 import { Shield, X, UserPlus } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
-import { groupService, organizerService, type Group, type Organizer } from '@/services';
+import { groupService, organizerService, type Group } from '@/services';
 import type { GroupParticipant, GroupAdmin } from '@/services/groupService';
 import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { ActionButton } from '@/components/ActionButton';
 
 interface AdminWithDetails extends GroupAdmin {
-  organizer?: Organizer | null;
+  displayName: string;
 }
 
 interface MemberWithRole extends GroupParticipant {
@@ -63,12 +63,12 @@ export function ManageRolesPage() {
       );
       setOwnerName(ownerDisplayName);
 
-      // Load current admins with their details
+      // Load current admins with their display names
       const adminsData = await groupService.getGroupAdmins(groupId);
       const adminsWithDetails = await Promise.all(
         adminsData.map(async (admin) => {
-          const organizer = await organizerService.getOrganizerById(admin.user_id);
-          return { ...admin, organizer };
+          const displayName = await organizerService.getOrganizerDisplayName(admin.user_id);
+          return { ...admin, displayName };
         })
       );
       setAdmins(adminsWithDetails);
@@ -219,14 +219,14 @@ export function ManageRolesPage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav showCloseButton sticky />
 
-      <div className="p-3 space-y-6">
-        {/* Section 1: Group Owner */}
-        <div className="space-y-3 pb-4 border-b">
-          <div className="flex items-center gap-2">
+      <div className="p-3 space-y-3">
+        {/* Group Owner Card */}
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-3 border-b bg-muted flex items-center gap-2">
             <Shield className="h-4 w-4 text-primary" />
             <h2 className="text-sm font-medium">Group Owner</h2>
           </div>
-          <div className="p-3 bg-muted rounded-lg">
+          <div className="p-3">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium">{ownerName}</div>
@@ -237,28 +237,23 @@ export function ManageRolesPage() {
           </div>
         </div>
 
-        {/* Section 2: Current Admins */}
-        <div className="space-y-3 pb-4 border-b">
-          <div className="flex items-center justify-between">
+        {/* Current Admins Card */}
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-3 border-b bg-muted">
             <h2 className="text-sm font-medium">
               Current Admins {admins.length > 0 && `(${admins.length})`}
             </h2>
           </div>
           {admins.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
+            <div className="p-3 text-xs text-muted-foreground">
               No admins yet. Promote members below to help manage this group.
-            </p>
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div className="divide-y">
               {admins.map((admin) => (
-                <div
-                  key={admin.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
+                <div key={admin.id} className="p-3 flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">
-                      {admin.organizer?.name || 'Unknown'}
-                    </div>
+                    <div className="text-sm font-medium truncate">{admin.displayName}</div>
                     <div className="text-xs text-muted-foreground">
                       Can manage members and events
                     </div>
@@ -281,68 +276,64 @@ export function ManageRolesPage() {
           )}
         </div>
 
-        {/* Section 3: Promote Members */}
-        <div className="space-y-3">
-          <h2 className="text-sm font-medium">
-            Promote Members to Admin {eligibleMembers.length > 0 && `(${eligibleMembers.length})`}
-          </h2>
-
-          {eligibleMembers.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              No eligible members to promote. Only registered members with accounts can become
-              admins.
-            </p>
-          ) : (
-            <>
-              {/* Search */}
-              <div className="space-y-2">
-                <Label htmlFor="search">Search Members</Label>
-                <Input
-                  id="search"
-                  type="search"
-                  placeholder="Search by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-10"
-                />
-              </div>
-
-              {/* Member List */}
-              {filteredMembers.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">No members found</p>
-              ) : (
+        {/* Promote Members Card */}
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-3 border-b bg-muted">
+            <h2 className="text-sm font-medium">
+              Promote Members to Admin {eligibleMembers.length > 0 && `(${eligibleMembers.length})`}
+            </h2>
+          </div>
+          <div className="p-3 space-y-3">
+            {eligibleMembers.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                No eligible members to promote. Only registered members with accounts can become
+                admins.
+              </p>
+            ) : (
+              <>
+                {/* Search */}
                 <div className="space-y-2">
-                  {filteredMembers.map((member) => (
-                    <label
-                      key={member.id}
-                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                    >
-                      <Checkbox
-                        checked={selectedMemberIds.has(member.id)}
-                        onCheckedChange={(checked) =>
-                          handleToggleMember(member.id, checked === true)
-                        }
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{member.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {member.email || member.phone || 'No contact info'}
-                        </div>
-                      </div>
-                      <Badge variant="outline">Member</Badge>
-                    </label>
-                  ))}
+                  <Label htmlFor="search" className="text-xs">
+                    Search Members
+                  </Label>
+                  <Input
+                    id="search"
+                    type="search"
+                    placeholder="Search by name or email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-9 text-sm"
+                  />
                 </div>
-              )}
 
-              {selectedMemberIds.size > 0 && (
-                <div className="text-xs text-muted-foreground">
-                  {selectedMemberIds.size} {selectedMemberIds.size === 1 ? 'member' : 'members'}{' '}
-                  selected
-                </div>
-              )}
-            </>
-          )}
+                {/* Member List */}
+                {filteredMembers.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">No members found</p>
+                ) : (
+                  <>
+                    <div className="border rounded-lg overflow-hidden divide-y">
+                      {filteredMembers.map((member) => (
+                        <label
+                          key={member.id}
+                          className="flex items-center gap-3 p-3 hover:bg-muted cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={selectedMemberIds.has(member.id)}
+                            onCheckedChange={(checked) =>
+                              handleToggleMember(member.id, checked === true)
+                            }
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">{member.name}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 

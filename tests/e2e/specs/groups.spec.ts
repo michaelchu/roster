@@ -237,156 +237,6 @@ test.describe('Group Management Flow', () => {
     });
   });
 
-  test.describe('Group Participant Tracking', () => {
-    test('participants auto-join group when registering for group event', async ({ page }) => {
-      // Create organizer and group
-      await register(page, {
-        email: generateTestEmail('grouporg'),
-        password: 'TestPassword123!',
-      });
-
-      
-
-      const organizerId = await getUserId(page);
-      const group = await createTestGroup(organizerId!, {
-        name: generateTestName('Auto Join Group'),
-      });
-
-      // Create event in group
-      const event = await createTestEvent(organizerId!, {
-        name: generateTestName('Group Event'),
-        group_id: group.id,
-      });
-
-      await clearAuth(page);
-
-      // Register participant
-      await register(page, {
-        email: generateTestEmail('grouppart'),
-        password: 'TestPassword123!',
-      });
-
-      const participantId = await getUserId(page);
-      await registerForEvent(page, event.id);
-
-      // Check if participant was added to group
-      await page.waitForTimeout(2000); // Wait for trigger to fire
-
-      const { data: groupParticipants } = await getAdminDb()
-        .from('group_participants')
-        .select('*')
-        .eq('group_id', group.id)
-        .eq('user_id', participantId!);
-
-      expect(groupParticipants).not.toBeNull();
-      expect(groupParticipants?.length).toBeGreaterThan(0);
-    });
-
-    test('group displays participant count', async ({ page }) => {
-      await register(page, {
-        email: generateTestEmail('partcount'),
-        password: 'TestPassword123!',
-      });
-
-      
-
-      const userId = await getUserId(page);
-      const group = await createTestGroup(userId!, {
-        name: generateTestName('Participant Count Group'),
-      });
-
-      const event = await createTestEvent(userId!, {
-        name: generateTestName('Event'),
-        group_id: group.id,
-      });
-
-      // Add participants
-      const { data: participants } = await getAdminDb().from('participants').insert([
-        {
-          event_id: event.id,
-          name: 'Participant 1',
-          email: generateTestEmail('gp1'),
-          user_id: null,
-        },
-        {
-          event_id: event.id,
-          name: 'Participant 2',
-          email: generateTestEmail('gp2'),
-          user_id: null,
-        },
-      ]).select();
-
-      // Add to group manually
-      if (participants) {
-        await getAdminDb().from('group_participants').insert(
-          participants.map((p) => ({
-            group_id: group.id,
-            participant_id: p.id,
-            user_id: null,
-            guest_email: p.email,
-          }))
-        );
-      }
-
-      // Go to group page
-      await goToGroup(page, group.id);
-      await page.waitForTimeout(1000); // Wait for group data to load
-
-      // Should show member count (UI uses "members" not "participants")
-      const hasCount = await page.getByText(/2.*member|member.*2/i).isVisible().catch(() => false);
-      expect(hasCount).toBe(true);
-    });
-
-    test('group deduplicates participants across events', async ({ page }) => {
-      await register(page, {
-        email: generateTestEmail('dedup'),
-        password: 'TestPassword123!',
-      });
-
-      
-
-      const organizerId = await getUserId(page);
-      const group = await createTestGroup(organizerId!, {
-        name: generateTestName('Dedup Group'),
-      });
-
-      // Create two events in group
-      const event1 = await createTestEvent(organizerId!, {
-        name: generateTestName('Event 1'),
-        group_id: group.id,
-      });
-
-      const event2 = await createTestEvent(organizerId!, {
-        name: generateTestName('Event 2'),
-        group_id: group.id,
-      });
-
-      await clearAuth(page);
-
-      // Same user registers for both events
-      await register(page, {
-        email: generateTestEmail('sameuser'),
-        password: 'TestPassword123!',
-      });
-
-      const participantId = await getUserId(page);
-      await registerForEvent(page, event1.id);
-      await registerForEvent(page, event2.id);
-
-      await page.waitForTimeout(2000);
-
-      // Check group_participants - should only have ONE entry despite two registrations
-      const { data: groupParticipants } = await getAdminDb()
-        .from('group_participants')
-        .select('*')
-        .eq('group_id', group.id)
-        .eq('user_id', participantId!);
-
-      // Deduplication should ensure only one group membership
-      // (Implementation may vary - some systems count unique users)
-      expect(groupParticipants).not.toBeNull();
-    });
-  });
 
   test.describe('Group Stats', () => {
     test('group stats show correct event and participant counts', async ({ page }) => {
@@ -439,120 +289,7 @@ test.describe('Group Management Flow', () => {
   });
 
   test.describe('Group Participants Page', () => {
-    test('organizer can view all group participants', async ({ page }) => {
-      await register(page, {
-        email: generateTestEmail('viewparts'),
-        password: 'TestPassword123!',
-      });
 
-      
-
-      const userId = await getUserId(page);
-      const group = await createTestGroup(userId!, {
-        name: generateTestName('View Participants Group'),
-      });
-
-      const event = await createTestEvent(userId!, {
-        name: generateTestName('Event'),
-        group_id: group.id,
-      });
-
-      // Add participants
-      const { data: participants } = await getAdminDb().from('participants').insert([
-        {
-          event_id: event.id,
-          name: 'Group Member 1',
-          email: generateTestEmail('gm1'),
-        },
-        {
-          event_id: event.id,
-          name: 'Group Member 2',
-          email: generateTestEmail('gm2'),
-        },
-      ]).select();
-
-      // Add to group
-      if (participants) {
-        await getAdminDb().from('group_participants').insert(
-          participants.map((p) => ({
-            group_id: group.id,
-            participant_id: p.id,
-            user_id: null,
-            guest_email: p.email,
-          }))
-        );
-      }
-
-      // Navigate to group participants page
-      await page.goto(`/groups/${group.id}/participants`);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000); // Wait for participants to load
-
-      // Verify participants are visible
-      const hasMember1 = await page.getByText('Group Member 1').isVisible().catch(() => false);
-      const hasMember2 = await page.getByText('Group Member 2').isVisible().catch(() => false);
-
-      expect(hasMember1 || hasMember2).toBe(true);
-    });
-
-    test('organizer can bulk add participants to group', async ({ page }) => {
-      await register(page, {
-        email: generateTestEmail('bulkadd'),
-        password: 'TestPassword123!',
-      });
-
-      
-
-      const userId = await getUserId(page);
-      const group = await createTestGroup(userId!, {
-        name: generateTestName('Bulk Add Group'),
-      });
-
-      // Create event NOT in group
-      const event = await createTestEvent(userId!, {
-        name: generateTestName('Outside Event'),
-        group_id: null,
-      });
-
-      // Add participants to event
-      const { data: participants } = await getAdminDb().from('participants').insert([
-        {
-          event_id: event.id,
-          name: 'To Add 1',
-          email: generateTestEmail('add1'),
-        },
-        {
-          event_id: event.id,
-          name: 'To Add 2',
-          email: generateTestEmail('add2'),
-        },
-      ]).select();
-
-      // Go to group detail or "Add Members" page
-      await page.goto(`/groups/${group.id}/add-members`);
-      await page.waitForLoadState('domcontentloaded');
-
-      // Look for UI to select and add participants
-      const checkboxes = page.locator('input[type="checkbox"]');
-      if (await checkboxes.count() >= 2) {
-        await checkboxes.nth(0).check();
-        await checkboxes.nth(1).check();
-
-        const addButton = page.getByRole('button', { name: /add|save/i });
-        if (await addButton.count() > 0) {
-          await addButton.click();
-          await page.waitForTimeout(1000);
-
-          // Verify they were added
-          const { data: groupMembers } = await getAdminDb()
-            .from('group_participants')
-            .select('*')
-            .eq('group_id', group.id);
-
-          expect(groupMembers?.length).toBeGreaterThan(0);
-        }
-      }
-    });
 
     test('organizer can remove participants from group', async ({ page }) => {
       await register(page, {
@@ -560,7 +297,7 @@ test.describe('Group Management Flow', () => {
         password: 'TestPassword123!',
       });
 
-      
+
 
       const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
@@ -572,49 +309,50 @@ test.describe('Group Management Flow', () => {
         group_id: group.id,
       });
 
-      // Add participant
-      const { data: participant } = await getAdminDb()
-        .from('participants')
-        .insert({
-          event_id: event.id,
-          name: 'To Remove',
-          email: generateTestEmail('remove1'),
-        })
-        .select()
-        .single();
+      await clearAuth(page);
 
-      // Add to group
-      await getAdminDb().from('group_participants').insert({
-        group_id: group.id,
-        participant_id: participant?.id!,
-        user_id: null,
-        guest_email: participant?.email,
+      // Create user and register for event (auto-joins group)
+      await register(page, {
+        email: generateTestEmail('remove1'),
+        password: 'TestPassword123!',
       });
+      const memberUserId = await getUserId(page);
+      await registerForEvent(page, event.id);
 
-      // Go to group participants or remove members page
-      await page.goto(`/groups/${group.id}/participants`);
+      await page.waitForTimeout(2000); // Wait for trigger
+
+      // Log back in as organizer
+      await clearAuth(page);
+      await page.goto('/auth/login');
+      await page.fill('input[type="email"]', generateTestEmail('remove'));
+      await page.fill('input[type="password"]', 'TestPassword123!');
+      await page.click('button[type="submit"]');
+      await page.waitForTimeout(2000);
+
+      // Go to remove members page
+      await page.goto(`/groups/${group.id}/remove-members`);
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
 
-      // Find remove button
-      const removeButton = page.getByRole('button', { name: /remove/i }).first();
-      if (await removeButton.count() > 0) {
-        await removeButton.click();
+      // Select member and remove
+      const checkbox = page.locator('input[type="checkbox"]').first();
+      if (await checkbox.count() > 0) {
+        await checkbox.check();
 
-        // Confirm
-        const confirmButton = page.getByRole('button', { name: /confirm|yes/i });
-        if (await confirmButton.count() > 0) {
-          await confirmButton.click();
+        const removeButton = page.getByRole('button', { name: /remove.*member/i });
+        if (await removeButton.count() > 0) {
+          await removeButton.click();
           await page.waitForTimeout(1000);
+
+          // Verify removal
+          const { data: remaining } = await getAdminDb()
+            .from('group_participants')
+            .select('*')
+            .eq('group_id', group.id)
+            .eq('user_id', memberUserId!);
+
+          expect(remaining?.length).toBe(0);
         }
-
-        // Verify removal
-        const { data: remaining } = await getAdminDb()
-          .from('group_participants')
-          .select('*')
-          .eq('group_id', group.id)
-          .eq('participant_id', participant?.id!);
-
-        expect(remaining?.length).toBe(0);
       }
     });
   });
@@ -626,7 +364,7 @@ test.describe('Group Management Flow', () => {
         password: 'TestPassword123!',
       });
 
-      
+
 
       const userId = await getUserId(page);
       const group = await createTestGroup(userId!, {
@@ -652,7 +390,7 @@ test.describe('Group Management Flow', () => {
         password: 'TestPassword123!',
       });
 
-      
+
 
       const ownerId = await getUserId(page);
       const group = await createTestGroup(ownerId!, {
@@ -677,6 +415,170 @@ test.describe('Group Management Flow', () => {
       const hasError = await page.getByText(/not authorized|permission denied|forbidden/i).isVisible().catch(() => false);
 
       expect(url.includes('/edit') === false || hasError).toBe(true);
+    });
+  });
+
+  test.describe('Direct Group Join via Invite Link', () => {
+    test('authenticated user can join group via invite link', async ({ page }) => {
+      // Create organizer and group
+      await register(page, {
+        email: generateTestEmail('groupowner'),
+        password: 'TestPassword123!',
+      });
+
+      const organizerId = await getUserId(page);
+      const group = await createTestGroup(organizerId!, {
+        name: generateTestName('Invite Link Group'),
+      });
+
+      await clearAuth(page);
+
+      // Create new user
+      await register(page, {
+        email: generateTestEmail('newmember'),
+        password: 'TestPassword123!',
+      });
+
+      const newUserId = await getUserId(page);
+
+      // Visit group invite link
+      await page.goto(`/invite/group/${group.id}`);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
+
+      // Should see group info and "Join Group" button
+      const hasGroupName = await page.getByText(group.name).isVisible().catch(() => false);
+      expect(hasGroupName).toBe(true);
+
+      const joinButton = page.getByRole('button', { name: /join group/i });
+      expect(await joinButton.isVisible()).toBe(true);
+
+      // Click join button
+      await joinButton.click();
+      await page.waitForTimeout(2000);
+
+      // Verify user was added to group
+      const { data: membership } = await getAdminDb()
+        .from('group_participants')
+        .select('*')
+        .eq('group_id', group.id)
+        .eq('user_id', newUserId!)
+        .maybeSingle();
+
+      expect(membership).not.toBeNull();
+      expect(membership?.user_id).toBe(newUserId);
+    });
+
+    test('unauthenticated user sees sign-in prompt on group invite', async ({ page }) => {
+      // Create organizer and group
+      await register(page, {
+        email: generateTestEmail('groupowner2'),
+        password: 'TestPassword123!',
+      });
+
+      const organizerId = await getUserId(page);
+      const group = await createTestGroup(organizerId!, {
+        name: generateTestName('Auth Required Group'),
+      });
+
+      await clearAuth(page);
+
+      // Visit group invite link without being logged in
+      await page.goto(`/invite/group/${group.id}`);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
+
+      // Should see sign-in button
+      const signInButton = page.getByRole('button', { name: /sign in to join/i });
+      expect(await signInButton.isVisible()).toBe(true);
+
+      // Should NOT see "Join Group" button
+      const joinButton = page.getByRole('button', { name: /^join group$/i });
+      expect(await joinButton.count()).toBe(0);
+    });
+
+    test('already-member sees confirmation on invite link', async ({ page }) => {
+      // Create organizer and group
+      await register(page, {
+        email: generateTestEmail('groupowner3'),
+        password: 'TestPassword123!',
+      });
+
+      const organizerId = await getUserId(page);
+      const group = await createTestGroup(organizerId!, {
+        name: generateTestName('Already Member Group'),
+      });
+
+      await clearAuth(page);
+
+      // Create user and add them to group
+      await register(page, {
+        email: generateTestEmail('existingmember'),
+        password: 'TestPassword123!',
+      });
+
+      const userId = await getUserId(page);
+
+      await getAdminDb().from('group_participants').insert({
+        group_id: group.id,
+        user_id: userId!,
+      });
+
+      // Visit invite link
+      await page.goto(`/invite/group/${group.id}`);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
+
+      // Should see "already a member" message
+      const alreadyMemberText = await page.getByText(/already a member/i).isVisible().catch(() => false);
+      expect(alreadyMemberText).toBe(true);
+
+      // Should see "View Group Details" button instead of "Join"
+      const viewButton = page.getByRole('button', { name: /view group details/i });
+      expect(await viewButton.isVisible()).toBe(true);
+    });
+
+    test('user can join group then view group details', async ({ page }) => {
+      // Create organizer and group
+      await register(page, {
+        email: generateTestEmail('groupowner4'),
+        password: 'TestPassword123!',
+      });
+
+      const organizerId = await getUserId(page);
+      const group = await createTestGroup(organizerId!, {
+        name: generateTestName('Flow Test Group'),
+      });
+
+      await clearAuth(page);
+
+      // Create new user
+      await register(page, {
+        email: generateTestEmail('flowmember'),
+        password: 'TestPassword123!',
+      });
+
+      const userId = await getUserId(page);
+
+      // Visit invite link and join
+      await page.goto(`/invite/group/${group.id}`);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
+
+      const joinButton = page.getByRole('button', { name: /join group/i });
+      await joinButton.click();
+      await page.waitForTimeout(2000);
+
+      // After joining, should see "View Group Details" button
+      const viewButton = page.getByRole('button', { name: /view group details/i });
+      expect(await viewButton.isVisible()).toBe(true);
+
+      // Click to view group
+      await viewButton.click();
+      await page.waitForURL((url) => url.pathname.includes(`/groups/${group.id}`), { timeout: 5000 });
+
+      // Should be on group detail page
+      expect(page.url()).toContain(`/groups/${group.id}`);
     });
   });
 });

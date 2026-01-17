@@ -570,6 +570,63 @@ target_email,
         RAISE NOTICE 'Added participants to Party event';
     END IF;
     
+    -- ========================================
+    -- ADD GROUP MEMBERSHIPS
+    -- Since auto-join trigger was removed, explicitly add users to groups
+    -- ========================================
+
+    -- Add members to Sports & Recreation group
+    IF sports_group_id IS NOT NULL THEN
+        -- Organizer
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = sports_group_id AND user_id = organizer_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (sports_group_id, organizer_user_id);
+        END IF;
+        -- Alex (registered for Badminton and Basketball)
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = sports_group_id AND user_id = alex_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (sports_group_id, alex_user_id);
+        END IF;
+        -- Sarah (registered for Badminton)
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = sports_group_id AND user_id = sarah_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (sports_group_id, sarah_user_id);
+        END IF;
+        -- Mike (registered for Badminton)
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = sports_group_id AND user_id = mike_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (sports_group_id, mike_user_id);
+        END IF;
+        -- David (registered for Basketball)
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = sports_group_id AND user_id = david_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (sports_group_id, david_user_id);
+        END IF;
+
+        RAISE NOTICE 'Added members to Sports & Recreation group';
+    END IF;
+
+    -- Add members to Tech Meetup group
+    IF tech_group_id IS NOT NULL THEN
+        -- Organizer
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = tech_group_id AND user_id = organizer_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (tech_group_id, organizer_user_id);
+        END IF;
+        -- Emily (registered for Hackathon and Workshop)
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = tech_group_id AND user_id = emily_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (tech_group_id, emily_user_id);
+        END IF;
+        -- James (registered for Hackathon)
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = tech_group_id AND user_id = james_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (tech_group_id, james_user_id);
+        END IF;
+        -- Lisa (registered for Hackathon and Workshop)
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = tech_group_id AND user_id = lisa_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (tech_group_id, lisa_user_id);
+        END IF;
+        -- Maya (registered for Workshop)
+        IF NOT EXISTS (SELECT 1 FROM group_participants WHERE group_id = tech_group_id AND user_id = maya_user_id) THEN
+            INSERT INTO group_participants (group_id, user_id) VALUES (tech_group_id, maya_user_id);
+        END IF;
+
+        RAISE NOTICE 'Added members to Tech Meetup group';
+    END IF;
+
     RAISE NOTICE '========================================';
     RAISE NOTICE 'SEED DATA COMPLETE!';
     RAISE NOTICE 'Created 2 groups, 6 events, and multiple participants';

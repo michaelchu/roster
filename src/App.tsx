@@ -19,7 +19,6 @@ import { NewGroupPage } from '@/pages/NewGroupPage';
 import { EditGroupPage } from '@/pages/EditGroupPage';
 import { GroupParticipantsPage } from '@/pages/GroupParticipantsPage';
 import { ManageRolesPage } from '@/pages/ManageRolesPage';
-import { AddMembersPage } from '@/pages/AddMembersPage';
 import { RemoveMembersPage } from '@/pages/RemoveMembersPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
@@ -63,7 +62,6 @@ function AppContent() {
         <Route path="/groups/:groupId/edit" element={<EditGroupPage />} />
         <Route path="/groups/:groupId/participants" element={<GroupParticipantsPage />} />
         <Route path="/groups/:groupId/manage-roles" element={<ManageRolesPage />} />
-        <Route path="/groups/:groupId/add-members" element={<AddMembersPage />} />
         <Route path="/groups/:groupId/remove-members" element={<RemoveMembersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />

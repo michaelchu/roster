@@ -113,34 +113,18 @@ export const groupService = {
 
         if (eventError) throw errorHandler.fromSupabaseError(eventError);
 
-        // Get unique participant count (avoiding duplicates)
-        const { data: groupParticipantsData, error: participantError } = await supabase
+        // Get member count (direct group members only)
+        const { count: memberCount, error: memberError } = await supabase
           .from('group_participants')
-          .select(
-            `
-            participants!inner (
-              user_id,
-              email,
-              id
-            )
-          `
-          )
+          .select('*', { count: 'exact', head: true })
           .eq('group_id', group.id);
 
-        if (participantError) throw errorHandler.fromSupabaseError(participantError);
-
-        // Deduplicate participants by stable identifiers
-        const uniqueParticipants = new Set<string>();
-        groupParticipantsData?.forEach((item: GroupParticipantStatsQueryResult) => {
-          const participant = item.participants;
-          const stableKey = participant.user_id || participant.email || participant.id;
-          uniqueParticipants.add(stableKey);
-        });
+        if (memberError) throw errorHandler.fromSupabaseError(memberError);
 
         return {
           ...group,
           event_count: eventCount || 0,
-          participant_count: uniqueParticipants.size,
+          participant_count: memberCount || 0,
         };
       })
     );
@@ -270,55 +254,27 @@ export const groupService = {
   },
 
   async getGroupParticipants(groupId: string): Promise<GroupParticipant[]> {
-    // Get all participants in this group with their event context
-    const { data: participantsData, error: participantsError } = await supabase
-      .from('group_participants')
-      .select(
-        `
-        joined_at,
-        participants!inner (
-          *,
-          events!inner (
-            id,
-            name
-          )
-        )
-      `
-      )
-      .eq('group_id', groupId)
-      .order('joined_at', { ascending: false });
-
-    if (participantsError) throw errorHandler.fromSupabaseError(participantsError);
-
-    if (!participantsData) return [];
-
-    // Deduplicate participants by stable identifiers (user_id or email)
-    // to avoid showing the same person multiple times
-    const uniqueParticipants = new Map<string, GroupParticipant>();
-
-    participantsData.forEach((item: GroupParticipantQueryResult) => {
-      const participant = item.participants;
-      const event = participant.events;
-
-      // Create a stable key: use user_id if available, otherwise email
-      const stableKey = participant.user_id || participant.email || participant.id;
-
-      // Only keep the earliest membership record for each unique person
-      const existing = uniqueParticipants.get(stableKey);
-      const joinedAt = new Date(item.joined_at).getTime();
-
-      if (!existing || joinedAt < new Date(existing.group_joined_at).getTime()) {
-        uniqueParticipants.set(stableKey, {
-          ...participant,
-          event: Array.isArray(event) ? event[0] : event,
-          group_joined_at: item.joined_at,
-        });
-      }
-    });
-
-    return Array.from(uniqueParticipants.values()).sort(
-      (a, b) => new Date(b.group_joined_at).getTime() - new Date(a.group_joined_at).getTime()
+    // Use database function to get group members with user info from auth.users
+    const { data: membersData, error: membersError } = await supabase.rpc(
+      'get_group_members_with_user_info',
+      { p_group_id: groupId }
     );
+
+    if (membersError) throw errorHandler.fromSupabaseError(membersError);
+    if (!membersData || membersData.length === 0) return [];
+
+    return membersData.map((member: any) => ({
+      id: member.user_id,
+      user_id: member.user_id,
+      name: member.full_name || member.email || 'Group Member',
+      email: member.email,
+      phone: null,
+      responses: {},
+      event_id: null,
+      created_at: member.joined_at,
+      group_joined_at: member.joined_at,
+      event: null,
+    })) as GroupParticipant[];
   },
 
   async getGroupStats(groupId: string): Promise<GroupStats> {
@@ -330,31 +286,13 @@ export const groupService = {
 
     if (eventError) throw errorHandler.fromSupabaseError(eventError);
 
-    // Get unique participant count (group members) by deduplicating by user_id/email
-    const { data: groupParticipantsData, error: participantError } = await supabase
+    // Get member count (direct group members only, no longer tied to participants table)
+    const { count: memberCount, error: memberError } = await supabase
       .from('group_participants')
-      .select(
-        `
-        participants!inner (
-          user_id,
-          email,
-          id
-        )
-      `
-      )
+      .select('*', { count: 'exact', head: true })
       .eq('group_id', groupId);
 
-    if (participantError) throw errorHandler.fromSupabaseError(participantError);
-
-    // Deduplicate participants by stable identifiers
-    const uniqueParticipants = new Set<string>();
-    groupParticipantsData?.forEach((item: GroupParticipantStatsQueryResult) => {
-      const participant = item.participants;
-      const stableKey = participant.user_id || participant.email || participant.id;
-      uniqueParticipants.add(stableKey);
-    });
-
-    const participantCount = uniqueParticipants.size;
+    if (memberError) throw errorHandler.fromSupabaseError(memberError);
 
     // Get total registrations across all events in group
     const { count: totalRegistrations, error: registrationsError } = await supabase
@@ -366,34 +304,37 @@ export const groupService = {
 
     return {
       event_count: eventCount || 0,
-      participant_count: participantCount,
+      participant_count: memberCount || 0,
       total_registrations: totalRegistrations || 0,
     };
   },
 
   async addParticipantToGroup(groupId: string, participantId: string): Promise<void> {
-    // First get the participant's stable identifiers
+    // Get the participant's user_id
     const { data: participantData, error: participantError } = await supabase
       .from('participants')
-      .select('user_id, email')
+      .select('user_id')
       .eq('id', participantId)
       .single();
 
     if (participantError) throw errorHandler.fromSupabaseError(participantError);
     if (!participantData) throw new Error('Participant not found');
 
-    // Insert using stable identifiers to prevent duplicates
+    // Only add to group if the participant has a user account
+    if (!participantData.user_id) {
+      return; // Guest participants cannot be added to groups
+    }
+
+    // Add user to group
     const insertData: TablesInsert<'group_participants'> = {
       group_id: groupId,
-      participant_id: participantId,
       user_id: participantData.user_id,
-      guest_email: participantData.user_id ? null : participantData.email,
     };
 
     const { error } = await supabase.from('group_participants').insert(insertData);
 
     if (error) {
-      // Ignore unique constraint violations (participant already in group)
+      // Ignore unique constraint violations (user already in group)
       if (error.code !== '23505') {
         throw errorHandler.fromSupabaseError(error);
       }
@@ -412,109 +353,87 @@ export const groupService = {
 
     const groupIds = groups.map((g) => g.id);
 
-    // Get all participants from these groups
-    const { data: groupParticipantsData, error: participantsError } = await supabase
+    // Get all group members (direct memberships only)
+    const { data: groupMembersData, error: membersError } = await supabase
       .from('group_participants')
-      .select(
-        `
-        joined_at,
-        participants!inner (
-          id,
-          name,
-          email,
-          user_id
-        )
-      `
-      )
+      .select('user_id, joined_at')
       .in('group_id', groupIds)
       .order('joined_at', { ascending: true });
 
-    if (participantsError) throw errorHandler.fromSupabaseError(participantsError);
-    if (!groupParticipantsData) return [];
+    if (membersError) throw errorHandler.fromSupabaseError(membersError);
+    if (!groupMembersData || groupMembersData.length === 0) return [];
 
-    // Deduplicate by stable identifier (user_id or email)
+    // Deduplicate by user_id and get contact details from participants table
     const contactsMap = new Map<string, GroupContact>();
 
-    groupParticipantsData.forEach(
-      (item: {
-        joined_at: string;
-        participants: { id: string; name: string; email: string | null; user_id: string | null };
-      }) => {
-        const participant = item.participants;
-        const stableKey = participant.user_id || participant.email || participant.id;
+    for (const member of groupMembersData) {
+      if (contactsMap.has(member.user_id)) continue;
 
-        // Only keep the first occurrence (earliest joined_at)
-        if (!contactsMap.has(stableKey)) {
-          contactsMap.set(stableKey, {
-            id: participant.id,
-            name: participant.name,
-            email: participant.email,
-            user_id: participant.user_id,
-            first_seen: item.joined_at,
-          });
-        }
-      }
-    );
+      // Get latest participant record for this user to get their contact details
+      const { data: participantData } = await supabase
+        .from('participants')
+        .select('name, email')
+        .eq('user_id', member.user_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      contactsMap.set(member.user_id, {
+        id: member.user_id,
+        name: participantData?.name || 'Group Member',
+        email: participantData?.email || null,
+        user_id: member.user_id,
+        first_seen: member.joined_at,
+      });
+    }
 
     // Return sorted by name
     return Array.from(contactsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   },
 
   async removeParticipantFromGroup(groupId: string, participantId: string): Promise<void> {
-    // First get the participant's stable identifiers to remove by the correct key
+    // Get the participant's user_id
     const { data: participantData, error: participantError } = await supabase
       .from('participants')
-      .select('user_id, email')
+      .select('user_id')
       .eq('id', participantId)
       .single();
 
     if (participantError) throw errorHandler.fromSupabaseError(participantError);
-    if (!participantData) throw new Error('Participant not found');
-
-    // Remove using stable identifiers
-    let deleteQuery = supabase.from('group_participants').delete().eq('group_id', groupId);
-
-    if (participantData.user_id) {
-      deleteQuery = deleteQuery.eq('user_id', participantData.user_id);
-    } else if (participantData.email) {
-      deleteQuery = deleteQuery.eq('guest_email', participantData.email);
-    } else {
-      throw new Error('Cannot remove participant: no stable identifier found');
+    if (!participantData || !participantData.user_id) {
+      throw new Error('Cannot remove participant: user not found');
     }
 
-    const { error } = await deleteQuery;
+    // Remove from group by user_id
+    const { error } = await supabase
+      .from('group_participants')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', participantData.user_id);
 
     if (error) throw errorHandler.fromSupabaseError(error);
   },
 
   async getParticipantGroups(participantId: string): Promise<Group[]> {
-    // First get the participant's stable identifiers
+    // Get the participant's user_id
     const { data: participantData, error: participantError } = await supabase
       .from('participants')
-      .select('user_id, email')
+      .select('user_id')
       .eq('id', participantId)
       .single();
 
     if (participantError) throw errorHandler.fromSupabaseError(participantError);
-    if (!participantData) return [];
+    if (!participantData || !participantData.user_id) return [];
 
-    // Get all groups that this person belongs to (using stable identifiers)
-    let groupQuery = supabase.from('group_participants').select(
-      `
+    // Get all groups that this user belongs to
+    const { data: groupData, error: groupError } = await supabase
+      .from('group_participants')
+      .select(
+        `
         groups!inner (*)
       `
-    );
-
-    if (participantData.user_id) {
-      groupQuery = groupQuery.eq('user_id', participantData.user_id);
-    } else if (participantData.email) {
-      groupQuery = groupQuery.eq('guest_email', participantData.email);
-    } else {
-      // No stable identifier found, return empty array
-      return [];
-    }
-
-    const { data: groupData, error: groupError } = await groupQuery;
+      )
+      .eq('user_id', participantData.user_id);
 
     if (groupError) throw errorHandler.fromSupabaseError(groupError);
 
@@ -634,24 +553,89 @@ export const groupService = {
     };
   },
 
-  async checkUserGroupMembership(
-    userId: string,
-    groupId: string,
-    guestEmail?: string
-  ): Promise<boolean> {
-    let query = supabase.from('group_participants').select('id').eq('group_id', groupId);
-
-    // Check both user_id and guest_email if provided
-    if (guestEmail) {
-      query = query.or(`user_id.eq.${userId},guest_email.eq.${guestEmail}`);
-    } else {
-      query = query.eq('user_id', userId);
-    }
-
-    const { data, error } = await query.maybeSingle();
+  async checkUserGroupMembership(userId: string, groupId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('group_participants')
+      .select('id')
+      .eq('group_id', groupId)
+      .eq('user_id', userId)
+      .maybeSingle();
 
     if (error) throw errorHandler.fromSupabaseError(error);
 
     return data !== null;
+  },
+
+  async addUserToGroup(groupId: string, userId: string): Promise<void> {
+    // Check if user is already in the group
+    const alreadyMember = await this.checkUserGroupMembership(userId, groupId);
+    if (alreadyMember) {
+      return; // Already a member, nothing to do
+    }
+
+    // Add user directly to group_participants
+    const insertData: TablesInsert<'group_participants'> = {
+      group_id: groupId,
+      user_id: userId,
+    };
+
+    const { error } = await supabase.from('group_participants').insert(insertData);
+
+    if (error) {
+      // Ignore unique constraint violations (user already in group)
+      if (error.code !== '23505') {
+        throw errorHandler.fromSupabaseError(error);
+      }
+    }
+  },
+
+  async getGroupsByUser(userId: string): Promise<Group[]> {
+    // Get all groups where user is a member
+    const { data: groupData, error: groupError } = await supabase
+      .from('group_participants')
+      .select(
+        `
+        groups!inner (*)
+      `
+      )
+      .eq('user_id', userId);
+
+    if (groupError) throw errorHandler.fromSupabaseError(groupError);
+
+    if (!groupData || groupData.length === 0) return [];
+
+    const groups = groupData.map((item: GroupQueryResult) => {
+      const group = item.groups;
+      return Array.isArray(group) ? group[0] : group;
+    });
+
+    // Get counts for each group
+    const groupsWithCounts = await Promise.all(
+      groups.map(async (group) => {
+        // Get event count
+        const { count: eventCount, error: eventError } = await supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .eq('group_id', group.id);
+
+        if (eventError) throw errorHandler.fromSupabaseError(eventError);
+
+        // Get member count
+        const { count: memberCount, error: memberError } = await supabase
+          .from('group_participants')
+          .select('*', { count: 'exact', head: true })
+          .eq('group_id', group.id);
+
+        if (memberError) throw errorHandler.fromSupabaseError(memberError);
+
+        return {
+          ...group,
+          event_count: eventCount || 0,
+          participant_count: memberCount || 0,
+        };
+      })
+    );
+
+    return groupsWithCounts;
   },
 };
