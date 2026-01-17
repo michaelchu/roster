@@ -247,7 +247,7 @@ export const groupService = {
     if (membersError) throw errorHandler.fromSupabaseError(membersError);
     if (!membersData || membersData.length === 0) return [];
 
-    return (membersData as GroupMemberWithUserInfo[]).map((member) => ({
+    return membersData.map((member) => ({
       id: member.user_id,
       user_id: member.user_id,
       name: member.full_name || member.email || 'Group Member',
@@ -257,8 +257,17 @@ export const groupService = {
       event_id: null,
       created_at: member.joined_at,
       group_joined_at: member.joined_at,
-      event: null,
-    })) as GroupParticipant[];
+      event: {
+        id: '',
+        name: '',
+      },
+      claimed_by_user_id: null,
+      notes: null,
+      payment_marked_at: null,
+      payment_notes: null,
+      slot_number: null,
+      checked_in_at: null,
+    }));
   },
 
   async getGroupStats(groupId: string): Promise<GroupStats> {

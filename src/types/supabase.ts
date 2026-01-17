@@ -385,6 +385,15 @@ export type Database = {
           skipped_count: number;
         }[];
       };
+      get_group_members_with_user_info: {
+        Args: { p_group_id: string };
+        Returns: {
+          user_id: string;
+          joined_at: string;
+          email: string;
+          full_name: string;
+        }[];
+      };
       get_next_slot_number: {
         Args: { p_event_id: string; p_user_id?: string };
         Returns: number;
