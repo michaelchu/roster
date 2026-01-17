@@ -205,6 +205,57 @@ describe('participantService', () => {
 
   // removeLabelFromParticipant is a direct delete - tested via integration tests
 
+  describe('bulkUpdatePaymentStatus', () => {
+    it('should update payment status via RPC and return counts', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: [{ updated_count: 3, requested_count: 3 }],
+        error: null,
+      });
+
+      const result = await participantService.bulkUpdatePaymentStatus(
+        ['p1', 'p2', 'p3'],
+        'paid',
+        'Paid in cash'
+      );
+
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('bulk_update_payment_status', {
+        p_participant_ids: ['p1', 'p2', 'p3'],
+        p_payment_status: 'paid',
+        p_payment_notes: 'Paid in cash',
+      });
+      expect(result).toEqual({ updated: 3, requested: 3 });
+    });
+
+    it('should return zeros for empty participant list', async () => {
+      const result = await participantService.bulkUpdatePaymentStatus([], 'paid');
+
+      expect(mockSupabase.rpc).not.toHaveBeenCalled();
+      expect(result).toEqual({ updated: 0, requested: 0 });
+    });
+
+    it('should handle partial updates', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: [{ updated_count: 2, requested_count: 3 }],
+        error: null,
+      });
+
+      const result = await participantService.bulkUpdatePaymentStatus(['p1', 'p2', 'p3'], 'waived');
+
+      expect(result).toEqual({ updated: 2, requested: 3 });
+    });
+
+    it('should throw error on RPC failure', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: 'Invalid payment status' },
+      });
+
+      await expect(
+        participantService.bulkUpdatePaymentStatus(['p1'], 'invalid' as any)
+      ).rejects.toThrow();
+    });
+  });
+
   describe('exportParticipantsToCSV', () => {
     it('should generate CSV with basic fields', async () => {
       const participants = [

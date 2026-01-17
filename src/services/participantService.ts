@@ -360,19 +360,28 @@ export const participantService = {
     participantIds: string[],
     paymentStatus: 'pending' | 'paid' | 'waived',
     paymentNotes?: string
-  ): Promise<void> {
-    const updateData: TablesUpdate<'participants'> = {
-      payment_status: paymentStatus,
-      payment_marked_at: paymentStatus !== 'pending' ? new Date().toISOString() : null,
-      payment_notes: paymentNotes || null,
-    };
+  ): Promise<{ updated: number; requested: number }> {
+    if (participantIds.length === 0) {
+      return { updated: 0, requested: 0 };
+    }
 
-    const { error } = await supabase
-      .from('participants')
-      .update(updateData)
-      .in('id', participantIds);
+    // Use RPC function for atomic update with validation
+    const { data, error } = await supabase.rpc('bulk_update_payment_status', {
+      p_participant_ids: participantIds,
+      p_payment_status: paymentStatus,
+      p_payment_notes: paymentNotes || null,
+    });
 
     if (error) throw error;
+
+    if (!data || data.length === 0) {
+      return { updated: 0, requested: participantIds.length };
+    }
+
+    return {
+      updated: data[0].updated_count,
+      requested: data[0].requested_count,
+    };
   },
 
   async getPaymentSummary(eventId: string): Promise<{
