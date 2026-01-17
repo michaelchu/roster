@@ -369,7 +369,7 @@ export const participantService = {
     const { data, error } = await supabase.rpc('bulk_update_payment_status', {
       p_participant_ids: participantIds,
       p_payment_status: paymentStatus,
-      p_payment_notes: paymentNotes || null,
+      p_payment_notes: paymentNotes,
     });
 
     if (error) throw error;

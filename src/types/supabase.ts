@@ -212,13 +212,6 @@ export type Database = {
             referencedRelation: 'groups';
             referencedColumns: ['id'];
           },
-          {
-            foreignKeyName: 'group_participants_participant_id_fkey';
-            columns: ['participant_id'];
-            isOneToOne: false;
-            referencedRelation: 'participants';
-            referencedColumns: ['id'];
-          },
         ];
       };
       groups: {
@@ -385,13 +378,50 @@ export type Database = {
           skipped_count: number;
         }[];
       };
+      bulk_update_payment_status: {
+        Args: {
+          p_participant_ids: string[];
+          p_payment_notes?: string;
+          p_payment_status: string;
+        };
+        Returns: {
+          requested_count: number;
+          updated_count: number;
+        }[];
+      };
+      get_group_by_id_with_counts: {
+        Args: { p_group_id: string };
+        Returns: {
+          created_at: string;
+          description: string;
+          event_count: number;
+          id: string;
+          is_private: boolean;
+          name: string;
+          organizer_id: string;
+          participant_count: number;
+        }[];
+      };
       get_group_members_with_user_info: {
         Args: { p_group_id: string };
         Returns: {
-          user_id: string;
-          joined_at: string;
           email: string;
           full_name: string;
+          joined_at: string;
+          user_id: string;
+        }[];
+      };
+      get_groups_with_counts: {
+        Args: { p_organizer_id: string };
+        Returns: {
+          created_at: string;
+          description: string;
+          event_count: number;
+          id: string;
+          is_private: boolean;
+          name: string;
+          organizer_id: string;
+          participant_count: number;
         }[];
       };
       get_next_slot_number: {
@@ -403,6 +433,19 @@ export type Database = {
         Returns: string;
       };
       get_user_display_name: { Args: { user_id: string }; Returns: string };
+      get_user_groups_with_counts: {
+        Args: { p_user_id: string };
+        Returns: {
+          created_at: string;
+          description: string;
+          event_count: number;
+          id: string;
+          is_private: boolean;
+          name: string;
+          organizer_id: string;
+          participant_count: number;
+        }[];
+      };
       get_user_profile: {
         Args: { user_id: string };
         Returns: {
