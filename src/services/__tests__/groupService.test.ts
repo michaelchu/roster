@@ -12,6 +12,7 @@ vi.mock('@/lib/supabase', () => ({
       order: vi.fn().mockReturnThis(),
       single: vi.fn().mockReturnThis(),
     })),
+    rpc: vi.fn(),
   },
 }));
 
@@ -473,63 +474,29 @@ describe('groupService', () => {
 
   describe('getGroupParticipants', () => {
     it('should fetch group members and their details', async () => {
-      const mockMembers = [
-        { user_id: 'user-1', joined_at: '2023-01-01T00:00:00Z' },
-        { user_id: 'user-2', joined_at: '2023-01-02T00:00:00Z' },
+      const mockMembersData = [
+        {
+          user_id: 'user-1',
+          joined_at: '2023-01-01T00:00:00Z',
+          email: 'john@example.com',
+          full_name: 'John Doe',
+        },
+        {
+          user_id: 'user-2',
+          joined_at: '2023-01-02T00:00:00Z',
+          email: 'jane@example.com',
+          full_name: 'Jane Smith',
+        },
       ];
 
-      // Mock the group_participants query
-      const membersQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockMembers, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValueOnce(
-        membersQueryChain as ReturnType<typeof mockSupabase.from>
-      );
-
-      // Mock the participant details lookups for each member
-      const participantQueryChain1 = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({
-          data: {
-            name: 'John Doe',
-            email: 'john@example.com',
-            phone: null,
-            event_id: 'event-1',
-            created_at: '2023-01-01T00:00:00Z',
-          },
-          error: null,
-        }),
-      };
-
-      const participantQueryChain2 = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({
-          data: {
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            phone: null,
-            event_id: 'event-2',
-            created_at: '2023-01-02T00:00:00Z',
-          },
-          error: null,
-        }),
-      };
-
-      mockSupabase.from
-        .mockReturnValueOnce(participantQueryChain1 as ReturnType<typeof mockSupabase.from>)
-        .mockReturnValueOnce(participantQueryChain2 as ReturnType<typeof mockSupabase.from>);
+      // Mock the RPC call
+      mockSupabase.rpc.mockResolvedValue({ data: mockMembersData, error: null });
 
       const result = await groupService.getGroupParticipants('group-1');
 
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('get_group_members_with_user_info', {
+        p_group_id: 'group-1',
+      });
       expect(result).toHaveLength(2);
       expect(result[0].user_id).toBe('user-1');
       expect(result[0].name).toBe('John Doe');
