@@ -56,6 +56,6 @@ BEGIN
     ) as avatar_url
   FROM participants p
   LEFT JOIN auth.users u ON u.id = p.user_id
-  WHERE p.event_id = p_event_id::uuid;
+  WHERE p.event_id = p_event_id;
 END;
 $$;
