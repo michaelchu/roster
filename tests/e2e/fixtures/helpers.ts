@@ -363,6 +363,10 @@ export async function goToGroup(page: Page, groupId: string) {
 export async function goToEventsList(page: Page) {
   await page.goto('/events');
   await page.waitForLoadState('domcontentloaded');
+  // Click on "Organizing" tab since tests create events as organizer
+  const organizingTab = page.getByRole('tab', { name: /organizing/i });
+  await organizingTab.click();
+  await page.waitForTimeout(500); // Wait for tab content to load
 }
 
 export async function goToGroupsList(page: Page) {

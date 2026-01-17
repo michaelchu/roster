@@ -211,19 +211,19 @@ test.describe('Authentication Flow', () => {
         email: generateTestEmail('session'),
         password: 'TestPassword123!',
       };
-      
+
       await register(page, testUser);
       await logout(page);
 
       // Try to access protected page
       await page.goto('/events');
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000); // Wait for auth state to be checked
 
-      // Should show "Sign In Required" message and sign in button
-      await expect(page.getByText(/sign in required/i)).toBeVisible();
+      // Should be redirected to login page (ProtectedRoute behavior)
+      expect(page.url()).toContain('/auth/login');
       const signInButton = page.getByRole('button', { name: /sign in/i });
-      await expect(signInButton).toBeVisible();
+      await expect(signInButton).toBeVisible({ timeout: 5000 });
     });
   });
 

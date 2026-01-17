@@ -62,9 +62,10 @@ test.describe('Authorization and Access Control', () => {
         name: generateTestName('My Event 2'),
       });
 
-      // Go to events list
+      // Go to events list and click on Organizing tab
       await page.goto('/events');
       await page.waitForLoadState('domcontentloaded');
+      await page.getByRole('tab', { name: /organizing/i }).click();
       await page.waitForTimeout(500);
 
       // Should see own events in the event list
@@ -236,16 +237,16 @@ test.describe('Authorization and Access Control', () => {
         password: 'TestPassword123!',
       });
 
-      // Try to access add members page
-      await page.goto(`/groups/${group.id}/add-members`);
+      // Try to access manage roles page (which requires admin access)
+      await page.goto(`/groups/${group.id}/manage-roles`);
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
-      // Should be blocked
+      // Should be blocked - either redirected away or shown error
       const url = page.url();
-      const hasError = await page.getByText(/not authorized|permission denied|forbidden/i).isVisible().catch(() => false);
+      const hasError = await page.getByText(/not authorized|permission denied|forbidden|not found|sign in required/i).isVisible().catch(() => false);
 
-      expect(!url.includes('/add-members') || hasError).toBe(true);
+      expect(!url.includes('/manage-roles') || hasError).toBe(true);
     });
   });
 

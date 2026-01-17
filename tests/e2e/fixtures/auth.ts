@@ -90,6 +90,20 @@ export async function logout(page: Page) {
   await page.waitForURL((url) => url.pathname === '/' || url.pathname.includes('/auth'), {
     timeout: 5000,
   });
+
+  // Wait for localStorage to be cleared (session is removed)
+  await page.waitForFunction(() => {
+    const keys = Object.keys(localStorage).filter(key => key.includes('auth-token'));
+    if (keys.length === 0) return true;
+    const sessionData = localStorage.getItem(keys[0]);
+    if (!sessionData) return true;
+    try {
+      const session = JSON.parse(sessionData);
+      return !session?.user?.id;
+    } catch {
+      return true;
+    }
+  }, { timeout: 5000 });
 }
 
 /**
