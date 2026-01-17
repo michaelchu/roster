@@ -34,13 +34,6 @@ interface GroupQueryResult {
   groups: Tables<'groups'> | Array<Tables<'groups'>>;
 }
 
-interface GroupMemberWithUserInfo {
-  user_id: string;
-  joined_at: string;
-  email: string;
-  full_name: string;
-}
-
 export interface GroupStats {
   event_count: number;
   participant_count: number;
