@@ -124,7 +124,10 @@ export function LoginPage() {
 
             <div className="text-center text-xs text-muted-foreground">
               Don't have an account?{' '}
-              <Link to="/auth/register" className="text-primary hover:underline">
+              <Link
+                to={`/auth/register${returnUrl !== '/' ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
+                className="text-primary hover:underline"
+              >
                 Sign Up
               </Link>
             </div>
