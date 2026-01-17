@@ -77,7 +77,7 @@ export function ProfilePage() {
             <div className="flex items-center gap-3">
               <UserAvatar
                 name={user.user_metadata?.full_name}
-                avatarUrl={user.user_metadata?.avatar_url}
+                avatarUrl={user.user_metadata?.avatar_url || user.user_metadata?.picture}
                 size="lg"
                 showIcon={!user.user_metadata?.full_name}
               />

@@ -450,6 +450,14 @@ export type Database = {
           name: string;
         }[];
       };
+      get_event_participants_with_avatar: {
+        Args: { p_event_id: string };
+        Returns: {
+          participant_id: string;
+          user_id: string;
+          avatar_url: string;
+        }[];
+      };
       nanoid: { Args: { size?: number }; Returns: string };
       remove_participants_from_group: {
         Args: { p_group_id: string; p_participant_ids: string[] };

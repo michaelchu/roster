@@ -18,6 +18,7 @@ export interface Participant extends Omit<Tables<'participants'>, 'responses' | 
   payment_status: 'pending' | 'paid' | 'waived';
   payment_marked_at: string | null;
   payment_notes: string | null;
+  avatar_url?: string | null;
 }
 
 export type Label = Tables<'labels'>;
@@ -89,6 +90,19 @@ export const participantService = {
 
     if (!participants || participants.length === 0) return [];
 
+    // Fetch avatar URLs for participants with user_id
+    const { data: avatarData } = await supabase.rpc('get_event_participants_with_avatar', {
+      p_event_id: eventId,
+    });
+
+    // Create a map of participant_id to avatar_url
+    const avatarMap = new Map<string, string | null>();
+    if (avatarData) {
+      for (const item of avatarData) {
+        avatarMap.set(item.participant_id, item.avatar_url);
+      }
+    }
+
     return participants.map((p) => {
       // Extract labels from the joined data
       const labels: Label[] = [];
@@ -110,6 +124,7 @@ export const participantService = {
         ...dbParticipantToParticipant(participantWithoutLabels),
         labels,
         responses: (participantWithoutLabels.responses as ResponseRecord) || {},
+        avatar_url: avatarMap.get(p.id) || null,
       };
     });
   },

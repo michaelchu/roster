@@ -23,6 +23,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test:e2e:ui` - Run E2E tests with Playwright UI
 - `npm run test:e2e:headed` - Run E2E tests with visible browser
 
+**Database & Migrations:**
+- `npx supabase start` - Start local Supabase instance
+- `npx supabase stop` - Stop local Supabase instance
+- `npx supabase migration list` - List all migrations and their status
+- `npx supabase migration new <name>` - Create a new migration file
+- To apply a migration locally, use psql: `psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/migrations/<file>.sql`
+- To re-seed local database: `psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed.sql`
+
+**IMPORTANT - Database Commands Requiring Explicit Permission:**
+- **NEVER** run `npx supabase db reset` unless explicitly told to - this wipes all local data
+- **NEVER** run `npx supabase db push` unless explicitly told to - this pushes to remote database
+
 ## High-Level Architecture
 
 ### Project Structure

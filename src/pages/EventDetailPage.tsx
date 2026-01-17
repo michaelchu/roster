@@ -759,7 +759,7 @@ export function EventDetailPage() {
                       <div className="text-xs text-muted-foreground font-mono flex-shrink-0 mt-1">
                         {participant.slot_number}.
                       </div>
-                      <UserAvatar name={displayName} size="sm" />
+                      <UserAvatar name={displayName} avatarUrl={participant.avatar_url} size="sm" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0 flex-1">
