@@ -76,45 +76,25 @@ function validateGroupData(group: Partial<Group>): void {
 
 export const groupService = {
   async getGroupsByOrganizer(organizerId: string): Promise<Group[]> {
-    // Get groups without counts first
-    const { data: groupsData, error: groupsError } = await supabase
-      .from('groups')
-      .select('*')
-      .eq('organizer_id', organizerId)
-      .order('created_at', { ascending: false });
+    // Use RPC function to get groups with counts in a single query
+    const { data, error } = await supabase.rpc('get_groups_with_counts', {
+      p_organizer_id: organizerId,
+    });
 
-    if (groupsError) throw errorHandler.fromSupabaseError(groupsError);
+    if (error) throw errorHandler.fromSupabaseError(error);
 
-    if (!groupsData) return [];
+    if (!data) return [];
 
-    // Get accurate counts for each group (deduplicating participants)
-    const groupsWithCounts = await Promise.all(
-      groupsData.map(async (group) => {
-        // Get event count
-        const { count: eventCount, error: eventError } = await supabase
-          .from('events')
-          .select('*', { count: 'exact', head: true })
-          .eq('group_id', group.id);
-
-        if (eventError) throw errorHandler.fromSupabaseError(eventError);
-
-        // Get member count (direct group members only)
-        const { count: memberCount, error: memberError } = await supabase
-          .from('group_participants')
-          .select('*', { count: 'exact', head: true })
-          .eq('group_id', group.id);
-
-        if (memberError) throw errorHandler.fromSupabaseError(memberError);
-
-        return {
-          ...group,
-          event_count: eventCount || 0,
-          participant_count: memberCount || 0,
-        };
-      })
-    );
-
-    return groupsWithCounts;
+    return data.map((group) => ({
+      id: group.id,
+      organizer_id: group.organizer_id,
+      name: group.name,
+      description: group.description,
+      is_private: group.is_private,
+      created_at: group.created_at,
+      event_count: Number(group.event_count),
+      participant_count: Number(group.participant_count),
+    }));
   },
 
   async getGroupById(groupId: string): Promise<Group> {
@@ -585,52 +565,24 @@ export const groupService = {
   },
 
   async getGroupsByUser(userId: string): Promise<Group[]> {
-    // Get all groups where user is a member
-    const { data: groupData, error: groupError } = await supabase
-      .from('group_participants')
-      .select(
-        `
-        groups!inner (*)
-      `
-      )
-      .eq('user_id', userId);
-
-    if (groupError) throw errorHandler.fromSupabaseError(groupError);
-
-    if (!groupData || groupData.length === 0) return [];
-
-    const groups = groupData.map((item: GroupQueryResult) => {
-      const group = item.groups;
-      return Array.isArray(group) ? group[0] : group;
+    // Use RPC function to get user's groups with counts in a single query
+    const { data, error } = await supabase.rpc('get_user_groups_with_counts', {
+      p_user_id: userId,
     });
 
-    // Get counts for each group
-    const groupsWithCounts = await Promise.all(
-      groups.map(async (group) => {
-        // Get event count
-        const { count: eventCount, error: eventError } = await supabase
-          .from('events')
-          .select('*', { count: 'exact', head: true })
-          .eq('group_id', group.id);
+    if (error) throw errorHandler.fromSupabaseError(error);
 
-        if (eventError) throw errorHandler.fromSupabaseError(eventError);
+    if (!data || data.length === 0) return [];
 
-        // Get member count
-        const { count: memberCount, error: memberError } = await supabase
-          .from('group_participants')
-          .select('*', { count: 'exact', head: true })
-          .eq('group_id', group.id);
-
-        if (memberError) throw errorHandler.fromSupabaseError(memberError);
-
-        return {
-          ...group,
-          event_count: eventCount || 0,
-          participant_count: memberCount || 0,
-        };
-      })
-    );
-
-    return groupsWithCounts;
+    return data.map((group) => ({
+      id: group.id,
+      organizer_id: group.organizer_id,
+      name: group.name,
+      description: group.description,
+      is_private: group.is_private,
+      created_at: group.created_at,
+      event_count: Number(group.event_count),
+      participant_count: Number(group.participant_count),
+    }));
   },
 };

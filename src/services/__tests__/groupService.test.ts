@@ -49,8 +49,8 @@ describe('groupService', () => {
   });
 
   describe('getGroupsByOrganizer', () => {
-    it('should fetch groups with event and participant counts', async () => {
-      const mockGroups = [
+    it('should fetch groups with event and participant counts via RPC', async () => {
+      const mockRpcData = [
         {
           id: 'group-1',
           name: 'Test Group',
@@ -58,41 +58,18 @@ describe('groupService', () => {
           description: 'Test description',
           is_private: false,
           created_at: '2023-01-01T00:00:00Z',
+          event_count: 3,
+          participant_count: 2,
         },
       ];
 
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockGroups, error: null }),
-      };
-
-      // Mock the initial groups query
-      mockSupabase.from.mockReturnValueOnce(mockQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      // Mock event count query
-      const eventCountChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ count: 3, error: null }),
-      };
-      mockSupabase.from.mockReturnValueOnce(
-        eventCountChain as ReturnType<typeof mockSupabase.from>
-      );
-
-      // Mock member count query (now uses count instead of fetching participant data)
-      const memberCountChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({
-          count: 2,
-          error: null,
-        }),
-      };
-      mockSupabase.from.mockReturnValueOnce(
-        memberCountChain as ReturnType<typeof mockSupabase.from>
-      );
+      mockSupabase.rpc.mockResolvedValue({ data: mockRpcData, error: null });
 
       const result = await groupService.getGroupsByOrganizer('organizer-1');
 
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('get_groups_with_counts', {
+        p_organizer_id: 'organizer-1',
+      });
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual(
         expect.objectContaining({
@@ -105,61 +82,35 @@ describe('groupService', () => {
     });
 
     it('should return empty array when no groups found', async () => {
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValue(mockQueryChain as ReturnType<typeof mockSupabase.from>);
+      mockSupabase.rpc.mockResolvedValue({ data: null, error: null });
 
       const result = await groupService.getGroupsByOrganizer('organizer-1');
 
       expect(result).toEqual([]);
     });
 
-    it('should count group members correctly', async () => {
-      const mockGroups = [
+    it('should convert bigint counts to numbers', async () => {
+      const mockRpcData = [
         {
           id: 'group-1',
           name: 'Test Group',
           organizer_id: 'organizer-1',
+          description: null,
+          is_private: false,
           created_at: '2023-01-01T00:00:00Z',
+          event_count: BigInt(5),
+          participant_count: BigInt(10),
         },
       ];
 
-      const mockQueryChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: mockGroups, error: null }),
-      };
-
-      mockSupabase.from.mockReturnValueOnce(mockQueryChain as ReturnType<typeof mockSupabase.from>);
-
-      const eventCountChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ count: 1, error: null }),
-      };
-      mockSupabase.from.mockReturnValueOnce(
-        eventCountChain as ReturnType<typeof mockSupabase.from>
-      );
-
-      // Mock member count (direct group membership)
-      const memberCountChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({
-          count: 2,
-          error: null,
-        }),
-      };
-      mockSupabase.from.mockReturnValueOnce(
-        memberCountChain as ReturnType<typeof mockSupabase.from>
-      );
+      mockSupabase.rpc.mockResolvedValue({ data: mockRpcData, error: null });
 
       const result = await groupService.getGroupsByOrganizer('organizer-1');
 
-      // Should count 2 group members
-      expect(result[0].participant_count).toBe(2);
+      expect(result[0].event_count).toBe(5);
+      expect(result[0].participant_count).toBe(10);
+      expect(typeof result[0].event_count).toBe('number');
+      expect(typeof result[0].participant_count).toBe('number');
     });
   });
 
