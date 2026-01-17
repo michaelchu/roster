@@ -76,28 +76,7 @@ test.describe('Event Management Flow', () => {
       // TODO: Verify custom fields exist when viewing event detail
     });
 
-    test('organizer can create private event', async ({ page }) => {
-      const testUser = {
-        email: generateTestEmail('private'),
-        password: 'TestPassword123!',
-      };
-      await register(page, testUser);
-
-      const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      const datetimeString = futureDate.toISOString().slice(0, 16);
-
-      const eventData = {
-        name: generateTestName('Private Event'),
-        datetime: datetimeString,
-        location: 'Secret Location',
-        isPrivate: true,
-      };
-
-      await createEventViaUI(page, eventData);
-
-      await goToEventsList(page);
-      await expectEventVisible(page, eventData.name);
-    });
+    // Note: 'organizer can create private event' test removed - event_privacy feature flag is disabled
 
     test('organizer can create event with max participants', async ({ page }) => {
       const testUser = {
@@ -179,50 +158,7 @@ test.describe('Event Management Flow', () => {
       await expect(page.getByText(updates.description)).toBeVisible();
     });
 
-    test('organizer can toggle event privacy', async ({ page }) => {
-      const testUser = {
-        email: generateTestEmail('privacytoggle'),
-        password: 'TestPassword123!',
-      };
-      await register(page, testUser);
-
-      const userId = await getUserId(page);
-
-      const event = await createTestEvent(userId!, {
-        name: generateTestName('Public Event'),
-        is_private: false,
-      });
-
-      // Navigate to edit page
-      await page.goto(`/events/${event.id}/edit`);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(1000); // Wait for form to load
-
-      // Toggle privacy - it's a button with text "Public Event" that changes to "Private Event"
-      const privateToggle = page.locator('button:has-text("Public Event"), button:has-text("Private Event")');
-      await privateToggle.waitFor({ state: 'visible', timeout: 5000 });
-      
-      // Verify it's currently public
-      const isPublic = await page.locator('button:has-text("Public Event")').isVisible();
-      expect(isPublic).toBe(true);
-
-      await privateToggle.click();
-
-      // Save
-      const submitButton = page.getByRole('button', { name: /save|update/i });
-      await submitButton.click();
-
-      await page.waitForURL((url) => !url.pathname.includes('/edit'), { timeout: 10000 });
-
-      // Verify the change was saved (use admin DB to bypass RLS)
-      const { data: updatedEvent } = await getAdminDb()
-        .from('events')
-        .select('is_private')
-        .eq('id', event.id)
-        .single();
-
-      expect(updatedEvent?.is_private).toBe(true);
-    });
+    // Note: 'organizer can toggle event privacy' test removed - event_privacy feature flag is disabled
 
     // Date validation tests removed - DateTimeInput component is too complex for E2E testing
     // Validation logic is fully covered by unit tests (same as Event Creation section)

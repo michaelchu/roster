@@ -48,16 +48,8 @@ export async function createEventViaUI(page: Page, eventData: Partial<EventFormD
     await page.fill('#location', eventData.location);
   }
 
-  // Privacy toggle - it's a button, not a checkbox
-  if (eventData.isPrivate !== undefined) {
-    const privateButton = page.locator('button:has-text("Private Event"), button:has-text("Public Event")');
-    const buttonText = await privateButton.textContent();
-    const isCurrentlyPrivate = buttonText?.includes('Private');
-    
-    if (isCurrentlyPrivate !== eventData.isPrivate) {
-      await privateButton.click();
-    }
-  }
+  // Note: Privacy toggle removed - event_privacy feature flag is disabled
+  // To test private events, create them via database with is_private: true
 
   // Max participants
   if (eventData.maxParticipants) {
@@ -325,17 +317,7 @@ export async function createGroupViaUI(page: Page, groupData: Partial<GroupFormD
     await page.fill('#description', groupData.description);
   }
 
-  if (groupData.isPrivate !== undefined) {
-    // Privacy toggle is a button, not a checkbox
-    const privateButton = page.locator('button:has-text("Private Group"), button:has-text("Public Group")');
-    await privateButton.waitFor({ state: 'visible', timeout: 5000 });
-    const buttonText = await privateButton.textContent();
-    const isCurrentlyPrivate = buttonText?.includes('Private');
-    
-    if (isCurrentlyPrivate !== groupData.isPrivate) {
-      await privateButton.click();
-    }
-  }
+  // Note: Groups don't have a privacy feature - isPrivate is ignored
 
   // Submit - button text is "Create Group"
   const submitButton = page.getByRole('button', { name: /create group/i });
