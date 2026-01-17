@@ -1,6 +1,6 @@
 echo "🔍 Running pre-push checks..."
 
-echo "🧪 Running tests..."
+echo "🧪 Running unit tests..."
 npm run test -- --run
 
 echo "📋 Running ESLint..."
@@ -8,5 +8,21 @@ npm run lint
 
 echo "🔎 Running TypeScript type check..."
 npm run typecheck
+
+# E2E tests - run if Supabase is available
+echo "🎭 Checking for E2E test environment..."
+if curl -s http://127.0.0.1:54321/rest/v1/ > /dev/null 2>&1; then
+  echo "✓ Supabase is running, executing E2E tests..."
+  npm run test:e2e
+
+  if [ $? -ne 0 ]; then
+    echo "❌ E2E tests failed!"
+    exit 1
+  fi
+  echo "✅ E2E tests passed!"
+else
+  echo "⚠️  Supabase not running - skipping E2E tests"
+  echo "   Run 'npx supabase start' to enable E2E tests on push"
+fi
 
 echo "✅ All checks passed! Pushing to remote..."

@@ -19,9 +19,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test` - Run Vitest unit/integration test suite
 - `npm run test:ui` - Interactive Vitest UI
 - `npm run test:coverage` - Generate test coverage reports
-- `npm run test:e2e` - Run Playwright end-to-end tests
+- `npm run test:e2e` - Run Playwright end-to-end tests (requires Supabase running)
 - `npm run test:e2e:ui` - Run E2E tests with Playwright UI
 - `npm run test:e2e:headed` - Run E2E tests with visible browser
+
+**Git Hooks:**
+- Pre-commit: Auto-formats code with Prettier
+- Pre-push: Runs unit tests, lint, typecheck, and E2E tests (if Supabase is running)
 
 **Database & Migrations:**
 - `npx supabase start` - Start local Supabase instance
