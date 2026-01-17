@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { groupService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -17,7 +16,6 @@ export function NewGroupPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    is_private: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -56,7 +54,6 @@ export function NewGroupPage() {
         organizer_id: user.id,
         name: formData.name.trim(),
         description: formData.description.trim() || null,
-        is_private: formData.is_private,
       });
 
       errorHandler.success('Group created successfully!');
@@ -130,40 +127,6 @@ export function NewGroupPage() {
           {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
           <p className="text-xs text-muted-foreground">
             {formData.description.length}/2000 characters
-          </p>
-        </div>
-
-        {/* Privacy Setting */}
-        <div className="space-y-2">
-          <Label className="text-sm">Group Privacy</Label>
-          <button
-            type="button"
-            onClick={() => handleInputChange('is_private', !formData.is_private)}
-            className={`flex items-center justify-between w-full p-2 rounded-lg border-2 transition-colors ${
-              formData.is_private
-                ? 'border-destructive/20 bg-destructive/5'
-                : 'border-primary/20 bg-primary/5'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              {formData.is_private ? (
-                <Lock className="h-3.5 w-3.5 text-destructive" />
-              ) : (
-                <Unlock className="h-3.5 w-3.5 text-primary" />
-              )}
-              <span
-                className={`text-sm font-medium ${
-                  formData.is_private ? 'text-destructive' : 'text-primary'
-                }`}
-              >
-                {formData.is_private ? 'Private Group' : 'Public Group'}
-              </span>
-            </div>
-          </button>
-          <p className="text-xs text-muted-foreground">
-            {formData.is_private
-              ? 'Only people you invite can view and join this group'
-              : 'Anyone with the link can view and join this group'}
           </p>
         </div>
 

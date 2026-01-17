@@ -7,7 +7,7 @@ import { MobileOnly } from '@/components/MobileOnly';
 import { BottomNav } from '@/components/BottomNav';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/sonner';
 
 import { HomePage } from '@/pages/HomePage';
 import { EventsPage } from '@/pages/EventsPage';

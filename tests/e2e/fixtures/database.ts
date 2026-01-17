@@ -158,7 +158,6 @@ export async function createTestGroup(
   groupData?: Partial<{
     name: string;
     description: string;
-    is_private: boolean;
   }>
 ) {
   const { data, error } = await getAdminDb()
@@ -167,7 +166,6 @@ export async function createTestGroup(
       organizer_id: organizerId,
       name: groupData?.name || generateTestName('Group'),
       description: groupData?.description || 'Test group description',
-      is_private: groupData?.is_private ?? false,
     })
     .select()
     .single();

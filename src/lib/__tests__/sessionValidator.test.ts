@@ -1,11 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { toast } from 'sonner';
 
-// Mock toast
-const mockToast = vi.fn();
-vi.mock('@/hooks/use-toast', () => ({
-  toast: (options: unknown) => mockToast(options),
+// Mock sonner toast
+vi.mock('sonner', () => ({
+  toast: Object.assign(vi.fn(), {
+    error: vi.fn(),
+    success: vi.fn(),
+    info: vi.fn(),
+  }),
 }));
+
+const mockToast = vi.mocked(toast);
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
@@ -69,11 +75,9 @@ describe('sessionValidator', () => {
       const result = await validateSession();
 
       expect(result).toBeNull();
-      expect(mockToast).toHaveBeenCalledWith({
-        variant: 'destructive',
-        title: 'Session Expired',
-        description: 'Your session has expired. Please sign in again.',
-      });
+      expect(mockToast.error).toHaveBeenCalledWith(
+        'Your session has expired. Please sign in again.'
+      );
       expect(mockLocation.href).toBe('/auth/login');
     });
 
@@ -86,7 +90,7 @@ describe('sessionValidator', () => {
       const result = await validateSession();
 
       expect(result).toBeNull();
-      expect(mockToast).toHaveBeenCalled();
+      expect(mockToast.error).toHaveBeenCalled();
       expect(mockLocation.href).toBe('/auth/login');
     });
 
@@ -175,11 +179,9 @@ describe('sessionValidator', () => {
         // Expected error
       }
 
-      expect(mockToast).toHaveBeenCalledWith({
-        variant: 'destructive',
-        title: 'Session Expired',
-        description: 'Your session has expired. Please sign in again.',
-      });
+      expect(mockToast.error).toHaveBeenCalledWith(
+        'Your session has expired. Please sign in again.'
+      );
     });
 
     it('should throw error and redirect when session is invalid', async () => {

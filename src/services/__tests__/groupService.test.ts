@@ -56,7 +56,6 @@ describe('groupService', () => {
           name: 'Test Group',
           organizer_id: 'organizer-1',
           description: 'Test description',
-          is_private: false,
           created_at: '2023-01-01T00:00:00Z',
           event_count: 3,
           participant_count: 2,
@@ -96,7 +95,6 @@ describe('groupService', () => {
           name: 'Test Group',
           organizer_id: 'organizer-1',
           description: null,
-          is_private: false,
           created_at: '2023-01-01T00:00:00Z',
           event_count: BigInt(5),
           participant_count: BigInt(10),
@@ -122,7 +120,6 @@ describe('groupService', () => {
           name: 'Test Group',
           organizer_id: 'organizer-1',
           description: 'Test description',
-          is_private: false,
           created_at: '2023-01-01T00:00:00Z',
           event_count: 5,
           participant_count: 10,
@@ -159,7 +156,6 @@ describe('groupService', () => {
           name: 'Test Group',
           organizer_id: 'organizer-1',
           description: null,
-          is_private: false,
           created_at: '2023-01-01T00:00:00Z',
           event_count: BigInt(5),
           participant_count: BigInt(10),
@@ -183,7 +179,6 @@ describe('groupService', () => {
         name: 'New Group',
         description: 'Test description',
         organizer_id: 'organizer-1',
-        is_private: false,
       };
 
       const mockCreatedGroup = {
@@ -208,7 +203,6 @@ describe('groupService', () => {
         name: 'New Group',
         description: 'Test description',
         organizer_id: 'organizer-1',
-        is_private: false,
       });
     });
 
@@ -217,7 +211,6 @@ describe('groupService', () => {
         name: '  Trimmed Group  ',
         organizer_id: 'organizer-1',
         description: null,
-        is_private: false,
       };
 
       const mockQueryChain = {
@@ -242,7 +235,6 @@ describe('groupService', () => {
         name: '',
         organizer_id: 'organizer-1',
         description: null,
-        is_private: false,
       };
 
       await expect(groupService.createGroup(newGroup)).rejects.toThrow(ValidationError);
@@ -253,7 +245,6 @@ describe('groupService', () => {
         name: 'a'.repeat(201),
         organizer_id: 'organizer-1',
         description: null,
-        is_private: false,
       };
 
       await expect(groupService.createGroup(newGroup)).rejects.toThrow(ValidationError);
@@ -264,7 +255,6 @@ describe('groupService', () => {
         name: 'Valid Name',
         organizer_id: 'organizer-1',
         description: 'a'.repeat(2001),
-        is_private: false,
       };
 
       await expect(groupService.createGroup(newGroup)).rejects.toThrow(ValidationError);
@@ -282,7 +272,6 @@ describe('groupService', () => {
         id: 'group-1',
         organizer_id: 'organizer-1',
         ...updates,
-        is_private: false,
         created_at: '2023-01-01T00:00:00Z',
       };
 

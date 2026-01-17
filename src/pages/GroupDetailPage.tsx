@@ -141,11 +141,6 @@ export function GroupDetailPage() {
                   <p className="text-sm text-muted-foreground">{group.description}</p>
                 )}
               </div>
-              {group.is_private && (
-                <Badge variant="secondary" className="text-xs">
-                  Private
-                </Badge>
-              )}
             </div>
 
             {/* Stats */}

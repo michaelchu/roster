@@ -90,7 +90,6 @@ export const groupService = {
       organizer_id: group.organizer_id,
       name: group.name,
       description: group.description,
-      is_private: group.is_private,
       created_at: group.created_at,
       event_count: Number(group.event_count),
       participant_count: Number(group.participant_count),
@@ -112,7 +111,6 @@ export const groupService = {
       organizer_id: group.organizer_id,
       name: group.name,
       description: group.description,
-      is_private: group.is_private,
       created_at: group.created_at,
       event_count: Number(group.event_count),
       participant_count: Number(group.participant_count),
@@ -133,7 +131,6 @@ export const groupService = {
       organizer_id: group.organizer_id,
       name: group.name.trim(),
       description: group.description,
-      is_private: group.is_private ?? false,
     };
 
     const { data, error } = await supabase.from('groups').insert(insertData).select().single();
@@ -155,7 +152,6 @@ export const groupService = {
 
     if (updates.name !== undefined) updateData.name = updates.name.trim();
     if (updates.description !== undefined) updateData.description = updates.description;
-    if (updates.is_private !== undefined) updateData.is_private = updates.is_private;
 
     const { data, error } = await supabase
       .from('groups')
@@ -592,7 +588,6 @@ export const groupService = {
       organizer_id: group.organizer_id,
       name: group.name,
       description: group.description,
-      is_private: group.is_private,
       created_at: group.created_at,
       event_count: Number(group.event_count),
       participant_count: Number(group.participant_count),

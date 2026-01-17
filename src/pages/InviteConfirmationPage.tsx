@@ -316,11 +316,6 @@ export function InviteConfirmationPage() {
             <div className="p-4 space-y-3">
               <div>
                 <h2 className="text-lg font-semibold mb-1">{groupData.name}</h2>
-                {groupData.is_private && (
-                  <Badge variant="secondary" className="text-xs">
-                    Private
-                  </Badge>
-                )}
               </div>
 
               {groupData.description && (

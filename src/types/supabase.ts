@@ -219,7 +219,6 @@ export type Database = {
           created_at: string;
           description: string | null;
           id: string;
-          is_private: boolean;
           name: string;
           organizer_id: string;
         };
@@ -227,7 +226,6 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
-          is_private?: boolean;
           name: string;
           organizer_id: string;
         };
@@ -235,7 +233,6 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
-          is_private?: boolean;
           name?: string;
           organizer_id?: string;
         };
@@ -396,7 +393,6 @@ export type Database = {
           description: string;
           event_count: number;
           id: string;
-          is_private: boolean;
           name: string;
           organizer_id: string;
           participant_count: number;
@@ -418,7 +414,6 @@ export type Database = {
           description: string;
           event_count: number;
           id: string;
-          is_private: boolean;
           name: string;
           organizer_id: string;
           participant_count: number;
@@ -440,7 +435,6 @@ export type Database = {
           description: string;
           event_count: number;
           id: string;
-          is_private: boolean;
           name: string;
           organizer_id: string;
           participant_count: number;

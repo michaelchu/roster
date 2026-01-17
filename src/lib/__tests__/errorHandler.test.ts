@@ -1,11 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { toast } from 'sonner';
 import { errorHandler, AppError, AuthError, DatabaseError } from '../errorHandler';
 
-// Mock toast
-const mockToast = vi.fn();
-vi.mock('@/hooks/use-toast', () => ({
-  toast: (options: unknown) => mockToast(options),
+// Mock sonner toast
+vi.mock('sonner', () => ({
+  toast: Object.assign(vi.fn(), {
+    error: vi.fn(),
+    success: vi.fn(),
+    info: vi.fn(),
+  }),
 }));
+
+const mockToast = vi.mocked(toast);
 
 // Note: Error class constructor tests removed - they're trivial property assignments.
 // The error classes are tested implicitly through errorHandler.handle and fromSupabaseError tests.
@@ -50,11 +56,7 @@ describe('errorHandler', () => {
 
       errorHandler.handle(error);
 
-      expect(mockToast).toHaveBeenCalledWith({
-        variant: 'destructive',
-        title: 'Error',
-        description: expect.any(String),
-      });
+      expect(mockToast.error).toHaveBeenCalledWith(expect.any(String));
     });
 
     it('should not show toast when showToast is false', () => {
@@ -62,7 +64,7 @@ describe('errorHandler', () => {
 
       errorHandler.handle(error, undefined, false);
 
-      expect(mockToast).not.toHaveBeenCalled();
+      expect(mockToast.error).not.toHaveBeenCalled();
     });
 
     it('should use userMessage from AppError', () => {
@@ -70,11 +72,7 @@ describe('errorHandler', () => {
 
       errorHandler.handle(error);
 
-      expect(mockToast).toHaveBeenCalledWith({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'User-friendly message',
-      });
+      expect(mockToast.error).toHaveBeenCalledWith('User-friendly message');
     });
 
     it('should handle string errors', () => {
@@ -96,11 +94,9 @@ describe('errorHandler', () => {
 
       errorHandler.handle(error);
 
-      expect(mockToast).toHaveBeenCalledWith({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Network connection failed. Please check your internet connection.',
-      });
+      expect(mockToast.error).toHaveBeenCalledWith(
+        'Network connection failed. Please check your internet connection.'
+      );
     });
 
     it('should provide friendly message for auth errors', () => {
@@ -108,11 +104,7 @@ describe('errorHandler', () => {
 
       errorHandler.handle(error);
 
-      expect(mockToast).toHaveBeenCalledWith({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Please sign in to continue.',
-      });
+      expect(mockToast.error).toHaveBeenCalledWith('Please sign in to continue.');
     });
 
     it('should provide friendly message for not found errors', () => {
@@ -120,11 +112,7 @@ describe('errorHandler', () => {
 
       errorHandler.handle(error);
 
-      expect(mockToast).toHaveBeenCalledWith({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'The requested item could not be found.',
-      });
+      expect(mockToast.error).toHaveBeenCalledWith('The requested item could not be found.');
     });
 
     it('should include stack trace in log for Error instances', () => {
@@ -230,10 +218,7 @@ describe('errorHandler', () => {
     it('should show success toast', () => {
       errorHandler.success('Operation completed');
 
-      expect(mockToast).toHaveBeenCalledWith({
-        title: 'Success',
-        description: 'Operation completed',
-      });
+      expect(mockToast.success).toHaveBeenCalledWith('Operation completed');
     });
   });
 
@@ -241,10 +226,7 @@ describe('errorHandler', () => {
     it('should show info toast', () => {
       errorHandler.info('FYI message');
 
-      expect(mockToast).toHaveBeenCalledWith({
-        title: 'Info',
-        description: 'FYI message',
-      });
+      expect(mockToast.info).toHaveBeenCalledWith('FYI message');
     });
   });
 });

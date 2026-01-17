@@ -1,4 +1,4 @@
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export interface ErrorContext {
   userId?: string;
@@ -91,11 +91,7 @@ export const errorHandler = {
 
     // Show toast notification to user
     if (showToast) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: userMessage,
-      });
+      toast.error(userMessage);
     }
 
     // In production, send to error tracking service
@@ -144,19 +140,13 @@ export const errorHandler = {
    * Show success toast
    */
   success(message: string): void {
-    toast({
-      title: 'Success',
-      description: message,
-    });
+    toast.success(message);
   },
 
   /**
    * Show info toast
    */
   info(message: string): void {
-    toast({
-      title: 'Info',
-      description: message,
-    });
+    toast.info(message);
   },
 };

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -32,12 +31,9 @@ export function EditGroupPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    is_private: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [eventCount, setEventCount] = useState<number>(0);
-  const [deleteChoice, setDeleteChoice] = useState<'keep' | 'delete'>('keep');
 
   useEffect(() => {
     if (!groupId) {
@@ -94,21 +90,7 @@ export function EditGroupPage() {
           setFormData({
             name: data.name,
             description: data.description || '',
-            is_private: data.is_private ?? false,
           });
-
-          // Load event count for delete dialog
-          groupService
-            .getGroupStats(groupId)
-            .then((stats) => {
-              if (!cancelled) {
-                setEventCount(stats.event_count);
-              }
-            })
-            .catch(() => {
-              // Silently fail - event count is nice-to-have for UI
-            });
-
           setInitialLoading(false);
         }
       } catch (error) {
@@ -168,7 +150,6 @@ export function EditGroupPage() {
       await groupService.updateGroup(group.id, {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
-        is_private: formData.is_private,
       });
 
       errorHandler.success('Group updated successfully!');
@@ -189,13 +170,9 @@ export function EditGroupPage() {
 
     setDeleting(true);
     try {
-      const shouldDeleteEvents = deleteChoice === 'delete';
-      await groupService.deleteGroup(group.id, shouldDeleteEvents);
+      await groupService.deleteGroup(group.id, true);
 
-      const message = shouldDeleteEvents
-        ? 'Group, events, and all participant data permanently deleted'
-        : 'Group deleted successfully. Events have been kept.';
-      errorHandler.success(message);
+      errorHandler.success('Group deleted successfully');
 
       // Close dialog before navigate to avoid setState on unmounted component
       setShowDeleteDialog(false);
@@ -285,23 +262,6 @@ export function EditGroupPage() {
             </p>
           </div>
 
-          {/* Privacy Setting */}
-          <div className="space-y-3">
-            <Label>Privacy</Label>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex-1">
-                <div className="font-medium text-sm">Private Group</div>
-                <div className="text-xs text-muted-foreground">
-                  Only invited members can join this group
-                </div>
-              </div>
-              <Switch
-                checked={formData.is_private}
-                onCheckedChange={(checked) => handleInputChange('is_private', checked)}
-              />
-            </div>
-          </div>
-
           {/* Delete Group Button */}
           <Button
             variant="outline"
@@ -341,53 +301,10 @@ export function EditGroupPage() {
           <DialogHeader>
             <DialogTitle>Delete Group</DialogTitle>
             <DialogDescription>
-              {eventCount > 0 ? (
-                <>
-                  This group has {eventCount} event{eventCount !== 1 ? 's' : ''}. What would you
-                  like to do with {eventCount !== 1 ? 'them' : 'it'}?
-                </>
-              ) : (
-                <>Are you sure you want to delete this group? This action cannot be undone.</>
-              )}
+              Are you sure you want to delete this group? This will also delete all events and
+              participant data. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-
-          {eventCount > 0 && (
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setDeleteChoice('keep')}
-                className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
-                  deleteChoice === 'keep'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/50'
-                }`}
-              >
-                <div className="font-medium text-sm">Keep Events</div>
-                <div className="text-xs text-muted-foreground">
-                  Events will remain in your event list, unassociated with any group
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDeleteChoice('delete')}
-                className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
-                  deleteChoice === 'delete'
-                    ? 'border-destructive bg-destructive/10'
-                    : 'border-border hover:border-destructive/50'
-                }`}
-              >
-                <div className="font-medium text-sm text-destructive">
-                  Delete Events Permanently
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  All events, participant data (names, emails, responses), and labels will be
-                  permanently deleted and cannot be recovered
-                </div>
-              </button>
-            </div>
-          )}
 
           <DialogFooter className="flex-col gap-2 sm:flex-row">
             <Button
@@ -396,9 +313,7 @@ export function EditGroupPage() {
               disabled={deleting}
               className="w-full sm:w-auto"
             >
-              {deleting
-                ? 'Deleting...'
-                : `Delete Group${eventCount > 0 && deleteChoice === 'delete' ? ' & Events' : ''}`}
+              {deleting ? 'Deleting...' : 'Delete Group'}
             </Button>
             <Button
               variant="outline"
