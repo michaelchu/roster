@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { Plus, Trash2, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService, groupService, type Group } from '@/services';
@@ -35,6 +36,7 @@ export function NewEventPage() {
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const showEventPrivacy = useFeatureFlag('event_privacy');
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -311,43 +313,45 @@ export function NewEventPage() {
 
         <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
 
-        <div className="space-y-2">
-          <Label className="text-sm">Event Privacy</Label>
-          <button
-            type="button"
-            onClick={() =>
-              setFormData((prev) => ({
-                ...prev,
-                is_private: !prev.is_private,
-              }))
-            }
-            className={`flex items-center justify-between w-full p-2 rounded-lg border-2 transition-colors ${
-              formData.is_private
-                ? 'border-destructive/20 bg-destructive/5'
-                : 'border-primary/20 bg-primary/5'
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              {formData.is_private ? (
-                <Lock className="h-3.5 w-3.5 text-destructive" />
-              ) : (
-                <Unlock className="h-3.5 w-3.5 text-primary" />
-              )}
-              <span
-                className={`text-sm font-medium ${
-                  formData.is_private ? 'text-destructive' : 'text-primary'
-                }`}
-              >
-                {formData.is_private ? 'Private Event' : 'Public Event'}
-              </span>
-            </div>
-          </button>
-          <p className="text-xs text-muted-foreground">
-            {formData.is_private
-              ? 'Only people you invite can view and sign up for this event'
-              : 'Anyone with the link can view and sign up for this event'}
-          </p>
-        </div>
+        {showEventPrivacy && (
+          <div className="space-y-2">
+            <Label className="text-sm">Event Privacy</Label>
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_private: !prev.is_private,
+                }))
+              }
+              className={`flex items-center justify-between w-full p-2 rounded-lg border-2 transition-colors ${
+                formData.is_private
+                  ? 'border-destructive/20 bg-destructive/5'
+                  : 'border-primary/20 bg-primary/5'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                {formData.is_private ? (
+                  <Lock className="h-3.5 w-3.5 text-destructive" />
+                ) : (
+                  <Unlock className="h-3.5 w-3.5 text-primary" />
+                )}
+                <span
+                  className={`text-sm font-medium ${
+                    formData.is_private ? 'text-destructive' : 'text-primary'
+                  }`}
+                >
+                  {formData.is_private ? 'Private Event' : 'Public Event'}
+                </span>
+              </div>
+            </button>
+            <p className="text-xs text-muted-foreground">
+              {formData.is_private
+                ? 'Only people you invite can view and sign up for this event'
+                : 'Anyone with the link can view and sign up for this event'}
+            </p>
+          </div>
+        )}
 
         <div className="pt-3 border-t">
           <div className="flex items-center justify-between">
@@ -364,11 +368,7 @@ export function NewEventPage() {
             </Button>
           </div>
 
-          {customFields.length === 0 ? (
-            <p className="text-xs text-muted-foreground mt-2">
-              No custom fields. Add fields to collect additional information from participants.
-            </p>
-          ) : (
+          {customFields.length > 0 && (
             <div className="space-y-3 mt-3">
               {customFields.map((field) => (
                 <div key={field.id} className="p-3 bg-muted rounded border space-y-2">

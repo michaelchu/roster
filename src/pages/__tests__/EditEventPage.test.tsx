@@ -10,6 +10,11 @@ import { useAuth } from '@/hooks/useAuth';
 vi.mock('@/hooks/useAuth');
 const mockUseAuth = vi.mocked(useAuth);
 
+// Mock feature flags hook
+vi.mock('@/hooks/useFeatureFlags', () => ({
+  useFeatureFlag: () => false,
+}));
+
 // Mock services
 vi.mock('@/services', () => ({
   eventService: {

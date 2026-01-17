@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { Plus, Trash2, Save, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService } from '@/services';
@@ -65,6 +66,7 @@ export function EditEventPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const showEventPrivacy = useFeatureFlag('event_privacy');
   const [initialLoading, setInitialLoading] = useState(true);
   const [event, setEvent] = useState<EventData | null>(null);
   const [formData, setFormData] = useState({
@@ -342,43 +344,45 @@ export function EditEventPage() {
             <div></div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm">Event Privacy</Label>
-            <button
-              type="button"
-              onClick={() =>
-                setFormData((prev) => ({
-                  ...prev,
-                  is_private: !prev.is_private,
-                }))
-              }
-              className={`flex items-center justify-between w-full p-3 rounded-lg border-2 transition-colors ${
-                formData.is_private
-                  ? 'border-destructive/20 bg-destructive/5'
-                  : 'border-primary/20 bg-primary/5'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                {formData.is_private ? (
-                  <Lock className="h-4 w-4 text-destructive" />
-                ) : (
-                  <Unlock className="h-4 w-4 text-primary" />
-                )}
-                <span
-                  className={`font-medium ${
-                    formData.is_private ? 'text-destructive' : 'text-primary'
-                  }`}
-                >
-                  {formData.is_private ? 'Private Event' : 'Public Event'}
-                </span>
-              </div>
-            </button>
-            <p className="text-xs text-muted-foreground">
-              {formData.is_private
-                ? 'Only people you invite can view and sign up for this event'
-                : 'Anyone with the link can view and sign up for this event'}
-            </p>
-          </div>
+          {showEventPrivacy && (
+            <div className="space-y-2">
+              <Label className="text-sm">Event Privacy</Label>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    is_private: !prev.is_private,
+                  }))
+                }
+                className={`flex items-center justify-between w-full p-3 rounded-lg border-2 transition-colors ${
+                  formData.is_private
+                    ? 'border-destructive/20 bg-destructive/5'
+                    : 'border-primary/20 bg-primary/5'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  {formData.is_private ? (
+                    <Lock className="h-4 w-4 text-destructive" />
+                  ) : (
+                    <Unlock className="h-4 w-4 text-primary" />
+                  )}
+                  <span
+                    className={`font-medium ${
+                      formData.is_private ? 'text-destructive' : 'text-primary'
+                    }`}
+                  >
+                    {formData.is_private ? 'Private Event' : 'Public Event'}
+                  </span>
+                </div>
+              </button>
+              <p className="text-xs text-muted-foreground">
+                {formData.is_private
+                  ? 'Only people you invite can view and sign up for this event'
+                  : 'Anyone with the link can view and sign up for this event'}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="bg-card rounded-lg p-3 border space-y-3">
