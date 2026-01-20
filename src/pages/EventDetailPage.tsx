@@ -790,9 +790,10 @@ export function EventDetailPage() {
                         {participant.slot_number}.
                       </div>
                       <UserAvatar name={displayName} avatarUrl={participant.avatar_url} size="sm" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="flex-1 min-w-0 flex justify-between gap-2">
+                        {/* Left column: name, badges, signup time */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 min-w-0">
                             {showRegistrationForm ? (
                               <button
                                 onClick={() => setSelectedParticipant(participant)}
@@ -806,12 +807,10 @@ export function EventDetailPage() {
                               </span>
                             )}
                             {isOwnClaimedSpot && claimNumber && (
-                              <Badge variant="outline" className="text-xs h-5 px-1 mr-2">
+                              <Badge variant="outline" className="text-xs h-5 px-1">
                                 +{claimNumber}
                               </Badge>
                             )}
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
                             {isOrganizerItem && (
                               <Badge
                                 variant="outline"
@@ -837,9 +836,41 @@ export function EventDetailPage() {
                                   />
                                 </button>
                               )}
-                            {isOrganizer &&
-                              participant.payment_status === 'pending' &&
-                              !isOrganizerItem && (
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Signed up{' '}
+                            {(() => {
+                              const now = new Date();
+                              const signupTime = new Date(participant.created_at);
+                              const diffMs = now.getTime() - signupTime.getTime();
+                              const diffMins = Math.floor(diffMs / (1000 * 60));
+                              const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                              const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+                              if (diffMins < 60) {
+                                return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
+                              } else if (diffHours < 24) {
+                                return `${diffHours}h ago`;
+                              } else if (diffDays < 7) {
+                                return `${diffDays}d ago`;
+                              } else {
+                                return `on ${signupTime.toLocaleDateString()}`;
+                              }
+                            })()}
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {participant.labels?.map((label) => (
+                              <Badge key={label.id} variant="outline" className="text-xs h-5">
+                                {label.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Right column: action buttons */}
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          {isOrganizer && !isOrganizerItem && (
+                            <>
+                              {participant.payment_status === 'pending' && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -852,7 +883,6 @@ export function EventDetailPage() {
                                   Mark Paid
                                 </Button>
                               )}
-                            {isOwnClaimedSpot && (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -860,41 +890,26 @@ export function EventDetailPage() {
                                   e.stopPropagation();
                                   setWithdrawingParticipant(participant);
                                 }}
-                                className="text-xs h-6 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                                className="text-xs h-6 px-2 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
                               >
-                                <UserX className="h-3 w-3 mr-1" />
-                                Withdraw
+                                Remove
                               </Button>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Signed up{' '}
-                          {(() => {
-                            const now = new Date();
-                            const signupTime = new Date(participant.created_at);
-                            const diffMs = now.getTime() - signupTime.getTime();
-                            const diffMins = Math.floor(diffMs / (1000 * 60));
-                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-                            if (diffMins < 60) {
-                              return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
-                            } else if (diffHours < 24) {
-                              return `${diffHours}h ago`;
-                            } else if (diffDays < 7) {
-                              return `${diffDays}d ago`;
-                            } else {
-                              return `on ${signupTime.toLocaleDateString()}`;
-                            }
-                          })()}
-                        </div>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {participant.labels?.map((label) => (
-                            <Badge key={label.id} variant="outline" className="text-xs h-5">
-                              {label.name}
-                            </Badge>
-                          ))}
+                            </>
+                          )}
+                          {isOwnClaimedSpot && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setWithdrawingParticipant(participant);
+                              }}
+                              className="text-xs h-6 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                            >
+                              <UserX className="h-3 w-3 mr-1" />
+                              Withdraw
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
