@@ -135,7 +135,7 @@ export function ProfilePage() {
               <Input
                 {...register('email')}
                 id="email"
-                type="email"
+                type="text"
                 placeholder="Enter your email address"
                 className="h-10 text-sm"
               />

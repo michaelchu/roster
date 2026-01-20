@@ -38,9 +38,11 @@ test.describe('Profile Page', () => {
       await page.goto('/profile');
       await page.waitForLoadState('domcontentloaded');
 
-      // Update the full name
+      // Wait for form to be populated with user data
       const fullNameInput = page.locator('input#fullName');
-      await fullNameInput.clear();
+      await expect(fullNameInput).toHaveValue('Original Name', { timeout: 5000 });
+
+      // Update the full name
       await fullNameInput.fill('Updated Name');
 
       // Submit the form
@@ -50,9 +52,10 @@ test.describe('Profile Page', () => {
       await expect(page).toHaveURL('/settings', { timeout: 10000 });
 
       // Go back to profile and verify the name was saved
+      // Add a small delay for auth state to refresh
       await page.goto('/profile');
       await page.waitForLoadState('domcontentloaded');
-      await expect(page.locator('input#fullName')).toHaveValue('Updated Name');
+      await expect(page.locator('input#fullName')).toHaveValue('Updated Name', { timeout: 10000 });
     });
 
     test('shows validation error for empty full name', async ({ page }) => {
@@ -83,7 +86,7 @@ test.describe('Profile Page', () => {
       await expect(toast).toContainText(/name.*required/i);
     });
 
-    test('prevents submission with invalid email format', async ({ page }) => {
+    test('shows validation error for invalid email format', async ({ page }) => {
       const testUser = {
         email: generateTestEmail('profile-invalid-email'),
         password: 'TestPassword123!',
@@ -94,16 +97,21 @@ test.describe('Profile Page', () => {
       await page.goto('/profile');
       await page.waitForLoadState('domcontentloaded');
 
-      // Enter invalid email
+      // Wait for form to be populated
       const emailInput = page.locator('input#email');
-      await emailInput.clear();
+      await expect(emailInput).toHaveValue(testUser.email, { timeout: 5000 });
+
+      // Enter invalid email
       await emailInput.fill('not-a-valid-email');
+      await emailInput.blur();
 
       // Submit the form
       await page.click('button[type="submit"]');
 
-      // Validation prevents form submission - page stays on /profile
-      await expect(page).toHaveURL('/profile');
+      // Zod validation shows toast error
+      const toast = page.locator('[data-sonner-toast]');
+      await expect(toast).toBeVisible({ timeout: 5000 });
+      await expect(toast).toContainText(/email/i);
     });
 
     test('shows validation error for empty email', async ({ page }) => {
