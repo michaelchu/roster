@@ -37,6 +37,8 @@ import {
   UserCheck,
   UserX,
   Zap,
+  DollarSign,
+  Trash2,
 } from 'lucide-react';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { TopNav } from '@/components/TopNav';
@@ -783,14 +785,14 @@ export function EventDetailPage() {
                 slots.push(
                   <div
                     key={participant.id}
-                    className={`p-3 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
+                    className={`px-3 py-2 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="text-xs text-muted-foreground font-mono flex-shrink-0 mt-1">
+                    <div className="flex items-center gap-3">
+                      <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
                         {participant.slot_number}.
                       </div>
                       <UserAvatar name={displayName} avatarUrl={participant.avatar_url} size="sm" />
-                      <div className="flex-1 min-w-0 flex justify-between gap-2">
+                      <div className="flex-1 min-w-0 flex justify-between items-center gap-2">
                         {/* Left column: name, badges, signup time */}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 min-w-0">
@@ -811,33 +813,8 @@ export function EventDetailPage() {
                                 +{claimNumber}
                               </Badge>
                             )}
-                            {isOrganizerItem && (
-                              <Badge
-                                variant="outline"
-                                className="bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200/50"
-                              >
-                                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-medium">
-                                  Organizer
-                                </span>
-                              </Badge>
-                            )}
-                            {isOrganizer &&
-                              participant.payment_status !== 'pending' &&
-                              !isOrganizerItem && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    togglePaymentStatus(participant);
-                                  }}
-                                >
-                                  <PaymentStatusBadge
-                                    status={participant.payment_status}
-                                    size="sm"
-                                  />
-                                </button>
-                              )}
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-muted-foreground -mt-1">
                             Signed up{' '}
                             {(() => {
                               const now = new Date();
@@ -866,36 +843,60 @@ export function EventDetailPage() {
                             ))}
                           </div>
                         </div>
-                        {/* Right column: action buttons */}
-                        <div className="flex flex-col gap-2 flex-shrink-0">
-                          {isOrganizer && !isOrganizerItem && (
-                            <>
-                              {participant.payment_status === 'pending' && (
+                        {/* Right column: badges and action buttons */}
+                        <div className="flex flex-col gap-2 flex-shrink-0 items-end">
+                          {isOrganizerItem && (
+                            <Badge
+                              variant="outline"
+                              className="bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200/50 text-xs"
+                            >
+                              <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-medium">
+                                Organizer
+                              </span>
+                            </Badge>
+                          )}
+                          {isOrganizer &&
+                            participant.payment_status !== 'pending' &&
+                            !isOrganizerItem && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  togglePaymentStatus(participant);
+                                }}
+                              >
+                                <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                              </button>
+                            )}
+                          {isOrganizer &&
+                            participant.payment_status === 'pending' &&
+                            !isOrganizerItem && (
+                              <div className="flex gap-2">
                                 <Button
-                                  size="sm"
+                                  size="icon"
                                   variant="outline"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     togglePaymentStatus(participant);
                                   }}
-                                  className="text-xs h-6 px-2"
+                                  className="h-8 w-8"
+                                  title="Mark Paid"
                                 >
-                                  Mark Paid
+                                  <DollarSign className="h-4 w-4" />
                                 </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setWithdrawingParticipant(participant);
-                                }}
-                                className="text-xs h-6 px-2 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
-                              >
-                                Remove
-                              </Button>
-                            </>
-                          )}
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setWithdrawingParticipant(participant);
+                                  }}
+                                  className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
+                                  title="Remove"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
                           {isOwnClaimedSpot && (
                             <Button
                               size="sm"
