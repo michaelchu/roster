@@ -60,6 +60,12 @@ export function NewEventPage() {
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [maxParticipants, setMaxParticipants] = useState<number>(10);
+  // Store previous values when TBD is checked so we can restore them
+  const [previousValues, setPreviousValues] = useState({
+    datetime: '',
+    end_datetime: '',
+    location: '',
+  });
   const {
     isLoading: groupsLoading,
     data: groups,
@@ -256,13 +262,18 @@ export function NewEventPage() {
             <label className="flex items-center gap-1.5 text-xs cursor-pointer">
               <Checkbox
                 checked={formData.datetimeTbd}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    datetimeTbd: checked === true,
-                    datetime: checked === true ? '' : prev.datetime,
-                  }))
-                }
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setPreviousValues((prev) => ({ ...prev, datetime: formData.datetime }));
+                    setFormData((prev) => ({ ...prev, datetimeTbd: true, datetime: '' }));
+                  } else {
+                    setFormData((prev) => ({
+                      ...prev,
+                      datetimeTbd: false,
+                      datetime: previousValues.datetime,
+                    }));
+                  }
+                }}
               />
               TBD
             </label>
@@ -283,13 +294,18 @@ export function NewEventPage() {
             <label className="flex items-center gap-1.5 text-xs cursor-pointer">
               <Checkbox
                 checked={formData.endDatetimeTbd}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    endDatetimeTbd: checked === true,
-                    end_datetime: checked === true ? '' : prev.end_datetime,
-                  }))
-                }
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setPreviousValues((prev) => ({ ...prev, end_datetime: formData.end_datetime }));
+                    setFormData((prev) => ({ ...prev, endDatetimeTbd: true, end_datetime: '' }));
+                  } else {
+                    setFormData((prev) => ({
+                      ...prev,
+                      endDatetimeTbd: false,
+                      end_datetime: previousValues.end_datetime,
+                    }));
+                  }
+                }}
               />
               TBD
             </label>
@@ -310,13 +326,18 @@ export function NewEventPage() {
             <label className="flex items-center gap-1.5 text-xs cursor-pointer">
               <Checkbox
                 checked={formData.locationTbd}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    locationTbd: checked === true,
-                    location: checked === true ? '' : prev.location,
-                  }))
-                }
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setPreviousValues((prev) => ({ ...prev, location: formData.location }));
+                    setFormData((prev) => ({ ...prev, locationTbd: true, location: '' }));
+                  } else {
+                    setFormData((prev) => ({
+                      ...prev,
+                      locationTbd: false,
+                      location: previousValues.location,
+                    }));
+                  }
+                }}
               />
               TBD
             </label>
