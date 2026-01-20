@@ -47,12 +47,10 @@ test.describe('Authentication Flow', () => {
       await page.fill('input[type="password"]', '123'); // Too short
       await page.click('button[type="submit"]');
 
-      // Should show error about password requirements
-      await page.waitForTimeout(2000); // Wait for API response
-      
-      // Error should be visible (look for error message with red styling)
-      const errorElement = page.locator('.text-red-700, [class*="text-red"]');
-      await expect(errorElement).toBeVisible({ timeout: 5000 });
+      // Zod validation shows toast error via sonner
+      const toast = page.locator('li[data-sonner-toast], [data-sonner-toast]');
+      await expect(toast.first()).toBeVisible({ timeout: 5000 });
+      await expect(toast.first()).toContainText(/password/i);
     });
 
     test('registration fails with duplicate email', async ({ page }) => {

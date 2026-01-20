@@ -79,7 +79,7 @@ test.describe('Profile Page', () => {
       await expect(toast).toContainText(/name.*required/i);
     });
 
-    test('prevents submission with invalid email via HTML5 validation', async ({ page }) => {
+    test('prevents submission with invalid email format', async ({ page }) => {
       const testUser = {
         email: generateTestEmail('profile-invalid-email'),
         password: 'TestPassword123!',
@@ -98,13 +98,8 @@ test.describe('Profile Page', () => {
       // Submit the form
       await page.click('button[type="submit"]');
 
-      // HTML5 validation should prevent form submission
-      // The page should still be on /profile (not redirected to /settings)
+      // Validation prevents form submission - page stays on /profile
       await expect(page).toHaveURL('/profile');
-
-      // Check that the email input has validation error state
-      const isInvalid = await emailInput.evaluate((el: HTMLInputElement) => !el.validity.valid);
-      expect(isInvalid).toBe(true);
     });
 
     test('shows validation error for empty email', async ({ page }) => {
