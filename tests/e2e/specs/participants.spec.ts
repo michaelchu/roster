@@ -551,12 +551,10 @@ test.describe('Participant Registration Flow', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
-      // Should show "Event Full" or disabled registration button
-      const isFull = await page.getByText(/full|sold out|capacity/i).isVisible().catch(() => false);
-      const registerButton = page.getByRole('button', { name: /join event/i });
-      const isRegisterDisabled = await registerButton.isDisabled().catch(() => true);
-
-      expect(isFull || isRegisterDisabled).toBe(true);
+      // Should show "Event Full" button (disabled)
+      const eventFullButton = page.getByRole('button', { name: /Event Full/i });
+      await expect(eventFullButton).toBeVisible();
+      await expect(eventFullButton).toBeDisabled();
     });
 
     test('event displays spots remaining', async ({ page }) => {
