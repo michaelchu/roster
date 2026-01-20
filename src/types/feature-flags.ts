@@ -21,19 +21,6 @@ export interface FeatureFlags {
   guest_registration: boolean;
 }
 
-// Default feature flag values - all disabled by default as fallback
-// The database is the source of truth for actual values
-export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
-  groups_feature: false,
-  csv_export: false,
-  registration_form: false,
-  event_duplication: false,
-  home_page: false,
-  notifications: false,
-  event_privacy: false,
-  guest_registration: false,
-};
-
 // Database types for feature flags
 export interface FeatureFlag {
   id: string;

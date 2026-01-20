@@ -16,7 +16,6 @@ vi.mock('@/lib/supabase', () => ({
 
 import { featureFlagService } from '../featureFlagService';
 import { supabase } from '@/lib/supabase';
-import { DEFAULT_FEATURE_FLAGS } from '@/types/feature-flags';
 
 const mockSupabase = vi.mocked(supabase);
 
@@ -34,28 +33,36 @@ describe('featureFlagService', () => {
   });
 
   describe('fetchFeatureFlags', () => {
-    it('should return default flags when fetch fails', async () => {
-      const mockError = new Error('Database error');
+    it('should throw error when fetch fails', async () => {
+      const mockError = { message: 'Database error' };
       const mockQueryChain = {
         select: vi.fn().mockResolvedValue({ data: null, error: mockError }),
       };
 
       mockSupabase.from.mockReturnValue(mockQueryChain as any);
 
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      await expect(featureFlagService.fetchFeatureFlags()).rejects.toThrow(
+        'Failed to fetch feature flags: Database error'
+      );
+    });
 
-      const result = await featureFlagService.fetchFeatureFlags();
+    it('should throw error when no flags returned', async () => {
+      const mockQueryChain = {
+        select: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
 
-      expect(result).toEqual(DEFAULT_FEATURE_FLAGS);
-      expect(consoleSpy).toHaveBeenCalled();
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
 
-      consoleSpy.mockRestore();
+      await expect(featureFlagService.fetchFeatureFlags()).rejects.toThrow(
+        'No feature flags returned from database'
+      );
     });
 
     it('should return platform flags when no context provided', async () => {
       const platformFlags = [
         { key: 'groups_feature', enabled: true },
         { key: 'csv_export', enabled: true },
+        { key: 'registration_form', enabled: false },
       ];
 
       const mockQueryChain = {
@@ -68,7 +75,7 @@ describe('featureFlagService', () => {
 
       expect(result.groups_feature).toBe(true);
       expect(result.csv_export).toBe(true);
-      expect(result.registration_form).toBe(false); // Default
+      expect(result.registration_form).toBe(false);
     });
 
     it('should apply user overrides with highest precedence', async () => {
@@ -236,10 +243,10 @@ describe('featureFlagService', () => {
       expect(mockSupabase.from).toHaveBeenCalledTimes(5); // Still 5
     });
 
-    it('should ignore unknown flag keys from database', async () => {
+    it('should include unknown flag keys from database', async () => {
       const platformFlags = [
         { key: 'groups_feature', enabled: true },
-        { key: 'unknown_flag', enabled: true }, // Unknown key
+        { key: 'unknown_flag', enabled: true }, // Unknown key - will be included
       ];
 
       const mockQueryChain = {
@@ -251,7 +258,8 @@ describe('featureFlagService', () => {
       const result = await featureFlagService.fetchFeatureFlags();
 
       expect(result.groups_feature).toBe(true);
-      expect((result as any).unknown_flag).toBeUndefined();
+      // Unknown flags are included since we build from DB directly now
+      expect((result as any).unknown_flag).toBe(true);
     });
   });
 
@@ -284,7 +292,7 @@ describe('featureFlagService', () => {
       expect(result).toBe(false);
     });
 
-    it('should return default value for unspecified flag', async () => {
+    it('should return undefined for unspecified flag', async () => {
       const platformFlags: any[] = [];
 
       const mockQueryChain = {
@@ -295,7 +303,7 @@ describe('featureFlagService', () => {
 
       const result = await featureFlagService.isFeatureEnabled('home_page');
 
-      expect(result).toBe(DEFAULT_FEATURE_FLAGS.home_page);
+      expect(result).toBeUndefined();
     });
   });
 

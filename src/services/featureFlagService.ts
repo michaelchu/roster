@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/supabase';
 import type { FeatureFlagKey, FeatureFlags, FeatureFlagContext } from '@/types/feature-flags';
-import { DEFAULT_FEATURE_FLAGS } from '@/types/feature-flags';
 
 // Database row types
 type FeatureFlagRow = Database['public']['Tables']['feature_flags']['Row'];
@@ -50,22 +49,19 @@ export const featureFlagService = {
       .select('*');
 
     if (platformError) {
-      console.error('Error fetching feature flags:', platformError);
-      return DEFAULT_FEATURE_FLAGS;
+      throw new Error(`Failed to fetch feature flags: ${platformError.message}`);
     }
 
-    // Start with platform defaults
-    const resolvedFlags: FeatureFlags = { ...DEFAULT_FEATURE_FLAGS };
-
-    // Apply platform-wide flag values
-    if (platformFlags) {
-      platformFlags.forEach((flag: FeatureFlagRow) => {
-        const key = flag.key as FeatureFlagKey;
-        if (key in resolvedFlags) {
-          resolvedFlags[key] = flag.enabled;
-        }
-      });
+    if (!platformFlags) {
+      throw new Error('No feature flags returned from database');
     }
+
+    // Build flags object from database values
+    const resolvedFlags = {} as FeatureFlags;
+    platformFlags.forEach((flag: FeatureFlagRow) => {
+      const key = flag.key as FeatureFlagKey;
+      resolvedFlags[key] = flag.enabled;
+    });
 
     // If we have user or group context, fetch and apply overrides
     if (context?.userId || context?.groupIds?.length) {
@@ -123,7 +119,7 @@ export const featureFlagService = {
    */
   async isFeatureEnabled(key: FeatureFlagKey, context?: FeatureFlagContext): Promise<boolean> {
     const flags = await this.fetchFeatureFlags(context);
-    return flags[key] ?? DEFAULT_FEATURE_FLAGS[key];
+    return flags[key];
   },
 
   /**

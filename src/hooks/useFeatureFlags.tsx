@@ -2,11 +2,11 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { useAuth } from './useAuth';
 import { featureFlagService } from '@/services/featureFlagService';
 import type { FeatureFlags, FeatureFlagKey } from '@/types/feature-flags';
-import { DEFAULT_FEATURE_FLAGS } from '@/types/feature-flags';
 
 interface FeatureFlagsContextType {
-  flags: FeatureFlags;
+  flags: FeatureFlags | null;
   loading: boolean;
+  error: Error | null;
   isFeatureEnabled: (key: FeatureFlagKey) => boolean;
   refreshFlags: () => Promise<void>;
 }
@@ -18,8 +18,9 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 export function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [flags, setFlags] = useState<FeatureFlags>(DEFAULT_FEATURE_FLAGS);
+  const [flags, setFlags] = useState<FeatureFlags | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   // Fetch feature flags with current user context
   const fetchFlags = useCallback(async () => {
@@ -27,10 +28,12 @@ export function FeatureFlagsProvider({ children }: { children: React.ReactNode }
       const context = user?.id ? { userId: user.id } : undefined;
       const fetchedFlags = await featureFlagService.fetchFeatureFlags(context);
       setFlags(fetchedFlags);
-    } catch (error) {
-      console.error('Error fetching feature flags:', error);
-      // Fall back to defaults on error
-      setFlags(DEFAULT_FEATURE_FLAGS);
+      setError(null);
+    } catch (err) {
+      const fetchError = err instanceof Error ? err : new Error('Failed to fetch feature flags');
+      setError(fetchError);
+      // Don't clear flags on refresh errors if we already have them cached
+      // This allows the app to keep working with stale flags during transient errors
     } finally {
       setLoading(false);
     }
@@ -54,7 +57,8 @@ export function FeatureFlagsProvider({ children }: { children: React.ReactNode }
   // Helper to check if a feature is enabled
   const isFeatureEnabled = useCallback(
     (key: FeatureFlagKey): boolean => {
-      return flags[key] ?? DEFAULT_FEATURE_FLAGS[key];
+      if (!flags) return false;
+      return flags[key];
     },
     [flags]
   );
@@ -69,6 +73,7 @@ export function FeatureFlagsProvider({ children }: { children: React.ReactNode }
       value={{
         flags,
         loading,
+        error,
         isFeatureEnabled,
         refreshFlags,
       }}
@@ -94,10 +99,18 @@ export function useFeatureFlags(): FeatureFlagsContextType {
 /**
  * Hook to check if a specific feature is enabled
  * @param key - Feature flag key to check
- * @returns Whether the feature is enabled
+ * @returns Whether the feature is enabled (false if flags haven't loaded yet)
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useFeatureFlag(key: FeatureFlagKey): boolean {
-  const { flags } = useFeatureFlags();
-  return flags[key] ?? DEFAULT_FEATURE_FLAGS[key];
+  const { flags, error } = useFeatureFlags();
+
+  // If there's an error and no cached flags, throw to trigger error boundary
+  if (error && !flags) {
+    throw error;
+  }
+
+  // Return false while loading or if flag doesn't exist
+  if (!flags) return false;
+  return flags[key];
 }
