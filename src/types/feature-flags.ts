@@ -1,6 +1,5 @@
 // Feature flag keys - union type of all available feature flags
 export type FeatureFlagKey =
-  | 'groups_feature'
   | 'csv_export'
   | 'registration_form'
   | 'event_duplication'
@@ -11,7 +10,6 @@ export type FeatureFlagKey =
 
 // Feature flags interface mapping keys to boolean values
 export interface FeatureFlags {
-  groups_feature: boolean;
   csv_export: boolean;
   registration_form: boolean;
   event_duplication: boolean;

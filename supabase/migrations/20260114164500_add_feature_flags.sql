@@ -110,9 +110,7 @@ CREATE TRIGGER update_feature_flag_overrides_updated_at
 
 -- 7. Seed initial feature flags
 INSERT INTO public.feature_flags (key, enabled, description) VALUES
-    ('groups_feature', true, 'Controls groups functionality - allows organizers to create and manage groups'),
     ('csv_export', true, 'Controls CSV export feature - allows organizers to export participant lists'),
-    ('quick_fill', true, 'Controls localStorage-based quick fill - allows participants to auto-fill forms'),
     ('event_duplication', true, 'Controls event duplication feature - allows organizers to duplicate events');
 
 -- 8. Add comments for documentation

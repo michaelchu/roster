@@ -11,13 +11,14 @@ interface DateTimeInputProps {
   onChange: (value: string) => void;
   id?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 /**
  * DateTime picker with calendar and time selector (12-hour format)
  * Converts between datetime-local format (YYYY-MM-DDTHH:mm) and Date object
  */
-export function DateTimeInput({ value, onChange, id, className }: DateTimeInputProps) {
+export function DateTimeInput({ value, onChange, id, className, disabled }: DateTimeInputProps) {
   // Parse datetime-local string to Date object
   const parseDateTime = (datetimeLocal: string): Date | undefined => {
     if (!datetimeLocal) return undefined;
@@ -77,13 +78,17 @@ export function DateTimeInput({ value, onChange, id, className }: DateTimeInputP
           <Button
             variant="outline"
             id={id}
+            disabled={disabled}
             className={cn(
               'w-full justify-start text-left font-normal',
-              !selectedDate && 'text-muted-foreground'
+              !selectedDate && 'text-muted-foreground',
+              disabled && 'opacity-50 cursor-not-allowed'
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {selectedDate ? (
+            {disabled ? (
+              <span>TBD</span>
+            ) : selectedDate ? (
               format(selectedDate, 'MM/dd/yyyy hh:mm aa')
             ) : (
               <span>MM/DD/YYYY hh:mm aa</span>

@@ -88,6 +88,7 @@ export function EventDetailPage() {
   const { user } = useAuth();
   const showRegistrationForm = useFeatureFlag('registration_form');
   const showGuestRegistration = useFeatureFlag('guest_registration');
+  const showCsvExport = useFeatureFlag('csv_export');
 
   // Determine if navbar is hidden (matching App.tsx logic)
   const isNavbarHidden =
@@ -582,102 +583,82 @@ export function EventDetailPage() {
 
       <div className="p-3 space-y-3">
         {/* Event Info */}
-        {(event.description ||
-          event.datetime ||
-          event.end_datetime ||
-          event.location ||
-          event.max_participants) && (
-          <div className="bg-card rounded-lg border overflow-hidden">
-            <div>
-              {/* Event Name */}
-              <div className="text-lg font-semibold p-3 border-b border-border">{event.name}</div>
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div>
+            {/* Event Name */}
+            <div className="text-lg font-semibold p-3 border-b border-border">{event.name}</div>
 
-              {/* Top row: Start and End times */}
-              {(event.datetime || event.end_datetime) && (
-                <div className="grid grid-cols-2 divide-x divide-border">
-                  <div className="text-sm text-muted-foreground p-3">
-                    <div className="font-medium text-foreground">Start</div>
-                    <div>{event.datetime ? formatEventDateTime(event.datetime) : 'Not set'}</div>
-                  </div>
-                  <div className="text-sm text-muted-foreground p-3">
-                    <div className="font-medium text-foreground">End</div>
-                    <div>
-                      {event.end_datetime ? formatEventDateTime(event.end_datetime) : 'Not set'}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Registration Deadline section */}
-              {(event.datetime || event.end_datetime) && (
-                <>
-                  <div className="border-t border-border"></div>
-                  <div className="text-sm text-muted-foreground p-3">
-                    <div className="font-medium text-foreground">Registration Deadline</div>
-                    <div>None</div>
-                  </div>
-                </>
-              )}
-
-              {/* Horizontal divider between registration deadline and location */}
-              {(event.datetime || event.end_datetime) && event.location && (
-                <div className="border-t border-border"></div>
-              )}
-
-              {/* Second row: Location */}
-              {event.location && (
-                <div className="text-sm text-muted-foreground p-3">
-                  <div className="font-medium text-foreground">Location</div>
-                  <div>{event.location}</div>
-                </div>
-              )}
-
-              {/* Horizontal divider */}
-              {event.location && event.description && (
-                <div className="border-t border-border"></div>
-              )}
-
-              {/* Description */}
-              {event.description && (
-                <div className="text-sm text-foreground p-3">
-                  <div className="font-medium text-foreground mb-1">Description</div>
-                  <p className="leading-relaxed">{event.description}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons Footer */}
-            <div className="border-t bg-muted">
-              <div className="flex divide-x divide-border">
-                {isOrganizer && (
-                  <button
-                    onClick={() => navigate(`/events/${eventId}/edit`)}
-                    className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </button>
-                )}
-                <button
-                  onClick={shareEvent}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </button>
-                {isOrganizer && (
-                  <button
-                    onClick={exportToCSV}
-                    className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </button>
-                )}
+            {/* Top row: Start and End times */}
+            <div className="grid grid-cols-2 divide-x divide-border">
+              <div className="text-sm text-muted-foreground p-3">
+                <div className="font-medium text-foreground">Start</div>
+                <div>{event.datetime ? formatEventDateTime(event.datetime) : 'TBD'}</div>
+              </div>
+              <div className="text-sm text-muted-foreground p-3">
+                <div className="font-medium text-foreground">End</div>
+                <div>{event.end_datetime ? formatEventDateTime(event.end_datetime) : 'TBD'}</div>
               </div>
             </div>
+
+            {/* Registration Deadline section */}
+            <div className="border-t border-border"></div>
+            <div className="text-sm text-muted-foreground p-3">
+              <div className="font-medium text-foreground">Registration Deadline</div>
+              <div>None</div>
+            </div>
+
+            {/* Horizontal divider between registration deadline and location */}
+            <div className="border-t border-border"></div>
+
+            {/* Second row: Location */}
+            <div className="text-sm text-muted-foreground p-3">
+              <div className="font-medium text-foreground">Location</div>
+              <div>{event.location || 'TBD'}</div>
+            </div>
+
+            {/* Horizontal divider */}
+            {event.description && <div className="border-t border-border"></div>}
+
+            {/* Description */}
+            {event.description && (
+              <div className="text-sm text-foreground p-3">
+                <div className="font-medium text-foreground mb-1">Description</div>
+                <p className="leading-relaxed">{event.description}</p>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Action Buttons Footer */}
+          <div className="border-t bg-muted">
+            <div className="flex divide-x divide-border">
+              {isOrganizer && (
+                <button
+                  onClick={() => navigate(`/events/${eventId}/edit`)}
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </button>
+              )}
+              <button
+                onClick={shareEvent}
+                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </button>
+              {isOrganizer && showCsvExport && (
+                <button
+                  onClick={exportToCSV}
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Payment Summary (Organizer Only) */}
         {isOrganizer && participants.length > 0 && (

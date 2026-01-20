@@ -53,6 +53,9 @@ export function NewEventPage() {
     max_participants: null as number | null,
     is_private: false,
     group_id: '__no_group__',
+    datetimeTbd: false,
+    endDatetimeTbd: false,
+    locationTbd: false,
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [maxParticipants, setMaxParticipants] = useState<number>(10);
@@ -245,37 +248,86 @@ export function NewEventPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="datetime" className="text-sm">
-            Start Date & Time
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="datetime" className="text-sm">
+              Start Date & Time
+            </Label>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+              <Checkbox
+                checked={formData.datetimeTbd}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    datetimeTbd: checked === true,
+                    datetime: checked === true ? '' : prev.datetime,
+                  }))
+                }
+              />
+              TBD
+            </label>
+          </div>
           <DateTimeInput
             id="datetime"
             value={formData.datetime}
             onChange={(value) => setFormData((prev) => ({ ...prev, datetime: value }))}
+            disabled={formData.datetimeTbd}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="end_datetime" className="text-sm">
-            End Date & Time (Optional)
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="end_datetime" className="text-sm">
+              End Date & Time (Optional)
+            </Label>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+              <Checkbox
+                checked={formData.endDatetimeTbd}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    endDatetimeTbd: checked === true,
+                    end_datetime: checked === true ? '' : prev.end_datetime,
+                  }))
+                }
+              />
+              TBD
+            </label>
+          </div>
           <DateTimeInput
             id="end_datetime"
             value={formData.end_datetime}
             onChange={(value) => setFormData((prev) => ({ ...prev, end_datetime: value }))}
+            disabled={formData.endDatetimeTbd}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="location" className="text-sm">
-            Location
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="location" className="text-sm">
+              Location
+            </Label>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+              <Checkbox
+                checked={formData.locationTbd}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    locationTbd: checked === true,
+                    location: checked === true ? '' : prev.location,
+                  }))
+                }
+              />
+              TBD
+            </label>
+          </div>
           <Input
             id="location"
             type="text"
-            value={formData.location}
+            value={formData.locationTbd ? '' : formData.location}
             onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
             className="h-10 text-sm"
+            disabled={formData.locationTbd}
+            placeholder={formData.locationTbd ? 'TBD' : ''}
           />
         </div>
 

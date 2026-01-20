@@ -60,9 +60,9 @@ describe('featureFlagService', () => {
 
     it('should return platform flags when no context provided', async () => {
       const platformFlags = [
-        { key: 'groups_feature', enabled: true },
         { key: 'csv_export', enabled: true },
         { key: 'registration_form', enabled: false },
+        { key: 'event_duplication', enabled: true },
       ];
 
       const mockQueryChain = {
@@ -73,16 +73,16 @@ describe('featureFlagService', () => {
 
       const result = await featureFlagService.fetchFeatureFlags();
 
-      expect(result.groups_feature).toBe(true);
       expect(result.csv_export).toBe(true);
       expect(result.registration_form).toBe(false);
+      expect(result.event_duplication).toBe(true);
     });
 
     it('should apply user overrides with highest precedence', async () => {
-      const platformFlags = [{ key: 'groups_feature', enabled: false }];
+      const platformFlags = [{ key: 'csv_export', enabled: false }];
 
       const overrides = [
-        { feature_flag_key: 'groups_feature', user_id: 'user-123', group_id: null, enabled: true },
+        { feature_flag_key: 'csv_export', user_id: 'user-123', group_id: null, enabled: true },
       ];
 
       // First call fetches feature_flags, second call fetches overrides
@@ -102,7 +102,7 @@ describe('featureFlagService', () => {
 
       const result = await featureFlagService.fetchFeatureFlags({ userId: 'user-123' });
 
-      expect(result.groups_feature).toBe(true); // User override takes precedence
+      expect(result.csv_export).toBe(true); // User override takes precedence
     });
 
     it('should apply group overrides', async () => {
@@ -245,7 +245,7 @@ describe('featureFlagService', () => {
 
     it('should include unknown flag keys from database', async () => {
       const platformFlags = [
-        { key: 'groups_feature', enabled: true },
+        { key: 'csv_export', enabled: true },
         { key: 'unknown_flag', enabled: true }, // Unknown key - will be included
       ];
 
@@ -257,7 +257,7 @@ describe('featureFlagService', () => {
 
       const result = await featureFlagService.fetchFeatureFlags();
 
-      expect(result.groups_feature).toBe(true);
+      expect(result.csv_export).toBe(true);
       // Unknown flags are included since we build from DB directly now
       expect((result as any).unknown_flag).toBe(true);
     });
