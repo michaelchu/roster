@@ -6,7 +6,8 @@ export type FeatureFlagKey =
   | 'event_duplication'
   | 'home_page'
   | 'notifications'
-  | 'event_privacy';
+  | 'event_privacy'
+  | 'guest_registration';
 
 // Feature flags interface mapping keys to boolean values
 export interface FeatureFlags {
@@ -17,6 +18,7 @@ export interface FeatureFlags {
   home_page: boolean;
   notifications: boolean;
   event_privacy: boolean;
+  guest_registration: boolean;
 }
 
 // Default feature flag values - all disabled by default as fallback
@@ -29,6 +31,7 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   home_page: false,
   notifications: false,
   event_privacy: false,
+  guest_registration: false,
 };
 
 // Database types for feature flags

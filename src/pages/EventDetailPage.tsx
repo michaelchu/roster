@@ -87,6 +87,7 @@ export function EventDetailPage() {
   const location = useLocation();
   const { user } = useAuth();
   const showRegistrationForm = useFeatureFlag('registration_form');
+  const showGuestRegistration = useFeatureFlag('guest_registration');
 
   // Determine if navbar is hidden (matching App.tsx logic)
   const isNavbarHidden =
@@ -884,7 +885,8 @@ export function EventDetailPage() {
                 // Add empty slots for remaining capacity
                 for (let slotNum = maxUsedSlot + 1; slotNum <= event.max_participants; slotNum++) {
                   const isFirstEmptySlot = slotNum === maxUsedSlot + 1;
-                  const canClaimSpot = user && userRegistration && isFirstEmptySlot;
+                  const canClaimSpot =
+                    user && userRegistration && isFirstEmptySlot && showGuestRegistration;
 
                   slots.push(
                     <div key={`empty-${slotNum}`} className="p-3 border-dashed border-border">
