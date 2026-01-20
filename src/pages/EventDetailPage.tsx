@@ -642,13 +642,15 @@ export function EventDetailPage() {
             {/* Action Buttons Footer */}
             <div className="border-t bg-muted">
               <div className="flex divide-x divide-border">
-                <button
-                  onClick={() => navigate(`/events/${eventId}/edit`)}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </button>
+                {isOrganizer && (
+                  <button
+                    onClick={() => navigate(`/events/${eventId}/edit`)}
+                    className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </button>
+                )}
                 <button
                   onClick={shareEvent}
                   className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
@@ -656,13 +658,15 @@ export function EventDetailPage() {
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </button>
-                <button
-                  onClick={exportToCSV}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </button>
+                {isOrganizer && (
+                  <button
+                    onClick={exportToCSV}
+                    className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </button>
+                )}
               </div>
             </div>
           </div>
