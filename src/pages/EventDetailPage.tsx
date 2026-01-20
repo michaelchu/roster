@@ -123,6 +123,12 @@ export function EventDetailPage() {
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
 
+  // Check if event is at full capacity
+  const isEventFull =
+    event?.max_participants !== null &&
+    event?.max_participants !== undefined &&
+    participants.length >= event.max_participants;
+
   useEffect(() => {
     if (eventId) {
       loadEventData();
@@ -984,6 +990,7 @@ export function EventDetailPage() {
         <Button
           onClick={() => {
             if (isEventCompleted(event.datetime, event.end_datetime)) return;
+            if (isEventFull && !userRegistration) return;
             if (showRegistrationForm) {
               openSignupDrawer();
             } else if (userRegistration) {
@@ -992,10 +999,15 @@ export function EventDetailPage() {
               handleDirectJoin();
             }
           }}
-          disabled={isEventCompleted(event.datetime, event.end_datetime) || submitting}
+          disabled={
+            isEventCompleted(event.datetime, event.end_datetime) ||
+            submitting ||
+            (isEventFull && !userRegistration)
+          }
           className={`w-full text-white shadow-lg ${
-            isEventCompleted(event.datetime, event.end_datetime)
-              ? 'bg-[#3d5a3d]'
+            isEventCompleted(event.datetime, event.end_datetime) ||
+            (isEventFull && !userRegistration)
+              ? 'bg-muted-foreground'
               : userRegistration && !showRegistrationForm
                 ? 'bg-destructive hover:bg-destructive/90'
                 : 'bg-primary hover:bg-primary/90'
@@ -1006,6 +1018,11 @@ export function EventDetailPage() {
             <>
               <UserX className="h-5 w-5 mr-2" />
               Registration Closed
+            </>
+          ) : isEventFull && !userRegistration ? (
+            <>
+              <Users className="h-5 w-5 mr-2" />
+              Event Full
             </>
           ) : submitting ? (
             userRegistration ? (
