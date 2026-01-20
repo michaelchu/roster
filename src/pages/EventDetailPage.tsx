@@ -757,8 +757,7 @@ export function EventDetailPage() {
                 const claimNumber = getClaimBadgeNumber(participant);
                 const displayName = getDisplayName(participant);
 
-                const isOrganizerItem =
-                  participant.user_id === event.organizer_id && participant.slot_number === 1;
+                const isOrganizerItem = participant.user_id === event.organizer_id;
 
                 slots.push(
                   <div
