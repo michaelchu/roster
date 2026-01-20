@@ -2,7 +2,7 @@
 export type FeatureFlagKey =
   | 'groups_feature'
   | 'csv_export'
-  | 'quick_fill'
+  | 'registration_form'
   | 'event_duplication'
   | 'home_page'
   | 'notifications'
@@ -12,7 +12,7 @@ export type FeatureFlagKey =
 export interface FeatureFlags {
   groups_feature: boolean;
   csv_export: boolean;
-  quick_fill: boolean;
+  registration_form: boolean;
   event_duplication: boolean;
   home_page: boolean;
   notifications: boolean;
@@ -24,7 +24,7 @@ export interface FeatureFlags {
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   groups_feature: false,
   csv_export: false,
-  quick_fill: false,
+  registration_form: false,
   event_duplication: false,
   home_page: false,
   notifications: false,

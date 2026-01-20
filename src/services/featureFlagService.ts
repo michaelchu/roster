@@ -127,16 +127,6 @@ export const featureFlagService = {
   },
 
   /**
-   * Gets the value of a specific feature flag with full context resolution
-   * @param key - Feature flag key
-   * @param context - User and group context
-   * @returns The resolved flag value
-   */
-  async getFeatureFlagValue(key: FeatureFlagKey, context?: FeatureFlagContext): Promise<boolean> {
-    return this.isFeatureEnabled(key, context);
-  },
-
-  /**
    * Invalidates the cache for a specific context or all contexts
    * @param context - Optional context to invalidate (if not provided, clears all cache)
    */
@@ -147,99 +137,5 @@ export const featureFlagService = {
     } else {
       cache.clear();
     }
-  },
-
-  /**
-   * Sets a user-specific override for a feature flag
-   * Note: Requires service role or admin permissions
-   * @param userId - User ID to set override for
-   * @param flagKey - Feature flag key
-   * @param enabled - Override value
-   */
-  async setUserOverride(userId: string, flagKey: FeatureFlagKey, enabled: boolean): Promise<void> {
-    const { error } = await supabase.from('feature_flag_overrides').upsert(
-      {
-        feature_flag_key: flagKey,
-        user_id: userId,
-        group_id: null,
-        enabled,
-      },
-      {
-        onConflict: 'feature_flag_key,user_id',
-      }
-    );
-
-    if (error) throw error;
-
-    // Invalidate cache for this user
-    this.invalidateCache({ userId });
-  },
-
-  /**
-   * Sets a group-specific override for a feature flag
-   * Note: Requires service role or admin permissions
-   * @param groupId - Group ID to set override for
-   * @param flagKey - Feature flag key
-   * @param enabled - Override value
-   */
-  async setGroupOverride(
-    groupId: string,
-    flagKey: FeatureFlagKey,
-    enabled: boolean
-  ): Promise<void> {
-    const { error } = await supabase.from('feature_flag_overrides').upsert(
-      {
-        feature_flag_key: flagKey,
-        user_id: null,
-        group_id: groupId,
-        enabled,
-      },
-      {
-        onConflict: 'feature_flag_key,group_id',
-      }
-    );
-
-    if (error) throw error;
-
-    // Invalidate all cache since group membership affects multiple users
-    this.invalidateCache();
-  },
-
-  /**
-   * Removes a user-specific override
-   * Note: Requires service role or admin permissions
-   * @param userId - User ID
-   * @param flagKey - Feature flag key
-   */
-  async removeUserOverride(userId: string, flagKey: FeatureFlagKey): Promise<void> {
-    const { error } = await supabase
-      .from('feature_flag_overrides')
-      .delete()
-      .eq('feature_flag_key', flagKey)
-      .eq('user_id', userId);
-
-    if (error) throw error;
-
-    // Invalidate cache for this user
-    this.invalidateCache({ userId });
-  },
-
-  /**
-   * Removes a group-specific override
-   * Note: Requires service role or admin permissions
-   * @param groupId - Group ID
-   * @param flagKey - Feature flag key
-   */
-  async removeGroupOverride(groupId: string, flagKey: FeatureFlagKey): Promise<void> {
-    const { error } = await supabase
-      .from('feature_flag_overrides')
-      .delete()
-      .eq('feature_flag_key', flagKey)
-      .eq('group_id', groupId);
-
-    if (error) throw error;
-
-    // Invalidate all cache since group membership affects multiple users
-    this.invalidateCache();
   },
 };

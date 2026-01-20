@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { FormDrawer } from '@/components/FormDrawer';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { errorHandler } from '@/lib/errorHandler';
 import {
   eventService,
@@ -85,6 +86,7 @@ export function EventDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const showRegistrationForm = useFeatureFlag('registration_form');
 
   // Determine if navbar is hidden (matching App.tsx logic)
   const isNavbarHidden =
@@ -341,6 +343,44 @@ export function EventDetailPage() {
       });
     }
     setShowSignupDrawer(true);
+  };
+
+  // Direct join without form (when registration_form flag is disabled)
+  const handleDirectJoin = async () => {
+    if (!event || !user) {
+      navigate('/auth/login');
+      return;
+    }
+
+    setSubmitting(true);
+    setSignupError('');
+
+    try {
+      await participantService.createParticipant({
+        event_id: event.id,
+        name: user.user_metadata?.full_name || user.email || 'User',
+        email: user.email || null,
+        phone: user.user_metadata?.phone || null,
+        notes: null,
+        responses: {},
+        user_id: user.id,
+        claimed_by_user_id: null,
+        payment_status: 'pending' as const,
+        payment_marked_at: null,
+        payment_notes: null,
+      });
+
+      loadEventData();
+    } catch (err) {
+      const error = err as Error;
+      errorHandler.handle(error, {
+        userId: user?.id,
+        action: 'directJoinEvent',
+        metadata: { eventId: event.id },
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -890,15 +930,26 @@ export function EventDetailPage() {
 
       {/* Join Event Button */}
       <div
-        className={`fixed left-0 right-0 z-40 px-4 pb-2 ${isNavbarHidden ? 'bottom-4' : 'bottom-16'}`}
+        className={`fixed left-0 right-0 z-40 px-3 pb-2 ${isNavbarHidden ? 'bottom-4' : 'bottom-16'}`}
       >
         <Button
-          onClick={() => openSignupDrawer()}
-          disabled={isEventCompleted(event.datetime, event.end_datetime)}
+          onClick={() => {
+            if (isEventCompleted(event.datetime, event.end_datetime)) return;
+            if (showRegistrationForm) {
+              openSignupDrawer();
+            } else if (userRegistration) {
+              setShowWithdrawDialog(true);
+            } else {
+              handleDirectJoin();
+            }
+          }}
+          disabled={isEventCompleted(event.datetime, event.end_datetime) || submitting}
           className={`w-full text-white shadow-lg ${
             isEventCompleted(event.datetime, event.end_datetime)
               ? 'bg-[#3d5a3d]'
-              : 'bg-primary hover:bg-primary/90'
+              : userRegistration && !showRegistrationForm
+                ? 'bg-destructive hover:bg-destructive/90'
+                : 'bg-primary hover:bg-primary/90'
           }`}
           size="default"
         >
@@ -907,11 +958,24 @@ export function EventDetailPage() {
               <UserX className="h-5 w-5 mr-2" />
               Registration Closed
             </>
+          ) : submitting ? (
+            userRegistration ? (
+              'Withdrawing...'
+            ) : (
+              'Joining...'
+            )
           ) : userRegistration ? (
-            <>
-              <UserCheck className="h-5 w-5 mr-2" />
-              Modify Registration
-            </>
+            showRegistrationForm ? (
+              <>
+                <UserCheck className="h-5 w-5 mr-2" />
+                Modify Registration
+              </>
+            ) : (
+              <>
+                <UserX className="h-5 w-5 mr-2" />
+                Withdraw
+              </>
+            )
           ) : (
             <>
               <UserPlus className="h-5 w-5 mr-2" />
