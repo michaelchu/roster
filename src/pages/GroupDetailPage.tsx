@@ -23,6 +23,7 @@ export function GroupDetailPage() {
   const [group, setGroup] = useState<Group | null>(null);
   const [groupLoading, setGroupLoading] = useState(true);
   const [memberCount, setMemberCount] = useState<number>(0);
+  const [isAdmin, setIsAdmin] = useState(false);
   const {
     isLoading: eventsLoading,
     data: events,
@@ -40,6 +41,12 @@ export function GroupDetailPage() {
       // Load member count
       const members = await groupService.getGroupParticipants(groupId);
       setMemberCount(members.length);
+
+      // Check if current user is admin or owner
+      if (user?.id) {
+        const adminStatus = await groupService.isGroupAdmin(groupId, user.id);
+        setIsAdmin(adminStatus);
+      }
     } catch (error) {
       console.error('Error loading group:', error);
       errorHandler.handle(error);
@@ -47,7 +54,7 @@ export function GroupDetailPage() {
     } finally {
       setGroupLoading(false);
     }
-  }, [groupId, navigate]);
+  }, [groupId, navigate, user?.id]);
 
   const loadEventsCallback = useCallback(async () => {
     if (!groupId) return [];
@@ -161,20 +168,24 @@ export function GroupDetailPage() {
           {/* Action Buttons Footer */}
           <div className="border-t bg-muted">
             <div className="flex divide-x divide-border">
-              <button
-                onClick={() => navigate(`/groups/${group.id}/edit`)}
-                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </button>
-              <button
-                onClick={handleInvite}
-                className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Invite
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => navigate(`/groups/${group.id}/edit`)}
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </button>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={handleInvite}
+                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Invite
+                </button>
+              )}
               <button
                 onClick={() => navigate(`/groups/${group.id}/participants`)}
                 className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
@@ -241,14 +252,16 @@ export function GroupDetailPage() {
         </div>
       </div>
 
-      {/* Add Event Button */}
-      <button
-        onClick={() => navigate(`/events/new?group=${group.id}`)}
-        className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg drop-shadow-md flex items-center justify-center font-medium transition-all"
-        aria-label="Add Event"
-      >
-        <Plus className="h-5 w-5" />
-      </button>
+      {/* Add Event Button - Only visible to admins */}
+      {isAdmin && (
+        <button
+          onClick={() => navigate(`/events/new?group=${group.id}`)}
+          className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg drop-shadow-md flex items-center justify-center font-medium transition-all"
+          aria-label="Add Event"
+        >
+          <Plus className="h-5 w-5" />
+        </button>
+      )}
     </div>
   );
 }
