@@ -36,7 +36,6 @@ import {
   UserPlus,
   UserCheck,
   UserX,
-  ArrowUpDown,
   Zap,
 } from 'lucide-react';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
@@ -590,27 +589,20 @@ export function EventDetailPage() {
 
             {/* Top row: Start and End times */}
             <div className="grid grid-cols-2 divide-x divide-border">
-              <div className="text-sm text-muted-foreground p-3">
-                <div className="font-medium text-foreground">Start</div>
+              <div className="text-xs text-muted-foreground p-3">
+                <div className="font-medium text-foreground text-sm">Start</div>
                 <div>{event.datetime ? formatEventDateTime(event.datetime) : 'TBD'}</div>
               </div>
-              <div className="text-sm text-muted-foreground p-3">
-                <div className="font-medium text-foreground">End</div>
+              <div className="text-xs text-muted-foreground p-3">
+                <div className="font-medium text-foreground text-sm">End</div>
                 <div>{event.end_datetime ? formatEventDateTime(event.end_datetime) : 'TBD'}</div>
               </div>
             </div>
 
-            {/* Registration Deadline section */}
-            <div className="border-t border-border"></div>
-            <div className="text-sm text-muted-foreground p-3">
-              <div className="font-medium text-foreground">Registration Deadline</div>
-              <div>None</div>
-            </div>
-
-            {/* Horizontal divider between registration deadline and location */}
+            {/* Horizontal divider between datetime and location */}
             <div className="border-t border-border"></div>
 
-            {/* Second row: Location */}
+            {/* Location */}
             <div className="text-sm text-muted-foreground p-3">
               <div className="font-medium text-foreground">Location</div>
               <div>{event.location || 'TBD'}</div>
@@ -622,7 +614,6 @@ export function EventDetailPage() {
             {/* Description */}
             {event.description && (
               <div className="text-sm text-foreground p-3">
-                <div className="font-medium text-foreground mb-1">Description</div>
                 <p className="leading-relaxed">{event.description}</p>
               </div>
             )}
@@ -727,28 +718,15 @@ export function EventDetailPage() {
                 })()}
               </p>
             </div>
-            <div className="flex border border-border rounded">
-              <Button
-                size="sm"
-                variant="ghost"
-                className={`h-7 px-2 rounded-r-none border-0 border-r border-border ${
-                  showSearchBar ? 'bg-muted' : ''
-                }`}
-                onClick={() => setShowSearchBar(!showSearchBar)}
-                disabled={participants.length === 0}
-              >
-                <Search className="h-3 w-3" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 px-2 rounded-l-none border-0"
-                onClick={() => {}}
-                disabled={participants.length === 0}
-              >
-                <ArrowUpDown className="h-3 w-3" />
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className={`h-7 px-2 border border-border rounded ${showSearchBar ? 'bg-muted' : ''}`}
+              onClick={() => setShowSearchBar(!showSearchBar)}
+              disabled={participants.length === 0}
+            >
+              <Search className="h-3 w-3" />
+            </Button>
           </div>
 
           {/* Search Bar */}
@@ -991,7 +969,7 @@ export function EventDetailPage() {
               ? 'bg-muted-foreground'
               : userRegistration && !showRegistrationForm
                 ? 'bg-destructive hover:bg-destructive/90'
-                : 'bg-primary hover:bg-primary/90'
+                : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
           }`}
           size="default"
         >

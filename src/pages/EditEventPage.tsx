@@ -30,7 +30,6 @@ import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { toLocalInputValue, fromLocalInputValue } from '@/lib/utils';
 import { DateTimeInput } from '@/components/DateTimeInput';
-import { ActionButton } from '@/components/ActionButton';
 
 interface CustomField {
   id?: string;
@@ -281,7 +280,7 @@ export function EditEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-20">
       <TopNav showCloseButton sticky />
 
       <div className="p-3 space-y-3">
@@ -353,7 +352,7 @@ export function EditEventPage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="end_datetime" className="text-sm">
-                End Date & Time (Optional)
+                End Date & Time
               </Label>
               <label className="flex items-center gap-1.5 text-xs cursor-pointer">
                 <Checkbox
@@ -580,21 +579,25 @@ export function EditEventPage() {
 
         {/* Delete Event Button */}
         <Button
-          variant="destructive"
-          className="w-full"
+          variant="outline"
+          className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={() => setShowDeleteDialog(true)}
           disabled={loading}
         >
           <Trash2 className="h-4 w-4 mr-2" />
           Delete Event
         </Button>
-      </div>
 
-      {/* Save Changes Button above navbar */}
-      <ActionButton onClick={saveChanges} loading={loading} loadingText="Saving...">
-        <Save className="h-4 w-4 mr-2" />
-        Save Changes
-      </ActionButton>
+        {/* Save Changes Button */}
+        <Button
+          onClick={saveChanges}
+          disabled={loading}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {loading ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

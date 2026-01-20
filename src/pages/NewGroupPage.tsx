@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { TopNav } from '@/components/TopNav';
 import { groupService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
+import { Plus } from 'lucide-react';
 
 export function NewGroupPage() {
   const navigate = useNavigate();
@@ -136,7 +137,14 @@ export function NewGroupPage() {
           disabled={loading}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
         >
-          {loading ? 'Creating Group...' : 'Create Group'}
+          {loading ? (
+            'Creating Group...'
+          ) : (
+            <>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Group
+            </>
+          )}
         </Button>
       </form>
     </div>
