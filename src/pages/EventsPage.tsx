@@ -8,6 +8,7 @@ import { TopNav } from '@/components/TopNav';
 import { eventService, type Event } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
 
@@ -30,6 +31,7 @@ export function EventsPage() {
     execute: loadArchivedEvents,
   } = useLoadingState<Event[]>([]);
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
+  const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
 
   const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
@@ -202,7 +204,7 @@ export function EventsPage() {
         </TabsContent>
 
         <TabsContent value="organizing" className="p-3 space-y-3 mt-0 pb-24">
-          {renderEventList(organizingEvents, isLoadingOrganizing, true)}
+          {renderEventList(organizingEvents, isLoadingOrganizing, isEventDuplicationEnabled)}
         </TabsContent>
 
         <TabsContent value="archive" className="p-3 space-y-3 mt-0">
