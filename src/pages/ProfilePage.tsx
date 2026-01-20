@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,42 +12,60 @@ import { TopNav } from '@/components/TopNav';
 import { UserAvatar } from '@/components/UserAvatar';
 import { errorHandler } from '@/lib/errorHandler';
 import { ProfilePageSkeleton } from '@/components/ProfilePageSkeleton';
+import { profileFormSchema, type ProfileFormData } from '@/lib/validation';
+import { showFormErrors } from '@/lib/formUtils';
 
 export function ProfilePage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: user?.user_metadata?.full_name || '',
-    email: user?.email || '',
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (user) {
+      reset({
+        fullName: user.user_metadata?.full_name || '',
+        email: user.email || '',
+      });
+    }
+  }, [user, reset]);
+
+  const onSubmit = async (data: ProfileFormData) => {
     if (!user) return;
 
-    setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
-        email: formData.email,
+        email: data.email,
         data: {
-          full_name: formData.fullName,
+          full_name: data.fullName,
         },
       });
 
       if (error) throw error;
 
-      errorHandler.success('Profile updated successfully!');
-      // Navigate back to settings
-      // Note: User data will be automatically updated through auth state listener
+      const emailChanged = data.email !== user.email;
+      if (emailChanged) {
+        errorHandler.success('A confirmation email has been sent to your new address');
+      } else {
+        errorHandler.success('Profile updated successfully!');
+      }
       navigate('/settings');
     } catch (error) {
       errorHandler.handle(error, {
         userId: user.id,
         action: 'updateProfile',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -71,7 +91,11 @@ export function ProfilePage() {
     <div className="min-h-screen bg-background pb-16">
       <TopNav showCloseButton closePath="/settings" sticky />
 
-      <form id="profile-form" onSubmit={handleSubmit} className="p-3 space-y-3">
+      <form
+        id="profile-form"
+        onSubmit={handleSubmit(onSubmit, showFormErrors)}
+        className="p-3 space-y-3"
+      >
         <div className="bg-card rounded-lg border overflow-hidden">
           <div className="p-3 border-b bg-muted">
             <div className="flex items-center gap-3">
@@ -96,10 +120,9 @@ export function ProfilePage() {
                 Full Name
               </Label>
               <Input
+                {...register('fullName')}
                 id="fullName"
                 type="text"
-                value={formData.fullName}
-                onChange={(e) => setFormData((prev) => ({ ...prev, fullName: e.target.value }))}
                 placeholder="Enter your full name"
                 className="h-10 text-sm"
               />
@@ -110,10 +133,9 @@ export function ProfilePage() {
                 Email Address
               </Label>
               <Input
+                {...register('email')}
                 id="email"
                 type="email"
-                value={formData.email}
-                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                 placeholder="Enter your email address"
                 className="h-10 text-sm"
               />
@@ -143,10 +165,10 @@ export function ProfilePage() {
         {/* Save Changes Button */}
         <Button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
         >
-          {loading ? (
+          {isSubmitting ? (
             'Saving...'
           ) : (
             <>

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,21 +21,34 @@ import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
 import { Save, Trash2 } from 'lucide-react';
 import type { Group } from '@/services/groupService';
+import { groupFormSchema, type GroupFormData } from '@/lib/validation';
+import { showFormErrors } from '@/lib/formUtils';
 
 export function EditGroupPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [group, setGroup] = useState<Group | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { isSubmitting, errors },
+  } = useForm<GroupFormData>({
+    resolver: zodResolver(groupFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+    },
+  });
+
+  const nameValue = watch('name');
+  const descriptionValue = watch('description');
 
   useEffect(() => {
     if (!groupId) {
@@ -87,7 +102,7 @@ export function EditGroupPage() {
 
         if (!cancelled) {
           setGroup(data);
-          setFormData({
+          reset({
             name: data.name,
             description: data.description || '',
           });
@@ -111,45 +126,15 @@ export function EditGroupPage() {
     return () => {
       cancelled = true;
     };
-  }, [groupId, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [groupId, user, reset, navigate]);
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Group name is required';
-    } else if (formData.name.length > 200) {
-      newErrors.name = 'Group name must be 200 characters or less';
-    }
-
-    if (formData.description && formData.description.length > 2000) {
-      newErrors.description = 'Description must be 2000 characters or less';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: GroupFormData) => {
     if (!group || !user) return;
 
-    if (!validateForm()) {
-      return;
-    }
-
-    setSaving(true);
     try {
       await groupService.updateGroup(group.id, {
-        name: formData.name.trim(),
-        description: formData.description.trim() || null,
+        name: data.name.trim(),
+        description: data.description?.trim() || null,
       });
 
       errorHandler.success('Group updated successfully!');
@@ -160,8 +145,6 @@ export function EditGroupPage() {
         action: 'updateGroup',
         metadata: { groupId: group.id },
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -228,37 +211,42 @@ export function EditGroupPage() {
       <TopNav showCloseButton sticky />
 
       <div className="p-3">
-        <form id="edit-group-form" onSubmit={handleSubmit} className="space-y-6">
+        <form
+          id="edit-group-form"
+          onSubmit={handleSubmit(onSubmit, showFormErrors)}
+          className="space-y-6"
+        >
           {/* Group Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Group Name *</Label>
             <Input
+              {...register('name')}
               id="name"
               type="text"
               placeholder="Enter group name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
               className={errors.name ? 'border-destructive' : ''}
               maxLength={200}
+              autoComplete="off"
             />
-            {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-            <p className="text-xs text-muted-foreground">{formData.name.length}/200 characters</p>
+            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            <p className="text-xs text-muted-foreground">{nameValue?.length || 0}/200 characters</p>
           </div>
 
           {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
+              {...register('description')}
               id="description"
               placeholder="Describe your group (optional)"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
               className={`min-h-[100px] ${errors.description ? 'border-destructive' : ''}`}
               maxLength={2000}
             />
-            {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+            {errors.description && (
+              <p className="text-sm text-destructive">{errors.description.message}</p>
+            )}
             <p className="text-xs text-muted-foreground">
-              {formData.description.length}/2000 characters
+              {descriptionValue?.length || 0}/2000 characters
             </p>
           </div>
 
@@ -267,7 +255,7 @@ export function EditGroupPage() {
             variant="outline"
             className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={() => setShowDeleteDialog(true)}
-            disabled={saving || deleting}
+            disabled={isSubmitting || deleting}
             type="button"
           >
             <Trash2 className="h-4 w-4 mr-2" />
@@ -277,10 +265,10 @@ export function EditGroupPage() {
           {/* Save Changes Button */}
           <Button
             type="submit"
-            disabled={saving || deleting}
+            disabled={isSubmitting || deleting}
             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
           >
-            {saving ? (
+            {isSubmitting ? (
               <>
                 <LoadingSpinner size="sm" />
                 Saving...

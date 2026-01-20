@@ -1,12 +1,77 @@
 import { describe, it, expect } from 'vitest';
 import {
   eventSchema,
+  profileFormSchema,
   validateCustomFields,
   validateResponses,
   type CustomField,
 } from '../validation';
 
 describe('validation', () => {
+  describe('profileFormSchema', () => {
+    it('should accept valid profile data', () => {
+      const data = {
+        fullName: 'John Doe',
+        email: 'john@example.com',
+      };
+
+      const result = profileFormSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty fullName', () => {
+      const data = {
+        fullName: '',
+        email: 'john@example.com',
+      };
+
+      const result = profileFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Full name is required');
+      }
+    });
+
+    it('should reject fullName over 100 characters', () => {
+      const data = {
+        fullName: 'a'.repeat(101),
+        email: 'john@example.com',
+      };
+
+      const result = profileFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Full name must be less than 100 characters');
+      }
+    });
+
+    it('should reject empty email', () => {
+      const data = {
+        fullName: 'John Doe',
+        email: '',
+      };
+
+      const result = profileFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Email is required');
+      }
+    });
+
+    it('should reject invalid email format', () => {
+      const data = {
+        fullName: 'John Doe',
+        email: 'not-an-email',
+      };
+
+      const result = profileFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Invalid email format');
+      }
+    });
+  });
+
   describe('eventSchema - custom datetime validation', () => {
     it('should accept valid ISO datetime format', () => {
       const event = {

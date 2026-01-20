@@ -308,6 +308,7 @@ export function EditEventPage() {
               onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               required
               className="h-10 text-sm"
+              autoComplete="off"
             />
           </div>
 

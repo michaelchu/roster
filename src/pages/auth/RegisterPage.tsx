@@ -1,38 +1,45 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { initializeGoogleButton } from '@/lib/googleAuth';
 import { TopNav } from '@/components/TopNav';
+import { registerFormSchema, type RegisterFormData } from '@/lib/validation';
+import { showFormErrors } from '@/lib/formUtils';
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signUp, signInWithGoogleIdToken } = useAuth();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { isSubmitting, errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerFormSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+    },
+  });
 
   const returnUrl = searchParams?.get('returnUrl') || '/';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
+  const onSubmit = async (data: RegisterFormData) => {
     try {
-      await signUp(email, password, fullName);
+      await signUp(data.email, data.password, data.fullName);
       const isSafeReturnUrl = returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//');
       navigate(isSafeReturnUrl ? returnUrl : '/');
     } catch (err) {
       const error = err as Error;
-      setError(error.message || 'Failed to sign up');
-    } finally {
-      setLoading(false);
+      setError('root', { message: error.message || 'Failed to sign up' });
     }
   };
 
@@ -41,7 +48,6 @@ export function RegisterPage() {
     initializeGoogleButton(
       'google-signup-button',
       async (idToken: string) => {
-        setError('');
         try {
           await signInWithGoogleIdToken(idToken);
           const isSafeReturnUrl =
@@ -49,14 +55,14 @@ export function RegisterPage() {
           navigate(isSafeReturnUrl ? returnUrl : '/');
         } catch (err) {
           const error = err as Error;
-          setError(error.message || 'Failed to sign up with Google');
+          setError('root', { message: error.message || 'Failed to sign up with Google' });
         }
       },
       (err: Error) => {
-        setError(err.message || 'Failed to initialize Google Sign-In');
+        setError('root', { message: err.message || 'Failed to initialize Google Sign-In' });
       }
     );
-  }, [returnUrl, navigate, signInWithGoogleIdToken]);
+  }, [returnUrl, navigate, signInWithGoogleIdToken, setError]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,19 +74,17 @@ export function RegisterPage() {
       </div>
 
       <div className="p-3 space-y-3">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit, showFormErrors)}>
           <div className="bg-card rounded-lg p-3 border space-y-3">
             <div className="space-y-2">
               <Label htmlFor="fullName" className="text-sm">
                 Full Name
               </Label>
               <Input
+                {...register('fullName')}
                 id="fullName"
                 type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your full name"
-                required
                 className="h-10 text-sm"
               />
             </div>
@@ -90,12 +94,10 @@ export function RegisterPage() {
                 Email
               </Label>
               <Input
+                {...register('email')}
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                required
                 className="h-10 text-sm"
               />
             </div>
@@ -105,24 +107,22 @@ export function RegisterPage() {
                 Password
               </Label>
               <Input
+                {...register('password')}
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a password"
-                required
                 className="h-10 text-sm"
               />
             </div>
 
-            {error && (
+            {errors.root && (
               <div className="text-xs text-red-700 bg-red-50 p-2 rounded border border-red-200">
-                {error}
+                {errors.root.message}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Sign Up'}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating account...' : 'Sign Up'}
             </Button>
 
             {/* Divider */}

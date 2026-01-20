@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,8 @@ import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { fromLocalInputValue } from '@/lib/utils';
 import { DateTimeInput } from '@/components/DateTimeInput';
+import { showFormErrors } from '@/lib/formUtils';
+import { toast } from 'sonner';
 
 interface CustomField {
   id: string;
@@ -31,11 +34,23 @@ interface CustomField {
   options?: string[];
 }
 
+interface EventFormData {
+  name: string;
+  description: string;
+  datetime: string;
+  end_datetime: string;
+  location: string;
+  is_private: boolean;
+  group_id: string;
+  datetimeTbd: boolean;
+  endDatetimeTbd: boolean;
+  locationTbd: boolean;
+}
+
 export function NewEventPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(false);
   const showEventPrivacy = useFeatureFlag('event_privacy');
   const showRegistrationForm = useFeatureFlag('registration_form');
 
@@ -45,19 +60,29 @@ export function NewEventPage() {
       navigate('/auth/login');
     }
   }, [user, authLoading, navigate]);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    datetime: '',
-    end_datetime: '',
-    location: '',
-    max_participants: null as number | null,
-    is_private: false,
-    group_id: '__no_group__',
-    datetimeTbd: false,
-    endDatetimeTbd: false,
-    locationTbd: false,
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { isSubmitting },
+  } = useForm<EventFormData>({
+    defaultValues: {
+      name: '',
+      description: '',
+      datetime: '',
+      end_datetime: '',
+      location: '',
+      is_private: false,
+      group_id: '__no_group__',
+      datetimeTbd: false,
+      endDatetimeTbd: false,
+      locationTbd: false,
+    },
   });
+
+  const formData = watch();
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [maxParticipants, setMaxParticipants] = useState<number>(10);
   // Store previous values when TBD is checked so we can restore them
@@ -90,9 +115,9 @@ export function NewEventPage() {
     }
 
     if (groupParam === '__no_group__') {
-      setFormData((prev) =>
-        prev.group_id === '__no_group__' ? prev : { ...prev, group_id: '__no_group__' }
-      );
+      if (formData.group_id !== '__no_group__') {
+        setValue('group_id', '__no_group__');
+      }
       return;
     }
 
@@ -104,10 +129,10 @@ export function NewEventPage() {
       ? groupParam
       : '__no_group__';
 
-    setFormData((prev) =>
-      prev.group_id === nextGroupId ? prev : { ...prev, group_id: nextGroupId }
-    );
-  }, [searchParams, groupsLoading, groups]);
+    if (formData.group_id !== nextGroupId) {
+      setValue('group_id', nextGroupId);
+    }
+  }, [searchParams, groupsLoading, groups, formData.group_id, setValue]);
 
   const addCustomField = () => {
     const newField: CustomField = {
@@ -129,14 +154,19 @@ export function NewEventPage() {
     setCustomFields(customFields.filter((field) => field.id !== id));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: EventFormData) => {
     if (!user) return;
+
+    // Validate event name
+    if (!data.name.trim()) {
+      toast.error('Event name is required');
+      return;
+    }
 
     // Client-side validation for past dates
     const now = new Date();
-    if (formData.datetime) {
-      const startDate = new Date(formData.datetime);
+    if (data.datetime) {
+      const startDate = new Date(data.datetime);
       if (startDate < now) {
         errorHandler.handle(
           new ValidationError('Start date validation failed', 'Start date cannot be in the past'),
@@ -149,8 +179,8 @@ export function NewEventPage() {
       }
     }
 
-    if (formData.end_datetime) {
-      const endDate = new Date(formData.end_datetime);
+    if (data.end_datetime) {
+      const endDate = new Date(data.end_datetime);
       if (endDate < now) {
         errorHandler.handle(
           new ValidationError('End date validation failed', 'End date cannot be in the past'),
@@ -164,9 +194,9 @@ export function NewEventPage() {
     }
 
     // Client-side validation for end date
-    if (formData.datetime && formData.end_datetime) {
-      const startDate = new Date(formData.datetime);
-      const endDate = new Date(formData.end_datetime);
+    if (data.datetime && data.end_datetime) {
+      const startDate = new Date(data.datetime);
+      const endDate = new Date(data.end_datetime);
       if (endDate <= startDate) {
         errorHandler.handle(
           new ValidationError('Date range validation failed', 'End date must be after start date'),
@@ -179,20 +209,19 @@ export function NewEventPage() {
       }
     }
 
-    setLoading(true);
     try {
       const eventData = await eventService.createEvent({
         organizer_id: user.id,
-        name: formData.name,
-        description: formData.description || null,
-        datetime: formData.datetime ? fromLocalInputValue(formData.datetime) : null,
-        end_datetime: formData.end_datetime ? fromLocalInputValue(formData.end_datetime) : null,
-        location: formData.location || null,
+        name: data.name,
+        description: data.description || null,
+        datetime: data.datetime ? fromLocalInputValue(data.datetime) : null,
+        end_datetime: data.end_datetime ? fromLocalInputValue(data.end_datetime) : null,
+        location: data.location || null,
         max_participants: maxParticipants,
-        is_private: formData.is_private,
+        is_private: data.is_private,
         custom_fields: customFields.filter((f) => f.label),
         parent_event_id: null,
-        group_id: formData.group_id === '__no_group__' ? null : formData.group_id,
+        group_id: data.group_id === '__no_group__' ? null : data.group_id,
       });
 
       errorHandler.success(`Event "${eventData.name}" created successfully!`);
@@ -202,8 +231,6 @@ export function NewEventPage() {
         userId: user.id,
         action: 'createEvent',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -214,7 +241,11 @@ export function NewEventPage() {
     <div className="min-h-screen bg-background pb-20">
       <TopNav showCloseButton sticky />
 
-      <form id="create-event-form" onSubmit={handleSubmit} className="p-3 space-y-4">
+      <form
+        id="create-event-form"
+        onSubmit={handleSubmit(onSubmit, showFormErrors)}
+        className="p-3 space-y-4"
+      >
         {/* Header when creating event for a group */}
         {selectedGroup && (
           <div className="pb-3 border-b">
@@ -227,12 +258,12 @@ export function NewEventPage() {
             Event Name *
           </Label>
           <Input
+            {...register('name')}
             id="name"
             type="text"
-            value={formData.name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             required
             className="h-10 text-sm"
+            autoComplete="off"
           />
         </div>
 
@@ -241,14 +272,8 @@ export function NewEventPage() {
             Description
           </Label>
           <Textarea
+            {...register('description')}
             id="description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
             className="text-sm resize-none"
             rows={3}
           />
@@ -265,13 +290,11 @@ export function NewEventPage() {
                 onCheckedChange={(checked) => {
                   if (checked) {
                     setPreviousValues((prev) => ({ ...prev, datetime: formData.datetime }));
-                    setFormData((prev) => ({ ...prev, datetimeTbd: true, datetime: '' }));
+                    setValue('datetimeTbd', true);
+                    setValue('datetime', '');
                   } else {
-                    setFormData((prev) => ({
-                      ...prev,
-                      datetimeTbd: false,
-                      datetime: previousValues.datetime,
-                    }));
+                    setValue('datetimeTbd', false);
+                    setValue('datetime', previousValues.datetime);
                   }
                 }}
               />
@@ -281,7 +304,7 @@ export function NewEventPage() {
           <DateTimeInput
             id="datetime"
             value={formData.datetime}
-            onChange={(value) => setFormData((prev) => ({ ...prev, datetime: value }))}
+            onChange={(value) => setValue('datetime', value)}
             disabled={formData.datetimeTbd}
           />
         </div>
@@ -297,13 +320,11 @@ export function NewEventPage() {
                 onCheckedChange={(checked) => {
                   if (checked) {
                     setPreviousValues((prev) => ({ ...prev, end_datetime: formData.end_datetime }));
-                    setFormData((prev) => ({ ...prev, endDatetimeTbd: true, end_datetime: '' }));
+                    setValue('endDatetimeTbd', true);
+                    setValue('end_datetime', '');
                   } else {
-                    setFormData((prev) => ({
-                      ...prev,
-                      endDatetimeTbd: false,
-                      end_datetime: previousValues.end_datetime,
-                    }));
+                    setValue('endDatetimeTbd', false);
+                    setValue('end_datetime', previousValues.end_datetime);
                   }
                 }}
               />
@@ -313,7 +334,7 @@ export function NewEventPage() {
           <DateTimeInput
             id="end_datetime"
             value={formData.end_datetime}
-            onChange={(value) => setFormData((prev) => ({ ...prev, end_datetime: value }))}
+            onChange={(value) => setValue('end_datetime', value)}
             disabled={formData.endDatetimeTbd}
           />
         </div>
@@ -329,13 +350,11 @@ export function NewEventPage() {
                 onCheckedChange={(checked) => {
                   if (checked) {
                     setPreviousValues((prev) => ({ ...prev, location: formData.location }));
-                    setFormData((prev) => ({ ...prev, locationTbd: true, location: '' }));
+                    setValue('locationTbd', true);
+                    setValue('location', '');
                   } else {
-                    setFormData((prev) => ({
-                      ...prev,
-                      locationTbd: false,
-                      location: previousValues.location,
-                    }));
+                    setValue('locationTbd', false);
+                    setValue('location', previousValues.location);
                   }
                 }}
               />
@@ -343,10 +362,10 @@ export function NewEventPage() {
             </label>
           </div>
           <Input
+            {...register('location')}
             id="location"
             type="text"
             value={formData.locationTbd ? '' : formData.location}
-            onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
             className="h-10 text-sm"
             disabled={formData.locationTbd}
             placeholder={formData.locationTbd ? 'TBD' : ''}
@@ -359,7 +378,7 @@ export function NewEventPage() {
           </Label>
           <Select
             value={formData.group_id}
-            onValueChange={(value) => setFormData((prev) => ({ ...prev, group_id: value }))}
+            onValueChange={(value) => setValue('group_id', value)}
             disabled={groupsLoading}
           >
             <SelectTrigger id="group" className="h-10 text-sm">
@@ -392,12 +411,7 @@ export function NewEventPage() {
             <Label className="text-sm">Event Privacy</Label>
             <button
               type="button"
-              onClick={() =>
-                setFormData((prev) => ({
-                  ...prev,
-                  is_private: !prev.is_private,
-                }))
-              }
+              onClick={() => setValue('is_private', !formData.is_private)}
               className={`flex items-center justify-between w-full p-2 rounded-lg border-2 transition-colors ${
                 formData.is_private
                   ? 'border-destructive/20 bg-destructive/5'
@@ -522,10 +536,10 @@ export function NewEventPage() {
         {/* Create Event Button */}
         <Button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
         >
-          {loading ? (
+          {isSubmitting ? (
             'Creating...'
           ) : (
             <>

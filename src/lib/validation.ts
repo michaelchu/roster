@@ -181,7 +181,41 @@ export const updateParticipantFormSchema = createParticipantFormSchema.partial()
   id: z.string().uuid('Invalid participant ID'),
 });
 
+// Profile form validation (for react-hook-form)
+export const profileFormSchema = z.object({
+  fullName: z
+    .string()
+    .min(1, 'Full name is required')
+    .max(100, 'Full name must be less than 100 characters'),
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+});
+
+// Group form validation (for react-hook-form)
+export const groupFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Group name is required')
+    .max(200, 'Group name must be 200 characters or less'),
+  description: z.string().max(2000, 'Description must be 2000 characters or less').optional(),
+});
+
+// Auth form validation (for react-hook-form)
+export const loginFormSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+export const registerFormSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required'),
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
 // Type exports for use in components
+export type ProfileFormData = z.infer<typeof profileFormSchema>;
+export type GroupFormData = z.infer<typeof groupFormSchema>;
+export type LoginFormData = z.infer<typeof loginFormSchema>;
+export type RegisterFormData = z.infer<typeof registerFormSchema>;
 export type CustomField = z.infer<typeof customFieldSchema>;
 export type ResponseRecord = z.infer<typeof responseRecordSchema>;
 export type Event = z.infer<typeof eventSchema>;
