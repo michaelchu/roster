@@ -824,9 +824,11 @@ export function EventDetailPage() {
                             {isOrganizerItem && (
                               <Badge
                                 variant="outline"
-                                className="bg-purple-100 text-purple-700 border-purple-200"
+                                className="bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200/50"
                               >
-                                Organizer
+                                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-medium">
+                                  Organizer
+                                </span>
                               </Badge>
                             )}
                             {isOrganizer && participant.payment_status !== 'pending' && (
