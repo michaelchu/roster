@@ -69,7 +69,7 @@ export const eventSchema = z
     max_participants: z
       .number()
       .int('Max participants must be a whole number')
-      .min(1, 'Must allow at least 1 participant')
+      .min(2, 'Must allow at least 2 participants')
       .max(100, 'Maximum 100 participants allowed')
       .nullable()
       .optional(),
@@ -211,11 +211,31 @@ export const registerFormSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
+// Event form validation (for react-hook-form)
+// Note: Date validations (past dates, end > start) are handled in the component
+// because they require runtime comparison with current time
+export const newEventFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Event name is required')
+    .max(200, 'Event name must be less than 200 characters'),
+  description: z.string().max(2000, 'Description must be less than 2000 characters').optional(),
+  datetime: z.string().optional(),
+  end_datetime: z.string().optional(),
+  location: z.string().max(500, 'Location must be less than 500 characters').optional(),
+  is_private: z.boolean(),
+  group_id: z.string(),
+  datetimeTbd: z.boolean(),
+  endDatetimeTbd: z.boolean(),
+  locationTbd: z.boolean(),
+});
+
 // Type exports for use in components
 export type ProfileFormData = z.infer<typeof profileFormSchema>;
 export type GroupFormData = z.infer<typeof groupFormSchema>;
 export type LoginFormData = z.infer<typeof loginFormSchema>;
 export type RegisterFormData = z.infer<typeof registerFormSchema>;
+export type NewEventFormData = z.infer<typeof newEventFormSchema>;
 export type CustomField = z.infer<typeof customFieldSchema>;
 export type ResponseRecord = z.infer<typeof responseRecordSchema>;
 export type Event = z.infer<typeof eventSchema>;

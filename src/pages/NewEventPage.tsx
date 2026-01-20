@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,12 +19,13 @@ import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { Plus, Trash2, Lock, Unlock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { eventService, groupService, type Group } from '@/services';
-import { errorHandler, ValidationError } from '@/lib/errorHandler';
+import { errorHandler } from '@/lib/errorHandler';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { fromLocalInputValue } from '@/lib/utils';
 import { DateTimeInput } from '@/components/DateTimeInput';
 import { showFormErrors } from '@/lib/formUtils';
+import { newEventFormSchema, type NewEventFormData } from '@/lib/validation';
 import { toast } from 'sonner';
 
 interface CustomField {
@@ -32,19 +34,6 @@ interface CustomField {
   type: 'text' | 'email' | 'tel' | 'number' | 'select';
   required: boolean;
   options?: string[];
-}
-
-interface EventFormData {
-  name: string;
-  description: string;
-  datetime: string;
-  end_datetime: string;
-  location: string;
-  is_private: boolean;
-  group_id: string;
-  datetimeTbd: boolean;
-  endDatetimeTbd: boolean;
-  locationTbd: boolean;
 }
 
 export function NewEventPage() {
@@ -67,7 +56,8 @@ export function NewEventPage() {
     watch,
     setValue,
     formState: { isSubmitting },
-  } = useForm<EventFormData>({
+  } = useForm<NewEventFormData>({
+    resolver: zodResolver(newEventFormSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -154,27 +144,15 @@ export function NewEventPage() {
     setCustomFields(customFields.filter((field) => field.id !== id));
   };
 
-  const onSubmit = async (data: EventFormData) => {
+  const onSubmit = async (data: NewEventFormData) => {
     if (!user) return;
-
-    // Validate event name
-    if (!data.name.trim()) {
-      toast.error('Event name is required');
-      return;
-    }
 
     // Client-side validation for past dates
     const now = new Date();
     if (data.datetime) {
       const startDate = new Date(data.datetime);
       if (startDate < now) {
-        errorHandler.handle(
-          new ValidationError('Start date validation failed', 'Start date cannot be in the past'),
-          {
-            userId: user.id,
-            action: 'validateEventDates',
-          }
-        );
+        toast.error('Start date cannot be in the past');
         return;
       }
     }
@@ -182,13 +160,7 @@ export function NewEventPage() {
     if (data.end_datetime) {
       const endDate = new Date(data.end_datetime);
       if (endDate < now) {
-        errorHandler.handle(
-          new ValidationError('End date validation failed', 'End date cannot be in the past'),
-          {
-            userId: user.id,
-            action: 'validateEventDates',
-          }
-        );
+        toast.error('End date cannot be in the past');
         return;
       }
     }
@@ -198,13 +170,7 @@ export function NewEventPage() {
       const startDate = new Date(data.datetime);
       const endDate = new Date(data.end_datetime);
       if (endDate <= startDate) {
-        errorHandler.handle(
-          new ValidationError('Date range validation failed', 'End date must be after start date'),
-          {
-            userId: user.id,
-            action: 'validateEventDates',
-          }
-        );
+        toast.error('End date must be after start date');
         return;
       }
     }
@@ -261,7 +227,6 @@ export function NewEventPage() {
             {...register('name')}
             id="name"
             type="text"
-            required
             className="h-10 text-sm"
             autoComplete="off"
           />
@@ -289,7 +254,7 @@ export function NewEventPage() {
                 checked={formData.datetimeTbd}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setPreviousValues((prev) => ({ ...prev, datetime: formData.datetime }));
+                    setPreviousValues((prev) => ({ ...prev, datetime: formData.datetime || '' }));
                     setValue('datetimeTbd', true);
                     setValue('datetime', '');
                   } else {
@@ -303,7 +268,7 @@ export function NewEventPage() {
           </div>
           <DateTimeInput
             id="datetime"
-            value={formData.datetime}
+            value={formData.datetime || ''}
             onChange={(value) => setValue('datetime', value)}
             disabled={formData.datetimeTbd}
           />
@@ -319,7 +284,10 @@ export function NewEventPage() {
                 checked={formData.endDatetimeTbd}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setPreviousValues((prev) => ({ ...prev, end_datetime: formData.end_datetime }));
+                    setPreviousValues((prev) => ({
+                      ...prev,
+                      end_datetime: formData.end_datetime || '',
+                    }));
                     setValue('endDatetimeTbd', true);
                     setValue('end_datetime', '');
                   } else {
@@ -333,7 +301,7 @@ export function NewEventPage() {
           </div>
           <DateTimeInput
             id="end_datetime"
-            value={formData.end_datetime}
+            value={formData.end_datetime || ''}
             onChange={(value) => setValue('end_datetime', value)}
             disabled={formData.endDatetimeTbd}
           />
@@ -349,7 +317,7 @@ export function NewEventPage() {
                 checked={formData.locationTbd}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setPreviousValues((prev) => ({ ...prev, location: formData.location }));
+                    setPreviousValues((prev) => ({ ...prev, location: formData.location || '' }));
                     setValue('locationTbd', true);
                     setValue('location', '');
                   } else {
@@ -365,7 +333,7 @@ export function NewEventPage() {
             {...register('location')}
             id="location"
             type="text"
-            value={formData.locationTbd ? '' : formData.location}
+            value={formData.locationTbd ? '' : formData.location || ''}
             className="h-10 text-sm"
             disabled={formData.locationTbd}
             placeholder={formData.locationTbd ? 'TBD' : ''}

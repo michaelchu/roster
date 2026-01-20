@@ -16,7 +16,7 @@ interface MaxParticipantsInputProps {
 export function MaxParticipantsInput({
   value,
   onChange,
-  min = 1,
+  min = 2,
   max = 999,
   label = 'Max Participants',
   className = '',

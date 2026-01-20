@@ -164,6 +164,18 @@ export function EditEventPage() {
   const saveChanges = async () => {
     if (!event || !user) return;
 
+    // Validate event name
+    if (!formData.name.trim()) {
+      errorHandler.handle(
+        new ValidationError('Event name validation failed', 'Event name is required'),
+        {
+          userId: user.id,
+          action: 'validateEventName',
+        }
+      );
+      return;
+    }
+
     // Client-side validation for past dates
     const now = new Date();
     if (formData.datetime) {

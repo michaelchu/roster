@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
+import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import {
   Select,
   SelectContent,
@@ -33,16 +33,49 @@ import { MobileOnly } from '@/components/MobileOnly';
 import { UserAvatar } from '@/components/UserAvatar';
 import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
 
+const STORAGE_KEYS = {
+  emailNotifications: 'settings:emailNotifications',
+  smsNotifications: 'settings:smsNotifications',
+  defaultCapacity: 'settings:defaultCapacity',
+  defaultVisibility: 'settings:defaultVisibility',
+} as const;
+
+function loadFromStorage<T>(key: string, defaultValue: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored === null) return defaultValue;
+    return JSON.parse(stored) as T;
+  } catch {
+    return defaultValue;
+  }
+}
+
+function saveToStorage<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Ignore storage errors (e.g., quota exceeded)
+  }
+}
+
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut, loading } = useAuth();
   const { fontSize, setFontSize } = useFontSize();
   const { theme, setTheme } = useTheme();
   const notificationsEnabled = useFeatureFlag('notifications');
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
-  const [defaultCapacity, setDefaultCapacity] = useState('10');
-  const [defaultVisibility, setDefaultVisibility] = useState('public');
+  const [emailNotifications, setEmailNotifications] = useState(() =>
+    loadFromStorage(STORAGE_KEYS.emailNotifications, true)
+  );
+  const [smsNotifications, setSmsNotifications] = useState(() =>
+    loadFromStorage(STORAGE_KEYS.smsNotifications, false)
+  );
+  const [defaultCapacity, setDefaultCapacity] = useState(() =>
+    loadFromStorage(STORAGE_KEYS.defaultCapacity, 10)
+  );
+  const [defaultVisibility, setDefaultVisibility] = useState(() =>
+    loadFromStorage(STORAGE_KEYS.defaultVisibility, 'public')
+  );
 
   const fontSizeOptions: FontSize[] = ['sm', 'md', 'lg'];
   const currentFontSizeIndex = fontSizeOptions.indexOf(fontSize);
@@ -130,7 +163,10 @@ export function SettingsPage() {
                   <Switch
                     id="email-notifications"
                     checked={emailNotifications}
-                    onCheckedChange={setEmailNotifications}
+                    onCheckedChange={(checked) => {
+                      setEmailNotifications(checked);
+                      saveToStorage(STORAGE_KEYS.emailNotifications, checked);
+                    }}
                   />
                 </div>
 
@@ -147,7 +183,10 @@ export function SettingsPage() {
                   <Switch
                     id="sms-notifications"
                     checked={smsNotifications}
-                    onCheckedChange={setSmsNotifications}
+                    onCheckedChange={(checked) => {
+                      setSmsNotifications(checked);
+                      saveToStorage(STORAGE_KEYS.smsNotifications, checked);
+                    }}
                   />
                 </div>
               </div>
@@ -163,19 +202,16 @@ export function SettingsPage() {
               <div className="p-3">
                 <div className="flex items-center gap-3 mb-2">
                   <Settings className="h-5 w-5 text-muted-foreground" />
-                  <Label htmlFor="default-capacity" className="text-sm font-medium">
-                    Default Event Capacity
-                  </Label>
+                  <span className="text-sm font-medium">Default Event Capacity</span>
                 </div>
-                <Input
-                  id="default-capacity"
-                  type="number"
+                <MaxParticipantsInput
                   value={defaultCapacity}
-                  onChange={(e) => setDefaultCapacity(e.target.value)}
-                  placeholder="10"
-                  min="1"
-                  max="100"
-                  className="text-sm"
+                  onChange={(value) => {
+                    setDefaultCapacity(value);
+                    saveToStorage(STORAGE_KEYS.defaultCapacity, value);
+                  }}
+                  label=""
+                  max={100}
                 />
               </div>
 
@@ -186,7 +222,13 @@ export function SettingsPage() {
                     Default Event Visibility
                   </Label>
                 </div>
-                <Select value={defaultVisibility} onValueChange={setDefaultVisibility}>
+                <Select
+                  value={defaultVisibility}
+                  onValueChange={(value) => {
+                    setDefaultVisibility(value);
+                    saveToStorage(STORAGE_KEYS.defaultVisibility, value);
+                  }}
+                >
                   <SelectTrigger id="default-visibility" className="text-sm">
                     <SelectValue placeholder="Select visibility" />
                   </SelectTrigger>
