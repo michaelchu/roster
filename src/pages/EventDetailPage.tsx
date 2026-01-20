@@ -472,9 +472,20 @@ export function EventDetailPage() {
       loadEventData();
     } catch (err) {
       const error = err as Error;
-      setSignupError(
-        error.message || 'Failed to ' + (userRegistration ? 'update registration' : 'sign up')
-      );
+      const errorMessage = error.message || '';
+
+      // Check if this is a capacity error (event filled up while user was signing up)
+      if (errorMessage.includes('full capacity')) {
+        setShowSignupDrawer(false);
+        // Refresh to show updated participant count and "Event Full" state
+        loadEventData();
+        // Show toast after drawer closes so user sees it
+        errorHandler.info('Sorry, this event just filled up! The last spot was taken.');
+      } else {
+        setSignupError(
+          errorMessage || 'Failed to ' + (userRegistration ? 'update registration' : 'sign up')
+        );
+      }
     } finally {
       setSubmitting(false);
     }
