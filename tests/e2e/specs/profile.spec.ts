@@ -125,9 +125,13 @@ test.describe('Profile Page', () => {
       await page.goto('/profile');
       await page.waitForLoadState('domcontentloaded');
 
-      // Clear the email
+      // Wait for form to be populated with user data
       const emailInput = page.locator('input#email');
-      await emailInput.clear();
+      await expect(emailInput).toHaveValue(testUser.email, { timeout: 5000 });
+
+      // Clear the email and ensure it's registered
+      await emailInput.fill('');
+      await emailInput.blur();
 
       // Submit the form
       await page.click('button[type="submit"]');
