@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   eventSchema,
   profileFormSchema,
+  groupFormSchema,
+  loginFormSchema,
+  registerFormSchema,
+  newEventFormSchema,
   validateCustomFields,
   validateResponses,
   type CustomField,
@@ -69,6 +73,339 @@ describe('validation', () => {
       if (!result.success) {
         expect(result.error.issues[0].message).toBe('Invalid email format');
       }
+    });
+  });
+
+  describe('groupFormSchema', () => {
+    it('should accept valid group data', () => {
+      const data = {
+        name: 'My Group',
+        description: 'A great group',
+      };
+
+      const result = groupFormSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept group without description', () => {
+      const data = {
+        name: 'My Group',
+      };
+
+      const result = groupFormSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty name', () => {
+      const data = {
+        name: '',
+        description: 'A group',
+      };
+
+      const result = groupFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Group name is required');
+      }
+    });
+
+    it('should reject name over 200 characters', () => {
+      const data = {
+        name: 'a'.repeat(201),
+      };
+
+      const result = groupFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Group name must be 200 characters or less');
+      }
+    });
+
+    it('should reject description over 2000 characters', () => {
+      const data = {
+        name: 'My Group',
+        description: 'a'.repeat(2001),
+      };
+
+      const result = groupFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Description must be 2000 characters or less');
+      }
+    });
+  });
+
+  describe('loginFormSchema', () => {
+    it('should accept valid login data', () => {
+      const data = {
+        email: 'user@example.com',
+        password: 'password123',
+      };
+
+      const result = loginFormSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty email', () => {
+      const data = {
+        email: '',
+        password: 'password123',
+      };
+
+      const result = loginFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Email is required');
+      }
+    });
+
+    it('should reject invalid email format', () => {
+      const data = {
+        email: 'not-an-email',
+        password: 'password123',
+      };
+
+      const result = loginFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Invalid email format');
+      }
+    });
+
+    it('should reject empty password', () => {
+      const data = {
+        email: 'user@example.com',
+        password: '',
+      };
+
+      const result = loginFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Password is required');
+      }
+    });
+  });
+
+  describe('registerFormSchema', () => {
+    it('should accept valid registration data', () => {
+      const data = {
+        fullName: 'John Doe',
+        email: 'john@example.com',
+        password: 'password123',
+      };
+
+      const result = registerFormSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty fullName', () => {
+      const data = {
+        fullName: '',
+        email: 'john@example.com',
+        password: 'password123',
+      };
+
+      const result = registerFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Full name is required');
+      }
+    });
+
+    it('should reject empty email', () => {
+      const data = {
+        fullName: 'John Doe',
+        email: '',
+        password: 'password123',
+      };
+
+      const result = registerFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Email is required');
+      }
+    });
+
+    it('should reject invalid email format', () => {
+      const data = {
+        fullName: 'John Doe',
+        email: 'not-an-email',
+        password: 'password123',
+      };
+
+      const result = registerFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Invalid email format');
+      }
+    });
+
+    it('should reject password under 6 characters', () => {
+      const data = {
+        fullName: 'John Doe',
+        email: 'john@example.com',
+        password: '12345',
+      };
+
+      const result = registerFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Password must be at least 6 characters');
+      }
+    });
+
+    it('should accept password exactly 6 characters', () => {
+      const data = {
+        fullName: 'John Doe',
+        email: 'john@example.com',
+        password: '123456',
+      };
+
+      const result = registerFormSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('newEventFormSchema', () => {
+    it('should accept valid event data', () => {
+      const data = {
+        name: 'My Event',
+        description: 'A great event',
+        datetime: '2024-12-31T18:00',
+        end_datetime: '2024-12-31T22:00',
+        location: 'Central Park',
+        is_private: false,
+        group_id: '__no_group__',
+        datetimeTbd: false,
+        endDatetimeTbd: false,
+        locationTbd: false,
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept minimal event data', () => {
+      const data = {
+        name: 'My Event',
+        is_private: false,
+        group_id: '__no_group__',
+        datetimeTbd: true,
+        endDatetimeTbd: true,
+        locationTbd: true,
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty name', () => {
+      const data = {
+        name: '',
+        is_private: false,
+        group_id: '__no_group__',
+        datetimeTbd: true,
+        endDatetimeTbd: true,
+        locationTbd: true,
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Event name is required');
+      }
+    });
+
+    it('should reject name over 200 characters', () => {
+      const data = {
+        name: 'a'.repeat(201),
+        is_private: false,
+        group_id: '__no_group__',
+        datetimeTbd: true,
+        endDatetimeTbd: true,
+        locationTbd: true,
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Event name must be less than 200 characters');
+      }
+    });
+
+    it('should reject description over 2000 characters', () => {
+      const data = {
+        name: 'My Event',
+        description: 'a'.repeat(2001),
+        is_private: false,
+        group_id: '__no_group__',
+        datetimeTbd: true,
+        endDatetimeTbd: true,
+        locationTbd: true,
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe(
+          'Description must be less than 2000 characters'
+        );
+      }
+    });
+
+    it('should reject location over 500 characters', () => {
+      const data = {
+        name: 'My Event',
+        location: 'a'.repeat(501),
+        is_private: false,
+        group_id: '__no_group__',
+        datetimeTbd: true,
+        endDatetimeTbd: true,
+        locationTbd: true,
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toBe('Location must be less than 500 characters');
+      }
+    });
+
+    it('should require is_private boolean', () => {
+      const data = {
+        name: 'My Event',
+        group_id: '__no_group__',
+        datetimeTbd: true,
+        endDatetimeTbd: true,
+        locationTbd: true,
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should require group_id', () => {
+      const data = {
+        name: 'My Event',
+        is_private: false,
+        datetimeTbd: true,
+        endDatetimeTbd: true,
+        locationTbd: true,
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('should require TBD booleans', () => {
+      const data = {
+        name: 'My Event',
+        is_private: false,
+        group_id: '__no_group__',
+      };
+
+      const result = newEventFormSchema.safeParse(data);
+      expect(result.success).toBe(false);
     });
   });
 
