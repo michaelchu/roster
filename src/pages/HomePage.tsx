@@ -315,12 +315,15 @@ export function HomePage() {
                 <Button className="w-full" size="lg" onClick={() => navigate('/auth/register')}>
                   Get Started Free
                 </Button>
-                <button
-                  onClick={() => navigate('/auth/login')}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Already have an account? Sign in
-                </button>
+                <p className="text-sm text-muted-foreground">
+                  Already have an account?{' '}
+                  <button
+                    onClick={() => navigate('/auth/login')}
+                    className="text-primary font-medium hover:underline"
+                  >
+                    Sign in
+                  </button>
+                </p>
               </div>
               <p className="text-xs text-muted-foreground mt-3">No credit card required</p>
             </div>
