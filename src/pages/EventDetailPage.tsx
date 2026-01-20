@@ -822,7 +822,12 @@ export function EventDetailPage() {
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {isOrganizerItem && (
-                              <span className="text-xs text-primary font-medium">Organizer</span>
+                              <Badge
+                                variant="outline"
+                                className="bg-purple-100 text-purple-700 border-purple-200"
+                              >
+                                Organizer
+                              </Badge>
                             )}
                             {isOrganizer && participant.payment_status !== 'pending' && (
                               <PaymentStatusBadge status={participant.payment_status} size="sm" />
