@@ -231,11 +231,23 @@ export function EditEventPage() {
       errorHandler.success('Event updated successfully!');
       navigate(`/signup/${event.id}`);
     } catch (error) {
-      errorHandler.handle(error, {
-        userId: user.id,
-        action: 'updateEvent',
-        metadata: { eventId: event.id },
-      });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'message' in error
+            ? String((error as { message: unknown }).message)
+            : String(error);
+      if (errorMessage.includes('Cannot reduce capacity')) {
+        errorHandler.info(
+          'Cannot reduce capacity below current registrations. Remove some participants first.'
+        );
+      } else {
+        errorHandler.handle(error, {
+          userId: user.id,
+          action: 'updateEvent',
+          metadata: { eventId: event.id },
+        });
+      }
     } finally {
       setLoading(false);
     }
