@@ -96,6 +96,7 @@ export function EventDetailPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [labels, setLabels] = useState<LabelType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [showSignupDrawer, setShowSignupDrawer] = useState(false);
@@ -195,6 +196,12 @@ export function EventDetailPage() {
       }
     } catch (error) {
       console.error('Error loading event data:', error);
+      const err = error as Error;
+      if (err.message?.includes('not found') || err.message?.includes('No rows')) {
+        setLoadError('Event not found');
+      } else {
+        setLoadError('Failed to load event. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -579,10 +586,13 @@ export function EventDetailPage() {
     return <EventDetailSkeleton />;
   }
 
-  if (!event) {
+  if (loadError || !event) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-sm text-muted-foreground">Event not found</div>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 p-4">
+        <div className="text-sm text-muted-foreground">{loadError || 'Event not found'}</div>
+        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+          Go Back
+        </Button>
       </div>
     );
   }
