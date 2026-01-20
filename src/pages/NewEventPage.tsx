@@ -37,6 +37,7 @@ export function NewEventPage() {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const showEventPrivacy = useFeatureFlag('event_privacy');
+  const showRegistrationForm = useFeatureFlag('registration_form');
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -405,95 +406,97 @@ export function NewEventPage() {
           </div>
         )}
 
-        <div className="pt-3 border-t">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium">Custom Fields</h2>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-8 px-2"
-              onClick={addCustomField}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Field
-            </Button>
-          </div>
-
-          {customFields.length > 0 && (
-            <div className="space-y-3 mt-3">
-              {customFields.map((field) => (
-                <div key={field.id} className="p-3 bg-muted rounded border space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="text"
-                      value={field.label}
-                      onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
-                      placeholder="Field label"
-                      className="flex-1 h-9 text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeCustomField(field.id)}
-                      className="text-destructive hover:text-destructive/80"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={field.type}
-                      onValueChange={(value) =>
-                        updateCustomField(field.id, {
-                          type: value as CustomField['type'],
-                          options: value === 'select' ? [''] : undefined,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="flex-1 h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="tel">Phone</SelectItem>
-                        <SelectItem value="number">Number</SelectItem>
-                        <SelectItem value="select">Dropdown</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                      <Checkbox
-                        checked={field.required}
-                        onCheckedChange={(checked) =>
-                          updateCustomField(field.id, {
-                            required: checked === true,
-                          })
-                        }
-                      />
-                      Required
-                    </label>
-                  </div>
-                  {field.type === 'select' && (
-                    <div className="space-y-2">
-                      <Label className="text-xs">Options (one per line)</Label>
-                      <Textarea
-                        value={field.options?.join('\n') || ''}
-                        onChange={(e) =>
-                          updateCustomField(field.id, {
-                            options: e.target.value.split('\n').filter(Boolean),
-                          })
-                        }
-                        placeholder="Option 1&#10;Option 2&#10;Option 3"
-                        className="text-sm resize-none"
-                        rows={3}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+        {showRegistrationForm && (
+          <div className="pt-3 border-t">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-medium">Custom Fields</h2>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-8 px-2"
+                onClick={addCustomField}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Field
+              </Button>
             </div>
-          )}
-        </div>
+
+            {customFields.length > 0 && (
+              <div className="space-y-3 mt-3">
+                {customFields.map((field) => (
+                  <div key={field.id} className="p-3 bg-muted rounded border space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="text"
+                        value={field.label}
+                        onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
+                        placeholder="Field label"
+                        className="flex-1 h-9 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeCustomField(field.id)}
+                        className="text-destructive hover:text-destructive/80"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={field.type}
+                        onValueChange={(value) =>
+                          updateCustomField(field.id, {
+                            type: value as CustomField['type'],
+                            options: value === 'select' ? [''] : undefined,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="flex-1 h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="tel">Phone</SelectItem>
+                          <SelectItem value="number">Number</SelectItem>
+                          <SelectItem value="select">Dropdown</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <Checkbox
+                          checked={field.required}
+                          onCheckedChange={(checked) =>
+                            updateCustomField(field.id, {
+                              required: checked === true,
+                            })
+                          }
+                        />
+                        Required
+                      </label>
+                    </div>
+                    {field.type === 'select' && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">Options (one per line)</Label>
+                        <Textarea
+                          value={field.options?.join('\n') || ''}
+                          onChange={(e) =>
+                            updateCustomField(field.id, {
+                              options: e.target.value.split('\n').filter(Boolean),
+                            })
+                          }
+                          placeholder="Option 1&#10;Option 2&#10;Option 3"
+                          className="text-sm resize-none"
+                          rows={3}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Create Event Button */}
         <Button

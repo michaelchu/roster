@@ -68,6 +68,7 @@ export function EditEventPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const showEventPrivacy = useFeatureFlag('event_privacy');
+  const showRegistrationForm = useFeatureFlag('registration_form');
   const [initialLoading, setInitialLoading] = useState(true);
   const [event, setEvent] = useState<EventData | null>(null);
   const [formData, setFormData] = useState({
@@ -441,113 +442,117 @@ export function EditEventPage() {
           )}
         </div>
 
-        <div className="bg-card rounded-lg p-3 border space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium">Custom Fields</h2>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-8 px-2"
-              onClick={addCustomField}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Field
-            </Button>
-          </div>
-
-          {customFields.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              No custom fields. Add fields to collect additional information from participants.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {customFields.map((field) => (
-                <div key={field.id} className="p-3 bg-muted rounded space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="text"
-                      value={field.label}
-                      onChange={(e) =>
-                        field.id && updateCustomField(field.id, { label: e.target.value })
-                      }
-                      placeholder="Field label"
-                      className="flex-1 h-9 text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => field.id && removeCustomField(field.id)}
-                      className="text-destructive hover:text-destructive/80"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={field.type}
-                      onValueChange={(value) => {
-                        if (!field.id) return;
-                        const nextType = value as CustomField['type'];
-                        updateCustomField(field.id, {
-                          type: nextType,
-                          ...(nextType === 'select'
-                            ? {
-                                options:
-                                  field.options && field.options.length > 0 ? field.options : [''],
-                              }
-                            : field.type === 'select'
-                              ? { options: field.options }
-                              : {}),
-                        });
-                      }}
-                    >
-                      <SelectTrigger className="flex-1 h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="tel">Phone</SelectItem>
-                        <SelectItem value="number">Number</SelectItem>
-                        <SelectItem value="select">Dropdown</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <label className="flex items-center gap-1 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={field.required}
-                        onChange={(e) =>
-                          field.id &&
-                          updateCustomField(field.id, {
-                            required: e.target.checked,
-                          })
-                        }
-                      />
-                      Required
-                    </label>
-                  </div>
-                  {field.type === 'select' && (
-                    <div className="space-y-2">
-                      <Label className="text-xs">Options (one per line)</Label>
-                      <Textarea
-                        value={field.options?.join('\n') || ''}
-                        onChange={(e) =>
-                          field.id &&
-                          updateCustomField(field.id, {
-                            options: e.target.value.split('\n').filter(Boolean),
-                          })
-                        }
-                        placeholder="Option 1\nOption 2\nOption 3"
-                        className="text-sm resize-none"
-                        rows={3}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+        {showRegistrationForm && (
+          <div className="bg-card rounded-lg p-3 border space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-medium">Custom Fields</h2>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-8 px-2"
+                onClick={addCustomField}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Field
+              </Button>
             </div>
-          )}
-        </div>
+
+            {customFields.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                No custom fields. Add fields to collect additional information from participants.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {customFields.map((field) => (
+                  <div key={field.id} className="p-3 bg-muted rounded space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="text"
+                        value={field.label}
+                        onChange={(e) =>
+                          field.id && updateCustomField(field.id, { label: e.target.value })
+                        }
+                        placeholder="Field label"
+                        className="flex-1 h-9 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => field.id && removeCustomField(field.id)}
+                        className="text-destructive hover:text-destructive/80"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={field.type}
+                        onValueChange={(value) => {
+                          if (!field.id) return;
+                          const nextType = value as CustomField['type'];
+                          updateCustomField(field.id, {
+                            type: nextType,
+                            ...(nextType === 'select'
+                              ? {
+                                  options:
+                                    field.options && field.options.length > 0
+                                      ? field.options
+                                      : [''],
+                                }
+                              : field.type === 'select'
+                                ? { options: field.options }
+                                : {}),
+                          });
+                        }}
+                      >
+                        <SelectTrigger className="flex-1 h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="tel">Phone</SelectItem>
+                          <SelectItem value="number">Number</SelectItem>
+                          <SelectItem value="select">Dropdown</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <label className="flex items-center gap-1 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={field.required}
+                          onChange={(e) =>
+                            field.id &&
+                            updateCustomField(field.id, {
+                              required: e.target.checked,
+                            })
+                          }
+                        />
+                        Required
+                      </label>
+                    </div>
+                    {field.type === 'select' && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">Options (one per line)</Label>
+                        <Textarea
+                          value={field.options?.join('\n') || ''}
+                          onChange={(e) =>
+                            field.id &&
+                            updateCustomField(field.id, {
+                              options: e.target.value.split('\n').filter(Boolean),
+                            })
+                          }
+                          placeholder="Option 1\nOption 2\nOption 3"
+                          className="text-sm resize-none"
+                          rows={3}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Delete Event Button */}
         <Button
