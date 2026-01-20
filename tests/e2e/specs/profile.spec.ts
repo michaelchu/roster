@@ -66,9 +66,13 @@ test.describe('Profile Page', () => {
       await page.goto('/profile');
       await page.waitForLoadState('domcontentloaded');
 
-      // Clear the full name
+      // Wait for form to be populated with user data
       const fullNameInput = page.locator('input#fullName');
-      await fullNameInput.clear();
+      await expect(fullNameInput).toHaveValue('Test User', { timeout: 5000 });
+
+      // Clear the full name and ensure the change is registered
+      await fullNameInput.fill('');
+      await fullNameInput.blur();
 
       // Submit the form
       await page.click('button[type="submit"]');
