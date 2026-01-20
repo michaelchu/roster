@@ -814,11 +814,6 @@ export function EventDetailPage() {
                             >
                               {displayName}
                             </button>
-                            {isOrganizerItem && (
-                              <Badge variant="secondary" className="text-xs h-5 px-1.5">
-                                Organizer
-                              </Badge>
-                            )}
                             {isOwnClaimedSpot && claimNumber && (
                               <Badge variant="outline" className="text-xs h-5 px-1 mr-2">
                                 +{claimNumber}
@@ -826,6 +821,9 @@ export function EventDetailPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
+                            {isOrganizerItem && (
+                              <span className="text-xs text-primary font-medium">Organizer</span>
+                            )}
                             {isOrganizer && participant.payment_status !== 'pending' && (
                               <PaymentStatusBadge status={participant.payment_status} size="sm" />
                             )}
