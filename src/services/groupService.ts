@@ -171,23 +171,12 @@ export const groupService = {
     // Validate session before deleting group
     await requireValidSession();
 
-    if (deleteEvents) {
-      // Delete all events in the group first
-      const { error: eventsError } = await supabase.from('events').delete().eq('group_id', groupId);
-
-      if (eventsError) throw eventsError;
-    } else {
-      // Unassociate events from the group (set group_id to null)
-      const { error: eventsError } = await supabase
-        .from('events')
-        .update({ group_id: null })
-        .eq('group_id', groupId);
-
-      if (eventsError) throw eventsError;
-    }
-
-    // Now delete the group
-    const { error } = await supabase.from('groups').delete().eq('id', groupId);
+    // Use atomic database function to ensure group deletion and event handling
+    // happen in a single transaction, preventing orphaned data
+    const { error } = await supabase.rpc('delete_group_atomic', {
+      p_group_id: groupId,
+      p_delete_events: deleteEvents,
+    });
 
     if (error) throw error;
   },
