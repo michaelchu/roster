@@ -680,34 +680,32 @@ export function EventDetailPage() {
             <div className="px-3 py-2 border-b bg-muted">
               <h3 className="text-sm font-medium">Payment Status</h3>
             </div>
-            <div className="p-3">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{paymentSummary.paid}</div>
-                  <div className="text-xs text-muted-foreground">Paid</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-600">{paymentSummary.pending}</div>
-                  <div className="text-xs text-muted-foreground">Pending</div>
-                </div>
-                {paymentSummary.waived > 0 && (
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{paymentSummary.waived}</div>
-                    <div className="text-xs text-muted-foreground">Waived</div>
-                  </div>
-                )}
-                {paymentSummary.waived === 0 && (
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {paymentSummary.total > 0
-                        ? Math.round((paymentSummary.paid / paymentSummary.total) * 100)
-                        : 0}
-                      %
-                    </div>
-                    <div className="text-xs text-muted-foreground">Collection</div>
-                  </div>
-                )}
+            <div className="grid grid-cols-3 divide-x">
+              <div className="text-center py-2">
+                <div className="text-xl font-bold text-green-600">{paymentSummary.paid}</div>
+                <div className="text-xs text-muted-foreground">Paid</div>
               </div>
+              <div className="text-center py-2">
+                <div className="text-xl font-bold text-gray-600">{paymentSummary.pending}</div>
+                <div className="text-xs text-muted-foreground">Pending</div>
+              </div>
+              {paymentSummary.waived > 0 && (
+                <div className="text-center py-2">
+                  <div className="text-xl font-bold text-blue-600">{paymentSummary.waived}</div>
+                  <div className="text-xs text-muted-foreground">Waived</div>
+                </div>
+              )}
+              {paymentSummary.waived === 0 && (
+                <div className="text-center py-2">
+                  <div className="text-xl font-bold text-primary">
+                    {paymentSummary.total > 0
+                      ? Math.round((paymentSummary.paid / paymentSummary.total) * 100)
+                      : 0}
+                    %
+                  </div>
+                  <div className="text-xs text-muted-foreground">Collection</div>
+                </div>
+              )}
             </div>
           </div>
         )}
