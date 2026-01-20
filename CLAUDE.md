@@ -2,6 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Environment Setup
+
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Fill in required environment variables:
+   - `VITE_SUPABASE_URL` - Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+   - `VITE_GOOGLE_CLIENT_ID` - Google OAuth client ID for authentication
+
+3. Start local Supabase:
+   ```bash
+   npx supabase start
+   ```
+
 ## Development Commands
 
 **Build & Development:**
@@ -32,8 +49,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npx supabase stop` - Stop local Supabase instance
 - `npx supabase migration list` - List all migrations and their status
 - `npx supabase migration new <name>` - Create a new migration file
-- To apply a migration locally, use psql: `psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/migrations/<file>.sql`
+- `npx supabase migration up` - Apply pending migrations to local database
 - To re-seed local database: `psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/seed.sql`
+- **Always apply migrations instead of resetting the database** - use `migration up` to preserve local data
 - **CI/CD automatically applies migrations to production** when code is pushed to main - no manual `db push` needed
 
 **IMPORTANT - Commands Requiring Explicit Permission:**
@@ -49,7 +67,8 @@ This is a **mobile-first React event management platform** with a service layer 
 ```
 src/
 ├── components/          # UI components with shadcn/ui integration
-├── hooks/              # Custom React hooks (useAuth for authentication)
+├── hooks/              # Custom React hooks (useAuth, useFeatureFlags)
+├── lib/                # Core utilities (Supabase client, validation, error handling)
 ├── pages/              # Route-based page components
 ├── services/           # Business logic & database abstraction layer
 ├── types/              # TypeScript type definitions
@@ -83,8 +102,29 @@ Services are typed and handle all database interactions:
 - `participantService.ts` - Registration management and CSV export
 - `labelService.ts` - Participant categorization
 - `organizerService.ts` - User profile management
+- `featureFlagService.ts` - Feature flag resolution with caching
 
 All services export from `/src/services/index.ts` for clean imports.
+
+### Feature Flags
+Feature flags are stored in the database with support for platform-wide defaults and user/group overrides.
+
+**Available flags:**
+- `csv_export` - CSV export functionality
+- `registration_form` - Custom registration form fields
+- `event_duplication` - Event duplication feature
+- `home_page` - Home page visibility
+- `notifications` - Notification system
+- `event_privacy` - Event privacy settings
+- `guest_registration` - Guest registration flow
+
+**Usage:**
+```tsx
+const { isEnabled } = useFeatureFlags();
+if (isEnabled('registration_form')) { /* render feature */ }
+```
+
+Feature flags are cached for 5 minutes and support user-level and group-level overrides.
 
 ### Testing Approach
 - **Service layer unit tests** with mocked Supabase client
