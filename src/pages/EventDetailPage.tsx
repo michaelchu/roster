@@ -808,12 +808,18 @@ export function EventDetailPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <button
-                              onClick={() => setSelectedParticipant(participant)}
-                              className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors truncate text-left min-w-0 max-w-full"
-                            >
-                              {displayName}
-                            </button>
+                            {showRegistrationForm ? (
+                              <button
+                                onClick={() => setSelectedParticipant(participant)}
+                                className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors truncate text-left min-w-0 max-w-full"
+                              >
+                                {displayName}
+                              </button>
+                            ) : (
+                              <span className="text-sm font-medium text-foreground truncate min-w-0 max-w-full">
+                                {displayName}
+                              </span>
+                            )}
                             {isOwnClaimedSpot && claimNumber && (
                               <Badge variant="outline" className="text-xs h-5 px-1 mr-2">
                                 +{claimNumber}
@@ -831,9 +837,36 @@ export function EventDetailPage() {
                                 </span>
                               </Badge>
                             )}
-                            {isOrganizer && participant.payment_status !== 'pending' && (
-                              <PaymentStatusBadge status={participant.payment_status} size="sm" />
-                            )}
+                            {isOrganizer &&
+                              participant.payment_status !== 'pending' &&
+                              !isOrganizerItem && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePaymentStatus(participant);
+                                  }}
+                                >
+                                  <PaymentStatusBadge
+                                    status={participant.payment_status}
+                                    size="sm"
+                                  />
+                                </button>
+                              )}
+                            {isOrganizer &&
+                              participant.payment_status === 'pending' &&
+                              !isOrganizerItem && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePaymentStatus(participant);
+                                  }}
+                                  className="text-xs h-6 px-2"
+                                >
+                                  Mark Paid
+                                </Button>
+                              )}
                             {isOwnClaimedSpot && (
                               <Button
                                 size="sm"
