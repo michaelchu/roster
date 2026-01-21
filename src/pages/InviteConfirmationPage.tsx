@@ -22,28 +22,37 @@ export function InviteConfirmationPage() {
   const [eventData, setEventData] = useState<Event | null>(null);
   const [groupData, setGroupData] = useState<Group | null>(null);
   const loadingRef = useRef(false);
-  const prevUserRef = useRef(user?.id);
+  const errorHandledRef = useRef(false);
 
   useEffect(() => {
-    // Reset loadingRef when user changes to allow reload
-    if (prevUserRef.current !== user?.id) {
-      loadingRef.current = false;
-      prevUserRef.current = user?.id;
-    }
+    // Reset refs on mount/remount
+    loadingRef.current = false;
+    errorHandledRef.current = false;
 
     if (!type || !id) {
-      errorHandler.handle(new Error('Invalid invite link'));
-      navigate('/');
+      if (!errorHandledRef.current) {
+        errorHandledRef.current = true;
+        errorHandler.handle(new Error('Invalid invite link'));
+        navigate('/');
+      }
       return;
     }
 
     if (type !== 'event' && type !== 'group') {
-      errorHandler.handle(new Error('Invalid invite type'));
-      navigate('/');
+      if (!errorHandledRef.current) {
+        errorHandledRef.current = true;
+        errorHandler.handle(new Error('Invalid invite type'));
+        navigate('/');
+      }
       return;
     }
 
     loadInviteData();
+
+    return () => {
+      // Prevent duplicate error handling on unmount
+      loadingRef.current = true;
+    };
   }, [type, id, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadInviteData = async () => {
@@ -83,10 +92,13 @@ export function InviteConfirmationPage() {
         }
       }
     } catch (err) {
-      errorHandler.handle(err, { action: 'load invite' });
-      // Keep loadingRef true on error to prevent duplicate error toasts
+      // Prevent duplicate error toasts
+      if (!errorHandledRef.current) {
+        errorHandledRef.current = true;
+        errorHandler.handle(err, { action: 'load invite' });
+        navigate('/');
+      }
       setLoading(false);
-      navigate('/');
       return;
     }
     setLoading(false);

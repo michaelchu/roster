@@ -99,7 +99,7 @@ export function EventDetailPage() {
   const [labels, setLabels] = useState<LabelType[]>([]);
   const [loading, setLoading] = useState(true);
   const loadingRef = useRef(false);
-  const prevUserRef = useRef(user?.id);
+  const errorHandledRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [showSignupDrawer, setShowSignupDrawer] = useState(false);
@@ -133,15 +133,18 @@ export function EventDetailPage() {
     participants.length >= event.max_participants;
 
   useEffect(() => {
-    // Reset loadingRef when user changes to allow reload
-    if (prevUserRef.current !== user?.id) {
-      loadingRef.current = false;
-      prevUserRef.current = user?.id;
-    }
+    // Reset refs on mount/remount
+    loadingRef.current = false;
+    errorHandledRef.current = false;
 
     if (eventId) {
       loadEventData();
     }
+
+    return () => {
+      // Prevent duplicate error handling on unmount
+      loadingRef.current = true;
+    };
   }, [eventId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEventData = async () => {
@@ -204,10 +207,13 @@ export function EventDetailPage() {
         }
       }
     } catch (error) {
-      errorHandler.handle(error, { userId: user?.id, action: 'load event' });
-      // Keep loadingRef true on error to prevent duplicate error toasts
+      // Prevent duplicate error toasts
+      if (!errorHandledRef.current) {
+        errorHandledRef.current = true;
+        errorHandler.handle(error, { userId: user?.id, action: 'load event' });
+        navigate('/events');
+      }
       setLoading(false);
-      navigate('/events');
       return;
     }
     setLoading(false);

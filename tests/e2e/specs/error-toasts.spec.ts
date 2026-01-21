@@ -27,10 +27,10 @@ test.describe('Error Toast Notifications', () => {
       await page.goto('/signup/00000000-0000-0000-0000-000000000000');
       await page.waitForLoadState('networkidle');
 
-      // Should show error toast with appropriate message
+      // Should show exactly one error toast with appropriate message
       const toasts = page.locator('[data-sonner-toast]');
       await expect(toasts.first()).toBeVisible({ timeout: 5000 });
-      // Error message: "The requested item could not be found."
+      expect(await toasts.count()).toBe(1);
       await expect(toasts.first()).toContainText(/something went wrong|could not be found|try again/i);
 
       // Should eventually redirect to events list
@@ -50,10 +50,10 @@ test.describe('Error Toast Notifications', () => {
       await page.goto('/signup/invalid-id-format');
       await page.waitForLoadState('networkidle');
 
-      // Should show error toast with appropriate message
+      // Should show exactly one error toast with appropriate message
       const toasts = page.locator('[data-sonner-toast]');
       await expect(toasts.first()).toBeVisible({ timeout: 5000 });
-      // Error message: "The requested item could not be found."
+      expect(await toasts.count()).toBe(1);
       await expect(toasts.first()).toContainText(/something went wrong|could not be found|try again/i);
 
       // Should redirect to events list
@@ -76,10 +76,10 @@ test.describe('Error Toast Notifications', () => {
       await page.goto('/groups/00000000-0000-0000-0000-000000000000');
       await page.waitForLoadState('networkidle');
 
-      // Should show error toast with appropriate message
+      // Should show exactly one error toast with appropriate message
       const toasts = page.locator('[data-sonner-toast]');
       await expect(toasts.first()).toBeVisible({ timeout: 5000 });
-      // Error message: "The requested item could not be found."
+      expect(await toasts.count()).toBe(1);
       await expect(toasts.first()).toContainText(/something went wrong|could not be found|try again/i);
 
       // Should eventually redirect to groups list
@@ -100,10 +100,10 @@ test.describe('Error Toast Notifications', () => {
       await page.goto('/groups/00000000-0000-0000-0000-000000000000/participants');
       await page.waitForLoadState('networkidle');
 
-      // Should show error toast with appropriate message
+      // Should show exactly one error toast with appropriate message
       const toasts = page.locator('[data-sonner-toast]');
       await expect(toasts.first()).toBeVisible({ timeout: 5000 });
-      // Error message: "The requested item could not be found."
+      expect(await toasts.count()).toBe(1);
       await expect(toasts.first()).toContainText(/something went wrong|could not be found|try again/i);
 
       // Should redirect to groups list
@@ -126,10 +126,10 @@ test.describe('Error Toast Notifications', () => {
       await page.goto('/invite/group/00000000-0000-0000-0000-000000000000');
       await page.waitForLoadState('networkidle');
 
-      // Should show error toast with appropriate message
+      // Should show exactly one error toast with appropriate message
       const toasts = page.locator('[data-sonner-toast]');
       await expect(toasts.first()).toBeVisible({ timeout: 5000 });
-      // Error message: "The requested item could not be found."
+      expect(await toasts.count()).toBe(1);
       await expect(toasts.first()).toContainText(/something went wrong|could not be found|try again/i);
 
       // Should redirect away from the invite page (to home or events)
