@@ -22,6 +22,10 @@ vi.mock('@/services', () => ({
   },
   groupService: {
     getGroupsByOrganizer: vi.fn(),
+    getGroupParticipants: vi.fn(),
+  },
+  participantService: {
+    createParticipantsBatch: vi.fn(),
   },
 }));
 
@@ -148,5 +152,105 @@ describe('NewEventPage', () => {
 
     // Form should still be visible during loading
     expect(screen.getByLabelText('Event Name *')).toBeInTheDocument();
+  });
+
+  describe('Add Participants section', () => {
+    it('shows checkbox but not member search when no group is selected', () => {
+      const mockUser: User = {
+        id: '123',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2023-01-01T00:00:00Z',
+      } as User;
+
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      renderWithRouter(<NewEventPage />);
+
+      // Add Participants section should be visible
+      expect(screen.getByText('Add Participants (Optional)')).toBeInTheDocument();
+
+      // Include myself checkbox should be visible and checked by default
+      const checkbox = screen.getByLabelText('Include myself as participant');
+      expect(checkbox).toBeInTheDocument();
+      expect(checkbox).toBeChecked();
+
+      // Member search should NOT be visible when no group selected
+      expect(screen.queryByPlaceholderText('Type to search members...')).not.toBeInTheDocument();
+    });
+
+    it('allows toggling the include myself checkbox', () => {
+      const mockUser: User = {
+        id: '123',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2023-01-01T00:00:00Z',
+      } as User;
+
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      renderWithRouter(<NewEventPage />);
+
+      const checkbox = screen.getByLabelText('Include myself as participant');
+      expect(checkbox).toBeChecked();
+
+      // Click to uncheck
+      fireEvent.click(checkbox);
+      expect(checkbox).not.toBeChecked();
+
+      // Click to check again
+      fireEvent.click(checkbox);
+      expect(checkbox).toBeChecked();
+    });
+
+    it('checkbox defaults to checked for new events', () => {
+      const mockUser: User = {
+        id: '123',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2023-01-01T00:00:00Z',
+      } as User;
+
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      renderWithRouter(<NewEventPage />);
+
+      const checkbox = screen.getByLabelText('Include myself as participant');
+      // Default should be checked
+      expect(checkbox).toBeChecked();
+    });
   });
 });

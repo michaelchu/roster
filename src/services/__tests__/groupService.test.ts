@@ -259,6 +259,43 @@ describe('groupService', () => {
 
       await expect(groupService.createGroup(newGroup)).rejects.toThrow(ValidationError);
     });
+
+    it('should add organizer to group_participants after creating group', async () => {
+      const newGroup = {
+        name: 'New Group',
+        description: 'Test description',
+        organizer_id: 'organizer-1',
+      };
+
+      const mockCreatedGroup = {
+        id: 'group-1',
+        ...newGroup,
+        created_at: '2023-01-01T00:00:00Z',
+      };
+
+      const groupsInsertChain = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockCreatedGroup, error: null }),
+      };
+
+      const groupParticipantsInsertChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+
+      mockSupabase.from
+        .mockReturnValueOnce(groupsInsertChain as ReturnType<typeof mockSupabase.from>)
+        .mockReturnValueOnce(groupParticipantsInsertChain as ReturnType<typeof mockSupabase.from>);
+
+      await groupService.createGroup(newGroup);
+
+      // Verify group_participants insert was called with organizer
+      expect(mockSupabase.from).toHaveBeenCalledWith('group_participants');
+      expect(groupParticipantsInsertChain.insert).toHaveBeenCalledWith({
+        group_id: 'group-1',
+        user_id: 'organizer-1',
+      });
+    });
   });
 
   describe('updateGroup', () => {

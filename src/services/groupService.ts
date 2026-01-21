@@ -139,6 +139,12 @@ export const groupService = {
     if (error) throw error;
     if (!data) throw new Error('Failed to create group');
 
+    // Add organizer as a member of the group so they appear in member lists
+    await supabase.from('group_participants').insert({
+      group_id: data.id,
+      user_id: group.organizer_id,
+    });
+
     return data;
   },
 

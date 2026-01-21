@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -16,9 +17,15 @@ import {
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
-import { Plus, Trash2, Lock, Unlock } from 'lucide-react';
+import { Plus, Trash2, Lock, Unlock, X } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
-import { eventService, groupService, type Group } from '@/services';
+import {
+  eventService,
+  groupService,
+  participantService,
+  type Group,
+  type GroupParticipant,
+} from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
@@ -27,6 +34,7 @@ import { DateTimeInput } from '@/components/DateTimeInput';
 import { showFormErrors } from '@/lib/formUtils';
 import { newEventFormSchema, type NewEventFormData } from '@/lib/validation';
 import { toast } from 'sonner';
+import { UserAvatar } from '@/components/UserAvatar';
 
 interface CustomField {
   id: string;
@@ -87,6 +95,15 @@ export function NewEventPage() {
     execute: loadGroups,
   } = useLoadingState<Group[]>(null);
 
+  // Member selection state
+  const [groupMembers, setGroupMembers] = useState<GroupParticipant[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<Array<{ id: string; name: string }>>([]);
+  const [memberSearchQuery, setMemberSearchQuery] = useState('');
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
+  const [includeOrganizer, setIncludeOrganizer] = useState(true);
+  const memberInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const loadGroupsCallback = useCallback(async () => {
     if (!user) return [];
     return await groupService.getGroupsByOrganizer(user.id);
@@ -123,6 +140,61 @@ export function NewEventPage() {
       setValue('group_id', nextGroupId);
     }
   }, [searchParams, groupsLoading, groups, formData.group_id, setValue]);
+
+  // Load group members when group changes
+  useEffect(() => {
+    const loadGroupMembers = async () => {
+      if (formData.group_id && formData.group_id !== '__no_group__') {
+        try {
+          const members = await groupService.getGroupParticipants(formData.group_id);
+          setGroupMembers(members);
+        } catch (error) {
+          console.error('Failed to load group members:', error);
+          setGroupMembers([]);
+        }
+      } else {
+        setGroupMembers([]);
+      }
+      // Reset selected members when group changes
+      setSelectedMembers([]);
+      setMemberSearchQuery('');
+    };
+    void loadGroupMembers();
+  }, [formData.group_id]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        memberInputRef.current &&
+        !memberInputRef.current.contains(event.target as Node)
+      ) {
+        setShowMemberDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter members based on search query, excluding the organizer (they have their own checkbox)
+  const filteredMembers = groupMembers.filter(
+    (member) =>
+      member.id !== user?.id &&
+      !selectedMembers.some((s) => s.id === member.id) &&
+      member.name.toLowerCase().includes(memberSearchQuery.toLowerCase())
+  );
+
+  const selectMember = (member: GroupParticipant) => {
+    setSelectedMembers([...selectedMembers, { id: member.id, name: member.name }]);
+    setMemberSearchQuery('');
+    setShowMemberDropdown(false);
+  };
+
+  const removeMember = (memberId: string) => {
+    setSelectedMembers(selectedMembers.filter((m) => m.id !== memberId));
+  };
 
   const addCustomField = () => {
     const newField: CustomField = {
@@ -190,6 +262,25 @@ export function NewEventPage() {
         group_id: data.group_id === '__no_group__' ? null : data.group_id,
       });
 
+      // Add organizer (if checkbox checked) and selected members as participants
+      const membersToAdd = [...selectedMembers.map((m) => ({ name: m.name, user_id: m.id }))];
+      if (includeOrganizer) {
+        const organizerName = user.user_metadata?.full_name || user.email || 'Organizer';
+        membersToAdd.unshift({ name: organizerName, user_id: user.id });
+      }
+
+      if (membersToAdd.length > 0) {
+        const { created, failed, duplicates } = await participantService.createParticipantsBatch(
+          eventData.id,
+          membersToAdd
+        );
+        if (duplicates.length > 0) {
+          toast.error(`${duplicates.join(', ')} already registered for this event`);
+        } else if (failed > 0) {
+          toast.warning(`Added ${created} participants, ${failed} failed`);
+        }
+      }
+
       errorHandler.success(`Event "${eventData.name}" created successfully!`);
       navigate(`/signup/${eventData.id}`);
     } catch (error) {
@@ -243,6 +334,8 @@ export function NewEventPage() {
             rows={3}
           />
         </div>
+
+        <div className="border-t" />
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -340,6 +433,8 @@ export function NewEventPage() {
           />
         </div>
 
+        <div className="border-t" />
+
         <div className="space-y-2">
           <Label htmlFor="group" className="text-sm">
             Group
@@ -371,6 +466,105 @@ export function NewEventPage() {
             Assign this event to a group to organize related events together
           </p>
         </div>
+
+        {/* Participant selection */}
+        <div className="space-y-2">
+          <Label className="text-sm">Add Participants (Optional)</Label>
+
+          {/* Include organizer checkbox */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="includeOrganizer"
+              checked={includeOrganizer}
+              onCheckedChange={(checked) => setIncludeOrganizer(checked === true)}
+            />
+            <label
+              htmlFor="includeOrganizer"
+              className="text-sm text-muted-foreground cursor-pointer"
+            >
+              Include myself as participant
+            </label>
+          </div>
+
+          {/* Member selection - only show when group is selected */}
+          {formData.group_id && formData.group_id !== '__no_group__' && (
+            <>
+              {/* Autocomplete Input */}
+              <div className="relative">
+                <Input
+                  ref={memberInputRef}
+                  placeholder="Type to search members..."
+                  value={memberSearchQuery}
+                  onChange={(e) => {
+                    setMemberSearchQuery(e.target.value);
+                    setShowMemberDropdown(true);
+                  }}
+                  onFocus={() => setShowMemberDropdown(true)}
+                  className="h-10 text-sm"
+                  autoComplete="off"
+                />
+
+                {/* Dropdown with filtered results */}
+                {showMemberDropdown && memberSearchQuery && filteredMembers.length > 0 && (
+                  <div
+                    ref={dropdownRef}
+                    className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-md max-h-48 overflow-auto"
+                  >
+                    {filteredMembers.map((member) => (
+                      <button
+                        key={member.id}
+                        type="button"
+                        onClick={() => selectMember(member)}
+                        className="w-full p-2 hover:bg-muted flex items-center gap-2 text-left"
+                      >
+                        <UserAvatar name={member.name} avatarUrl={member.avatar_url} size="sm" />
+                        <span className="text-sm">{member.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* No results message */}
+                {showMemberDropdown && memberSearchQuery && filteredMembers.length === 0 && (
+                  <div
+                    ref={dropdownRef}
+                    className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-md p-3"
+                  >
+                    <p className="text-sm text-muted-foreground">No members found</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Selected members as chips */}
+              {selectedMembers.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedMembers.map((member) => (
+                    <Badge
+                      key={member.id}
+                      variant="outline"
+                      className="gap-1 pr-1 border-pink-500 text-pink-600"
+                    >
+                      {member.name}
+                      <button
+                        type="button"
+                        onClick={() => removeMember(member.id)}
+                        className="ml-1 hover:bg-pink-100 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                Selected members will be added as participants when the event is created
+              </p>
+            </>
+          )}
+        </div>
+
+        <div className="border-t" />
 
         <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
 
@@ -410,95 +604,98 @@ export function NewEventPage() {
         )}
 
         {showRegistrationForm && (
-          <div className="pt-3 border-t">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium">Custom Fields</h2>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-8 px-2"
-                onClick={addCustomField}
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Add Field
-              </Button>
-            </div>
-
-            {customFields.length > 0 && (
-              <div className="space-y-3 mt-3">
-                {customFields.map((field) => (
-                  <div key={field.id} className="p-3 bg-muted rounded border space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="text"
-                        value={field.label}
-                        onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
-                        placeholder="Field label"
-                        className="flex-1 h-9 text-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeCustomField(field.id)}
-                        className="text-destructive hover:text-destructive/80"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Select
-                        value={field.type}
-                        onValueChange={(value) =>
-                          updateCustomField(field.id, {
-                            type: value as CustomField['type'],
-                            options: value === 'select' ? [''] : undefined,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="flex-1 h-9 text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="text">Text</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="tel">Phone</SelectItem>
-                          <SelectItem value="number">Number</SelectItem>
-                          <SelectItem value="select">Dropdown</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                        <Checkbox
-                          checked={field.required}
-                          onCheckedChange={(checked) =>
-                            updateCustomField(field.id, {
-                              required: checked === true,
-                            })
-                          }
-                        />
-                        Required
-                      </label>
-                    </div>
-                    {field.type === 'select' && (
-                      <div className="space-y-2">
-                        <Label className="text-xs">Options (one per line)</Label>
-                        <Textarea
-                          value={field.options?.join('\n') || ''}
-                          onChange={(e) =>
-                            updateCustomField(field.id, {
-                              options: e.target.value.split('\n').filter(Boolean),
-                            })
-                          }
-                          placeholder="Option 1&#10;Option 2&#10;Option 3"
-                          className="text-sm resize-none"
-                          rows={3}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
+          <>
+            <div className="border-t" />
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-medium">Custom Fields</h2>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 px-2"
+                  onClick={addCustomField}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Field
+                </Button>
               </div>
-            )}
-          </div>
+
+              {customFields.length > 0 && (
+                <div className="space-y-3 mt-3">
+                  {customFields.map((field) => (
+                    <div key={field.id} className="p-3 bg-muted rounded border space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="text"
+                          value={field.label}
+                          onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
+                          placeholder="Field label"
+                          className="flex-1 h-9 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeCustomField(field.id)}
+                          className="text-destructive hover:text-destructive/80"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={field.type}
+                          onValueChange={(value) =>
+                            updateCustomField(field.id, {
+                              type: value as CustomField['type'],
+                              options: value === 'select' ? [''] : undefined,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="flex-1 h-9 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="tel">Phone</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                            <SelectItem value="select">Dropdown</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                          <Checkbox
+                            checked={field.required}
+                            onCheckedChange={(checked) =>
+                              updateCustomField(field.id, {
+                                required: checked === true,
+                              })
+                            }
+                          />
+                          Required
+                        </label>
+                      </div>
+                      {field.type === 'select' && (
+                        <div className="space-y-2">
+                          <Label className="text-xs">Options (one per line)</Label>
+                          <Textarea
+                            value={field.options?.join('\n') || ''}
+                            onChange={(e) =>
+                              updateCustomField(field.id, {
+                                options: e.target.value.split('\n').filter(Boolean),
+                              })
+                            }
+                            placeholder="Option 1&#10;Option 2&#10;Option 3"
+                            className="text-sm resize-none"
+                            rows={3}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* Create Event Button */}

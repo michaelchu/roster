@@ -256,6 +256,201 @@ describe('participantService', () => {
     });
   });
 
+  describe('createParticipantsBatch', () => {
+    it('should create multiple participants and return counts', async () => {
+      const mockQueryChain = {
+        select: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'p1',
+            event_id: 'event-1',
+            name: 'Member 1',
+            user_id: null,
+            claimed_by_user_id: null,
+            slot_number: 1,
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      const result = await participantService.createParticipantsBatch('event-1', [
+        { name: 'Member 1' },
+        { name: 'Member 2' },
+        { name: 'Member 3' },
+      ]);
+
+      expect(result).toEqual({ created: 3, failed: 0, duplicates: [] });
+      expect(mockQueryChain.insert).toHaveBeenCalledTimes(3);
+    });
+
+    it('should return empty counts for empty members array', async () => {
+      const result = await participantService.createParticipantsBatch('event-1', []);
+
+      expect(result).toEqual({ created: 0, failed: 0, duplicates: [] });
+      expect(mockSupabase.from).not.toHaveBeenCalled();
+    });
+
+    it('should count failures when createParticipant throws', async () => {
+      let callCount = 0;
+      const mockQueryChain = {
+        select: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        single: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 2) {
+            return Promise.resolve({ data: null, error: { message: 'Failed' } });
+          }
+          return Promise.resolve({
+            data: {
+              id: `p${callCount}`,
+              event_id: 'event-1',
+              name: `Member ${callCount}`,
+              user_id: null,
+              claimed_by_user_id: null,
+              slot_number: callCount,
+              created_at: '2023-01-01',
+            },
+            error: null,
+          });
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      const result = await participantService.createParticipantsBatch('event-1', [
+        { name: 'Member 1' },
+        { name: 'Member 2' },
+        { name: 'Member 3' },
+      ]);
+
+      expect(result).toEqual({ created: 2, failed: 1, duplicates: [] });
+    });
+
+    it('should create participants with correct data structure', async () => {
+      const mockQueryChain = {
+        select: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'p1',
+            event_id: 'event-1',
+            name: 'Test Member',
+            user_id: null,
+            claimed_by_user_id: null,
+            slot_number: 1,
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await participantService.createParticipantsBatch('event-1', [{ name: 'Test Member' }]);
+
+      expect(mockQueryChain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event_id: 'event-1',
+          name: 'Test Member',
+          email: null,
+          phone: null,
+          notes: null,
+          user_id: null,
+          claimed_by_user_id: null,
+        })
+      );
+    });
+
+    it('should detect duplicate participants via unique constraint violation', async () => {
+      let callCount = 0;
+      const mockQueryChain = {
+        select: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        single: vi.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 2) {
+            // Simulate PostgreSQL unique constraint violation (code 23505)
+            return Promise.reject({ code: '23505', message: 'duplicate key value' });
+          }
+          return Promise.resolve({
+            data: {
+              id: `p${callCount}`,
+              event_id: 'event-1',
+              name: `Member ${callCount}`,
+              user_id: `user-${callCount}`,
+              claimed_by_user_id: null,
+              slot_number: callCount,
+              created_at: '2023-01-01',
+            },
+            error: null,
+          });
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      const result = await participantService.createParticipantsBatch('event-1', [
+        { name: 'Member 1', user_id: 'user-1' },
+        { name: 'Duplicate User', user_id: 'user-2' },
+        { name: 'Member 3', user_id: 'user-3' },
+      ]);
+
+      expect(result).toEqual({
+        created: 2,
+        failed: 1,
+        duplicates: ['Duplicate User'],
+      });
+    });
+
+    it('should pass user_id when provided', async () => {
+      const mockQueryChain = {
+        select: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'p1',
+            event_id: 'event-1',
+            name: 'Organizer',
+            user_id: 'user-123',
+            claimed_by_user_id: null,
+            slot_number: 1,
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await participantService.createParticipantsBatch('event-1', [
+        { name: 'Organizer', user_id: 'user-123' },
+        { name: 'Member', user_id: 'user-456' },
+      ]);
+
+      expect(mockQueryChain.insert).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          event_id: 'event-1',
+          name: 'Organizer',
+          user_id: 'user-123',
+        })
+      );
+
+      expect(mockQueryChain.insert).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          event_id: 'event-1',
+          name: 'Member',
+          user_id: 'user-456',
+        })
+      );
+    });
+  });
+
   describe('exportParticipantsToCSV', () => {
     it('should generate CSV with basic fields', async () => {
       const participants = [

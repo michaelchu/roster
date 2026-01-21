@@ -414,4 +414,41 @@ export const participantService = {
       waived: participants.filter((p) => p.payment_status === 'waived').length,
     };
   },
+
+  async createParticipantsBatch(
+    eventId: string,
+    members: Array<{ name: string; user_id?: string | null }>
+  ): Promise<{ created: number; failed: number; duplicates: string[] }> {
+    let created = 0;
+    let failed = 0;
+    const duplicates: string[] = [];
+
+    for (const member of members) {
+      try {
+        await this.createParticipant({
+          event_id: eventId,
+          name: member.name,
+          email: null,
+          phone: null,
+          notes: null,
+          user_id: member.user_id || null,
+          claimed_by_user_id: null,
+          responses: {},
+          payment_status: 'pending',
+          payment_marked_at: null,
+          payment_notes: null,
+        });
+        created++;
+      } catch (error) {
+        // Check for unique constraint violation (PostgreSQL error code 23505)
+        const pgError = error as { code?: string };
+        if (pgError.code === '23505') {
+          duplicates.push(member.name);
+        }
+        failed++;
+      }
+    }
+
+    return { created, failed, duplicates };
+  },
 };
