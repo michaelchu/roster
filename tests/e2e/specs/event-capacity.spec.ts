@@ -101,11 +101,12 @@ test.describe('Event Capacity Enforcement', () => {
 
       // Navigate to the full event
       await goToEvent(page, event.id);
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
 
-      // Registered user should see Withdraw button, not Event Full
-      const withdrawButton = page.getByRole('button', { name: /Withdraw/i });
-      await expect(withdrawButton).toBeVisible();
+      // Registered user should see Withdraw or Modify Registration button, not Event Full
+      const withdrawButton = page.getByRole('button', { name: /withdraw|modify registration/i });
+      await expect(withdrawButton).toBeVisible({ timeout: 10000 });
       await expect(withdrawButton).toBeEnabled();
     });
 

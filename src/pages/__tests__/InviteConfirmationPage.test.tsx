@@ -5,6 +5,7 @@ import type { ReactElement } from 'react';
 import { InviteConfirmationPage } from '../InviteConfirmationPage';
 import { useAuth } from '@/hooks/useAuth';
 import { eventService, groupService } from '@/services';
+import { errorHandler } from '@/lib/errorHandler';
 
 // Mock the auth hook
 vi.mock('@/hooks/useAuth');
@@ -29,6 +30,7 @@ vi.mock('@/lib/errorHandler', () => ({
     success: vi.fn(),
   },
 }));
+const mockErrorHandler = vi.mocked(errorHandler);
 
 // Mock react-router hooks with shared variables for dynamic test values
 const mockNavigate = vi.fn();
@@ -191,7 +193,7 @@ describe('InviteConfirmationPage', () => {
       });
     });
 
-    it('shows error message for invalid event ID', async () => {
+    it('shows toast and redirects home for invalid event ID', async () => {
       mockUseAuth.mockReturnValue({
         user: null,
         session: null,
@@ -208,8 +210,8 @@ describe('InviteConfirmationPage', () => {
       renderWithRouter(<InviteConfirmationPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Event not found')).toBeInTheDocument();
-        expect(screen.getByText('Go Home')).toBeInTheDocument();
+        expect(mockErrorHandler.handle).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('/');
       });
     });
   });

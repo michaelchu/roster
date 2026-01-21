@@ -16,6 +16,7 @@ import { TopNav } from '@/components/TopNav';
 import { type Participant } from '@/services/participantService';
 import { UpcomingEventsListSkeleton } from '@/components/LoadingStates';
 import { formatEventDateTime } from '@/lib/utils';
+import { errorHandler } from '@/lib/errorHandler';
 
 interface UpcomingEvent {
   id: string;
@@ -152,7 +153,7 @@ export function HomePage() {
 
       setUpcomingEvents(events);
     } catch (error) {
-      console.error('Error loading upcoming events:', error);
+      errorHandler.handle(error, { userId: user?.id, action: 'load upcoming events' });
     } finally {
       setLoading(false);
     }

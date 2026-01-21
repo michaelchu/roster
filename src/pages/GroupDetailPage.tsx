@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,7 @@ export function GroupDetailPage() {
   const [groupLoading, setGroupLoading] = useState(true);
   const [memberCount, setMemberCount] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const loadingRef = useRef(false);
   const {
     isLoading: eventsLoading,
     data: events,
@@ -31,9 +32,10 @@ export function GroupDetailPage() {
   } = useLoadingState<GroupEvent[]>([]);
 
   const loadGroup = useCallback(async () => {
-    if (!groupId) return;
+    if (!groupId || loadingRef.current) return false;
 
     try {
+      loadingRef.current = true;
       setGroupLoading(true);
       const groupData = await groupService.getGroupById(groupId);
       setGroup(groupData);
@@ -47,12 +49,14 @@ export function GroupDetailPage() {
         const adminStatus = await groupService.isGroupAdmin(groupId, user.id);
         setIsAdmin(adminStatus);
       }
+      return true;
     } catch (error) {
-      console.error('Error loading group:', error);
-      errorHandler.handle(error);
+      errorHandler.handle(error, { action: 'load group' });
       navigate('/groups');
+      return false;
     } finally {
       setGroupLoading(false);
+      loadingRef.current = false;
     }
   }, [groupId, navigate, user?.id]);
 
@@ -94,8 +98,12 @@ export function GroupDetailPage() {
 
   useEffect(() => {
     if (user) {
-      loadGroup();
-      loadEvents(loadEventsCallback);
+      // Only load events if group loads successfully
+      loadGroup().then((success) => {
+        if (success) {
+          loadEvents(loadEventsCallback);
+        }
+      });
     }
   }, [user, loadGroup, loadEvents, loadEventsCallback]);
 

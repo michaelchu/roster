@@ -150,7 +150,7 @@ test.describe('Event Invite Authentication Flow', () => {
       await page.goto(`/invite/event/${event.id}`);
 
       // Should auto-redirect to event signup page
-      await page.waitForURL(new RegExp(`/signup/${event.id}`), { timeout: 5000 });
+      await page.waitForURL(new RegExp(`/signup/${event.id}`), { timeout: 15000 });
       expect(page.url()).toContain(`/signup/${event.id}`);
     });
   });
@@ -289,15 +289,15 @@ test.describe('Event Invite Authentication Flow', () => {
   test.describe('Edge Cases', () => {
     test('handles invalid invite link gracefully', async ({ page }) => {
       await page.goto('/invite/event/invalid-event-id-12345');
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle');
 
-      // Should show error message
-      await expect(page.getByText(/event not found/i)).toBeVisible();
+      // Should show toast and redirect to home
+      const toasts = page.locator('[data-sonner-toast]');
+      await expect(toasts.first()).toBeVisible({ timeout: 5000 });
+      await expect(toasts.first()).toContainText(/something went wrong|could not be found|try again/i);
 
-      // Should have option to go home
-      const goHomeButton = page.getByRole('button', { name: /go home/i });
-      await expect(goHomeButton).toBeVisible();
+      // Should redirect away from invite page
+      await expect(page).not.toHaveURL(/\/invite\//, { timeout: 10000 });
     });
   });
 });

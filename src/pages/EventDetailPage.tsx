@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -98,7 +98,8 @@ export function EventDetailPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [labels, setLabels] = useState<LabelType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadingRef = useRef(false);
+  const prevUserRef = useRef(user?.id);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [showSignupDrawer, setShowSignupDrawer] = useState(false);
@@ -110,7 +111,6 @@ export function EventDetailPage() {
     responses: {} as Record<string, string>,
   });
   const [submitting, setSubmitting] = useState(false);
-  const [signupError, setSignupError] = useState('');
   const [userRegistration, setUserRegistration] = useState<Participant | null>(null);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
@@ -133,15 +133,22 @@ export function EventDetailPage() {
     participants.length >= event.max_participants;
 
   useEffect(() => {
+    // Reset loadingRef when user changes to allow reload
+    if (prevUserRef.current !== user?.id) {
+      loadingRef.current = false;
+      prevUserRef.current = user?.id;
+    }
+
     if (eventId) {
       loadEventData();
     }
   }, [eventId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEventData = async () => {
-    if (!eventId) return;
+    if (!eventId || loadingRef.current) return;
 
     try {
+      loadingRef.current = true;
       // Load event
       const eventData = await eventService.getEventById(eventId);
 
@@ -197,16 +204,14 @@ export function EventDetailPage() {
         }
       }
     } catch (error) {
-      console.error('Error loading event data:', error);
-      const err = error as Error;
-      if (err.message?.includes('not found') || err.message?.includes('No rows')) {
-        setLoadError('Event not found');
-      } else {
-        setLoadError('Failed to load event. Please try again.');
-      }
-    } finally {
+      errorHandler.handle(error, { userId: user?.id, action: 'load event' });
+      // Keep loadingRef true on error to prevent duplicate error toasts
       setLoading(false);
+      navigate('/events');
+      return;
     }
+    setLoading(false);
+    loadingRef.current = false;
   };
 
   const shareEvent = () => {
@@ -219,7 +224,7 @@ export function EventDetailPage() {
       });
     } else {
       navigator.clipboard.writeText(shareText);
-      alert('Invite link copied to clipboard!');
+      errorHandler.success('Invite link copied to clipboard!');
     }
   };
 
@@ -369,7 +374,6 @@ export function EventDetailPage() {
     }
 
     setSubmitting(true);
-    setSignupError('');
 
     try {
       await participantService.createParticipant({
@@ -405,7 +409,6 @@ export function EventDetailPage() {
     if (!event) return;
 
     setSubmitting(true);
-    setSignupError('');
 
     try {
       if (userRegistration && !isClaimingForOther) {
@@ -442,12 +445,7 @@ export function EventDetailPage() {
             claimingUserEmail: user?.email || undefined,
           };
 
-          try {
-            await participantService.createParticipant(participantData, claimingOptions);
-          } catch (serviceError) {
-            console.error('Error in participantService.createParticipant:', serviceError);
-            throw serviceError;
-          }
+          await participantService.createParticipant(participantData, claimingOptions);
         } else {
           // Creating their own registration
           await participantService.createParticipant({
@@ -491,9 +489,10 @@ export function EventDetailPage() {
         // Show toast after drawer closes so user sees it
         errorHandler.info('Sorry, this event just filled up! The last spot was taken.');
       } else {
-        setSignupError(
-          errorMessage || 'Failed to ' + (userRegistration ? 'update registration' : 'sign up')
-        );
+        errorHandler.handle(err, {
+          userId: user?.id,
+          action: userRegistration ? 'update registration' : 'sign up',
+        });
       }
     } finally {
       setSubmitting(false);
@@ -504,7 +503,6 @@ export function EventDetailPage() {
     if (!userRegistration || !user) return;
 
     setSubmitting(true);
-    setSignupError('');
 
     try {
       await participantService.deleteParticipant(userRegistration.id);
@@ -524,8 +522,7 @@ export function EventDetailPage() {
       // Reload participants
       loadEventData();
     } catch (err) {
-      const error = err as Error;
-      setSignupError(error.message || 'Failed to withdraw from event');
+      errorHandler.handle(err, { userId: user?.id, action: 'withdraw from event' });
     } finally {
       setSubmitting(false);
     }
@@ -595,15 +592,8 @@ export function EventDetailPage() {
     return <EventDetailSkeleton />;
   }
 
-  if (loadError || !event) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 p-4">
-        <div className="text-sm text-muted-foreground">{loadError || 'Event not found'}</div>
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-          Go Back
-        </Button>
-      </div>
-    );
+  if (!event) {
+    return <EventDetailSkeleton />;
   }
 
   return (
@@ -1265,12 +1255,6 @@ export function EventDetailPage() {
               </div>
             </TabsContent>
           </Tabs>
-
-          {signupError && (
-            <div className="text-xs text-destructive-foreground bg-destructive/10 p-1.5 rounded">
-              {signupError}
-            </div>
-          )}
         </form>
       </FormDrawer>
 
@@ -1428,15 +1412,16 @@ export function EventDetailPage() {
                 if (!withdrawingParticipant) return;
 
                 setSubmitting(true);
-                setSignupError('');
 
                 try {
                   await participantService.deleteParticipant(withdrawingParticipant.id);
                   setWithdrawingParticipant(null);
                   loadEventData();
                 } catch (err) {
-                  const error = err as Error;
-                  setSignupError(error.message || 'Failed to remove participant');
+                  errorHandler.handle(err, {
+                    userId: user?.id,
+                    action: 'remove participant',
+                  });
                 } finally {
                   setSubmitting(false);
                 }

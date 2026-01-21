@@ -334,13 +334,15 @@ test.describe('Event Detail Page', () => {
       await register(page, testUser);
 
       await page.goto('/signup/non-existent-event-id');
-      await page.waitForTimeout(3000);
 
-      // Should show error message or Go Back button
-      const errorVisible = await page.getByText(/event not found|not found/i).isVisible().catch(() => false);
-      const goBackVisible = await page.getByRole('button', { name: /go back/i }).isVisible().catch(() => false);
+      // Should show toast and redirect to events list
+      const toasts = page.locator('[data-sonner-toast]');
+      await expect(toasts.first()).toBeVisible({ timeout: 5000 });
+      await expect(toasts.first()).toContainText(/something went wrong|could not be found|try again/i);
 
-      expect(errorVisible || goBackVisible).toBe(true);
+      // Should redirect to events list
+      await page.waitForURL(/\/events$/, { timeout: 10000 });
+      expect(page.url()).toContain('/events');
     });
   });
 });

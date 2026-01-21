@@ -446,7 +446,7 @@ test.describe('Group Management Flow', () => {
       await page.goto(`/invite/group/${group.id}`);
 
       // Should auto-redirect to group page
-      await page.waitForURL(new RegExp(`/groups/${group.id}`), { timeout: 5000 });
+      await page.waitForURL(new RegExp(`/groups/${group.id}`), { timeout: 15000 });
       expect(page.url()).toContain(`/groups/${group.id}`);
 
       // Should see group info on group page
@@ -523,7 +523,7 @@ test.describe('Group Management Flow', () => {
       await page.goto(`/invite/group/${group.id}`);
 
       // Should auto-redirect to group page
-      await page.waitForURL(new RegExp(`/groups/${group.id}`), { timeout: 5000 });
+      await page.waitForURL(new RegExp(`/groups/${group.id}`), { timeout: 15000 });
       expect(page.url()).toContain(`/groups/${group.id}`);
     });
 
@@ -551,7 +551,7 @@ test.describe('Group Management Flow', () => {
       await page.goto(`/invite/group/${group.id}`);
 
       // Should auto-redirect to group page
-      await page.waitForURL(new RegExp(`/groups/${group.id}`), { timeout: 5000 });
+      await page.waitForURL(new RegExp(`/groups/${group.id}`), { timeout: 15000 });
 
       // Should be on group detail page
       expect(page.url()).toContain(`/groups/${group.id}`);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import type { Event } from '@/services/eventService';
 import type { Group } from '@/services/groupService';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { formatEventDateTime } from '@/lib/utils';
+import { errorHandler } from '@/lib/errorHandler';
 import { Calendar, Users, UserPlus } from 'lucide-react';
 
 type InviteType = 'event' | 'group';
@@ -20,18 +21,25 @@ export function InviteConfirmationPage() {
   const [loading, setLoading] = useState(true);
   const [eventData, setEventData] = useState<Event | null>(null);
   const [groupData, setGroupData] = useState<Group | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const loadingRef = useRef(false);
+  const prevUserRef = useRef(user?.id);
 
   useEffect(() => {
+    // Reset loadingRef when user changes to allow reload
+    if (prevUserRef.current !== user?.id) {
+      loadingRef.current = false;
+      prevUserRef.current = user?.id;
+    }
+
     if (!type || !id) {
-      setError('Invalid invite link');
-      setLoading(false);
+      errorHandler.handle(new Error('Invalid invite link'));
+      navigate('/');
       return;
     }
 
     if (type !== 'event' && type !== 'group') {
-      setError('Invalid invite type');
-      setLoading(false);
+      errorHandler.handle(new Error('Invalid invite type'));
+      navigate('/');
       return;
     }
 
@@ -39,11 +47,11 @@ export function InviteConfirmationPage() {
   }, [type, id, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadInviteData = async () => {
-    if (!type || !id) return;
+    if (!type || !id || loadingRef.current) return;
 
     try {
+      loadingRef.current = true;
       setLoading(true);
-      setError(null);
 
       if (type === 'event') {
         const event = await eventService.getEventById(id);
@@ -66,8 +74,8 @@ export function InviteConfirmationPage() {
             try {
               await groupService.addUserToGroup(id, user.id);
             } catch (joinErr) {
-              console.error('Error auto-joining group:', joinErr);
               // Still redirect, they can try manual join from group page
+              errorHandler.handle(joinErr, { action: 'auto-join group' });
             }
           }
           navigate(`/groups/${id}`);
@@ -75,13 +83,14 @@ export function InviteConfirmationPage() {
         }
       }
     } catch (err) {
-      console.error('Error loading invite data:', err);
-      const errorMessage =
-        err instanceof Error ? err.message : `${type === 'event' ? 'Event' : 'Group'} not found`;
-      setError(errorMessage);
-    } finally {
+      errorHandler.handle(err, { action: 'load invite' });
+      // Keep loadingRef true on error to prevent duplicate error toasts
       setLoading(false);
+      navigate('/');
+      return;
     }
+    setLoading(false);
+    loadingRef.current = false;
   };
 
   const handleSignInClick = () => {
@@ -96,19 +105,6 @@ export function InviteConfirmationPage() {
 
   if (loading || authLoading) {
     return <EventDetailSkeleton />;
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="text-destructive text-sm mb-4">{error}</div>
-          <Button onClick={() => navigate('/')} variant="outline">
-            Go Home
-          </Button>
-        </div>
-      </div>
-    );
   }
 
   // Event Invite UI

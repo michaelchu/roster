@@ -149,7 +149,7 @@ export function NewEventPage() {
           const members = await groupService.getGroupParticipants(formData.group_id);
           setGroupMembers(members);
         } catch (error) {
-          console.error('Failed to load group members:', error);
+          errorHandler.handle(error, { action: 'load group members' });
           setGroupMembers([]);
         }
       } else {

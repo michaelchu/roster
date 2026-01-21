@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,7 @@ export function GroupParticipantsPage() {
   const [sortOption, setSortOption] = useState('latest');
   const [leavingGroup, setLeavingGroup] = useState(false);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const loadingRef = useRef(false);
   const {
     isLoading: participantsLoading,
     data: participants,
@@ -50,18 +51,21 @@ export function GroupParticipantsPage() {
   } = useLoadingState<GroupParticipant[]>([]);
 
   const loadGroup = useCallback(async () => {
-    if (!groupId) return;
+    if (!groupId || loadingRef.current) return false;
 
     try {
+      loadingRef.current = true;
       setGroupLoading(true);
       const groupData = await groupService.getGroupById(groupId);
       setGroup(groupData);
+      return true;
     } catch (error) {
-      console.error('Error loading group:', error);
-      errorHandler.handle(error);
+      errorHandler.handle(error, { action: 'load group' });
       navigate('/groups');
+      return false;
     } finally {
       setGroupLoading(false);
+      loadingRef.current = false;
     }
   }, [groupId, navigate]);
 
@@ -81,8 +85,8 @@ export function GroupParticipantsPage() {
       setAdminLoading(true);
       const adminStatus = await groupService.isGroupAdmin(groupId, user.id);
       setIsAdmin(adminStatus);
-    } catch (error) {
-      console.error('Error checking admin status:', error);
+    } catch {
+      // Silently fail admin check - user just won't see admin features
       setIsAdmin(false);
     } finally {
       setAdminLoading(false);
@@ -105,8 +109,7 @@ export function GroupParticipantsPage() {
       setShowLeaveDialog(false);
       navigate('/groups');
     } catch (error) {
-      console.error('Error leaving group:', error);
-      errorHandler.handle(error);
+      errorHandler.handle(error, { action: 'leave group' });
     } finally {
       setLeavingGroup(false);
     }
@@ -114,9 +117,13 @@ export function GroupParticipantsPage() {
 
   useEffect(() => {
     if (user) {
-      loadGroup();
-      loadParticipants(loadParticipantsCallback);
-      checkAdminStatus();
+      // Only load participants and check admin status if group loads successfully
+      loadGroup().then((success) => {
+        if (success) {
+          loadParticipants(loadParticipantsCallback);
+          checkAdminStatus();
+        }
+      });
     }
   }, [user, loadGroup, loadParticipants, loadParticipantsCallback, checkAdminStatus]);
 

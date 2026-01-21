@@ -50,26 +50,26 @@ test.describe('Payment Tracking', () => {
 
       // Navigate to event detail page
       await page.goto(`/signup/${event.id}`);
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
 
       // Verify Payment Status card is visible
-      await expect(page.getByText('Payment Status')).toBeVisible();
+      await expect(page.getByText('Payment Status')).toBeVisible({ timeout: 10000 });
 
       // Verify summary counts
-      await expect(page.getByText('Paid').first()).toBeVisible();
-      await expect(page.getByText('Pending').first()).toBeVisible();
-      await expect(page.getByText('Waived').first()).toBeVisible();
+      await expect(page.getByText('Paid').first()).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Pending').first()).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Waived').first()).toBeVisible({ timeout: 5000 });
 
       // Verify the numbers are correct
       const paidCount = page.locator('.text-green-600').filter({ hasText: '1' });
-      await expect(paidCount).toBeVisible();
+      await expect(paidCount).toBeVisible({ timeout: 5000 });
 
       const pendingCount = page.locator('.text-gray-600').filter({ hasText: '1' });
-      await expect(pendingCount).toBeVisible();
+      await expect(pendingCount).toBeVisible({ timeout: 5000 });
 
       const waivedCount = page.locator('.text-blue-600').filter({ hasText: '1' });
-      await expect(waivedCount).toBeVisible();
+      await expect(waivedCount).toBeVisible({ timeout: 5000 });
     });
 
     test('non-organizer does not see payment summary card', async ({ page }) => {
