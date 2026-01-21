@@ -112,6 +112,8 @@ test.describe('Event Detail Page', () => {
       });
 
       // Add participants via database
+      // Note: For linked users (with user_id), the display name comes from auth.users metadata
+      // The registered user has full_name='Test User' from registration
       await getAdminDb().from('participants').insert([
         { event_id: event.id, name: 'Test Participant', email: testUser.email, user_id: userId },
         { event_id: event.id, name: 'Another Person', email: 'another@example.com' },
@@ -122,8 +124,8 @@ test.describe('Event Detail Page', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
-      // Both participants should be visible in the list
-      await expect(page.getByText('Test Participant')).toBeVisible();
+      // Linked user shows auth name ('Test User'), unlinked participant shows stored name
+      await expect(page.getByText('Test User')).toBeVisible();
       await expect(page.getByText('Another Person')).toBeVisible();
     });
 

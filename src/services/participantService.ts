@@ -19,6 +19,7 @@ export interface Participant extends Omit<Tables<'participants'>, 'responses' | 
   payment_marked_at: string | null;
   payment_notes: string | null;
   avatar_url?: string | null;
+  auth_full_name?: string | null; // Current name from auth.users (for linked users)
 }
 
 export type Label = Tables<'labels'>;
@@ -90,16 +91,18 @@ export const participantService = {
 
     if (!participants || participants.length === 0) return [];
 
-    // Fetch avatar URLs for participants with user_id
-    const { data: avatarData } = await supabase.rpc('get_event_participants_with_avatar', {
+    // Fetch avatar URLs and current names for participants with user_id
+    const { data: userInfoData } = await supabase.rpc('get_event_participants_with_avatar', {
       p_event_id: eventId,
     });
 
-    // Create a map of participant_id to avatar_url
+    // Create maps for participant_id to avatar_url and full_name
     const avatarMap = new Map<string, string | null>();
-    if (avatarData) {
-      for (const item of avatarData) {
+    const nameMap = new Map<string, string | null>();
+    if (userInfoData) {
+      for (const item of userInfoData) {
         avatarMap.set(item.participant_id, item.avatar_url);
+        nameMap.set(item.participant_id, item.full_name);
       }
     }
 
@@ -125,6 +128,7 @@ export const participantService = {
         labels,
         responses: (participantWithoutLabels.responses as ResponseRecord) || {},
         avatar_url: avatarMap.get(p.id) || null,
+        auth_full_name: nameMap.get(p.id) || null,
       };
     });
   },

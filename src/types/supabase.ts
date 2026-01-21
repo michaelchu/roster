@@ -430,6 +430,7 @@ export type Database = {
           avatar_url: string;
           participant_id: string;
           user_id: string;
+          full_name: string | null;
         }[];
       };
       get_group_by_id_with_counts: {

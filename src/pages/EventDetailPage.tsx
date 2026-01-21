@@ -572,14 +572,21 @@ export function EventDetailPage() {
   };
 
   const getDisplayName = (participant: Participant) => {
-    if (!isClaimedSpot(participant)) return participant.name;
-    const userName = user?.user_metadata?.full_name || user?.email || 'User';
-    return userName;
+    // For claimed spots, show the current user's name
+    if (isClaimedSpot(participant)) {
+      return user?.user_metadata?.full_name || user?.email || 'User';
+    }
+    // For linked users, prefer auth_full_name (current) over stored name (stale)
+    if (participant.user_id && participant.auth_full_name) {
+      return participant.auth_full_name;
+    }
+    return participant.name;
   };
 
   const filteredParticipants = participants.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.auth_full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.phone?.includes(searchQuery)
   );
