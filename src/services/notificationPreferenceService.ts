@@ -4,6 +4,7 @@ import type { NotificationPreferences, NotificationPreferencesInput } from '@/ty
 // Note: Using type assertions because 'notification_preferences' table types are not yet in
 // the auto-generated database.types.ts. Types will be available after running
 // `npx supabase gen types typescript` once the migration is applied.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Default preferences for new users
 const DEFAULT_PREFERENCES: Omit<

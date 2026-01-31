@@ -4,6 +4,7 @@ import type { PushSubscription } from '@/types/notifications';
 // Note: Using type assertions because 'push_subscriptions' table types are not yet in
 // the auto-generated database.types.ts. Types will be available after running
 // `npx supabase gen types typescript` once the migration is applied.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
