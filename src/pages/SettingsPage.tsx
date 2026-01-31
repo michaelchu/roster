@@ -16,17 +16,24 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFontSize, type FontSize } from '@/hooks/useFontSize';
 import { useTheme } from '@/components/theme-provider';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   User,
   LogOut,
-  Mail,
-  MessageSquare,
+  Bell,
+  BellOff,
   Settings,
   Eye,
   Palette,
   Type,
   Minus,
   Plus,
+  UserPlus,
+  UserMinus,
+  CreditCard,
+  Users,
+  Calendar,
+  CalendarX,
 } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
@@ -34,8 +41,6 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
 
 const STORAGE_KEYS = {
-  emailNotifications: 'settings:emailNotifications',
-  smsNotifications: 'settings:smsNotifications',
   defaultCapacity: 'settings:defaultCapacity',
   defaultVisibility: 'settings:defaultVisibility',
 } as const;
@@ -64,12 +69,19 @@ export function SettingsPage() {
   const { fontSize, setFontSize } = useFontSize();
   const { theme, setTheme } = useTheme();
   const notificationsEnabled = useFeatureFlag('notifications');
-  const [emailNotifications, setEmailNotifications] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.emailNotifications, true)
-  );
-  const [smsNotifications, setSmsNotifications] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.smsNotifications, false)
-  );
+  const {
+    preferences,
+    isSubscribed,
+    permission,
+    isSupported,
+    isConfigured,
+    subscribe,
+    unsubscribe,
+    updatePreferences,
+    loading: notificationsLoading,
+  } = useNotifications();
+
+  const [subscribing, setSubscribing] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState(() =>
     loadFromStorage(STORAGE_KEYS.defaultCapacity, 10)
   );
@@ -90,6 +102,37 @@ export function SettingsPage() {
     navigate('/');
   };
 
+  const handleEnablePush = async () => {
+    setSubscribing(true);
+    try {
+      await subscribe();
+    } catch (error) {
+      console.error('Failed to enable push:', error);
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
+  const handleDisablePush = async () => {
+    setSubscribing(true);
+    try {
+      await unsubscribe();
+      await updatePreferences({ push_enabled: false });
+    } catch (error) {
+      console.error('Failed to disable push:', error);
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
+  const handleTogglePreference = async (key: string, value: boolean) => {
+    try {
+      await updatePreferences({ [key]: value });
+    } catch (error) {
+      console.error('Failed to update preference:', error);
+    }
+  };
+
   if (loading) {
     return <SettingsPageSkeleton />;
   }
@@ -107,6 +150,8 @@ export function SettingsPage() {
       </MobileOnly>
     );
   }
+
+  const showPushSettings = isSupported && isConfigured && permission === 'granted' && isSubscribed;
 
   return (
     <MobileOnly>
@@ -146,49 +191,220 @@ export function SettingsPage() {
           {notificationsEnabled && (
             <div className="bg-card rounded-lg border overflow-hidden">
               <div className="p-3 border-b bg-muted">
-                <h3 className="text-sm font-medium">Notifications</h3>
+                <h3 className="text-sm font-medium">Push Notifications</h3>
               </div>
 
               <div className="divide-y">
-                <div className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-muted-foreground" />
-                    <Label
-                      htmlFor="email-notifications"
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Email Notifications
-                    </Label>
+                {/* Push notification master toggle */}
+                {!isSupported ? (
+                  <div className="p-3 flex items-center gap-3 text-muted-foreground">
+                    <BellOff className="h-5 w-5" />
+                    <span className="text-sm">Push notifications not supported on this device</span>
                   </div>
-                  <Switch
-                    id="email-notifications"
-                    checked={emailNotifications}
-                    onCheckedChange={(checked) => {
-                      setEmailNotifications(checked);
-                      saveToStorage(STORAGE_KEYS.emailNotifications, checked);
-                    }}
-                  />
-                </div>
+                ) : !isConfigured ? (
+                  <div className="p-3 flex items-center gap-3 text-muted-foreground">
+                    <BellOff className="h-5 w-5" />
+                    <span className="text-sm">Push notifications not configured</span>
+                  </div>
+                ) : permission === 'denied' ? (
+                  <div className="p-3 flex items-center gap-3 text-muted-foreground">
+                    <BellOff className="h-5 w-5" />
+                    <div className="text-sm">
+                      <p className="font-medium">Notifications blocked</p>
+                      <p className="text-xs">Enable in browser settings</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Bell className="h-5 w-5 text-muted-foreground" />
+                      <Label htmlFor="push-enabled" className="text-sm font-medium cursor-pointer">
+                        Enable Push Notifications
+                      </Label>
+                    </div>
+                    <Switch
+                      id="push-enabled"
+                      checked={isSubscribed}
+                      disabled={subscribing || notificationsLoading}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          handleEnablePush();
+                        } else {
+                          handleDisablePush();
+                        }
+                      }}
+                    />
+                  </div>
+                )}
 
-                <div className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                    <Label
-                      htmlFor="sms-notifications"
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      SMS Notifications
-                    </Label>
-                  </div>
-                  <Switch
-                    id="sms-notifications"
-                    checked={smsNotifications}
-                    onCheckedChange={(checked) => {
-                      setSmsNotifications(checked);
-                      saveToStorage(STORAGE_KEYS.smsNotifications, checked);
-                    }}
-                  />
-                </div>
+                {/* Notification type preferences (only show if push is enabled) */}
+                {showPushSettings && preferences && (
+                  <>
+                    <div className="p-3 bg-muted/30">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                        As an Organizer
+                      </p>
+                    </div>
+
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <UserPlus className="h-5 w-5 text-green-500" />
+                        <Label
+                          htmlFor="notify-new-signup"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          New Signups
+                        </Label>
+                      </div>
+                      <Switch
+                        id="notify-new-signup"
+                        checked={preferences.notify_new_signup}
+                        onCheckedChange={(checked) =>
+                          handleTogglePreference('notify_new_signup', checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <UserMinus className="h-5 w-5 text-orange-500" />
+                        <Label
+                          htmlFor="notify-withdrawal"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          Withdrawals
+                        </Label>
+                      </div>
+                      <Switch
+                        id="notify-withdrawal"
+                        checked={preferences.notify_withdrawal}
+                        onCheckedChange={(checked) =>
+                          handleTogglePreference('notify_withdrawal', checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CreditCard className="h-5 w-5 text-green-500" />
+                        <Label
+                          htmlFor="notify-payment"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          Payments Received
+                        </Label>
+                      </div>
+                      <Switch
+                        id="notify-payment"
+                        checked={preferences.notify_payment_received}
+                        onCheckedChange={(checked) =>
+                          handleTogglePreference('notify_payment_received', checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Users className="h-5 w-5 text-blue-500" />
+                        <Label
+                          htmlFor="notify-capacity"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          Capacity Reached
+                        </Label>
+                      </div>
+                      <Switch
+                        id="notify-capacity"
+                        checked={preferences.notify_capacity_reached}
+                        onCheckedChange={(checked) =>
+                          handleTogglePreference('notify_capacity_reached', checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="p-3 bg-muted/30">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                        As a Participant
+                      </p>
+                    </div>
+
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-green-500" />
+                        <Label
+                          htmlFor="notify-confirmed"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          Signup Confirmed
+                        </Label>
+                      </div>
+                      <Switch
+                        id="notify-confirmed"
+                        checked={preferences.notify_signup_confirmed}
+                        onCheckedChange={(checked) =>
+                          handleTogglePreference('notify_signup_confirmed', checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-blue-500" />
+                        <Label
+                          htmlFor="notify-updated"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          Event Updated
+                        </Label>
+                      </div>
+                      <Switch
+                        id="notify-updated"
+                        checked={preferences.notify_event_updated}
+                        onCheckedChange={(checked) =>
+                          handleTogglePreference('notify_event_updated', checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CalendarX className="h-5 w-5 text-destructive" />
+                        <Label
+                          htmlFor="notify-cancelled"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          Event Cancelled
+                        </Label>
+                      </div>
+                      <Switch
+                        id="notify-cancelled"
+                        checked={preferences.notify_event_cancelled}
+                        onCheckedChange={(checked) =>
+                          handleTogglePreference('notify_event_cancelled', checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CreditCard className="h-5 w-5 text-orange-500" />
+                        <Label
+                          htmlFor="notify-payment-reminder"
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          Payment Reminders
+                        </Label>
+                      </div>
+                      <Switch
+                        id="notify-payment-reminder"
+                        checked={preferences.notify_payment_reminder}
+                        onCheckedChange={(checked) =>
+                          handleTogglePreference('notify_payment_reminder', checked)
+                        }
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
