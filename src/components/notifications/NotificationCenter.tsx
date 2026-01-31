@@ -7,6 +7,7 @@ import { NotificationBadge } from './NotificationBadge';
 import { NotificationItem } from './NotificationItem';
 import { PushPermissionPrompt } from './PushPermissionPrompt';
 import { useNotifications } from '@/hooks/useNotifications';
+import { errorHandler } from '@/lib/errorHandler';
 import { cn } from '@/lib/utils';
 
 interface NotificationCenterProps {
@@ -32,9 +33,16 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
   const handleEnableNotifications = async () => {
     setSubscribing(true);
     try {
-      await subscribe();
+      const result = await subscribe();
+      if (result === 'granted') {
+        errorHandler.success('Push notifications enabled');
+      } else if (result === 'denied') {
+        errorHandler.handle(
+          new Error('Notification permission denied. Please enable in browser settings.')
+        );
+      }
     } catch (error) {
-      console.error('Failed to enable notifications:', error);
+      errorHandler.handle(error, { action: 'enable notifications' });
     } finally {
       setSubscribing(false);
     }
@@ -44,7 +52,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     try {
       await markAllAsRead();
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
+      errorHandler.handle(error, { action: 'mark all notifications read' });
     }
   };
 

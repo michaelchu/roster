@@ -12,15 +12,19 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import webpush from 'npm:web-push@3.6.7';
 
 // Environment variables
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
 const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
-// VAPID_SUBJECT is used when implementing actual web-push (see sendWebPush comments)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') || 'mailto:notifications@roster.app';
+
+// Configure web-push with VAPID credentials
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+}
 
 // Types
 interface QueueItem {
@@ -93,9 +97,7 @@ function shouldSendNotification(
 }
 
 /**
- * Send a Web Push notification
- * Note: This is a simplified implementation. For production, use a proper
- * web-push library or service like Firebase Cloud Messaging.
+ * Send a Web Push notification using the web-push library
  */
 async function sendWebPush(
   subscription: PushSubscription,
@@ -108,32 +110,33 @@ async function sendWebPush(
   }
 
   try {
-    // In a production environment, you would:
-    // 1. Import the web-push library or use a native implementation
-    // 2. Sign the request with VAPID keys
-    // 3. Encrypt the payload with the subscription keys
-    // 4. Send to the push service endpoint
+    const pushSubscription = {
+      endpoint: subscription.endpoint,
+      keys: {
+        p256dh: subscription.p256dh_key,
+        auth: subscription.auth_key,
+      },
+    };
 
-    // For now, log the notification that would be sent
-    console.log('Would send push to:', subscription.endpoint);
-    console.log('Payload:', JSON.stringify(payload));
-
-    // Simulate sending (in production, replace with actual web-push implementation)
-    // The actual implementation would look something like:
-    //
-    // const webpush = await import('npm:web-push');
-    // webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-    // await webpush.sendNotification({
-    //   endpoint: subscription.endpoint,
-    //   keys: {
-    //     p256dh: subscription.p256dh_key,
-    //     auth: subscription.auth_key,
-    //   }
-    // }, JSON.stringify(payload));
-
+    await webpush.sendNotification(pushSubscription, JSON.stringify(payload));
+    console.log('Push sent successfully to:', subscription.endpoint.slice(0, 50) + '...');
     return true;
   } catch (error) {
-    console.error('Failed to send push:', error);
+    // Handle specific web-push errors
+    if (error instanceof Error) {
+      const statusCode = (error as { statusCode?: number }).statusCode;
+
+      // 404 or 410 means the subscription is no longer valid
+      if (statusCode === 404 || statusCode === 410) {
+        console.log('Subscription expired or invalid:', subscription.id);
+        // The subscription should be marked as inactive in the database
+        // This will be handled by the caller
+      } else {
+        console.error('Failed to send push:', error.message);
+      }
+    } else {
+      console.error('Failed to send push:', error);
+    }
     return false;
   }
 }
@@ -180,25 +183,72 @@ serve(async (req) => {
       });
     }
 
+    const queueItems = queue as QueueItem[];
+
+    // Batch fetch: Get unique recipient user IDs
+    const recipientIds = [...new Set(queueItems.map((item) => item.recipient_user_id))];
+
+    // Batch fetch all preferences for these users (single query instead of N queries)
+    const { data: allPrefs } = await supabase
+      .from('notification_preferences')
+      .select('*')
+      .in('user_id', recipientIds);
+
+    // Create a map for quick lookup
+    const prefsMap = new Map<string, NotificationPreferences>();
+    if (allPrefs) {
+      for (const pref of allPrefs) {
+        prefsMap.set(pref.user_id, pref as NotificationPreferences);
+      }
+    }
+
+    // Batch fetch all active subscriptions for these users (single query instead of N queries)
+    const { data: allSubscriptions } = await supabase
+      .from('push_subscriptions')
+      .select('*')
+      .in('user_id', recipientIds)
+      .eq('active', true);
+
+    // Create a map of user_id -> subscriptions[]
+    const subscriptionsMap = new Map<string, PushSubscription[]>();
+    if (allSubscriptions) {
+      for (const sub of allSubscriptions as PushSubscription[]) {
+        const existing = subscriptionsMap.get(sub.user_id) || [];
+        existing.push(sub);
+        subscriptionsMap.set(sub.user_id, existing);
+      }
+    }
+
+    // Mark all items as processing in a single batch update
+    const queueIds = queueItems.map((item) => item.id);
+    await supabase
+      .from('notification_queue')
+      .update({ status: 'processing' })
+      .in('id', queueIds);
+
     const results: { id: string; status: string; error?: string }[] = [];
+    const inboxInserts: Array<{
+      recipient_user_id: string;
+      type: string;
+      title: string;
+      body: string;
+      event_id: string | null;
+      participant_id: string | null;
+      actor_user_id: string | null;
+      action_url: string | null;
+    }> = [];
 
-    for (const item of queue as QueueItem[]) {
-      // Mark as processing
-      await supabase
-        .from('notification_queue')
-        .update({
-          status: 'processing',
-          attempts: item.attempts + 1,
-        })
-        .eq('id', item.id);
-
+    // Process each queue item using the pre-fetched data
+    for (const item of queueItems) {
       try {
-        // Check user preferences
-        const { data: prefs } = await supabase
-          .from('notification_preferences')
-          .select('*')
-          .eq('user_id', item.recipient_user_id)
-          .single();
+        // Increment attempts
+        await supabase
+          .from('notification_queue')
+          .update({ attempts: item.attempts + 1 })
+          .eq('id', item.id);
+
+        // Check user preferences from the pre-fetched map
+        const prefs = prefsMap.get(item.recipient_user_id) || null;
 
         // Check if user wants this notification
         if (!shouldSendNotification(prefs, item.notification_type)) {
@@ -215,14 +265,10 @@ serve(async (req) => {
           continue;
         }
 
-        // Get user's active push subscriptions
-        const { data: subscriptions } = await supabase
-          .from('push_subscriptions')
-          .select('*')
-          .eq('user_id', item.recipient_user_id)
-          .eq('active', true);
+        // Get user's subscriptions from the pre-fetched map
+        const subscriptions = subscriptionsMap.get(item.recipient_user_id) || [];
 
-        if (!subscriptions || subscriptions.length === 0) {
+        if (subscriptions.length === 0) {
           // No active subscriptions, skip but still save to inbox
           await supabase
             .from('notification_queue')
@@ -245,7 +291,7 @@ serve(async (req) => {
           };
 
           let sentToAny = false;
-          for (const sub of subscriptions as PushSubscription[]) {
+          for (const sub of subscriptions) {
             const sent = await sendWebPush(sub, pushPayload);
             if (sent) sentToAny = true;
           }
@@ -261,8 +307,8 @@ serve(async (req) => {
             .eq('id', item.id);
         }
 
-        // Always save to notifications inbox for history
-        await supabase.from('notifications').insert({
+        // Queue inbox insert for batch processing
+        inboxInserts.push({
           recipient_user_id: item.recipient_user_id,
           type: item.notification_type,
           title: item.title,
@@ -290,6 +336,11 @@ serve(async (req) => {
 
         results.push({ id: item.id, status: 'error', error: errorMessage });
       }
+    }
+
+    // Batch insert all inbox notifications
+    if (inboxInserts.length > 0) {
+      await supabase.from('notifications').insert(inboxInserts);
     }
 
     return new Response(

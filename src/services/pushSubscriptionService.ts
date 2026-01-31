@@ -9,6 +9,21 @@ import type { PushSubscription } from '@/types/notifications';
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 /**
+ * Validate that a string is a valid URL-safe base64 encoded VAPID key
+ * VAPID public keys should be 65 bytes when decoded (uncompressed P-256 point)
+ */
+function isValidVapidKey(key: string | undefined): key is string {
+  if (!key || typeof key !== 'string') return false;
+
+  // VAPID public key should be ~88 characters in base64
+  if (key.length < 80 || key.length > 100) return false;
+
+  // Check for valid URL-safe base64 characters
+  const urlSafeBase64Regex = /^[A-Za-z0-9_-]+$/;
+  return urlSafeBase64Regex.test(key);
+}
+
+/**
  * Convert a base64 string to Uint8Array for Web Push
  */
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -20,6 +35,36 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+/**
+ * Store VAPID public key in IndexedDB for service worker access
+ */
+async function storeVapidKeyForServiceWorker(vapidKey: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('push-config', 1);
+
+    request.onerror = () => reject(request.error);
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains('config')) {
+        db.createObjectStore('config');
+      }
+    };
+
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction('config', 'readwrite');
+      const store = tx.objectStore('config');
+      store.put(vapidKey, 'vapidPublicKey');
+      tx.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      tx.onerror = () => reject(tx.error);
+    };
+  });
 }
 
 export const pushSubscriptionService = {
@@ -48,10 +93,10 @@ export const pushSubscriptionService = {
   },
 
   /**
-   * Check if VAPID key is configured
+   * Check if VAPID key is properly configured
    */
   isConfigured(): boolean {
-    return !!VAPID_PUBLIC_KEY;
+    return isValidVapidKey(VAPID_PUBLIC_KEY);
   },
 
   /**
@@ -64,8 +109,8 @@ export const pushSubscriptionService = {
       return null;
     }
 
-    if (!VAPID_PUBLIC_KEY) {
-      console.warn('VAPID public key not configured');
+    if (!isValidVapidKey(VAPID_PUBLIC_KEY)) {
+      console.warn('VAPID public key not configured or invalid');
       return null;
     }
 
@@ -78,6 +123,9 @@ export const pushSubscriptionService = {
       });
 
       const subscriptionJson = subscription.toJSON();
+
+      // Store VAPID key for service worker re-subscription
+      await storeVapidKeyForServiceWorker(VAPID_PUBLIC_KEY);
 
       // Save to database
       const { error } = await (supabase as any).from('push_subscriptions').upsert(
