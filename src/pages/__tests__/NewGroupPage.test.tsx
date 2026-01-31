@@ -24,11 +24,16 @@ import type { ReactElement } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { NewGroupPage } from '@/pages/NewGroupPage';
 import { useAuth } from '@/hooks/useAuth';
+import { FeatureFlagsProvider } from '@/hooks/useFeatureFlags';
 
 const mockUseAuth = vi.mocked(useAuth);
 
 const renderWithRouter = (component: ReactElement) => {
-  return render(<BrowserRouter>{component}</BrowserRouter>);
+  return render(
+    <FeatureFlagsProvider>
+      <BrowserRouter>{component}</BrowserRouter>
+    </FeatureFlagsProvider>
+  );
 };
 
 describe('NewGroupPage', () => {

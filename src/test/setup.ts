@@ -22,6 +22,31 @@ afterEach(() => {
   console.error = originalError;
 });
 
+// Mock featureFlagService to return default flags
+vi.mock('@/services/featureFlagService', () => ({
+  featureFlagService: {
+    fetchFeatureFlags: vi.fn().mockResolvedValue([
+      { name: 'csv_export', enabled: true },
+      { name: 'registration_form', enabled: true },
+      { name: 'event_duplication', enabled: true },
+      { name: 'home_page', enabled: true },
+      { name: 'notifications', enabled: true },
+      { name: 'event_privacy', enabled: true },
+      { name: 'guest_registration', enabled: true },
+    ]),
+    isFeatureEnabled: vi.fn().mockResolvedValue(true),
+    FEATURE_FLAGS: {
+      CSV_EXPORT: 'csv_export',
+      REGISTRATION_FORM: 'registration_form',
+      EVENT_DUPLICATION: 'event_duplication',
+      HOME_PAGE: 'home_page',
+      NOTIFICATIONS: 'notifications',
+      EVENT_PRIVACY: 'event_privacy',
+      GUEST_REGISTRATION: 'guest_registration',
+    },
+  },
+}));
+
 // Mock Supabase client to avoid database connections in tests
 vi.mock('@/lib/supabase', () => ({
   supabase: {
