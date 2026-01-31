@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import type { PushSubscription } from '@/types/notifications';
 
+// Note: Using type assertions because 'push_subscriptions' table types are not yet in
+// the auto-generated database.types.ts. Types will be available after running
+// `npx supabase gen types typescript` once the migration is applied.
+
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 /**
@@ -75,7 +79,7 @@ export const pushSubscriptionService = {
       const subscriptionJson = subscription.toJSON();
 
       // Save to database
-      const { error } = await supabase.from('push_subscriptions').upsert(
+      const { error } = await (supabase as any).from('push_subscriptions').upsert(
         {
           endpoint: subscriptionJson.endpoint!,
           p256dh_key: subscriptionJson.keys?.p256dh || '',
@@ -110,7 +114,10 @@ export const pushSubscriptionService = {
 
       if (subscription) {
         // Remove from database
-        await supabase.from('push_subscriptions').delete().eq('endpoint', subscription.endpoint);
+        await (supabase as any)
+          .from('push_subscriptions')
+          .delete()
+          .eq('endpoint', subscription.endpoint);
 
         // Unsubscribe from browser
         await subscription.unsubscribe();
@@ -140,21 +147,21 @@ export const pushSubscriptionService = {
    * Get all push subscriptions for the current user
    */
   async getSubscriptions(): Promise<PushSubscription[]> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('push_subscriptions')
       .select('*')
       .eq('active', true)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as PushSubscription[];
   },
 
   /**
    * Deactivate a specific subscription (e.g., for another device)
    */
   async deactivateSubscription(subscriptionId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('push_subscriptions')
       .update({ active: false })
       .eq('id', subscriptionId);

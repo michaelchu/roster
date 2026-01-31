@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-192x192.svg', 'icon-512x512.svg', 'apple-touch-icon.svg'],
+      includeAssets: ['icon-192x192.svg', 'icon-512x512.svg', 'apple-touch-icon.svg', 'sw-push.js'],
       manifest: {
         name: 'Roster',
         short_name: 'Roster',
@@ -43,6 +43,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // Import custom push notification handlers into the service worker
+        importScripts: ['sw-push.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

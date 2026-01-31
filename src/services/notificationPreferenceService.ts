@@ -1,8 +1,15 @@
 import { supabase } from '@/lib/supabase';
 import type { NotificationPreferences, NotificationPreferencesInput } from '@/types/notifications';
 
+// Note: Using type assertions because 'notification_preferences' table types are not yet in
+// the auto-generated database.types.ts. Types will be available after running
+// `npx supabase gen types typescript` once the migration is applied.
+
 // Default preferences for new users
-const DEFAULT_PREFERENCES: Omit<NotificationPreferences, 'id' | 'user_id' | 'created_at' | 'updated_at'> = {
+const DEFAULT_PREFERENCES: Omit<
+  NotificationPreferences,
+  'id' | 'user_id' | 'created_at' | 'updated_at'
+> = {
   push_enabled: true,
   notify_new_signup: true,
   notify_withdrawal: true,
@@ -18,17 +25,17 @@ const DEFAULT_PREFERENCES: Omit<NotificationPreferences, 'id' | 'user_id' | 'cre
 export const notificationPreferenceService = {
   /**
    * Get user's notification preferences
-   * Returns default preferences if none exist
+   * Returns null if none exist
    */
   async getPreferences(): Promise<NotificationPreferences | null> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('notification_preferences')
       .select('*')
       .single();
 
     // PGRST116 = no rows returned
     if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    return data as NotificationPreferences | null;
   },
 
   /**
@@ -40,11 +47,13 @@ export const notificationPreferenceService = {
     if (existing) return existing;
 
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     // Create default preferences
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('notification_preferences')
       .insert({
         user_id: user.id,
@@ -56,17 +65,19 @@ export const notificationPreferenceService = {
     if (error) throw error;
     if (!data) throw new Error('Failed to create notification preferences');
 
-    return data;
+    return data as NotificationPreferences;
   },
 
   /**
    * Update notification preferences
    */
   async updatePreferences(updates: NotificationPreferencesInput): Promise<NotificationPreferences> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('notification_preferences')
       .upsert(
         {
@@ -84,7 +95,7 @@ export const notificationPreferenceService = {
     if (error) throw error;
     if (!data) throw new Error('Failed to update notification preferences');
 
-    return data;
+    return data as NotificationPreferences;
   },
 
   /**
