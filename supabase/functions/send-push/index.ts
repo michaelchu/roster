@@ -162,11 +162,16 @@ serve(async (req) => {
     // First, clean up any stale 'processing' items (e.g., from crashed function runs)
     // Items stuck in 'processing' for more than 5 minutes are considered stale
     const staleThreshold = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    await supabase
+    const { error: cleanupError } = await supabase
       .from('notification_queue')
       .update({ status: 'pending' })
       .eq('status', 'processing')
       .lt('updated_at', staleThreshold);
+    
+    if (cleanupError) {
+      console.error('Failed to clean up stale items:', cleanupError);
+      // Continue anyway - this is not critical enough to abort the entire function
+    }
 
     // Fetch pending notifications ready to send
     const now = new Date().toISOString();
@@ -243,15 +248,25 @@ serve(async (req) => {
     // Process each queue item using the pre-fetched data
     for (const item of queueItems) {
       try {
-        // Atomically mark as processing and increment attempts in a single operation
-        // This prevents race conditions where items get stuck in 'processing' with wrong attempt counts
-        await supabase
+        // Atomically claim this item by marking as processing and incrementing attempts
+        // Use conditional update to prevent race conditions with concurrent function instances
+        // Only update if status is still 'pending' (optimistic locking)
+        const { data: updated, error: updateError } = await supabase
           .from('notification_queue')
           .update({
             status: 'processing',
             attempts: item.attempts + 1,
           })
-          .eq('id', item.id);
+          .eq('id', item.id)
+          .eq('status', 'pending') // Only update if still pending
+          .select()
+          .single();
+
+        // If update failed or returned nothing, another instance already claimed this item
+        if (updateError || !updated) {
+          console.log(`Item ${item.id} already claimed by another instance, skipping`);
+          continue;
+        }
 
         // Check user preferences from the pre-fetched map
         const prefs = prefsMap.get(item.recipient_user_id) || null;
