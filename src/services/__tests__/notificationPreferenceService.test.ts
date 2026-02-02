@@ -77,12 +77,10 @@ describe('notificationPreferenceService', () => {
     it('should throw error for other database errors', async () => {
       const mockQueryChain = {
         select: vi.fn().mockReturnThis(),
-        single: vi
-          .fn()
-          .mockResolvedValue({
-            data: null,
-            error: { code: 'OTHER_ERROR', message: 'Database error' },
-          }),
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: 'OTHER_ERROR', message: 'Database error' },
+        }),
       };
       mockSupabase.from.mockReturnValue(mockQueryChain as any);
 

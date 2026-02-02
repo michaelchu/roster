@@ -19,7 +19,9 @@ export default defineConfig({
       '**/playwright.config.ts'
     ],
     env: {
-      VITE_VAPID_PUBLIC_KEY: 'BNGp7pVYOxZYvz9WvLmXJcRWgp6nMdYwqh6z8qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6',
+      // Test VAPID public key - URL-safe base64 encoded string (~88 chars)
+      // This is a placeholder for testing only and not a real VAPID key
+      VITE_VAPID_PUBLIC_KEY: 'BMxvPzpqR9vYOxZYvLmXJcRWgp6nMdYwqh6z8qR6tT4yR2aN3wB1mK7sH9fD6eG4jN5kL8pM2oQ3rS1vW0xY2zA',
     },
     coverage: {
       provider: 'v8',
