@@ -89,22 +89,17 @@ curl -X POST http://localhost:54321/functions/v1/process-scheduled \
 
 ## Production Implementation Notes
 
-The `send-push` function currently logs notifications instead of sending them.
-For production, you need to implement the actual Web Push protocol:
+The `send-push` function already sends Web Push notifications using the `web-push` library
+and VAPID keys configured via environment variables.
 
-1. **Option A: Use a npm package**
+In production, you may want to review and customize the implementation (e.g., error handling,
+logging, retries, and payload format). The core pattern looks like this:
+
+1. **Using a Web Push library (current implementation pattern)**
    ```typescript
    import webpush from 'npm:web-push';
    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
    await webpush.sendNotification(subscription, payload);
-   ```
-
-2. **Option B: Use a push service**
-   - Firebase Cloud Messaging (FCM)
-   - Amazon SNS
-   - OneSignal
-
-3. **Option C: Implement Web Push protocol directly**
    - Requires ECDH key exchange
    - AES-GCM encryption
    - HTTP/2 for efficient delivery
