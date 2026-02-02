@@ -243,7 +243,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE TRIGGER trigger_event_updated
-  AFTER UPDATE ON events
+  AFTER UPDATE OF name, datetime, end_datetime, location, description ON events
   FOR EACH ROW
   EXECUTE FUNCTION notify_on_event_updated();
 
