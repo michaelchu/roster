@@ -400,7 +400,7 @@ serve(async (req) => {
         // Retry or fail based on attempts
         // If we successfully claimed the item, use its attempts count; otherwise calculate from original
         const currentAttempts = claimedItem?.attempts || item.attempts + 1;
-        const newStatus = currentAttempts >= 3 ? 'failed' : 'pending';
+        const newStatus = currentAttempts >= MAX_ATTEMPTS ? 'failed' : 'pending';
         await supabase
           .from('notification_queue')
           .update({
@@ -415,7 +415,10 @@ serve(async (req) => {
 
     // Batch insert all inbox notifications
     if (inboxInserts.length > 0) {
-      await supabase.from('notifications').insert(inboxInserts);
+      const { error: inboxError } = await supabase.from('notifications').insert(inboxInserts);
+      if (inboxError) {
+        console.error('Failed to batch insert inbox notifications:', inboxError);
+      }
     }
 
     return new Response(
