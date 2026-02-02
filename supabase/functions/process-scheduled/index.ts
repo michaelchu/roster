@@ -67,9 +67,9 @@ serve(async (req) => {
     if (participantsError) {
       console.error('Failed to fetch unpaid participants:', participantsError);
     } else if (unpaidParticipants) {
-      // Declare variables outside the loop to avoid re-declaration on each iteration
-      let queuedReminderParticipantIds: Set<string> | undefined;
-      let sentReminderParticipantIds: Set<string> | undefined;
+      // Initialize lookup sets that will be populated on first iteration
+      let queuedReminderParticipantIds: Set<string> | undefined = undefined;
+      let sentReminderParticipantIds: Set<string> | undefined = undefined;
 
       for (const participant of unpaidParticipants) {
         // Get event end time (fall back to datetime if no end_datetime)

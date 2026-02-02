@@ -60,8 +60,13 @@ export function TopNav({
           </div>
         )}
 
-        {/* Center - Logo */}
-        <h1 className="text-lg font-semibold text-center truncate flex items-center justify-center gap-1">
+        {/* Center - Logo with padding to prevent overlap on narrow screens */}
+        <h1
+          className={cn(
+            'text-lg font-semibold text-center truncate flex items-center justify-center gap-1',
+            (showNotifications || showCloseButton) && 'px-12'
+          )}
+        >
           <span>Roster</span>
           <span className="text-[10px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent -translate-y-1">
             BETA
