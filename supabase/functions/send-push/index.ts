@@ -277,13 +277,6 @@ serve(async (req) => {
           continue;
         }
 
-        if (!updated) {
-          // No data returned without an explicit error: treat as not claimed
-          console.log(
-            `Item ${item.id} was not updated (no data returned), likely claimed by another instance, skipping`,
-          );
-          continue;
-        }
         // Check user preferences from the pre-fetched map
         const prefs = prefsMap.get(item.recipient_user_id) || null;
 
