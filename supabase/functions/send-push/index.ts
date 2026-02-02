@@ -101,7 +101,8 @@ function shouldSendNotification(
  */
 async function sendWebPush(
   subscription: PushSubscription,
-  payload: { title: string; body: string; data?: Record<string, unknown> }
+  payload: { title: string; body: string; data?: Record<string, unknown> },
+  supabaseClient: ReturnType<typeof createClient>
 ): Promise<boolean> {
   // Check if VAPID keys are configured
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
@@ -129,8 +130,17 @@ async function sendWebPush(
       // 404 or 410 means the subscription is no longer valid
       if (statusCode === 404 || statusCode === 410) {
         console.log('Subscription expired or invalid:', subscription.id);
-        // The subscription should be marked as inactive in the database
-        // This will be handled by the caller
+        // Mark the subscription as inactive in the database
+        const { error: updateError } = await supabaseClient
+          .from('push_subscriptions')
+          .update({ active: false })
+          .eq('id', subscription.id);
+        
+        if (updateError) {
+          console.error('Failed to mark subscription as inactive:', updateError);
+        } else {
+          console.log('Successfully marked subscription as inactive:', subscription.id);
+        }
       } else {
         console.error('Failed to send push:', error.message);
       }
@@ -353,7 +363,7 @@ serve(async (req) => {
 
           let sentToAny = false;
           for (const sub of subscriptions) {
-            const sent = await sendWebPush(sub, pushPayload);
+            const sent = await sendWebPush(sub, pushPayload, supabase);
             if (sent) sentToAny = true;
           }
 
