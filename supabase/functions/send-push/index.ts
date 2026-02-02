@@ -130,17 +130,18 @@ async function sendWebPush(
       // 404 or 410 means the subscription is no longer valid
       if (statusCode === 404 || statusCode === 410) {
         console.log('Subscription expired or invalid:', subscription.id);
-        // Mark the subscription as inactive in the database
-        const { error: updateError } = await supabaseClient
+        // Mark the subscription as inactive in the database (fire-and-forget)
+        supabaseClient
           .from('push_subscriptions')
           .update({ active: false })
-          .eq('id', subscription.id);
-        
-        if (updateError) {
-          console.error('Failed to mark subscription as inactive:', updateError);
-        } else {
-          console.log('Successfully marked subscription as inactive:', subscription.id);
-        }
+          .eq('id', subscription.id)
+          .then(({ error: updateError }) => {
+            if (updateError) {
+              console.error(`Failed to mark subscription ${subscription.id} as inactive:`, updateError);
+            } else {
+              console.log('Successfully marked subscription as inactive:', subscription.id);
+            }
+          });
       } else {
         console.error('Failed to send push:', error.message);
       }
