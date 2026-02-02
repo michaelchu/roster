@@ -162,11 +162,29 @@ serve(async (req) => {
     // First, clean up any stale 'processing' items (e.g., from crashed function runs)
     // Items stuck in 'processing' for more than 5 minutes are considered stale
     const staleThreshold = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    // Define the maximum number of attempts allowed for a notification
+    const MAX_ATTEMPTS = 3;
+
+    // Mark stale items that have already reached the maximum attempts as failed
+    const { error: staleFailError } = await supabase
+      .from('notification_queue')
+      .update({ status: 'failed' })
+      .eq('status', 'processing')
+      .gte('attempts', MAX_ATTEMPTS)
+      .lt('updated_at', staleThreshold);
+
+    if (staleFailError) {
+      console.error('Failed to mark over-attempted stale items as failed:', staleFailError);
+      // Continue anyway - this is not critical enough to abort the entire function
+    }
+
+    // Reset remaining stale processing items (that have not exhausted attempts) back to pending
     const { error: cleanupError } = await supabase
       .from('notification_queue')
       .update({ status: 'pending' })
       .eq('status', 'processing')
-      .lt('updated_at', staleThreshold);
+      .lt('updated_at', staleThreshold)
+      .lt('attempts', MAX_ATTEMPTS);
     
     if (cleanupError) {
       console.error('Failed to clean up stale items:', cleanupError);
