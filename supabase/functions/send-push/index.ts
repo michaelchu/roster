@@ -159,6 +159,15 @@ serve(async (req) => {
     // Create Supabase client with service role
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // First, clean up any stale 'processing' items (e.g., from crashed function runs)
+    // Items stuck in 'processing' for more than 5 minutes are considered stale
+    const staleThreshold = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    await supabase
+      .from('notification_queue')
+      .update({ status: 'pending' })
+      .eq('status', 'processing')
+      .lt('updated_at', staleThreshold);
+
     // Fetch pending notifications ready to send
     const now = new Date().toISOString();
     const { data: queue, error: queueError } = await supabase
@@ -219,13 +228,6 @@ serve(async (req) => {
       }
     }
 
-    // Mark all items as processing in a single batch update
-    const queueIds = queueItems.map((item) => item.id);
-    await supabase
-      .from('notification_queue')
-      .update({ status: 'processing' })
-      .in('id', queueIds);
-
     const results: { id: string; status: string; error?: string }[] = [];
     const inboxInserts: Array<{
       recipient_user_id: string;
@@ -241,10 +243,14 @@ serve(async (req) => {
     // Process each queue item using the pre-fetched data
     for (const item of queueItems) {
       try {
-        // Increment attempts
+        // Atomically mark as processing and increment attempts in a single operation
+        // This prevents race conditions where items get stuck in 'processing' with wrong attempt counts
         await supabase
           .from('notification_queue')
-          .update({ attempts: item.attempts + 1 })
+          .update({
+            status: 'processing',
+            attempts: item.attempts + 1,
+          })
           .eq('id', item.id);
 
         // Check user preferences from the pre-fetched map
