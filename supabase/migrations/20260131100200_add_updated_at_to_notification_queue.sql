@@ -2,21 +2,23 @@
 -- This enables tracking when items were last modified, which is needed for
 -- the stale item cleanup mechanism in the send-push Edge Function
 
--- Add updated_at column with default value
+-- Add updated_at column without default value first (to allow backfilling)
 ALTER TABLE notification_queue
-ADD COLUMN updated_at TIMESTAMPTZ DEFAULT NOW();
+ADD COLUMN updated_at TIMESTAMPTZ;
 
 -- Backfill existing rows: set updated_at to created_at for existing records
 UPDATE notification_queue
 SET updated_at = created_at
 WHERE updated_at IS NULL;
 
--- Make the column NOT NULL after backfilling
+-- Set default value and make the column NOT NULL
 ALTER TABLE notification_queue
+ALTER COLUMN updated_at SET DEFAULT NOW(),
 ALTER COLUMN updated_at SET NOT NULL;
 
 -- Create trigger to automatically update the updated_at timestamp
--- The update_updated_at_column() function already exists from the feature_flags migration
+-- Depends on update_updated_at_column() function from migration 20260114164500_add_feature_flags.sql
+-- If that migration hasn't run, this will fail - ensure migrations are run in order
 CREATE TRIGGER update_notification_queue_updated_at
     BEFORE UPDATE ON notification_queue
     FOR EACH ROW
