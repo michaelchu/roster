@@ -62,7 +62,7 @@ serve(async (req) => {
       `
       )
       .eq('payment_status', 'pending')
-      .not('user_id', 'is', null);
+      .or('user_id.not.is.null,claimed_by_user_id.not.is.null');
 
     if (participantsError) {
       console.error('Failed to fetch unpaid participants:', participantsError);
