@@ -295,11 +295,22 @@ serve(async (req) => {
           continue;
         }
 
+        if (!updated) {
+          // No data returned without an explicit error: treat as not claimed
+          console.log(
+            `Item ${item.id} was not updated (no data returned), likely claimed by another instance, skipping`,
+          );
+          continue;
+        }
+
+        // Use the updated item with current attempts count from database
+        const currentItem = updated as QueueItem;
+
         // Check user preferences from the pre-fetched map
-        const prefs = prefsMap.get(item.recipient_user_id) || null;
+        const prefs = prefsMap.get(currentItem.recipient_user_id) || null;
 
         // Check if user wants this notification
-        if (!shouldSendNotification(prefs, item.notification_type)) {
+        if (!shouldSendNotification(prefs, currentItem.notification_type)) {
           await supabase
             .from('notification_queue')
             .update({
@@ -307,14 +318,14 @@ serve(async (req) => {
               processed_at: new Date().toISOString(),
               last_error: 'User preferences',
             })
-            .eq('id', item.id);
+            .eq('id', currentItem.id);
 
-          results.push({ id: item.id, status: 'skipped' });
+          results.push({ id: currentItem.id, status: 'skipped' });
           continue;
         }
 
         // Get user's subscriptions from the pre-fetched map
-        const subscriptions = subscriptionsMap.get(item.recipient_user_id) || [];
+        const subscriptions = subscriptionsMap.get(currentItem.recipient_user_id) || [];
 
         if (subscriptions.length === 0) {
           // No active subscriptions, skip but still save to inbox
@@ -325,16 +336,16 @@ serve(async (req) => {
               processed_at: new Date().toISOString(),
               last_error: 'No active push subscriptions',
             })
-            .eq('id', item.id);
+            .eq('id', currentItem.id);
         } else {
           // Send to all active subscriptions
           const pushPayload = {
-            title: item.title,
-            body: item.body,
+            title: currentItem.title,
+            body: currentItem.body,
             data: {
-              type: item.notification_type,
-              url: item.action_url,
-              event_id: item.event_id,
+              type: currentItem.notification_type,
+              url: currentItem.action_url,
+              event_id: currentItem.event_id,
             },
           };
 
@@ -352,28 +363,30 @@ serve(async (req) => {
               processed_at: new Date().toISOString(),
               last_error: sentToAny ? null : 'Push delivery failed',
             })
-            .eq('id', item.id);
+            .eq('id', currentItem.id);
         }
 
         // Queue inbox insert for batch processing
         inboxInserts.push({
-          recipient_user_id: item.recipient_user_id,
-          type: item.notification_type,
-          title: item.title,
-          body: item.body,
-          event_id: item.event_id,
-          participant_id: item.participant_id,
-          actor_user_id: item.actor_user_id,
-          action_url: item.action_url,
+          recipient_user_id: currentItem.recipient_user_id,
+          type: currentItem.notification_type,
+          title: currentItem.title,
+          body: currentItem.body,
+          event_id: currentItem.event_id,
+          participant_id: currentItem.participant_id,
+          actor_user_id: currentItem.actor_user_id,
+          action_url: currentItem.action_url,
         });
 
-        results.push({ id: item.id, status: 'sent' });
+        results.push({ id: currentItem.id, status: 'sent' });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(`Failed to process item ${item.id}:`, error);
 
-        // Retry or fail based on attempts
-        const newStatus = item.attempts >= 3 ? 'failed' : 'pending';
+        // Retry or fail based on attempts from the CURRENT item (after increment)
+        // Use item.attempts + 1 since we're in the catch block before updated was successfully used
+        const currentAttempts = item.attempts + 1;
+        const newStatus = currentAttempts >= 3 ? 'failed' : 'pending';
         await supabase
           .from('notification_queue')
           .update({
