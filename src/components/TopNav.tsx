@@ -52,12 +52,21 @@ export function TopNav({
 
   return (
     <div className={cn('bg-card border-b', sticky && 'sticky top-0 z-10', className)}>
-      <div className="flex items-center justify-between px-4 py-2">
+      <div className="flex items-center justify-center px-4 py-2 relative">
         {/* Left side - Notifications */}
-        <div className="w-10">{showNotifications && <NotificationCenter />}</div>
+        {showNotifications && (
+          <div className="absolute left-4">
+            <NotificationCenter />
+          </div>
+        )}
 
-        {/* Center - Logo */}
-        <h1 className="text-lg font-semibold text-center truncate flex items-center justify-center gap-1">
+        {/* Center - Logo with padding to prevent overlap on narrow screens */}
+        <h1
+          className={cn(
+            'text-lg font-semibold text-center truncate flex items-center justify-center gap-1',
+            (showNotifications || showCloseButton) && 'px-12'
+          )}
+        >
           <span>Roster</span>
           <span className="text-[10px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent -translate-y-1">
             BETA
@@ -65,13 +74,11 @@ export function TopNav({
         </h1>
 
         {/* Right side - Close button */}
-        <div className="w-10 flex justify-end">
-          {showCloseButton && (
-            <button onClick={handleClose} aria-label="Close">
-              <X className="h-5 w-5" />
-            </button>
-          )}
-        </div>
+        {showCloseButton && (
+          <button onClick={handleClose} className="absolute right-4" aria-label="Close">
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </div>
   );
