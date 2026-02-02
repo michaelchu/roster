@@ -265,6 +265,7 @@ serve(async (req) => {
 
     // Process each queue item using the pre-fetched data
     for (const item of queueItems) {
+      let claimedItem: QueueItem | null = null;
       try {
         // Atomically claim this item by marking as processing and incrementing attempts
         // Use conditional update to prevent race conditions with concurrent function instances
@@ -305,6 +306,7 @@ serve(async (req) => {
 
         // Use the updated item with current attempts count from database
         const currentItem = updated as QueueItem;
+        claimedItem = currentItem;
 
         // Check user preferences from the pre-fetched map
         const prefs = prefsMap.get(currentItem.recipient_user_id) || null;
@@ -381,11 +383,12 @@ serve(async (req) => {
         results.push({ id: currentItem.id, status: 'sent' });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Failed to process item ${item.id}:`, error);
+        const itemId = claimedItem?.id || item.id;
+        console.error(`Failed to process item ${itemId}:`, error);
 
-        // Retry or fail based on attempts from the CURRENT item (after increment)
-        // Use item.attempts + 1 since we're in the catch block before updated was successfully used
-        const currentAttempts = item.attempts + 1;
+        // Retry or fail based on attempts
+        // If we successfully claimed the item, use its attempts count; otherwise calculate from original
+        const currentAttempts = claimedItem?.attempts || item.attempts + 1;
         const newStatus = currentAttempts >= 3 ? 'failed' : 'pending';
         await supabase
           .from('notification_queue')
@@ -393,9 +396,9 @@ serve(async (req) => {
             status: newStatus,
             last_error: errorMessage,
           })
-          .eq('id', item.id);
+          .eq('id', itemId);
 
-        results.push({ id: item.id, status: 'error', error: errorMessage });
+        results.push({ id: itemId, status: 'error', error: errorMessage });
       }
     }
 
