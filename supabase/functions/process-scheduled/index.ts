@@ -62,14 +62,44 @@ serve(async (req) => {
       `
       )
       .eq('payment_status', 'pending')
-      .not('user_id', 'is', null);
+      .or('user_id.not.is.null,claimed_by_user_id.not.is.null');
 
     if (participantsError) {
       console.error('Failed to fetch unpaid participants:', participantsError);
     } else if (unpaidParticipants) {
-      // Declare sets for batch-loaded existing reminders
-      let queuedReminderParticipantIds: Set<string> | undefined;
-      let sentReminderParticipantIds: Set<string> | undefined;
+      // Batch-load existing payment reminders for all relevant participants
+      // Collect all participant IDs in the current batch
+      const participantIds = unpaidParticipants.map((p: { id: string }) => p.id);
+
+      // Fetch existing queued payment reminders for these participants
+      const { data: existingQueueReminders, error: existingQueueError } = await supabase
+        .from('notification_queue')
+        .select('participant_id')
+        .in('participant_id', participantIds)
+        .eq('notification_type', 'payment_reminder');
+
+      if (existingQueueError) {
+        console.error('Failed to fetch existing payment reminders from notification_queue:', existingQueueError);
+      }
+
+      // Fetch already-sent payment reminders from notifications table
+      const { data: existingNotifications, error: existingNotificationsError } = await supabase
+        .from('notifications')
+        .select('participant_id')
+        .in('participant_id', participantIds)
+        .eq('type', 'payment_reminder');
+
+      if (existingNotificationsError) {
+        console.error('Failed to fetch existing payment reminders from notifications:', existingNotificationsError);
+      }
+
+      // Build lookup sets for quick membership tests inside the loop
+      const queuedReminderParticipantIds = new Set(
+        (existingQueueReminders ?? []).map((row: { participant_id: string }) => row.participant_id),
+      );
+      const sentReminderParticipantIds = new Set(
+        (existingNotifications ?? []).map((row: { participant_id: string }) => row.participant_id),
+      );
 
       for (const participant of unpaidParticipants) {
         // Get event end time (fall back to datetime if no end_datetime)
@@ -88,54 +118,13 @@ serve(async (req) => {
         const userId = participant.user_id || participant.claimed_by_user_id;
         if (!userId) continue;
 
-        // --------------------------------------------------------------------
-        // Batch-load existing payment reminders for all relevant participants
-        // --------------------------------------------------------------------
-        // Assumes the surrounding scope provides an array of participants
-        // (e.g., unpaid participants for this event) named `unpaidParticipants`.
-        // If the actual variable name differs, adjust the mapping below.
-        if (typeof queuedReminderParticipantIds === 'undefined' || typeof sentReminderParticipantIds === 'undefined') {
-          // Collect all participant IDs in the current batch
-          const participantIds = unpaidParticipants.map((p: { id: string }) => p.id);
-
-          // Fetch existing queued payment reminders for these participants
-          const { data: existingQueueReminders, error: existingQueueError } = await supabase
-            .from('notification_queue')
-            .select('participant_id')
-            .in('participant_id', participantIds)
-            .eq('notification_type', 'payment_reminder');
-
-          if (existingQueueError) {
-            console.error('Failed to fetch existing payment reminders from notification_queue:', existingQueueError);
-          }
-
-          // Fetch already-sent payment reminders from notifications table
-          const { data: existingNotifications, error: existingNotificationsError } = await supabase
-            .from('notifications')
-            .select('participant_id')
-            .in('participant_id', participantIds)
-            .eq('type', 'payment_reminder');
-
-          if (existingNotificationsError) {
-            console.error('Failed to fetch existing payment reminders from notifications:', existingNotificationsError);
-          }
-
-          // Build lookup sets for quick membership tests inside the loop
-          queuedReminderParticipantIds = new Set(
-            (existingQueueReminders ?? []).map((row: { participant_id: string }) => row.participant_id),
-          );
-          sentReminderParticipantIds = new Set(
-            (existingNotifications ?? []).map((row: { participant_id: string }) => row.participant_id),
-          );
-        }
-
         // Skip if a reminder is already queued for this participant
-        if (queuedReminderParticipantIds?.has(participant.id)) {
+        if (queuedReminderParticipantIds.has(participant.id)) {
           continue;
         }
 
         // Also skip if a notification has already been sent for this participant
-        if (sentReminderParticipantIds?.has(participant.id)) {
+        if (sentReminderParticipantIds.has(participant.id)) {
           continue;
         }
         // Queue payment reminder
