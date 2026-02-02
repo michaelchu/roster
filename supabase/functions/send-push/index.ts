@@ -262,12 +262,28 @@ serve(async (req) => {
           .select()
           .single();
 
-        // If update failed or returned nothing, another instance already claimed this item
-        if (updateError || !updated) {
-          console.log(`Item ${item.id} already claimed by another instance, skipping`);
+        // Distinguish between "no row updated" (claimed elsewhere) and real errors
+        if (updateError) {
+          if ((updateError as { code?: string }).code === 'PGRST116') {
+            // No rows returned: another instance likely claimed this item first
+            console.log(`Item ${item.id} already claimed by another instance, skipping`);
+          } else {
+            // Genuine error when trying to claim the item
+            console.error(
+              `Failed to claim item ${item.id} from notification_queue:`,
+              updateError,
+            );
+          }
           continue;
         }
 
+        if (!updated) {
+          // No data returned without an explicit error: treat as not claimed
+          console.log(
+            `Item ${item.id} was not updated (no data returned), likely claimed by another instance, skipping`,
+          );
+          continue;
+        }
         // Check user preferences from the pre-fetched map
         const prefs = prefsMap.get(item.recipient_user_id) || null;
 
