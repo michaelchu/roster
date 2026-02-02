@@ -18,6 +18,9 @@ export default defineConfig({
       '**/*.e2e.tsx',
       '**/playwright.config.ts'
     ],
+    env: {
+      VITE_VAPID_PUBLIC_KEY: 'BNGp7pVYOxZYvz9WvLmXJcRWgp6nMdYwqh6z8qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6qR6',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
