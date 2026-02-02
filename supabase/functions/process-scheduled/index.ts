@@ -67,6 +67,10 @@ serve(async (req) => {
     if (participantsError) {
       console.error('Failed to fetch unpaid participants:', participantsError);
     } else if (unpaidParticipants) {
+      // Declare variables outside the loop to avoid re-declaration on each iteration
+      let queuedReminderParticipantIds: Set<string> | undefined;
+      let sentReminderParticipantIds: Set<string> | undefined;
+
       for (const participant of unpaidParticipants) {
         // Get event end time (fall back to datetime if no end_datetime)
         const event = participant.events as { id: string; name: string; datetime: string; end_datetime: string | null };
@@ -117,23 +121,21 @@ serve(async (req) => {
           }
 
           // Build lookup sets for quick membership tests inside the loop
-          // @ts-ignore - declare on the fly for the current batch scope
-          var queuedReminderParticipantIds = new Set(
+          queuedReminderParticipantIds = new Set(
             (existingQueueReminders ?? []).map((row: { participant_id: string }) => row.participant_id),
           );
-          // @ts-ignore - declare on the fly for the current batch scope
-          var sentReminderParticipantIds = new Set(
+          sentReminderParticipantIds = new Set(
             (existingNotifications ?? []).map((row: { participant_id: string }) => row.participant_id),
           );
         }
 
         // Skip if a reminder is already queued for this participant
-        if (queuedReminderParticipantIds.has(participant.id)) {
+        if (queuedReminderParticipantIds?.has(participant.id)) {
           continue;
         }
 
         // Also skip if a notification has already been sent for this participant
-        if (sentReminderParticipantIds.has(participant.id)) {
+        if (sentReminderParticipantIds?.has(participant.id)) {
           continue;
         }
         // Queue payment reminder
