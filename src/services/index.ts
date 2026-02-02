@@ -14,3 +14,9 @@ export { groupService } from './groupService';
 export type { Group, GroupParticipant, GroupStats, GroupContact } from './groupService';
 
 export { featureFlagService } from './featureFlagService';
+
+export { notificationService } from './notificationService';
+
+export { pushSubscriptionService } from './pushSubscriptionService';
+
+export { notificationPreferenceService } from './notificationPreferenceService';

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import type { ReactElement } from 'react';
 import { InviteConfirmationPage } from '../InviteConfirmationPage';
 import { useAuth } from '@/hooks/useAuth';
+import { FeatureFlagsProvider } from '@/hooks/useFeatureFlags';
 import { eventService, groupService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 
@@ -48,7 +49,11 @@ vi.mock('react-router-dom', async () => {
 });
 
 const renderWithRouter = (component: ReactElement) => {
-  return render(<BrowserRouter>{component}</BrowserRouter>);
+  return render(
+    <FeatureFlagsProvider>
+      <BrowserRouter>{component}</BrowserRouter>
+    </FeatureFlagsProvider>
+  );
 };
 
 const mockEvent = {

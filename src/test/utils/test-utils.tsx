@@ -3,6 +3,7 @@ import type { ReactElement } from 'react';
 import { render, type RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
+import { FeatureFlagsProvider } from '@/hooks/useFeatureFlags';
 
 interface AllTheProvidersProps {
   children: React.ReactNode;
@@ -11,7 +12,9 @@ interface AllTheProvidersProps {
 function AllTheProviders({ children }: AllTheProvidersProps) {
   return (
     <AuthProvider>
-      <BrowserRouter>{children}</BrowserRouter>
+      <FeatureFlagsProvider>
+        <BrowserRouter>{children}</BrowserRouter>
+      </FeatureFlagsProvider>
     </AuthProvider>
   );
 }

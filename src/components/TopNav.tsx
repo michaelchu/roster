@@ -1,6 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { NotificationCenter } from '@/components/notifications';
 
 interface TopNavProps {
   showCloseButton?: boolean;
@@ -19,6 +22,8 @@ export function TopNav({
 }: TopNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const isNotificationsEnabled = useFeatureFlag('notifications');
 
   const handleClose = () => {
     if (onClose) {
@@ -43,15 +48,32 @@ export function TopNav({
     }
   };
 
+  const showNotifications = user && isNotificationsEnabled;
+
   return (
     <div className={cn('bg-card border-b', sticky && 'sticky top-0 z-10', className)}>
       <div className="flex items-center justify-center px-4 py-2 relative">
-        <h1 className="text-lg font-semibold text-center truncate flex items-center justify-center gap-1">
+        {/* Left side - Notifications */}
+        {showNotifications && (
+          <div className="absolute left-4">
+            <NotificationCenter />
+          </div>
+        )}
+
+        {/* Center - Logo with padding to prevent overlap on narrow screens */}
+        <h1
+          className={cn(
+            'text-lg font-semibold text-center truncate flex items-center justify-center gap-1',
+            (showNotifications || showCloseButton) && 'px-12'
+          )}
+        >
           <span>Roster</span>
           <span className="text-[10px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent -translate-y-1">
             BETA
           </span>
         </h1>
+
+        {/* Right side - Close button */}
         {showCloseButton && (
           <button onClick={handleClose} className="absolute right-4" aria-label="Close">
             <X className="h-5 w-5" />

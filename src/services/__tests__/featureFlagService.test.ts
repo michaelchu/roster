@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest';
 
+// Unmock featureFlagService to test the real implementation
+vi.unmock('@/services/featureFlagService');
+
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
   supabase: {
