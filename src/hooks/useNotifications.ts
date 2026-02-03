@@ -145,6 +145,24 @@ export function useNotifications() {
     }
   }, []);
 
+  // Delete a notification
+  const deleteNotification = useCallback(
+    async (notificationId: string) => {
+      try {
+        const notification = notifications.find((n) => n.id === notificationId);
+        await notificationService.deleteNotification(notificationId);
+        setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+        if (notification && !notification.read_at) {
+          setUnreadCount((prev) => Math.max(0, prev - 1));
+        }
+      } catch (err) {
+        console.error('Failed to delete notification:', err);
+        throw err;
+      }
+    },
+    [notifications]
+  );
+
   // Update notification preferences
   const updatePreferences = useCallback(async (updates: Partial<NotificationPreferences>) => {
     try {
@@ -176,6 +194,7 @@ export function useNotifications() {
     unsubscribe,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     updatePreferences,
     refresh,
   };

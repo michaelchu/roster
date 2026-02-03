@@ -28,6 +28,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     subscribe,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
   } = useNotifications();
 
   const handleEnableNotifications = async () => {
@@ -56,6 +57,14 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteNotification(id);
+    } catch (error) {
+      errorHandler.handle(error, { action: 'delete notification' });
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -70,7 +79,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md p-0">
-        <SheetHeader className="px-4 py-3 border-b">
+        <SheetHeader className="px-4 py-3 border-b pr-12">
           <div className="flex items-center justify-between">
             <SheetTitle>Notifications</SheetTitle>
             {unreadCount > 0 && (
@@ -114,6 +123,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                     key={notification.id}
                     notification={notification}
                     onRead={markAsRead}
+                    onDelete={handleDelete}
                   />
                 ))}
               </div>
