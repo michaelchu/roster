@@ -22,6 +22,7 @@ import {
   LogOut,
   Bell,
   BellOff,
+  BellRing,
   Settings,
   Eye,
   Palette,
@@ -82,6 +83,7 @@ export function SettingsPage() {
   } = useNotifications();
 
   const [subscribing, setSubscribing] = useState(false);
+  const [testingPush, setTestingPush] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState(() =>
     loadFromStorage(STORAGE_KEYS.defaultCapacity, 10)
   );
@@ -130,6 +132,25 @@ export function SettingsPage() {
       await updatePreferences({ [key]: value });
     } catch (error) {
       console.error('Failed to update preference:', error);
+    }
+  };
+
+  const handleTestPush = async () => {
+    setTestingPush(true);
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification('Test Notification', {
+        body: 'Push notifications are working correctly!',
+        icon: '/icon-192x192.svg',
+        badge: '/icon-192x192.svg',
+        tag: 'test',
+        renotify: true,
+        vibrate: [100, 50, 100],
+      });
+    } catch (error) {
+      console.error('Failed to send test notification:', error);
+    } finally {
+      setTestingPush(false);
     }
   };
 
@@ -402,6 +423,19 @@ export function SettingsPage() {
                           handleTogglePreference('notify_payment_reminder', checked)
                         }
                       />
+                    </div>
+
+                    <div className="p-3 border-t bg-muted/30">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={handleTestPush}
+                        disabled={testingPush}
+                      >
+                        <BellRing className="h-4 w-4 mr-2" />
+                        {testingPush ? 'Sending...' : 'Test Push Notification'}
+                      </Button>
                     </div>
                   </>
                 )}
