@@ -6,7 +6,7 @@ import {
   createTestEvent,
   getAdminDb,
 } from '../fixtures/database';
-import { goToEvent } from '../fixtures/helpers';
+import { goToEvent, dismissAllToasts } from '../fixtures/helpers';
 
 test.describe('Error Toast Notifications', () => {
   test.beforeEach(async ({ page }) => {
@@ -22,6 +22,9 @@ test.describe('Error Toast Notifications', () => {
         password: 'TestPassword123!',
       };
       await register(page, testUser);
+
+      // Dismiss any toasts from registration before testing error toasts
+      await dismissAllToasts(page);
 
       // Navigate to a non-existent event
       await page.goto('/signup/00000000-0000-0000-0000-000000000000');
@@ -46,6 +49,9 @@ test.describe('Error Toast Notifications', () => {
         password: 'TestPassword123!',
       };
       await register(page, testUser);
+
+      // Dismiss any toasts from registration before testing error toasts
+      await dismissAllToasts(page);
 
       await page.goto('/signup/invalid-id-format');
       await page.waitForLoadState('networkidle');
@@ -72,6 +78,9 @@ test.describe('Error Toast Notifications', () => {
       };
       await register(page, testUser);
 
+      // Dismiss any toasts from registration before testing error toasts
+      await dismissAllToasts(page);
+
       // Navigate to a non-existent group
       await page.goto('/groups/00000000-0000-0000-0000-000000000000');
       await page.waitForLoadState('networkidle');
@@ -95,6 +104,9 @@ test.describe('Error Toast Notifications', () => {
         password: 'TestPassword123!',
       };
       await register(page, testUser);
+
+      // Dismiss any toasts from registration before testing error toasts
+      await dismissAllToasts(page);
 
       // Navigate to participants page for non-existent group
       await page.goto('/groups/00000000-0000-0000-0000-000000000000/participants');
@@ -122,6 +134,9 @@ test.describe('Error Toast Notifications', () => {
         password: 'TestPassword123!',
       };
       await register(page, testUser);
+
+      // Dismiss any toasts from registration before testing error toasts
+      await dismissAllToasts(page);
 
       await page.goto('/invite/group/00000000-0000-0000-0000-000000000000');
       await page.waitForLoadState('networkidle');
@@ -280,6 +295,9 @@ test.describe('Error Toast Notifications', () => {
 
       // Grant clipboard permissions
       await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+
+      // Dismiss any toasts before testing
+      await dismissAllToasts(page);
 
       await goToEvent(page, event.id);
 

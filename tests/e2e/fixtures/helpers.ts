@@ -392,3 +392,32 @@ export async function waitForApiResponse(page: Page, urlPattern: string | RegExp
     return urlPattern.test(url);
   });
 }
+
+/**
+ * Dismiss all visible toasts and wait for them to disappear
+ */
+export async function dismissAllToasts(page: Page) {
+  const toasts = page.locator('[data-sonner-toast]');
+  const count = await toasts.count();
+
+  // Click dismiss on each toast (sonner toasts have a close button or can be clicked)
+  for (let i = 0; i < count; i++) {
+    const toast = toasts.nth(i);
+    if (await toast.isVisible()) {
+      // Try clicking the toast to dismiss it, or its close button
+      const closeButton = toast.locator('button[aria-label="Close"]');
+      if ((await closeButton.count()) > 0) {
+        await closeButton.click();
+      } else {
+        // Some toasts dismiss on click
+        await toast.click().catch(() => {});
+      }
+    }
+  }
+
+  // Wait for all toasts to disappear
+  await page.waitForFunction(
+    () => document.querySelectorAll('[data-sonner-toast]').length === 0,
+    { timeout: 5000 }
+  ).catch(() => {});
+}
