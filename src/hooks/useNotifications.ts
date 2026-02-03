@@ -95,8 +95,10 @@ export function useNotifications() {
       setPermission(perm);
 
       if (perm === 'granted') {
-        await pushSubscriptionService.subscribe();
-        setIsSubscribed(true);
+        const subscription = await pushSubscriptionService.subscribe();
+        if (subscription) {
+          setIsSubscribed(true);
+        }
       }
 
       return perm;
