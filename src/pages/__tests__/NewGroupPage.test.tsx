@@ -3,10 +3,24 @@ import { describe, it, beforeEach, expect, vi } from 'vitest';
 // Mock the auth hook BEFORE importing the component
 vi.mock('@/hooks/useAuth', () => ({ useAuth: vi.fn() }));
 
-// Mock groupService
+// Mock services
 vi.mock('@/services', () => ({
   groupService: {
     createGroup: vi.fn(),
+  },
+  pushSubscriptionService: {
+    isSupported: vi.fn(() => false),
+    isConfigured: vi.fn(() => false),
+    isSubscribed: vi.fn(() => Promise.resolve(false)),
+    getSubscriptions: vi.fn(() => Promise.resolve([])),
+  },
+  notificationService: {
+    getNotifications: vi.fn(() => Promise.resolve([])),
+    getUnreadCount: vi.fn(() => Promise.resolve(0)),
+    subscribeToNotifications: vi.fn(() => vi.fn()),
+  },
+  notificationPreferenceService: {
+    getPreferences: vi.fn(() => Promise.resolve(null)),
   },
 }));
 

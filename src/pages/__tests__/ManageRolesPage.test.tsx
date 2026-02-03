@@ -36,6 +36,20 @@ vi.mock('@/services', () => ({
   organizerService: {
     getOrganizerDisplayName: vi.fn(),
   },
+  pushSubscriptionService: {
+    isSupported: vi.fn(() => false),
+    isConfigured: vi.fn(() => false),
+    isSubscribed: vi.fn(() => Promise.resolve(false)),
+    getSubscriptions: vi.fn(() => Promise.resolve([])),
+  },
+  notificationService: {
+    getNotifications: vi.fn(() => Promise.resolve([])),
+    getUnreadCount: vi.fn(() => Promise.resolve(0)),
+    subscribeToNotifications: vi.fn(() => vi.fn()),
+  },
+  notificationPreferenceService: {
+    getPreferences: vi.fn(() => Promise.resolve(null)),
+  },
 }));
 
 // Mock error handler

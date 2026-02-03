@@ -4,7 +4,6 @@ export type FeatureFlagKey =
   | 'registration_form'
   | 'event_duplication'
   | 'home_page'
-  | 'notifications'
   | 'event_privacy'
   | 'guest_registration'
   | 'debug_notifications';
@@ -15,7 +14,6 @@ export interface FeatureFlags {
   registration_form: boolean;
   event_duplication: boolean;
   home_page: boolean;
-  notifications: boolean;
   event_privacy: boolean;
   guest_registration: boolean;
   debug_notifications: boolean;

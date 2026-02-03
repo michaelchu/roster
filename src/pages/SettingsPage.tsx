@@ -15,14 +15,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFontSize, type FontSize } from '@/hooks/useFontSize';
 import { useTheme } from '@/components/theme-provider';
 import { useFeatureFlag, useFeatureFlags } from '@/hooks/useFeatureFlags';
-import { errorHandler } from '@/lib/errorHandler';
-import { notificationService, pushSubscriptionService } from '@/services';
-import { User, LogOut, BellRing, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
+import { User, LogOut, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
 import { UserAvatar } from '@/components/UserAvatar';
 import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
 import { NotificationDebugPanel } from '@/components/notifications/NotificationDebugPanel';
+import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 
 const STORAGE_KEYS = {
   defaultCapacity: 'settings:defaultCapacity',
@@ -52,11 +51,9 @@ export function SettingsPage() {
   const { user, signOut, loading } = useAuth();
   const { fontSize, setFontSize } = useFontSize();
   const { theme, setTheme } = useTheme();
-  const notificationsEnabled = useFeatureFlag('notifications');
   const eventPrivacyEnabled = useFeatureFlag('event_privacy');
   const { isFeatureEnabled } = useFeatureFlags();
   const debugNotificationsEnabled = isFeatureEnabled('debug_notifications');
-  const [testingPush, setTestingPush] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState(() =>
     loadFromStorage(STORAGE_KEYS.defaultCapacity, 10)
   );
@@ -75,69 +72,6 @@ export function SettingsPage() {
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
-  };
-
-  const ensureNotificationPermission = async (): Promise<void> => {
-    if (!('Notification' in window)) {
-      throw new Error('Notifications not supported');
-    }
-    if (Notification.permission === 'denied') {
-      throw new Error('Notifications blocked. Enable in browser settings.');
-    }
-    if (Notification.permission === 'default') {
-      const result = await Notification.requestPermission();
-      if (result !== 'granted') {
-        throw new Error('Notification permission denied');
-      }
-    }
-  };
-
-  const getServiceWorkerRegistration = async (): Promise<ServiceWorkerRegistration> => {
-    if (!('serviceWorker' in navigator)) {
-      throw new Error('Service workers not supported');
-    }
-    const registration = await navigator.serviceWorker.getRegistration();
-    if (!registration) {
-      throw new Error('No service worker registered. Please refresh the page.');
-    }
-    return registration;
-  };
-
-  const handleTestPush = async () => {
-    setTestingPush(true);
-    try {
-      await ensureNotificationPermission();
-      const registration = await getServiceWorkerRegistration();
-
-      // Ensure user has a push subscription for server-sent notifications
-      if (pushSubscriptionService.isSupported() && pushSubscriptionService.isConfigured()) {
-        const isSubscribed = await pushSubscriptionService.isSubscribed();
-        if (!isSubscribed) {
-          await pushSubscriptionService.subscribe();
-        }
-      }
-
-      const title = 'Test Notification';
-      const body = 'Push notifications are working correctly!';
-      await registration.showNotification(title, {
-        body,
-        icon: '/icon-192x192.svg',
-        badge: '/icon-192x192.svg',
-        tag: 'test',
-        vibrate: [100, 50, 100],
-      } as NotificationOptions);
-      await notificationService.createNotification({
-        type: 'test',
-        title,
-        body,
-      });
-      errorHandler.success('Notification sent! Check your system notifications.');
-    } catch (error) {
-      console.error('Failed to send test notification:', error);
-      errorHandler.handle(error, { action: 'send test notification' });
-    } finally {
-      setTestingPush(false);
-    }
   };
 
   if (loading) {
@@ -193,25 +127,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          {notificationsEnabled && (
-            <div className="bg-card rounded-lg border overflow-hidden">
-              <div className="p-3 border-b bg-muted">
-                <h3 className="text-sm font-medium">Push Notifications</h3>
-              </div>
-              <div className="p-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={handleTestPush}
-                  disabled={testingPush}
-                >
-                  <BellRing className="h-4 w-4 mr-2" />
-                  {testingPush ? 'Sending...' : 'Test Push Notification'}
-                </Button>
-              </div>
-            </div>
-          )}
+          <NotificationPreferences />
 
           {debugNotificationsEnabled && <NotificationDebugPanel />}
 

@@ -282,7 +282,7 @@ describe('featureFlagService', () => {
     });
 
     it('should return false for disabled feature', async () => {
-      const platformFlags = [{ key: 'notifications', enabled: false }];
+      const platformFlags = [{ key: 'event_privacy', enabled: false }];
 
       const mockQueryChain = {
         select: vi.fn().mockResolvedValue({ data: platformFlags, error: null }),
@@ -290,7 +290,7 @@ describe('featureFlagService', () => {
 
       mockSupabase.from.mockReturnValue(mockQueryChain as any);
 
-      const result = await featureFlagService.isFeatureEnabled('notifications');
+      const result = await featureFlagService.isFeatureEnabled('event_privacy');
 
       expect(result).toBe(false);
     });

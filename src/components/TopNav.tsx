@@ -2,7 +2,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
-import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { NotificationCenter } from '@/components/notifications';
 
 interface TopNavProps {
@@ -23,7 +22,6 @@ export function TopNav({
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const isNotificationsEnabled = useFeatureFlag('notifications');
 
   const handleClose = () => {
     if (onClose) {
@@ -48,7 +46,7 @@ export function TopNav({
     }
   };
 
-  const showNotifications = user && isNotificationsEnabled;
+  const showNotifications = !!user;
 
   return (
     <div className={cn('bg-card border-b', sticky && 'sticky top-0 z-10', className)}>
