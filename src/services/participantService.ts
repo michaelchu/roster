@@ -313,21 +313,13 @@ export const participantService = {
    * @throws Error if insertion fails (except for duplicates)
    */
   async addLabelToParticipant(participantId: string, labelId: string): Promise<void> {
-    const { data: existing } = await supabase
-      .from('participant_labels')
-      .select('id')
-      .eq('participant_id', participantId)
-      .eq('label_id', labelId)
-      .single();
-
-    if (existing) return;
-
     const { error } = await supabase.from('participant_labels').insert({
       participant_id: participantId,
       label_id: labelId,
     });
 
-    if (error) throw error;
+    // Ignore duplicate key errors (label already assigned)
+    if (error && error.code !== '23505') throw error;
   },
 
   /**
