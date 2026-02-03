@@ -86,7 +86,7 @@ export const notificationService = {
   },
 
   /**
-   * Create a notification in the inbox
+   * Create a notification in the inbox for the current user
    */
   async createNotification(notification: {
     type: string;
@@ -95,9 +95,17 @@ export const notificationService = {
     event_id?: string | null;
     action_url?: string | null;
   }): Promise<Notification> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
     const { data, error } = await (supabase as any)
       .from('notifications')
-      .insert(notification)
+      .insert({
+        ...notification,
+        recipient_user_id: user.id,
+      })
       .select()
       .single();
 
