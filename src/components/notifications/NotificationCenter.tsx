@@ -62,10 +62,10 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         <Button
           variant="ghost"
           size="icon"
-          className={cn('relative', className)}
+          className={cn('relative [&_svg]:size-5', className)}
           aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
         >
-          <Bell className="h-5 w-5" />
+          <Bell />
           <NotificationBadge count={unreadCount} />
         </Button>
       </SheetTrigger>

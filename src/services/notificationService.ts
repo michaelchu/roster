@@ -86,6 +86,26 @@ export const notificationService = {
   },
 
   /**
+   * Create a notification in the inbox
+   */
+  async createNotification(notification: {
+    type: string;
+    title: string;
+    body: string;
+    event_id?: string | null;
+    action_url?: string | null;
+  }): Promise<Notification> {
+    const { data, error } = await (supabase as any)
+      .from('notifications')
+      .insert(notification)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Notification;
+  },
+
+  /**
    * Subscribe to real-time notification updates
    */
   subscribeToNotifications(

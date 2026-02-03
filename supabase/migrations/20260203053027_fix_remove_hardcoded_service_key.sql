@@ -2,10 +2,18 @@
 -- The previous migration contained a hardcoded service_role_key which is a security risk.
 -- This migration fixes that by using a secure config table approach.
 
--- Step 1: Remove the insecure cron job
-SELECT cron.unschedule('process-scheduled-notifications');
+-- Step 1: Remove the insecure cron job (only if pg_cron is available)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'cron') THEN
+    PERFORM cron.unschedule('process-scheduled-notifications');
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  NULL; -- Ignore if cron job doesn't exist
+END $$;
 
 -- Step 2: Create a secure config table in the private schema
+CREATE SCHEMA IF NOT EXISTS private;
 CREATE TABLE IF NOT EXISTS private.app_config (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL

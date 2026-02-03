@@ -53,13 +53,6 @@ export function TopNav({
   return (
     <div className={cn('bg-card border-b', sticky && 'sticky top-0 z-10', className)}>
       <div className="flex items-center justify-center px-4 py-2 relative">
-        {/* Left side - Notifications */}
-        {showNotifications && (
-          <div className="absolute left-4">
-            <NotificationCenter />
-          </div>
-        )}
-
         {/* Center - Logo with padding to prevent overlap on narrow screens */}
         <h1
           className={cn(
@@ -73,12 +66,15 @@ export function TopNav({
           </span>
         </h1>
 
-        {/* Right side - Close button */}
-        {showCloseButton && (
-          <button onClick={handleClose} className="absolute right-4" aria-label="Close">
-            <X className="h-5 w-5" />
-          </button>
-        )}
+        {/* Right side - Notifications and/or Close button */}
+        <div className="absolute right-4 flex items-center gap-2">
+          {showNotifications && <NotificationCenter />}
+          {showCloseButton && (
+            <button onClick={handleClose} aria-label="Close">
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

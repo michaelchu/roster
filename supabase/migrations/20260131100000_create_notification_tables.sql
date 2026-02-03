@@ -110,7 +110,7 @@ CREATE TABLE notifications (
 
   -- Related entities (for deep linking)
   event_id TEXT REFERENCES events(id) ON DELETE SET NULL,
-  participant_id TEXT REFERENCES participants(id) ON DELETE SET NULL,
+  participant_id UUID REFERENCES participants(id) ON DELETE SET NULL,
   actor_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
 
   -- Deep link URL path
@@ -158,7 +158,7 @@ CREATE TABLE notification_queue (
 
   -- Related entities
   event_id TEXT REFERENCES events(id) ON DELETE CASCADE,
-  participant_id TEXT REFERENCES participants(id) ON DELETE CASCADE,
+  participant_id UUID REFERENCES participants(id) ON DELETE CASCADE,
   actor_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   action_url TEXT,
 

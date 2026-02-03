@@ -16,6 +16,7 @@ import { useFontSize, type FontSize } from '@/hooks/useFontSize';
 import { useTheme } from '@/components/theme-provider';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { errorHandler } from '@/lib/errorHandler';
+import { notificationService } from '@/services';
 import { User, LogOut, BellRing, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
@@ -103,13 +104,20 @@ export function SettingsPage() {
     try {
       await ensureNotificationPermission();
       const registration = await getServiceWorkerRegistration();
-      await registration.showNotification('Test Notification', {
-        body: 'Push notifications are working correctly!',
+      const title = 'Test Notification';
+      const body = 'Push notifications are working correctly!';
+      await registration.showNotification(title, {
+        body,
         icon: '/icon-192x192.svg',
         badge: '/icon-192x192.svg',
         tag: 'test',
         vibrate: [100, 50, 100],
       } as NotificationOptions);
+      await notificationService.createNotification({
+        type: 'test',
+        title,
+        body,
+      });
       errorHandler.success('Notification sent! Check your system notifications.');
     } catch (error) {
       console.error('Failed to send test notification:', error);
