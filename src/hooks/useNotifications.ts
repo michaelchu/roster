@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   notificationService,
   pushSubscriptionService,
@@ -17,11 +17,14 @@ export function useNotifications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // Use ref to track subscription cleanup function
+  const unsubscribeRef = useRef<(() => void) | null>(null);
+
   // Check push notification support and status
   const isSupported = pushSubscriptionService.isSupported();
   const isConfigured = pushSubscriptionService.isConfigured();
 
-  // Load notifications and check subscription status
+  // Load notifications data
   useEffect(() => {
     if (!user) {
       setNotifications([]);
@@ -31,7 +34,7 @@ export function useNotifications() {
       return;
     }
 
-    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
 
     const load = async () => {
       setLoading(true);
@@ -45,29 +48,55 @@ export function useNotifications() {
           pushSubscriptionService.isSubscribed(),
         ]);
 
+        if (cancelled) return;
+
         setNotifications(notifs);
         setUnreadCount(count);
         setPreferences(prefs);
         setIsSubscribed(subscribed);
         setPermission(pushSubscriptionService.getPermissionStatus());
-
-        // Subscribe to real-time updates
-        unsubscribe = notificationService.subscribeToNotifications(user.id, (notification) => {
-          setNotifications((prev) => [notification, ...prev]);
-          setUnreadCount((prev) => prev + 1);
-        });
       } catch (err) {
+        if (cancelled) return;
         setError(err instanceof Error ? err : new Error('Failed to load notifications'));
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     load();
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
+      cancelled = true;
+    };
+  }, [user]);
+
+  // Separate effect for realtime subscription to avoid race conditions
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    // Clean up any existing subscription
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
+
+    // Subscribe to real-time updates
+    unsubscribeRef.current = notificationService.subscribeToNotifications(
+      user.id,
+      (notification) => {
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+      }
+    );
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
       }
     };
   }, [user]);
