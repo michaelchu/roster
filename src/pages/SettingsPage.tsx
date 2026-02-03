@@ -144,9 +144,8 @@ export function SettingsPage() {
         icon: '/icon-192x192.svg',
         badge: '/icon-192x192.svg',
         tag: 'test',
-        renotify: true,
         vibrate: [100, 50, 100],
-      });
+      } as NotificationOptions);
     } catch (error) {
       console.error('Failed to send test notification:', error);
     } finally {
