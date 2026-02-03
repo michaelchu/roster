@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFontSize, type FontSize } from '@/hooks/useFontSize';
 import { useTheme } from '@/components/theme-provider';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { errorHandler } from '@/lib/errorHandler';
 import { User, LogOut, BellRing, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
@@ -71,10 +72,37 @@ export function SettingsPage() {
     navigate('/');
   };
 
+  const ensureNotificationPermission = async (): Promise<void> => {
+    if (!('Notification' in window)) {
+      throw new Error('Notifications not supported');
+    }
+    if (Notification.permission === 'denied') {
+      throw new Error('Notifications blocked. Enable in browser settings.');
+    }
+    if (Notification.permission === 'default') {
+      const result = await Notification.requestPermission();
+      if (result !== 'granted') {
+        throw new Error('Notification permission denied');
+      }
+    }
+  };
+
+  const getServiceWorkerRegistration = async (): Promise<ServiceWorkerRegistration> => {
+    if (!('serviceWorker' in navigator)) {
+      throw new Error('Service workers not supported');
+    }
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+      throw new Error('No service worker registered. Please refresh the page.');
+    }
+    return registration;
+  };
+
   const handleTestPush = async () => {
     setTestingPush(true);
     try {
-      const registration = await navigator.serviceWorker.ready;
+      await ensureNotificationPermission();
+      const registration = await getServiceWorkerRegistration();
       await registration.showNotification('Test Notification', {
         body: 'Push notifications are working correctly!',
         icon: '/icon-192x192.svg',
@@ -82,8 +110,10 @@ export function SettingsPage() {
         tag: 'test',
         vibrate: [100, 50, 100],
       } as NotificationOptions);
+      errorHandler.success('Notification sent! Check your system notifications.');
     } catch (error) {
       console.error('Failed to send test notification:', error);
+      errorHandler.handle(error, { action: 'send test notification' });
     } finally {
       setTestingPush(false);
     }

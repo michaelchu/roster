@@ -121,7 +121,10 @@ export const pushSubscriptionService = {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        throw new Error('No service worker registered. Please refresh the page.');
+      }
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -165,7 +168,9 @@ export const pushSubscriptionService = {
     if (!this.isSupported()) return;
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) return;
+
       const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
@@ -191,7 +196,8 @@ export const pushSubscriptionService = {
     if (!this.isSupported()) return false;
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) return false;
       const subscription = await registration.pushManager.getSubscription();
       return subscription !== null;
     } catch {
