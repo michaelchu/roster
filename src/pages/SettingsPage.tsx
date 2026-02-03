@@ -107,7 +107,10 @@ export function SettingsPage() {
   const handleEnablePush = async () => {
     setSubscribing(true);
     try {
-      await subscribe();
+      const perm = await subscribe();
+      if (perm === 'granted') {
+        await updatePreferences({ push_enabled: true });
+      }
     } catch (error) {
       console.error('Failed to enable push:', error);
     } finally {
