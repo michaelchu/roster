@@ -220,6 +220,39 @@ export async function createTestParticipant(
 }
 
 /**
+ * Enable a feature flag for a specific user
+ * Uses admin client to bypass RLS
+ */
+export async function enableFeatureFlagForUser(userId: string, flagKey: string) {
+  const { error } = await getAdminDb().from('feature_flag_overrides').upsert(
+    {
+      feature_flag_key: flagKey,
+      user_id: userId,
+      enabled: true,
+    },
+    {
+      onConflict: 'feature_flag_key,user_id',
+    }
+  );
+
+  if (error) {
+    throw new Error(`Failed to enable feature flag ${flagKey}: ${error.message}`);
+  }
+}
+
+/**
+ * Disable a feature flag override for a specific user
+ * Uses admin client to bypass RLS
+ */
+export async function disableFeatureFlagForUser(userId: string, flagKey: string) {
+  await getAdminDb()
+    .from('feature_flag_overrides')
+    .delete()
+    .eq('feature_flag_key', flagKey)
+    .eq('user_id', userId);
+}
+
+/**
  * Clean up all test data created in a test
  * Pass arrays of IDs to delete
  */

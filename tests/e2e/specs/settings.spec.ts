@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { register, logout, clearAuth } from '../fixtures/auth';
-import { generateTestEmail } from '../fixtures/database';
+import { register, logout, clearAuth, getUserId } from '../fixtures/auth';
+import { generateTestEmail, enableFeatureFlagForUser } from '../fixtures/database';
 
 test.describe('Settings Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -109,6 +109,9 @@ test.describe('Settings Page', () => {
       };
 
       await register(page, testUser);
+      const userId = await getUserId(page);
+      // Enable event_privacy feature flag for this user
+      await enableFeatureFlagForUser(userId!, 'event_privacy');
       await page.goto('/settings');
       await page.waitForLoadState('domcontentloaded');
 
@@ -133,6 +136,9 @@ test.describe('Settings Page', () => {
       };
 
       await register(page, testUser);
+      const userId = await getUserId(page);
+      // Enable event_privacy feature flag for this user
+      await enableFeatureFlagForUser(userId!, 'event_privacy');
       await page.goto('/settings');
       await page.waitForLoadState('domcontentloaded');
 
@@ -283,6 +289,9 @@ test.describe('Settings Page', () => {
       };
 
       await register(page, testUser);
+      const userId = await getUserId(page);
+      // Enable event_privacy feature flag for this user
+      await enableFeatureFlagForUser(userId!, 'event_privacy');
       await page.goto('/settings');
       await page.waitForLoadState('domcontentloaded');
 
