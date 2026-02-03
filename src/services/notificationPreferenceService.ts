@@ -63,6 +63,14 @@ export const notificationPreferenceService = {
       .select()
       .single();
 
+    // Handle race condition: if another request already created preferences,
+    // fetch and return the existing row
+    if (error?.code === '23505') {
+      const existingAfterRace = await this.getPreferences();
+      if (existingAfterRace) return existingAfterRace;
+      throw new Error('Failed to get notification preferences after race condition');
+    }
+
     if (error) throw error;
     if (!data) throw new Error('Failed to create notification preferences');
 
