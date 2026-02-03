@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -24,12 +24,36 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
     permission,
     isSupported,
     isConfigured,
+    isSubscribed,
     loading,
     subscribe,
     markAsRead,
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
+
+  // Auto-subscribe if permission is granted but no subscription exists
+  useEffect(() => {
+    const autoSubscribe = async () => {
+      if (
+        permission === 'granted' &&
+        isSupported &&
+        isConfigured &&
+        !isSubscribed &&
+        !subscribing
+      ) {
+        setSubscribing(true);
+        try {
+          await subscribe();
+        } catch (error) {
+          console.error('Auto-subscribe failed:', error);
+        } finally {
+          setSubscribing(false);
+        }
+      }
+    };
+    autoSubscribe();
+  }, [permission, isSupported, isConfigured, isSubscribed, subscribing, subscribe]);
 
   const handleEnableNotifications = async () => {
     setSubscribing(true);

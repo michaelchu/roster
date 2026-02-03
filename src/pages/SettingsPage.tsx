@@ -16,7 +16,7 @@ import { useFontSize, type FontSize } from '@/hooks/useFontSize';
 import { useTheme } from '@/components/theme-provider';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { errorHandler } from '@/lib/errorHandler';
-import { notificationService } from '@/services';
+import { notificationService, pushSubscriptionService } from '@/services';
 import { User, LogOut, BellRing, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
@@ -104,6 +104,15 @@ export function SettingsPage() {
     try {
       await ensureNotificationPermission();
       const registration = await getServiceWorkerRegistration();
+
+      // Ensure user has a push subscription for server-sent notifications
+      if (pushSubscriptionService.isSupported() && pushSubscriptionService.isConfigured()) {
+        const isSubscribed = await pushSubscriptionService.isSubscribed();
+        if (!isSubscribed) {
+          await pushSubscriptionService.subscribe();
+        }
+      }
+
       const title = 'Test Notification';
       const body = 'Push notifications are working correctly!';
       await registration.showNotification(title, {
