@@ -105,12 +105,10 @@ export function SettingsPage() {
   };
 
   const handleEnablePush = async () => {
+    if (!notificationsEnabled) return;
     setSubscribing(true);
     try {
-      const perm = await subscribe();
-      if (perm === 'granted') {
-        await updatePreferences({ push_enabled: true });
-      }
+      await subscribe();
     } catch (error) {
       console.error('Failed to enable push:', error);
     } finally {
@@ -122,7 +120,6 @@ export function SettingsPage() {
     setSubscribing(true);
     try {
       await unsubscribe();
-      await updatePreferences({ push_enabled: false });
     } catch (error) {
       console.error('Failed to disable push:', error);
     } finally {
