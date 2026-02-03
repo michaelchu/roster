@@ -110,6 +110,7 @@ describe('pushSubscriptionService', () => {
     global.navigator = {
       serviceWorker: {
         ready: Promise.resolve(mockServiceWorkerRegistration as any),
+        getRegistration: vi.fn().mockResolvedValue(mockServiceWorkerRegistration),
       },
       userAgent: 'test-user-agent',
     } as any;
