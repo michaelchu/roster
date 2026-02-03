@@ -136,21 +136,13 @@ export const pushSubscriptionService = {
       // Store VAPID key for service worker re-subscription
       await storeVapidKeyForServiceWorker(VAPID_PUBLIC_KEY);
 
-      // Save to database
-      const { error } = await (supabase as any).from('push_subscriptions').upsert(
-        {
-          user_id: user.id,
-          endpoint: subscriptionJson.endpoint!,
-          p256dh_key: subscriptionJson.keys?.p256dh || '',
-          auth_key: subscriptionJson.keys?.auth || '',
-          user_agent: navigator.userAgent,
-          active: true,
-          last_used_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'endpoint',
-        }
-      );
+      // Save to database using RPC function that handles cross-user endpoint conflicts
+      const { error } = await supabase.rpc('upsert_push_subscription', {
+        p_endpoint: subscriptionJson.endpoint!,
+        p_p256dh_key: subscriptionJson.keys?.p256dh || '',
+        p_auth_key: subscriptionJson.keys?.auth || '',
+        p_user_agent: navigator.userAgent,
+      });
 
       if (error) throw error;
 

@@ -12,6 +12,7 @@ vi.mock('@/lib/supabase', () => ({
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: [], error: null }),
     })),
+    rpc: vi.fn().mockResolvedValue({ data: 'test-subscription-id', error: null }),
     auth: {
       getUser: vi.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
@@ -191,10 +192,7 @@ describe('pushSubscriptionService', () => {
     it('should subscribe to push notifications and save to database', async () => {
       mockServiceWorkerRegistration.pushManager.subscribe.mockResolvedValue(mockPushSubscription);
 
-      const mockQueryChain = {
-        upsert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.rpc.mockResolvedValue({ data: 'test-subscription-id', error: null });
 
       const result = await pushSubscriptionService.subscribe();
 
@@ -206,20 +204,12 @@ describe('pushSubscriptionService', () => {
         },
       });
 
-      expect(mockQueryChain.upsert).toHaveBeenCalledWith(
-        {
-          user_id: 'test-user-id',
-          endpoint: 'https://fcm.googleapis.com/fcm/send/test-endpoint',
-          p256dh_key: 'test-p256dh-key',
-          auth_key: 'test-auth-key',
-          user_agent: 'test-user-agent',
-          active: true,
-          last_used_at: expect.any(String),
-        },
-        {
-          onConflict: 'endpoint',
-        }
-      );
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('upsert_push_subscription', {
+        p_endpoint: 'https://fcm.googleapis.com/fcm/send/test-endpoint',
+        p_p256dh_key: 'test-p256dh-key',
+        p_auth_key: 'test-auth-key',
+        p_user_agent: 'test-user-agent',
+      });
     });
 
     it('should return null when push notifications not supported', async () => {
@@ -240,10 +230,7 @@ describe('pushSubscriptionService', () => {
     it('should throw error when database save fails', async () => {
       mockServiceWorkerRegistration.pushManager.subscribe.mockResolvedValue(mockPushSubscription);
 
-      const mockQueryChain = {
-        upsert: vi.fn().mockResolvedValue({ error: { message: 'Database error' } }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.rpc.mockResolvedValue({ data: null, error: { message: 'Database error' } });
 
       await expect(pushSubscriptionService.subscribe()).rejects.toThrow();
     });

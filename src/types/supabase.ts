@@ -657,6 +657,10 @@ export type Database = {
         Args: { p_event_id: string; p_user_id?: string };
         Returns: number;
       };
+      get_or_create_user: {
+        Args: { user_email: string; user_name: string };
+        Returns: string;
+      };
       get_user_display_name: { Args: { user_id: string }; Returns: string };
       get_user_groups_with_counts: {
         Args: { p_user_id: string };
@@ -686,6 +690,15 @@ export type Database = {
           failed_count: number;
           removed_count: number;
         }[];
+      };
+      upsert_push_subscription: {
+        Args: {
+          p_auth_key: string;
+          p_endpoint: string;
+          p_p256dh_key: string;
+          p_user_agent?: string;
+        };
+        Returns: string;
       };
     };
     Enums: {
