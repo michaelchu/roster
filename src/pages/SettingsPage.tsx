@@ -52,6 +52,7 @@ export function SettingsPage() {
   const { fontSize, setFontSize } = useFontSize();
   const { theme, setTheme } = useTheme();
   const notificationsEnabled = useFeatureFlag('notifications');
+  const eventPrivacyEnabled = useFeatureFlag('event_privacy');
   const [testingPush, setTestingPush] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState(() =>
     loadFromStorage(STORAGE_KEYS.defaultCapacity, 10)
@@ -231,30 +232,32 @@ export function SettingsPage() {
                 />
               </div>
 
-              <div className="p-3">
-                <div className="flex items-center gap-3 mb-2">
-                  <Eye className="h-5 w-5 text-muted-foreground" />
-                  <Label htmlFor="default-visibility" className="text-sm font-medium">
-                    Default Event Visibility
-                  </Label>
+              {eventPrivacyEnabled && (
+                <div className="p-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Eye className="h-5 w-5 text-muted-foreground" />
+                    <Label htmlFor="default-visibility" className="text-sm font-medium">
+                      Default Event Visibility
+                    </Label>
+                  </div>
+                  <Select
+                    value={defaultVisibility}
+                    onValueChange={(value) => {
+                      setDefaultVisibility(value);
+                      saveToStorage(STORAGE_KEYS.defaultVisibility, value);
+                    }}
+                  >
+                    <SelectTrigger id="default-visibility" className="text-sm">
+                      <SelectValue placeholder="Select visibility" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Public</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="invite-only">Invite Only</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Select
-                  value={defaultVisibility}
-                  onValueChange={(value) => {
-                    setDefaultVisibility(value);
-                    saveToStorage(STORAGE_KEYS.defaultVisibility, value);
-                  }}
-                >
-                  <SelectTrigger id="default-visibility" className="text-sm">
-                    <SelectValue placeholder="Select visibility" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="private">Private</SelectItem>
-                    <SelectItem value="invite-only">Invite Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              )}
             </div>
           </div>
 
