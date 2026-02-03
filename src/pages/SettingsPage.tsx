@@ -127,9 +127,9 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <NotificationPreferences />
-
           {debugNotificationsEnabled && <NotificationDebugPanel />}
+
+          <NotificationPreferences />
 
           <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-3 border-b bg-muted">

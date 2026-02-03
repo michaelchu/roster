@@ -190,14 +190,19 @@ export function NotificationDebugPanel() {
   const selectedTypeInfo = NOTIFICATION_TYPES.find((t) => t.value === selectedType);
 
   return (
-    <div className="bg-card rounded-lg border overflow-hidden">
-      <div className="p-3 border-b bg-muted">
+    <div className="rounded-lg border border-violet-500/30 overflow-hidden bg-gradient-to-b from-violet-500/10 to-purple-500/5">
+      <div className="p-3 border-b border-violet-500/20 bg-violet-500/10">
         <div className="flex items-center gap-2">
-          <Bug className="h-4 w-4 text-orange-500" />
-          <h3 className="text-sm font-medium">Notification Debug Panel</h3>
+          <Bug className="h-4 w-4 text-violet-500 dark:text-violet-400" />
+          <h3 className="text-sm font-medium text-violet-700 dark:text-violet-300">
+            Developer Tools
+          </h3>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-600 dark:text-violet-400">
+            DEBUG
+          </span>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Test all notification types by queueing them directly
+          Test notification delivery by queueing directly to the database
         </p>
       </div>
 
@@ -249,40 +254,38 @@ export function NotificationDebugPanel() {
         </div>
 
         {hasSubscription === false && (
-          <div className="p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs">
-            <p className="text-yellow-600 dark:text-yellow-400 font-medium">
-              No push subscription found in database
+          <div className="p-2 bg-violet-500/10 border border-violet-500/30 rounded text-xs">
+            <p className="text-violet-700 dark:text-violet-300 font-medium">
+              No push subscription found
             </p>
             <p className="text-muted-foreground mt-1">
-              Your browser may have a subscription but it's not synced. Click below to sync.
+              Browser subscription not synced to database.
             </p>
             <Button
               variant="outline"
               size="sm"
-              className="w-full mt-2"
+              className="w-full mt-2 border-violet-500/30 hover:bg-violet-500/10"
               onClick={handleSyncSubscription}
               disabled={syncing}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Syncing...' : 'Sync Push Subscription'}
+              {syncing ? 'Syncing...' : 'Sync Subscription'}
             </Button>
           </div>
         )}
 
         <Button
-          variant="outline"
           size="sm"
-          className="w-full"
+          className="w-full bg-violet-600 hover:bg-violet-700 text-white"
           onClick={handleSendTestNotification}
           disabled={sending || !selectedType || !selectedEventId}
         >
           <Send className="h-4 w-4 mr-2" />
-          {sending ? 'Queueing...' : 'Queue Test Notification'}
+          {sending ? 'Queueing...' : 'Send Test Notification'}
         </Button>
 
         <p className="text-xs text-muted-foreground">
-          Note: The notification will be processed by the send-push edge function and delivered to
-          your subscribed devices.
+          Notifications are processed by the edge function and delivered to subscribed devices.
         </p>
       </div>
     </div>
