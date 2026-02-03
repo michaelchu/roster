@@ -60,7 +60,12 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString();
 }
 
-const SWIPE_THRESHOLD = 80;
+// Threshold to reveal delete button (snap to this position)
+const REVEAL_THRESHOLD = 40;
+// Width of the revealed delete button area
+const REVEAL_WIDTH = 80;
+// Threshold to delete immediately (drag far enough)
+const IMMEDIATE_DELETE_THRESHOLD = 160;
 
 export function NotificationItem({ notification, onRead, onDelete }: NotificationItemProps) {
   const navigate = useNavigate();
@@ -69,35 +74,75 @@ export function NotificationItem({ notification, onRead, onDelete }: Notificatio
   const iconColor = notificationColors[notification.type] || 'text-muted-foreground';
 
   const [swipeX, setSwipeX] = useState(0);
+  const [isRevealed, setIsRevealed] = useState(false);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const startXRef = useRef(0);
   const currentXRef = useRef(0);
 
+  const triggerDelete = () => {
+    setIsDeleting(true);
+    // Show delete animation, then actually delete after animation
+    setTimeout(() => {
+      onDelete(notification.id);
+    }, 300);
+  };
+
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isDeleting) return;
     startXRef.current = e.touches[0].clientX;
     currentXRef.current = e.touches[0].clientX;
     setIsSwiping(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isSwiping) return;
+    if (!isSwiping || isDeleting) return;
     currentXRef.current = e.touches[0].clientX;
     const diff = startXRef.current - currentXRef.current;
-    // Only allow left swipe (positive diff), cap at threshold + some buffer
-    const newSwipeX = Math.max(0, Math.min(diff, SWIPE_THRESHOLD + 40));
-    setSwipeX(newSwipeX);
-  };
 
-  const handleTouchEnd = () => {
-    setIsSwiping(false);
-    if (swipeX >= SWIPE_THRESHOLD) {
-      onDelete(notification.id);
+    // If already revealed, allow swiping right to close or left to delete
+    if (isRevealed) {
+      const newSwipeX = Math.max(0, Math.min(REVEAL_WIDTH + diff, IMMEDIATE_DELETE_THRESHOLD + 20));
+      setSwipeX(newSwipeX);
     } else {
-      setSwipeX(0);
+      // Only allow left swipe (positive diff)
+      const newSwipeX = Math.max(0, Math.min(diff, IMMEDIATE_DELETE_THRESHOLD + 20));
+      setSwipeX(newSwipeX);
     }
   };
 
+  const handleTouchEnd = () => {
+    if (isDeleting) return;
+    setIsSwiping(false);
+
+    // If swiped far enough, trigger delete animation
+    if (swipeX >= IMMEDIATE_DELETE_THRESHOLD) {
+      triggerDelete();
+      return;
+    }
+
+    // If swiped past reveal threshold, snap to revealed position
+    if (swipeX >= REVEAL_THRESHOLD) {
+      setSwipeX(REVEAL_WIDTH);
+      setIsRevealed(true);
+    } else {
+      // Snap back to closed
+      setSwipeX(0);
+      setIsRevealed(false);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    triggerDelete();
+  };
+
   const handleClick = () => {
+    // If revealed, close it instead of navigating
+    if (isRevealed) {
+      setSwipeX(0);
+      setIsRevealed(false);
+      return;
+    }
     if (swipeX > 10) return; // Ignore click if swiping
     if (isUnread) {
       onRead(notification.id);
@@ -109,30 +154,48 @@ export function NotificationItem({ notification, onRead, onDelete }: Notificatio
 
   return (
     <div className="relative overflow-hidden">
-      {/* Delete background */}
+      {/* Full-width delete background (shown during delete animation) */}
       <div
         className={cn(
-          'absolute inset-y-0 right-0 flex items-center justify-end bg-destructive transition-opacity',
-          swipeX > 0 ? 'opacity-100' : 'opacity-0'
+          'absolute inset-0 flex items-center justify-center gap-2 bg-destructive',
+          'transition-opacity duration-200',
+          isDeleting ? 'opacity-100' : 'opacity-0'
         )}
-        style={{ width: Math.max(swipeX, SWIPE_THRESHOLD) }}
       >
-        <Trash2 className="h-5 w-5 text-destructive-foreground mr-4" />
+        <Trash2 className="h-5 w-5 text-destructive-foreground" />
+        <span className="text-sm font-medium text-destructive-foreground">Deleted</span>
       </div>
 
-      {/* Notification content */}
+      {/* Delete button background (shown during swipe) */}
       <button
+        onClick={handleDeleteClick}
+        className={cn(
+          'absolute inset-y-0 right-0 flex items-center justify-center bg-destructive',
+          'active:bg-destructive/80',
+          swipeX > 0 && !isDeleting ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        )}
+        style={{ width: Math.max(swipeX, REVEAL_WIDTH) }}
+        aria-label="Delete notification"
+      >
+        <Trash2 className="h-5 w-5 text-destructive-foreground" />
+      </button>
+
+      {/* Notification content */}
+      <div
         onClick={handleClick}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        role="button"
+        tabIndex={0}
         className={cn(
-          'w-full flex items-start gap-3 p-3 text-left transition-colors bg-background',
+          'w-full flex items-start gap-3 p-3 text-left bg-background cursor-pointer',
           'hover:bg-muted/50 focus:bg-muted/50 focus:outline-none',
           isUnread && 'bg-muted/30',
-          isSwiping && 'transition-none'
+          !isSwiping && 'transition-transform duration-200',
+          isDeleting && 'translate-x-[-100%] transition-transform duration-300'
         )}
-        style={{ transform: `translateX(-${swipeX}px)` }}
+        style={!isDeleting ? { transform: `translateX(-${swipeX}px)` } : undefined}
       >
         <div className={cn('flex-shrink-0 mt-0.5', iconColor)}>
           <Icon className="h-5 w-5" />
@@ -149,7 +212,7 @@ export function NotificationItem({ notification, onRead, onDelete }: Notificatio
             {formatTimeAgo(notification.created_at)}
           </p>
         </div>
-      </button>
+      </div>
     </div>
   );
 }
