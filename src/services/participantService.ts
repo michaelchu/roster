@@ -9,6 +9,7 @@ import type {
 } from '@/types/app.types';
 import { errorHandler } from '@/lib/errorHandler';
 
+/** Extended Participant type with labels and computed properties */
 export interface Participant extends Omit<Tables<'participants'>, 'responses' | 'created_at'> {
   created_at: string;
   labels?: Label[];
@@ -19,14 +20,20 @@ export interface Participant extends Omit<Tables<'participants'>, 'responses' | 
   payment_marked_at: string | null;
   payment_notes: string | null;
   avatar_url?: string | null;
-  auth_full_name?: string | null; // Current name from auth.users (for linked users)
+  /** Current name from auth.users for linked user accounts */
+  auth_full_name?: string | null;
 }
 
 export type Label = Tables<'labels'>;
 
 export type ParticipantLabel = Tables<'participant_labels'>;
 
-// Helper function to convert database participant to our Participant type
+/**
+ * Converts a database participant record to the application Participant type.
+ * Applies default values for nullable fields.
+ * @param dbParticipant - Raw participant record from the database
+ * @returns Typed Participant object with defaults applied
+ */
 function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Participant {
   return {
     ...dbParticipant,
@@ -40,16 +47,21 @@ function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Part
   };
 }
 
-// Helper function to generate claim name for a user
+/**
+ * Generates a unique claim name for a user registering multiple spots.
+ * Format: "UserName - N" where N increments for each additional claim.
+ * @param userId - UUID of the user claiming spots
+ * @param eventId - UUID of the event
+ * @param userName - Display name of the user
+ * @returns Generated claim name (e.g., "John Doe - 2")
+ */
 async function generateClaimName(
   userId: string,
   eventId: string,
   userName: string
 ): Promise<string> {
-  // Ensure userName is valid
   const safeName = userName?.trim() || 'User';
 
-  // Count existing participants claimed by this user (excluding their main registration)
   const { data: existingClaims } = await supabase
     .from('participants')
     .select('name')
@@ -58,7 +70,6 @@ async function generateClaimName(
 
   if (!existingClaims) return `${safeName} - 1`;
 
-  // Count claims that match the pattern "userName - #"
   const claimPattern = new RegExp(`^${safeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - (\\d+)$`);
   const claimNumbers = existingClaims
     .map((p) => {
@@ -72,8 +83,14 @@ async function generateClaimName(
 }
 
 export const participantService = {
+  /**
+   * Retrieves all participants for an event with their labels and avatar URLs.
+   * Uses JOINs to fetch labels and an RPC call to get user avatars.
+   * @param eventId - UUID of the event
+   * @returns Participants sorted by slot_number, with labels and avatar_url populated
+   * @throws Error if database query fails
+   */
   async getParticipantsByEventId(eventId: string): Promise<Participant[]> {
-    // Use a single query with JOIN to get participants with their labels
     const { data: participants, error: participantsError } = await supabase
       .from('participants')
       .select(
@@ -91,12 +108,10 @@ export const participantService = {
 
     if (!participants || participants.length === 0) return [];
 
-    // Fetch avatar URLs and current names for participants with user_id
     const { data: userInfoData } = await supabase.rpc('get_event_participants_with_avatar', {
       p_event_id: eventId,
     });
 
-    // Create maps for participant_id to avatar_url and full_name
     const avatarMap = new Map<string, string | null>();
     const nameMap = new Map<string, string | null>();
     if (userInfoData) {
@@ -107,7 +122,6 @@ export const participantService = {
     }
 
     return participants.map((p) => {
-      // Extract labels from the joined data
       const labels: Label[] = [];
       if (Array.isArray(p.participant_labels)) {
         for (const pl of p.participant_labels) {
@@ -117,7 +131,6 @@ export const participantService = {
         }
       }
 
-      // Remove the joined data from the participant object
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { participant_labels: _, ...participantWithoutLabels } = p as Tables<'participants'> & {
         participant_labels: Array<{ labels: Label } | null>;
@@ -133,6 +146,12 @@ export const participantService = {
     });
   },
 
+  /**
+   * Retrieves a single participant by ID.
+   * @param participantId - UUID of the participant
+   * @returns The participant record
+   * @throws Error if participant not found
+   */
   async getParticipantById(participantId: string): Promise<Participant> {
     const { data, error } = await supabase
       .from('participants')
@@ -146,6 +165,18 @@ export const participantService = {
     return dbParticipantToParticipant(data);
   },
 
+  /**
+   * Creates a new participant registration.
+   * Handles both self-registration and claiming spots for others.
+   * slot_number is auto-assigned by database trigger.
+   * @param participant - Participant data without id, created_at, labels, or slot_number
+   * @param options - Optional claiming options for registering on behalf of others
+   * @param options.claimingUserId - UUID of user claiming the spot (sets claimed_by_user_id)
+   * @param options.claimingUserName - Name for generating claim names
+   * @param options.claimingUserEmail - Email for claimed spots
+   * @returns The created participant with assigned slot_number
+   * @throws Error if insertion fails
+   */
   async createParticipant(
     participant: Omit<Participant, 'id' | 'created_at' | 'labels' | 'slot_number'>,
     options?: {
@@ -155,7 +186,6 @@ export const participantService = {
       claimingUserEmail?: string;
     }
   ): Promise<Participant> {
-    // Generate claim name if name is empty and claiming options are provided
     let finalName = participant.name?.trim();
 
     if (!finalName && options?.claimingUserId && options?.claimingUserName) {
@@ -166,41 +196,28 @@ export const participantService = {
       );
     }
 
-    // Ensure we always have a valid name (fallback for safety)
     if (!finalName || finalName.trim().length === 0) {
       if (options?.claimingUserName) {
         finalName = `${options.claimingUserName} - Guest`;
       } else {
-        // For self-registrations, this should never happen since authentication is mandatory
-        // But keep a fallback just in case
         finalName = 'Guest';
       }
     }
 
-    // Determine email for the participant
-    // When claiming a spot: use the claimer's email (allows multiple claims per user)
-    // When self-registering: use the provided email
     let finalEmail = participant.email || null;
     if (options?.claimingUserId && options?.claimingUserEmail) {
-      // Use claimer's email for claimed spots to satisfy group_participants constraint
       finalEmail = options.claimingUserEmail;
     }
 
-    // Note: slot_number is NOT set here - it will be assigned by the database trigger
-    // assign_participant_slot_trigger which calls get_next_slot_number
-    // Using Partial to allow omitting slot_number despite it being required in the type
     const insertData = {
       event_id: participant.event_id,
       name: finalName,
       email: finalEmail,
       phone: participant.phone || null,
       notes: participant.notes || null,
-      // For claimed spots: user_id = null, claimed_by_user_id = claimer
-      // For self registration: user_id = user, claimed_by_user_id = null
       user_id: options?.claimingUserId ? null : participant.user_id,
       claimed_by_user_id: options?.claimingUserId || null,
       responses: participant.responses as Json,
-      // slot_number omitted - will be assigned by database trigger before insert completes
     } as TablesInsert<'participants'>;
 
     const { data, error } = await supabase
@@ -215,6 +232,13 @@ export const participantService = {
     return dbParticipantToParticipant(data);
   },
 
+  /**
+   * Updates an existing participant with partial data.
+   * @param participantId - UUID of the participant to update
+   * @param updates - Partial participant data to apply
+   * @returns The updated participant
+   * @throws Error if participant not found or update fails
+   */
   async updateParticipant(
     participantId: string,
     updates: Partial<Participant>
@@ -240,18 +264,35 @@ export const participantService = {
     return dbParticipantToParticipant(data);
   },
 
+  /**
+   * Deletes a participant by ID.
+   * @param participantId - UUID of the participant to delete
+   * @throws Error if deletion fails
+   */
   async deleteParticipant(participantId: string): Promise<void> {
     const { error } = await supabase.from('participants').delete().eq('id', participantId);
 
     if (error) throw error;
   },
 
+  /**
+   * Deletes multiple participants in a single operation.
+   * @param participantIds - Array of participant UUIDs to delete
+   * @throws Error if deletion fails
+   */
   async bulkDeleteParticipants(participantIds: string[]): Promise<void> {
     const { error } = await supabase.from('participants').delete().in('id', participantIds);
 
     if (error) throw error;
   },
 
+  /**
+   * Finds a participant by user ID and event ID.
+   * Useful for checking if a user is already registered for an event.
+   * @param userId - UUID of the user
+   * @param eventId - UUID of the event
+   * @returns The participant if found, null otherwise
+   */
   async getParticipantByUserAndEvent(userId: string, eventId: string): Promise<Participant | null> {
     const { data } = await supabase
       .from('participants')
@@ -265,6 +306,12 @@ export const participantService = {
     return dbParticipantToParticipant(data);
   },
 
+  /**
+   * Adds a label to a participant. Idempotent - no error if already assigned.
+   * @param participantId - UUID of the participant
+   * @param labelId - UUID of the label to add
+   * @throws Error if insertion fails (except for duplicates)
+   */
   async addLabelToParticipant(participantId: string, labelId: string): Promise<void> {
     const { data: existing } = await supabase
       .from('participant_labels')
@@ -283,6 +330,12 @@ export const participantService = {
     if (error) throw error;
   },
 
+  /**
+   * Removes a label from a participant.
+   * @param participantId - UUID of the participant
+   * @param labelId - UUID of the label to remove
+   * @throws Error if deletion fails
+   */
   async removeLabelFromParticipant(participantId: string, labelId: string): Promise<void> {
     const { error } = await supabase
       .from('participant_labels')
@@ -293,6 +346,13 @@ export const participantService = {
     if (error) throw error;
   },
 
+  /**
+   * Exports participants to a downloadable CSV file.
+   * Includes standard fields plus custom field responses.
+   * @param participants - Array of participants to export
+   * @param eventName - Event name used for the filename
+   * @param customFields - Custom field definitions for column headers
+   */
   async exportParticipantsToCSV(
     participants: Participant[],
     eventName: string,
@@ -351,6 +411,14 @@ export const participantService = {
     URL.revokeObjectURL(url);
   },
 
+  /**
+   * Updates the payment status for a single participant.
+   * @param participantId - UUID of the participant
+   * @param paymentStatus - New payment status
+   * @param paymentNotes - Optional notes about the payment
+   * @returns The updated participant
+   * @throws Error if update fails
+   */
   async updatePaymentStatus(
     participantId: string,
     paymentStatus: 'pending' | 'paid' | 'waived',
@@ -375,6 +443,14 @@ export const participantService = {
     return dbParticipantToParticipant(data);
   },
 
+  /**
+   * Updates payment status for multiple participants atomically via RPC.
+   * @param participantIds - Array of participant UUIDs
+   * @param paymentStatus - New payment status to apply
+   * @param paymentNotes - Optional notes about the payment
+   * @returns Count of updated vs requested participants
+   * @throws Error if RPC call fails
+   */
   async bulkUpdatePaymentStatus(
     participantIds: string[],
     paymentStatus: 'pending' | 'paid' | 'waived',
@@ -384,7 +460,6 @@ export const participantService = {
       return { updated: 0, requested: 0 };
     }
 
-    // Use RPC function for atomic update with validation
     const { data, error } = await supabase.rpc('bulk_update_payment_status', {
       p_participant_ids: participantIds,
       p_payment_status: paymentStatus,
@@ -403,6 +478,11 @@ export const participantService = {
     };
   },
 
+  /**
+   * Gets payment statistics for an event.
+   * @param eventId - UUID of the event
+   * @returns Counts of total, paid, pending, and waived participants
+   */
   async getPaymentSummary(eventId: string): Promise<{
     total: number;
     paid: number;
@@ -419,6 +499,13 @@ export const participantService = {
     };
   },
 
+  /**
+   * Creates multiple participants in batch, typically for adding group members to an event.
+   * Handles duplicates gracefully by tracking them separately.
+   * @param eventId - UUID of the event
+   * @param members - Array of member data with name and optional user_id
+   * @returns Counts of created, failed, and duplicate names
+   */
   async createParticipantsBatch(
     eventId: string,
     members: Array<{ name: string; user_id?: string | null }>
@@ -444,7 +531,6 @@ export const participantService = {
         });
         created++;
       } catch (error) {
-        // Check for unique constraint violation (PostgreSQL error code 23505)
         const pgError = error as { code?: string };
         if (pgError.code === '23505') {
           duplicates.push(member.name);

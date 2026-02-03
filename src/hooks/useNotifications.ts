@@ -7,6 +7,12 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import type { Notification, NotificationPreferences } from '@/types/notifications';
 
+/**
+ * Hook for managing notifications and push subscriptions.
+ * Provides state for notifications list, unread count, and user preferences.
+ * Handles real-time notification updates and push subscription management.
+ * @returns Notification state, capabilities, and action methods
+ */
 export function useNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -17,14 +23,11 @@ export function useNotifications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Use ref to track subscription cleanup function
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
-  // Check push notification support and status
   const isSupported = pushSubscriptionService.isSupported();
   const isConfigured = pushSubscriptionService.isConfigured();
 
-  // Load notifications data
   useEffect(() => {
     if (!user) {
       setNotifications([]);
@@ -72,19 +75,16 @@ export function useNotifications() {
     };
   }, [user]);
 
-  // Separate effect for realtime subscription to avoid race conditions
   useEffect(() => {
     if (!user) {
       return;
     }
 
-    // Clean up any existing subscription
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
     }
 
-    // Subscribe to real-time updates
     unsubscribeRef.current = notificationService.subscribeToNotifications(
       user.id,
       (notification) => {
@@ -101,7 +101,7 @@ export function useNotifications() {
     };
   }, [user]);
 
-  // Refresh notifications
+  /** Refreshes notifications list and unread count from the server */
   const refresh = useCallback(async () => {
     if (!user) return;
 
@@ -117,7 +117,7 @@ export function useNotifications() {
     }
   }, [user]);
 
-  // Subscribe to push notifications
+  /** Requests permission and subscribes to push notifications */
   const subscribe = useCallback(async () => {
     try {
       const perm = await pushSubscriptionService.requestPermission();
@@ -137,7 +137,7 @@ export function useNotifications() {
     }
   }, []);
 
-  // Unsubscribe from push notifications
+  /** Unsubscribes from push notifications */
   const unsubscribe = useCallback(async () => {
     try {
       await pushSubscriptionService.unsubscribe();
@@ -148,7 +148,7 @@ export function useNotifications() {
     }
   }, []);
 
-  // Mark a notification as read
+  /** Marks a single notification as read */
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
       await notificationService.markAsRead(notificationId);
@@ -162,7 +162,7 @@ export function useNotifications() {
     }
   }, []);
 
-  // Mark all notifications as read
+  /** Marks all notifications as read */
   const markAllAsRead = useCallback(async () => {
     try {
       await notificationService.markAllAsRead();
@@ -174,7 +174,7 @@ export function useNotifications() {
     }
   }, []);
 
-  // Delete a notification
+  /** Deletes a notification and updates unread count if needed */
   const deleteNotification = useCallback(
     async (notificationId: string) => {
       try {
@@ -192,7 +192,7 @@ export function useNotifications() {
     [notifications]
   );
 
-  // Update notification preferences
+  /** Updates user notification preferences */
   const updatePreferences = useCallback(async (updates: Partial<NotificationPreferences>) => {
     try {
       const updated = await notificationPreferenceService.updatePreferences(updates);
@@ -205,7 +205,6 @@ export function useNotifications() {
   }, []);
 
   return {
-    // State
     notifications,
     unreadCount,
     preferences,
@@ -213,12 +212,8 @@ export function useNotifications() {
     permission,
     loading,
     error,
-
-    // Capabilities
     isSupported,
     isConfigured,
-
-    // Actions
     subscribe,
     unsubscribe,
     markAsRead,

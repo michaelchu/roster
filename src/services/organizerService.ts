@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
+/** Organizer profile information from auth.users */
 export interface Organizer {
   id: string;
   name: string | null;
@@ -8,6 +9,12 @@ export interface Organizer {
 }
 
 export const organizerService = {
+  /**
+   * Retrieves organizer profile by user ID via RPC.
+   * Fetches from auth.users through a security definer function.
+   * @param organizerId - UUID of the organizer
+   * @returns Organizer profile or null if not found
+   */
   async getOrganizerById(organizerId: string): Promise<Organizer | null> {
     const { data, error } = await supabase.rpc('get_user_profile', {
       user_id: organizerId,
@@ -18,7 +25,6 @@ export const organizerService = {
       return null;
     }
 
-    // RPC returns an array, get first result
     if (!data || data.length === 0) {
       return null;
     }
@@ -26,6 +32,12 @@ export const organizerService = {
     return data[0];
   },
 
+  /**
+   * Gets the display name for an organizer.
+   * Returns the user's full name or email prefix via RPC.
+   * @param organizerId - UUID of the organizer
+   * @returns Display name string, or 'Unknown' if not found
+   */
   async getOrganizerDisplayName(organizerId: string): Promise<string> {
     const { data, error } = await supabase.rpc('get_user_display_name', {
       user_id: organizerId,

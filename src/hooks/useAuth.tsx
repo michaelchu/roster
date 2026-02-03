@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
+/** Authentication context value type */
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -16,6 +17,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Authentication provider component that wraps the app.
+ * Manages auth state, listens for auth changes, and handles post-login redirects.
+ * @param children - Child components to render within the provider
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -35,7 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      // Handle return URL after successful sign in
       if (event === 'SIGNED_IN' && session?.user) {
         const returnUrl = localStorage.getItem('returnUrl');
         if (returnUrl) {
@@ -43,15 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const isSafeRelativePath = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
           navigate(isSafeRelativePath ? returnUrl : '/');
         } else {
-          // Check if there's a pending invite after login
           const pendingInviteStr = localStorage.getItem('pendingInvite');
           if (pendingInviteStr) {
-            // Remove the pending invite so it doesn't trigger again
             localStorage.removeItem('pendingInvite');
             try {
               const pendingInvite = JSON.parse(pendingInviteStr);
               if (pendingInvite.type && pendingInvite.id) {
-                // Navigate directly to the event/group page
                 if (pendingInvite.type === 'event') {
                   navigate(`/signup/${pendingInvite.id}`);
                 } else if (pendingInvite.type === 'group') {
@@ -60,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             } catch (error) {
               console.error('Error parsing pending invite:', error);
-              // Malformed pendingInvite was already removed above
             }
           }
         }
@@ -70,6 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  /**
+   * Signs in a user with email and password.
+   * @param email - User's email address
+   * @param password - User's password
+   * @throws Error if authentication fails
+   */
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -78,6 +85,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  /**
+   * Creates a new user account.
+   * @param email - User's email address
+   * @param password - User's password
+   * @param fullName - Optional display name stored in user metadata
+   * @throws Error if registration fails
+   */
   const signUp = async (email: string, password: string, fullName?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -91,6 +105,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  /**
+   * Initiates Google OAuth sign-in flow.
+   * Redirects to Google for authentication.
+   * @throws Error if OAuth initiation fails
+   */
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -101,6 +120,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  /**
+   * Signs in using a Google ID token (for native app integrations).
+   * @param idToken - Google OAuth ID token
+   * @throws Error if authentication fails
+   */
   const signInWithGoogleIdToken = async (idToken: string) => {
     const { error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
@@ -109,6 +133,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  /**
+   * Signs out the current user.
+   * @throws Error if sign out fails
+   */
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -132,6 +160,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Hook to access authentication context.
+ * Must be used within an AuthProvider.
+ * @returns Authentication context with user, session, loading state, and auth methods
+ * @throws Error if used outside of AuthProvider
+ */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);

@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-// Reusable datetime validation function
+/**
+ * Creates a reusable datetime validator that accepts ISO strings or parseable dates.
+ * @param errorMessage - Error message to display on validation failure
+ * @returns Zod string schema with datetime validation
+ */
 const createDatetimeValidator = (errorMessage: string) => {
   return z
     .string()
@@ -14,7 +18,7 @@ const createDatetimeValidator = (errorMessage: string) => {
     .optional();
 };
 
-// Custom field validation
+/** Schema for custom form field definitions */
 export const customFieldSchema = z.object({
   id: z.string().optional(),
   label: z
@@ -28,16 +32,17 @@ export const customFieldSchema = z.object({
   options: z.array(z.string()).optional(),
 });
 
-// Response validation
+/** Schema for custom field response values */
 export const responseValueSchema = z.union([
   z.string().max(1000, 'Response must be less than 1000 characters'),
   z.number(),
   z.array(z.string().max(100, 'Option must be less than 100 characters')),
 ]);
 
+/** Schema for response records (keyed by field ID) */
 export const responseRecordSchema = z.record(z.string(), responseValueSchema);
 
-// Event validation
+/** Schema for event data validation */
 export const eventSchema = z
   .object({
     id: z
@@ -45,8 +50,8 @@ export const eventSchema = z
       .min(8)
       .max(12)
       .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format')
-      .optional(), // Only nanoid format
-    organizer_id: z.string().uuid('Invalid organizer ID'), // Keep UUID for organizer (from Supabase auth)
+      .optional(),
+    organizer_id: z.string().uuid('Invalid organizer ID'),
     name: z
       .string()
       .min(1, 'Event name is required')
@@ -80,13 +85,12 @@ export const eventSchema = z
       .max(12)
       .regex(/^[A-Za-z0-9_-]+$/, 'Invalid parent event ID format')
       .nullable()
-      .optional(), // Only nanoid format
+      .optional(),
     created_at: z.string().datetime().optional(),
     participant_count: z.number().int().min(0).optional(),
   })
   .refine(
     (data) => {
-      // If both datetime and end_datetime are provided, end_datetime must be after datetime
       if (data.datetime && data.end_datetime) {
         const startDate = new Date(data.datetime);
         const endDate = new Date(data.end_datetime);
@@ -100,14 +104,14 @@ export const eventSchema = z
     }
   );
 
-// Participant validation
+/** Schema for participant data validation */
 export const participantSchema = z.object({
-  id: z.string().uuid().optional(), // Participants still use UUID from Supabase
+  id: z.string().uuid().optional(),
   event_id: z
     .string()
     .min(8)
     .max(12)
-    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'), // Only nanoid format for events
+    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'),
   name: z
     .string()
     .min(1, 'Name is required')
@@ -131,14 +135,14 @@ export const participantSchema = z.object({
   created_at: z.string().datetime().optional(),
 });
 
-// Label validation
+/** Schema for label data validation */
 export const labelSchema = z.object({
-  id: z.string().uuid().optional(), // Labels still use UUID from Supabase
+  id: z.string().uuid().optional(),
   event_id: z
     .string()
     .min(8)
     .max(12)
-    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'), // Only nanoid format for events
+    .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'),
   name: z
     .string()
     .min(1, 'Label name is required')
@@ -150,20 +154,21 @@ export const labelSchema = z.object({
     .default('#gray'),
 });
 
-// Organizer validation
+/** Schema for organizer data validation */
 export const organizerSchema = z.object({
   id: z.string().uuid('Invalid organizer ID'),
   name: z.string().max(100, 'Name must be less than 100 characters').nullable().optional(),
   created_at: z.string().datetime().optional(),
 });
 
-// Form validation schemas for common operations
+/** Schema for creating a new event (without server-generated fields) */
 export const createEventFormSchema = eventSchema.omit({
   id: true,
   created_at: true,
   participant_count: true,
 });
 
+/** Schema for updating an existing event (partial fields with required ID) */
 export const updateEventFormSchema = createEventFormSchema.partial().extend({
   id: z
     .string()
@@ -172,16 +177,18 @@ export const updateEventFormSchema = createEventFormSchema.partial().extend({
     .regex(/^[A-Za-z0-9_-]+$/, 'Invalid event ID format'),
 });
 
+/** Schema for creating a new participant */
 export const createParticipantFormSchema = participantSchema.omit({
   id: true,
   created_at: true,
 });
 
+/** Schema for updating an existing participant */
 export const updateParticipantFormSchema = createParticipantFormSchema.partial().extend({
   id: z.string().uuid('Invalid participant ID'),
 });
 
-// Profile form validation (for react-hook-form)
+/** Schema for user profile form */
 export const profileFormSchema = z.object({
   fullName: z
     .string()
@@ -190,7 +197,7 @@ export const profileFormSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email format'),
 });
 
-// Group form validation (for react-hook-form)
+/** Schema for group creation/edit form */
 export const groupFormSchema = z.object({
   name: z
     .string()
@@ -199,21 +206,20 @@ export const groupFormSchema = z.object({
   description: z.string().max(2000, 'Description must be 2000 characters or less').optional(),
 });
 
-// Auth form validation (for react-hook-form)
+/** Schema for login form */
 export const loginFormSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email format'),
   password: z.string().min(1, 'Password is required'),
 });
 
+/** Schema for registration form */
 export const registerFormSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().min(1, 'Email is required').email('Invalid email format'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Event form validation (for react-hook-form)
-// Note: Date validations (past dates, end > start) are handled in the component
-// because they require runtime comparison with current time
+/** Schema for new event form (date validations handled in component for runtime comparisons) */
 export const newEventFormSchema = z.object({
   name: z
     .string()
@@ -230,7 +236,7 @@ export const newEventFormSchema = z.object({
   locationTbd: z.boolean(),
 });
 
-// Type exports for use in components
+// Type exports
 export type ProfileFormData = z.infer<typeof profileFormSchema>;
 export type GroupFormData = z.infer<typeof groupFormSchema>;
 export type LoginFormData = z.infer<typeof loginFormSchema>;
@@ -248,19 +254,36 @@ export type UpdateEventForm = z.infer<typeof updateEventFormSchema>;
 export type CreateParticipantForm = z.infer<typeof createParticipantFormSchema>;
 export type UpdateParticipantForm = z.infer<typeof updateParticipantFormSchema>;
 
-// Validation helper functions
+/** Validates event data, throws on failure */
 export const validateEvent = (data: unknown) => eventSchema.parse(data);
+
+/** Validates participant data, throws on failure */
 export const validateParticipant = (data: unknown) => participantSchema.parse(data);
+
+/** Validates label data, throws on failure */
 export const validateLabel = (data: unknown) => labelSchema.parse(data);
+
+/** Validates organizer data, throws on failure */
 export const validateOrganizer = (data: unknown) => organizerSchema.parse(data);
 
-// Safe validation that returns results instead of throwing
+/** Validates event data, returns SafeParseResult instead of throwing */
 export const safeValidateEvent = (data: unknown) => eventSchema.safeParse(data);
+
+/** Validates participant data, returns SafeParseResult instead of throwing */
 export const safeValidateParticipant = (data: unknown) => participantSchema.safeParse(data);
+
+/** Validates label data, returns SafeParseResult instead of throwing */
 export const safeValidateLabel = (data: unknown) => labelSchema.safeParse(data);
+
+/** Validates organizer data, returns SafeParseResult instead of throwing */
 export const safeValidateOrganizer = (data: unknown) => organizerSchema.safeParse(data);
 
-// Custom field validation helper
+/**
+ * Validates an array of custom field definitions.
+ * Returns only valid fields, silently discarding invalid ones.
+ * @param fields - Unknown input to validate
+ * @returns Array of validated CustomField objects
+ */
 export function validateCustomFields(fields: unknown): CustomField[] {
   if (!Array.isArray(fields)) {
     return [];
@@ -277,7 +300,13 @@ export function validateCustomFields(fields: unknown): CustomField[] {
   return validFields;
 }
 
-// Response validation helper
+/**
+ * Validates response data against custom field definitions.
+ * Returns only valid responses matching the provided field definitions.
+ * @param responses - Unknown response object to validate
+ * @param customFields - Array of custom field definitions
+ * @returns Validated ResponseRecord with only valid entries
+ */
 export function validateResponses(responses: unknown, customFields: CustomField[]): ResponseRecord {
   if (!responses || typeof responses !== 'object') {
     return {};

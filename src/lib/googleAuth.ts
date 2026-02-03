@@ -1,4 +1,4 @@
-// Type definitions for Google Identity Services
+/** Global type augmentation for Google Identity Services */
 declare global {
   interface Window {
     google?: {
@@ -13,6 +13,7 @@ declare global {
   }
 }
 
+/** Configuration for Google Identity Services initialization */
 interface GoogleIdConfiguration {
   client_id: string;
   callback: (response: CredentialResponse) => void;
@@ -20,6 +21,7 @@ interface GoogleIdConfiguration {
   use_fedcm_for_prompt?: boolean;
 }
 
+/** Configuration for Google Sign-In button rendering */
 interface GoogleButtonConfiguration {
   type?: 'standard' | 'icon';
   theme?: 'outline' | 'filled_blue' | 'filled_black';
@@ -30,6 +32,7 @@ interface GoogleButtonConfiguration {
   width?: number;
 }
 
+/** Response from Google credential callback */
 interface CredentialResponse {
   credential: string;
   select_by?: string;
@@ -53,21 +56,18 @@ export function initializeGoogleButton(
     return;
   }
 
-  // Wait for Google Identity Services to load
   const initializeWhenReady = () => {
     if (window.google?.accounts?.id) {
       try {
-        // Initialize Google Identity Services
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: (response: CredentialResponse) => {
             onSuccess(response.credential);
           },
           auto_select: false,
-          use_fedcm_for_prompt: true, // Enable FedCM for personalized button
+          use_fedcm_for_prompt: true,
         });
 
-        // Render the button
         const buttonContainer = document.getElementById(containerId);
         if (buttonContainer) {
           window.google.accounts.id.renderButton(buttonContainer, {
@@ -85,7 +85,6 @@ export function initializeGoogleButton(
         onError(err instanceof Error ? err : new Error('Failed to initialize Google Sign-In'));
       }
     } else {
-      // Retry after a short delay if Google Identity Services isn't ready yet
       setTimeout(initializeWhenReady, 100);
     }
   };

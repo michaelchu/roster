@@ -2,11 +2,13 @@ import { useState, useCallback } from 'react';
 import { z } from 'zod';
 import { errorHandler } from '@/lib/errorHandler';
 
+/** Validation error with field path and message */
 export interface ValidationError {
   field: string;
   message: string;
 }
 
+/** Return type for useFormValidation hook */
 export interface UseFormValidationResult<T> {
   errors: ValidationError[];
   isValid: boolean;
@@ -17,9 +19,16 @@ export interface UseFormValidationResult<T> {
   getFieldError: (field: keyof T) => string | undefined;
 }
 
+/**
+ * Hook for validating form data against a Zod schema.
+ * Tracks validation errors and provides methods for full and field-level validation.
+ * @param schema - Zod schema to validate against
+ * @returns Validation state and methods
+ */
 export function useFormValidation<T>(schema: z.ZodSchema<T>): UseFormValidationResult<T> {
   const [errors, setErrors] = useState<ValidationError[]>([]);
 
+  /** Validates all data against the schema */
   const validate = useCallback(
     (data: T): boolean => {
       try {
@@ -43,18 +52,17 @@ export function useFormValidation<T>(schema: z.ZodSchema<T>): UseFormValidationR
     [schema]
   );
 
+  /** Validates a single field value against its schema */
   const validateField = useCallback(
     (field: keyof T, value: unknown): boolean => {
       try {
         const fieldSchema = (schema as z.ZodObject<z.ZodRawShape>).shape?.[field as string];
         if (!fieldSchema) {
-          // If we can't find the field schema, assume it's valid
           return true;
         }
 
         (fieldSchema as z.ZodType).parse(value);
 
-        // Remove any existing errors for this field
         setErrors((prev) => prev.filter((error) => error.field !== String(field)));
         return true;
       } catch (error) {
@@ -71,20 +79,23 @@ export function useFormValidation<T>(schema: z.ZodSchema<T>): UseFormValidationR
           return false;
         }
 
-        return true; // Don't show errors for unexpected validation failures
+        return true;
       }
     },
     [schema]
   );
 
+  /** Clears all validation errors */
   const clearErrors = useCallback(() => {
     setErrors([]);
   }, []);
 
+  /** Clears error for a specific field */
   const clearFieldError = useCallback((field: keyof T) => {
     setErrors((prev) => prev.filter((error) => error.field !== String(field)));
   }, []);
 
+  /** Gets the error message for a specific field */
   const getFieldError = useCallback(
     (field: keyof T): string | undefined => {
       const error = errors.find((error) => error.field === String(field));
@@ -104,11 +115,18 @@ export function useFormValidation<T>(schema: z.ZodSchema<T>): UseFormValidationR
   };
 }
 
-// Convenience hook for common form patterns
+/**
+ * Convenience hook combining form data state with validation.
+ * Provides field update methods that automatically validate on change.
+ * @param initialData - Initial form data
+ * @param schema - Zod schema to validate against
+ * @returns Form data state, update methods, and validation methods
+ */
 export function useValidatedForm<T>(initialData: T, schema: z.ZodSchema<T>) {
   const [data, setData] = useState<T>(initialData);
   const validation = useFormValidation(schema);
 
+  /** Updates a field value and validates it */
   const updateField = useCallback(
     (field: keyof T, value: T[keyof T]) => {
       setData((prev) => ({ ...prev, [field]: value }));
@@ -117,10 +135,12 @@ export function useValidatedForm<T>(initialData: T, schema: z.ZodSchema<T>) {
     [validation]
   );
 
+  /** Validates all form data */
   const validateAll = useCallback(() => {
     return validation.validate(data);
   }, [data, validation]);
 
+  /** Resets form data to initial values and clears errors */
   const reset = useCallback(() => {
     setData(initialData);
     validation.clearErrors();
