@@ -12,6 +12,12 @@ vi.mock('@/lib/supabase', () => ({
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: [], error: null }),
     })),
+    auth: {
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: { id: 'test-user-id' } },
+        error: null,
+      }),
+    },
   },
 }));
 
@@ -201,6 +207,7 @@ describe('pushSubscriptionService', () => {
 
       expect(mockQueryChain.upsert).toHaveBeenCalledWith(
         {
+          user_id: 'test-user-id',
           endpoint: 'https://fcm.googleapis.com/fcm/send/test-endpoint',
           p256dh_key: 'test-p256dh-key',
           auth_key: 'test-auth-key',

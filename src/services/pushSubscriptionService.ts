@@ -115,6 +115,12 @@ export const pushSubscriptionService = {
     }
 
     try {
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const registration = await navigator.serviceWorker.ready;
 
       const subscription = await registration.pushManager.subscribe({
@@ -130,6 +136,7 @@ export const pushSubscriptionService = {
       // Save to database
       const { error } = await (supabase as any).from('push_subscriptions').upsert(
         {
+          user_id: user.id,
           endpoint: subscriptionJson.endpoint!,
           p256dh_key: subscriptionJson.keys?.p256dh || '',
           auth_key: subscriptionJson.keys?.auth || '',
