@@ -102,7 +102,10 @@ test.describe('Event Capacity Enforcement', () => {
       // Navigate to the full event
       await goToEvent(page, event.id);
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
+
+      // Wait for participant list to show the registered user's name
+      // This ensures the participant data has been loaded before checking the button
+      await expect(page.getByText('Test User')).toBeVisible({ timeout: 10000 });
 
       // Registered user should see Withdraw or Modify Registration button, not Event Full
       const withdrawButton = page.getByRole('button', { name: /withdraw|modify registration/i });
