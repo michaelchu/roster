@@ -14,7 +14,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useFontSize, type FontSize } from '@/hooks/useFontSize';
 import { useTheme } from '@/components/theme-provider';
-import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { useFeatureFlag, useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { errorHandler } from '@/lib/errorHandler';
 import { notificationService, pushSubscriptionService } from '@/services';
 import { User, LogOut, BellRing, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
@@ -22,6 +22,7 @@ import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
 import { UserAvatar } from '@/components/UserAvatar';
 import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
+import { NotificationDebugPanel } from '@/components/notifications/NotificationDebugPanel';
 
 const STORAGE_KEYS = {
   defaultCapacity: 'settings:defaultCapacity',
@@ -53,6 +54,8 @@ export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const notificationsEnabled = useFeatureFlag('notifications');
   const eventPrivacyEnabled = useFeatureFlag('event_privacy');
+  const { isFeatureEnabled } = useFeatureFlags();
+  const debugNotificationsEnabled = isFeatureEnabled('debug_notifications');
   const [testingPush, setTestingPush] = useState(false);
   const [defaultCapacity, setDefaultCapacity] = useState(() =>
     loadFromStorage(STORAGE_KEYS.defaultCapacity, 10)
@@ -209,6 +212,8 @@ export function SettingsPage() {
               </div>
             </div>
           )}
+
+          {debugNotificationsEnabled && <NotificationDebugPanel />}
 
           <div className="bg-card rounded-lg border overflow-hidden">
             <div className="p-3 border-b bg-muted">

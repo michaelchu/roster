@@ -267,6 +267,186 @@ export type Database = {
           },
         ];
       };
+      notification_preferences: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          notify_capacity_reached: boolean | null;
+          notify_event_cancelled: boolean | null;
+          notify_event_updated: boolean | null;
+          notify_new_signup: boolean | null;
+          notify_payment_received: boolean | null;
+          notify_payment_reminder: boolean | null;
+          notify_signup_confirmed: boolean | null;
+          notify_waitlist_promotion: boolean | null;
+          notify_withdrawal: boolean | null;
+          push_enabled: boolean | null;
+          updated_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          notify_capacity_reached?: boolean | null;
+          notify_event_cancelled?: boolean | null;
+          notify_event_updated?: boolean | null;
+          notify_new_signup?: boolean | null;
+          notify_payment_received?: boolean | null;
+          notify_payment_reminder?: boolean | null;
+          notify_signup_confirmed?: boolean | null;
+          notify_waitlist_promotion?: boolean | null;
+          notify_withdrawal?: boolean | null;
+          push_enabled?: boolean | null;
+          updated_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          notify_capacity_reached?: boolean | null;
+          notify_event_cancelled?: boolean | null;
+          notify_event_updated?: boolean | null;
+          notify_new_signup?: boolean | null;
+          notify_payment_received?: boolean | null;
+          notify_payment_reminder?: boolean | null;
+          notify_signup_confirmed?: boolean | null;
+          notify_waitlist_promotion?: boolean | null;
+          notify_withdrawal?: boolean | null;
+          push_enabled?: boolean | null;
+          updated_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      notification_queue: {
+        Row: {
+          action_url: string | null;
+          actor_user_id: string | null;
+          attempts: number | null;
+          body: string;
+          created_at: string | null;
+          event_id: string | null;
+          id: string;
+          last_error: string | null;
+          notification_type: string;
+          participant_id: string | null;
+          processed_at: string | null;
+          recipient_user_id: string;
+          scheduled_for: string | null;
+          status: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          action_url?: string | null;
+          actor_user_id?: string | null;
+          attempts?: number | null;
+          body: string;
+          created_at?: string | null;
+          event_id?: string | null;
+          id?: string;
+          last_error?: string | null;
+          notification_type: string;
+          participant_id?: string | null;
+          processed_at?: string | null;
+          recipient_user_id: string;
+          scheduled_for?: string | null;
+          status?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          action_url?: string | null;
+          actor_user_id?: string | null;
+          attempts?: number | null;
+          body?: string;
+          created_at?: string | null;
+          event_id?: string | null;
+          id?: string;
+          last_error?: string | null;
+          notification_type?: string;
+          participant_id?: string | null;
+          processed_at?: string | null;
+          recipient_user_id?: string;
+          scheduled_for?: string | null;
+          status?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_queue_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notification_queue_participant_id_fkey';
+            columns: ['participant_id'];
+            isOneToOne: false;
+            referencedRelation: 'participants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          action_url: string | null;
+          actor_user_id: string | null;
+          body: string;
+          created_at: string | null;
+          event_id: string | null;
+          id: string;
+          participant_id: string | null;
+          read_at: string | null;
+          recipient_user_id: string;
+          title: string;
+          type: string;
+        };
+        Insert: {
+          action_url?: string | null;
+          actor_user_id?: string | null;
+          body: string;
+          created_at?: string | null;
+          event_id?: string | null;
+          id?: string;
+          participant_id?: string | null;
+          read_at?: string | null;
+          recipient_user_id: string;
+          title: string;
+          type: string;
+        };
+        Update: {
+          action_url?: string | null;
+          actor_user_id?: string | null;
+          body?: string;
+          created_at?: string | null;
+          event_id?: string | null;
+          id?: string;
+          participant_id?: string | null;
+          read_at?: string | null;
+          recipient_user_id?: string;
+          title?: string;
+          type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_participant_id_fkey';
+            columns: ['participant_id'];
+            isOneToOne: false;
+            referencedRelation: 'participants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       participant_labels: {
         Row: {
           created_at: string;
@@ -362,6 +542,42 @@ export type Database = {
           },
         ];
       };
+      push_subscriptions: {
+        Row: {
+          active: boolean | null;
+          auth_key: string;
+          created_at: string | null;
+          endpoint: string;
+          id: string;
+          last_used_at: string | null;
+          p256dh_key: string;
+          user_agent: string | null;
+          user_id: string;
+        };
+        Insert: {
+          active?: boolean | null;
+          auth_key: string;
+          created_at?: string | null;
+          endpoint: string;
+          id?: string;
+          last_used_at?: string | null;
+          p256dh_key: string;
+          user_agent?: string | null;
+          user_id: string;
+        };
+        Update: {
+          active?: boolean | null;
+          auth_key?: string;
+          created_at?: string | null;
+          endpoint?: string;
+          id?: string;
+          last_used_at?: string | null;
+          p256dh_key?: string;
+          user_agent?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -386,40 +602,10 @@ export type Database = {
           updated_count: number;
         }[];
       };
-      dblink: { Args: { '': string }; Returns: Record<string, unknown>[] };
-      dblink_cancel_query: { Args: { '': string }; Returns: string };
-      dblink_close: { Args: { '': string }; Returns: string };
-      dblink_connect: { Args: { '': string }; Returns: string };
-      dblink_connect_u: { Args: { '': string }; Returns: string };
-      dblink_current_query: { Args: never; Returns: string };
-      dblink_disconnect:
-        | { Args: never; Returns: string }
-        | { Args: { '': string }; Returns: string };
-      dblink_error_message: { Args: { '': string }; Returns: string };
-      dblink_exec: { Args: { '': string }; Returns: string };
-      dblink_fdw_validator: {
-        Args: { catalog: unknown; options: string[] };
+      check_and_notify_capacity_reached: {
+        Args: { p_event_id: string };
         Returns: undefined;
       };
-      dblink_get_connections: { Args: never; Returns: string[] };
-      dblink_get_notify:
-        | { Args: { conname: string }; Returns: Record<string, unknown>[] }
-        | { Args: never; Returns: Record<string, unknown>[] };
-      dblink_get_pkey: {
-        Args: { '': string };
-        Returns: Database['public']['CompositeTypes']['dblink_pkey_results'][];
-        SetofOptions: {
-          from: '*';
-          to: 'dblink_pkey_results';
-          isOneToOne: false;
-          isSetofReturn: true;
-        };
-      };
-      dblink_get_result: {
-        Args: { '': string };
-        Returns: Record<string, unknown>[];
-      };
-      dblink_is_busy: { Args: { '': string }; Returns: number };
       delete_group_atomic: {
         Args: { p_delete_events?: boolean; p_group_id: string };
         Returns: undefined;
@@ -428,9 +614,9 @@ export type Database = {
         Args: { p_event_id: string };
         Returns: {
           avatar_url: string;
+          full_name: string;
           participant_id: string;
           user_id: string;
-          full_name: string | null;
         }[];
       };
       get_group_by_id_with_counts: {
@@ -471,10 +657,6 @@ export type Database = {
         Args: { p_event_id: string; p_user_id?: string };
         Returns: number;
       };
-      get_or_create_user: {
-        Args: { user_email: string; user_name: string };
-        Returns: string;
-      };
       get_user_display_name: { Args: { user_id: string }; Returns: string };
       get_user_groups_with_counts: {
         Args: { p_user_id: string };
@@ -510,10 +692,7 @@ export type Database = {
       [_ in never]: never;
     };
     CompositeTypes: {
-      dblink_pkey_results: {
-        position: number | null;
-        colname: string | null;
-      };
+      [_ in never]: never;
     };
   };
 };
