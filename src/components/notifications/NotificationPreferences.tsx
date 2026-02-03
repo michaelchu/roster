@@ -125,6 +125,11 @@ export function NotificationPreferences() {
               disabled={updating === 'push_enabled'}
             />
           </div>
+          {masterEnabled && (
+            <p className="text-xs text-muted-foreground mt-2 ml-8">
+              Make sure notifications are allowed for your browser in your phone's settings.
+            </p>
+          )}
         </div>
 
         {masterEnabled && (
