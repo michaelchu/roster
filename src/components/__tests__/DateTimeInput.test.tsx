@@ -8,15 +8,24 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="" onChange={onChange} />);
 
-      expect(screen.getByText('MM/DD/YYYY hh:mm aa')).toBeInTheDocument();
+      expect(screen.getByText('Select date')).toBeInTheDocument();
     });
 
     it('renders formatted date when value provided', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
 
-      // Format: MM/dd/yyyy hh:mm aa
-      expect(screen.getByText('12/25/2024 02:30 PM')).toBeInTheDocument();
+      // Format: PPP (e.g., "December 25th, 2024")
+      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+    });
+
+    it('renders time in time input when value provided', () => {
+      const onChange = vi.fn();
+      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
+
+      const timeInput = screen.getByDisplayValue('14:30');
+      expect(timeInput).toBeInTheDocument();
+      expect(timeInput).toHaveAttribute('type', 'time');
     });
 
     it('renders TBD when disabled', () => {
@@ -42,6 +51,14 @@ describe('DateTimeInput', () => {
       expect(screen.getByRole('button')).toBeDisabled();
     });
 
+    it('disables the time input when disabled prop is true', () => {
+      const onChange = vi.fn();
+      render(<DateTimeInput value="" onChange={onChange} disabled />);
+
+      const timeInput = document.querySelector('input[type="time"]');
+      expect(timeInput).toBeDisabled();
+    });
+
     it('does not open popover when disabled', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="" onChange={onChange} disabled />);
@@ -63,70 +80,34 @@ describe('DateTimeInput', () => {
       // Calendar grid should appear
       expect(screen.getByRole('grid')).toBeInTheDocument();
     });
-
-    it('shows time selection buttons', () => {
-      const onChange = vi.fn();
-      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
-
-      fireEvent.click(screen.getByRole('button'));
-
-      // Hour buttons (1-12)
-      expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: '12' })).toBeInTheDocument();
-
-      // Minute buttons (00, 05, 10, etc.)
-      expect(screen.getByRole('button', { name: '00' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: '30' })).toBeInTheDocument();
-
-      // AM/PM buttons
-      expect(screen.getByRole('button', { name: 'AM' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'PM' })).toBeInTheDocument();
-    });
   });
 
-  describe('time selection', () => {
-    it('calls onChange when hour is selected', () => {
+  describe('time input interaction', () => {
+    it('calls onChange when time is changed', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
 
-      fireEvent.click(screen.getByRole('button'));
+      const timeInput = screen.getByDisplayValue('14:30');
+      fireEvent.change(timeInput, { target: { value: '09:15' } });
 
-      // Click hour 3
-      fireEvent.click(screen.getByRole('button', { name: '3' }));
-
-      // Should call onChange with updated hour (3 PM = 15:00)
       expect(onChange).toHaveBeenCalled();
       const newValue = onChange.mock.calls[0][0];
       expect(newValue).toContain('2024-12-25');
-      expect(newValue).toContain('15:30');
+      expect(newValue).toContain('09:15');
     });
 
-    it('calls onChange when minute is selected', () => {
+    it('uses current date when time is changed without date', () => {
       const onChange = vi.fn();
-      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
+      render(<DateTimeInput value="" onChange={onChange} />);
 
-      fireEvent.click(screen.getByRole('button'));
-
-      // Click minute 45
-      fireEvent.click(screen.getByRole('button', { name: '45' }));
+      // When no date is set, time input is empty
+      const timeInput = document.querySelector('input[type="time"]') as HTMLInputElement;
+      fireEvent.change(timeInput, { target: { value: '09:15' } });
 
       expect(onChange).toHaveBeenCalled();
       const newValue = onChange.mock.calls[0][0];
-      expect(newValue).toContain('14:45');
-    });
-
-    it('calls onChange when AM/PM is toggled', () => {
-      const onChange = vi.fn();
-      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
-
-      fireEvent.click(screen.getByRole('button'));
-
-      // Current is PM (14:30), click AM
-      fireEvent.click(screen.getByRole('button', { name: 'AM' }));
-
-      expect(onChange).toHaveBeenCalled();
-      const newValue = onChange.mock.calls[0][0];
-      expect(newValue).toContain('02:30');
+      // Should use current date with the new time
+      expect(newValue).toContain('09:15');
     });
   });
 
@@ -135,30 +116,32 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T00:00" onChange={onChange} />);
 
-      // Midnight should display as 12:00 AM
-      expect(screen.getByText('12/25/2024 12:00 AM')).toBeInTheDocument();
+      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('00:00')).toBeInTheDocument();
     });
 
     it('handles noon correctly', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T12:00" onChange={onChange} />);
 
-      // Noon should display as 12:00 PM
-      expect(screen.getByText('12/25/2024 12:00 PM')).toBeInTheDocument();
+      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('12:00')).toBeInTheDocument();
     });
 
     it('handles edge of AM correctly', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T11:59" onChange={onChange} />);
 
-      expect(screen.getByText('12/25/2024 11:59 AM')).toBeInTheDocument();
+      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('11:59')).toBeInTheDocument();
     });
 
     it('handles edge of PM correctly', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T23:59" onChange={onChange} />);
 
-      expect(screen.getByText('12/25/2024 11:59 PM')).toBeInTheDocument();
+      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('23:59')).toBeInTheDocument();
     });
   });
 
@@ -189,6 +172,32 @@ describe('DateTimeInput', () => {
       const newValue = onChange.mock.calls[0][0];
       // Time should be preserved
       expect(newValue).toContain('14:30');
+    });
+
+    it('sets default time of 12:00 when selecting date without existing time', () => {
+      const onChange = vi.fn();
+      render(<DateTimeInput value="" onChange={onChange} />);
+
+      fireEvent.click(screen.getByRole('button'));
+
+      // Find and click a date
+      const gridCells = screen.getAllByRole('gridcell');
+      const aDay = gridCells.find((cell) => {
+        const button = cell.querySelector('button');
+        return button && button.textContent === '15';
+      });
+
+      if (aDay) {
+        const button = aDay.querySelector('button');
+        if (button) {
+          fireEvent.click(button);
+        }
+      }
+
+      expect(onChange).toHaveBeenCalled();
+      const newValue = onChange.mock.calls[0][0];
+      // Default time should be 12:00
+      expect(newValue).toContain('12:00');
     });
   });
 });
