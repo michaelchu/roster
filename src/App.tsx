@@ -44,11 +44,13 @@ function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Hide bottom nav on auth pages, signup pages, and invite pages (but only hide signup pages for non-authenticated users)
+  // Hide bottom nav on auth pages, signup pages, invite pages, and modal routes (but only hide signup pages for non-authenticated users)
   const hideBottomNav =
     location.pathname.startsWith('/auth') ||
     location.pathname.startsWith('/invite') ||
-    (location.pathname.startsWith('/signup') && !user);
+    (location.pathname.startsWith('/signup') && !user) ||
+    location.pathname === '/events/new' ||
+    /^\/events\/[^/]+\/edit$/.test(location.pathname);
 
   return (
     <>
