@@ -197,7 +197,7 @@ export const eventService = {
     const changes: string[] = [];
     if (oldEvent.name !== updated.name) changes.push('title');
     if (oldEvent.datetime !== updated.datetime) changes.push('date/time');
-    else if (oldEvent.end_datetime !== updated.end_datetime) changes.push('end time');
+    if (oldEvent.end_datetime !== updated.end_datetime) changes.push('end time');
     if (oldEvent.location !== updated.location) changes.push('location');
     if (oldEvent.description !== updated.description) changes.push('description');
 
