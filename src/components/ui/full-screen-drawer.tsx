@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Drawer as DrawerPrimitive } from 'vaul';
 import { cn } from '@/lib/utils';
 
@@ -9,8 +10,29 @@ interface FullScreenDrawerProps {
 }
 
 export function FullScreenDrawer({ open, onOpenChange, children }: FullScreenDrawerProps) {
+  const [internalOpen, setInternalOpen] = useState(open);
+  const isClosingRef = useRef(false);
+
+  useEffect(() => {
+    if (open) {
+      setInternalOpen(true);
+      isClosingRef.current = false;
+    }
+  }, [open]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && !isClosingRef.current) {
+      isClosingRef.current = true;
+      setInternalOpen(false);
+      // Wait for animation to complete before navigating
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 300);
+    }
+  };
+
   return (
-    <DrawerPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DrawerPrimitive.Root open={internalOpen} onOpenChange={handleOpenChange}>
       <DrawerPrimitive.Portal>
         <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80" />
         <DrawerPrimitive.Content
