@@ -82,7 +82,7 @@ export function NewGroupPage() {
       <form
         id="create-group-form"
         onSubmit={handleSubmit(onSubmit, showFormErrors)}
-        className="flex-1 overflow-y-auto p-3 space-y-4 bg-background"
+        className="flex-1 flex flex-col overflow-y-auto p-3 bg-background"
       >
         {/* Group Name */}
         <div className="space-y-2">
@@ -102,8 +102,8 @@ export function NewGroupPage() {
           <p className="text-xs text-muted-foreground">{nameValue?.length || 0}/200 characters</p>
         </div>
 
-        {/* Description */}
-        <div className="space-y-2">
+        {/* Description - fills remaining space */}
+        <div className="flex-1 flex flex-col space-y-2 mt-4 min-h-0">
           <Label htmlFor="description" className="text-sm">
             Description
           </Label>
@@ -111,8 +111,7 @@ export function NewGroupPage() {
             {...register('description')}
             id="description"
             placeholder="Describe your group (optional)"
-            className={`text-sm resize-none ${errors.description ? 'border-destructive' : ''}`}
-            rows={3}
+            className={`flex-1 text-sm resize-none min-h-[100px] ${errors.description ? 'border-destructive' : ''}`}
             maxLength={2000}
           />
           {errors.description && (
@@ -123,11 +122,13 @@ export function NewGroupPage() {
           </p>
         </div>
 
+        <div className="border-t mt-4" />
+
         {/* Create Group Button */}
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+          className="w-full mt-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
         >
           {isSubmitting ? (
             'Creating Group...'

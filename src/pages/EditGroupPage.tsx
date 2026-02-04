@@ -225,7 +225,7 @@ export function EditGroupPage() {
       <form
         id="edit-group-form"
         onSubmit={handleSubmit(onSubmit, showFormErrors)}
-        className="flex-1 overflow-y-auto p-3 space-y-6 bg-background"
+        className="flex-1 flex flex-col overflow-y-auto p-3 bg-background"
       >
         {/* Group Name */}
         <div className="space-y-2">
@@ -243,14 +243,14 @@ export function EditGroupPage() {
           <p className="text-xs text-muted-foreground">{nameValue?.length || 0}/200 characters</p>
         </div>
 
-        {/* Description */}
-        <div className="space-y-2">
+        {/* Description - fills remaining space */}
+        <div className="flex-1 flex flex-col space-y-2 mt-4 min-h-0">
           <Label htmlFor="description">Description</Label>
           <Textarea
             {...register('description')}
             id="description"
             placeholder="Describe your group (optional)"
-            className={`min-h-[100px] ${errors.description ? 'border-destructive' : ''}`}
+            className={`flex-1 resize-none min-h-[100px] ${errors.description ? 'border-destructive' : ''}`}
             maxLength={2000}
           />
           {errors.description && (
@@ -261,10 +261,12 @@ export function EditGroupPage() {
           </p>
         </div>
 
+        <div className="border-t mt-4" />
+
         {/* Delete Group Button */}
         <Button
           variant="outline"
-          className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+          className="w-full mt-4 text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={() => setShowDeleteDialog(true)}
           disabled={isSubmitting || deleting}
           type="button"
@@ -277,7 +279,7 @@ export function EditGroupPage() {
         <Button
           type="submit"
           disabled={isSubmitting || deleting}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+          className="w-full mt-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
         >
           {isSubmitting ? (
             <>
