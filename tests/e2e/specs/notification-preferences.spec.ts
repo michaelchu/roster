@@ -84,6 +84,7 @@ test.describe('Notification Preferences', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        apikey: serviceRoleKey,
         Authorization: `Bearer ${serviceRoleKey}`,
       },
     });
