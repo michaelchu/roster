@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logError } from '@/lib/errorHandler';
 
 export type ParticipantActivityType =
   | 'joined'
@@ -39,7 +40,7 @@ async function insertActivity(
   });
 
   if (error) {
-    console.error('Failed to log participant activity:', error);
+    logError('Failed to log participant activity', error, { participantId, eventId, activityType });
   }
 }
 

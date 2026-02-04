@@ -5,6 +5,7 @@ import {
   notificationPreferenceService,
 } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { logError } from '@/lib/errorHandler';
 import type { Notification, NotificationPreferences } from '@/types/notifications';
 
 /**
@@ -113,7 +114,7 @@ export function useNotifications() {
       setNotifications(notifs);
       setUnreadCount(count);
     } catch (err) {
-      console.error('Failed to refresh notifications:', err);
+      logError('Failed to refresh notifications', err);
     }
   }, [user]);
 
@@ -132,7 +133,7 @@ export function useNotifications() {
 
       return perm;
     } catch (err) {
-      console.error('Failed to subscribe to push:', err);
+      logError('Failed to subscribe to push', err);
       throw err;
     }
   }, []);
@@ -143,7 +144,7 @@ export function useNotifications() {
       await pushSubscriptionService.unsubscribe();
       setIsSubscribed(false);
     } catch (err) {
-      console.error('Failed to unsubscribe from push:', err);
+      logError('Failed to unsubscribe from push', err);
       throw err;
     }
   }, []);
@@ -157,7 +158,7 @@ export function useNotifications() {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
-      console.error('Failed to mark notification as read:', err);
+      logError('Failed to mark notification as read', err, { notificationId });
       throw err;
     }
   }, []);
@@ -169,7 +170,7 @@ export function useNotifications() {
       setNotifications((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
       setUnreadCount(0);
     } catch (err) {
-      console.error('Failed to mark all as read:', err);
+      logError('Failed to mark all as read', err);
       throw err;
     }
   }, []);
@@ -185,7 +186,7 @@ export function useNotifications() {
           setUnreadCount((prev) => Math.max(0, prev - 1));
         }
       } catch (err) {
-        console.error('Failed to delete notification:', err);
+        logError('Failed to delete notification', err, { notificationId });
         throw err;
       }
     },
@@ -199,7 +200,7 @@ export function useNotifications() {
       setPreferences(updated);
       return updated;
     } catch (err) {
-      console.error('Failed to update preferences:', err);
+      logError('Failed to update preferences', err);
       throw err;
     }
   }, []);

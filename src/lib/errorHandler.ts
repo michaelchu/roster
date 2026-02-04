@@ -2,7 +2,23 @@ import { toast } from 'sonner';
 import { Sentry } from './sentry';
 
 /**
- * Executes an async function without blocking, logging errors to console.
+ * Logs an error to console and sends it to Sentry.
+ * Use this instead of console.error for errors that should be tracked.
+ *
+ * @param message - Description of what failed
+ * @param error - The error object
+ * @param extra - Additional context to send to Sentry
+ *
+ * @example
+ * logError('Failed to fetch user', error, { userId: '123' });
+ */
+export function logError(message: string, error: unknown, extra?: Record<string, unknown>): void {
+  console.error(message, error);
+  Sentry.captureException(error, { extra: { message, ...extra } });
+}
+
+/**
+ * Executes an async function without blocking, logging errors to console and Sentry.
  * Use for non-critical operations like notifications, activity logging, etc.
  *
  * @param promise - The promise to execute
@@ -12,7 +28,7 @@ import { Sentry } from './sentry';
  * fireAndForget(notificationService.queueNewSignup(data), 'queue new signup notification');
  */
 export function fireAndForget(promise: Promise<unknown>, action: string): void {
-  promise.catch((e) => console.error(`Failed to ${action}:`, e));
+  promise.catch((e) => logError(`Failed to ${action}`, e, { action }));
 }
 
 export interface ErrorContext {

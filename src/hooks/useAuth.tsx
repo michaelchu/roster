@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { logError } from '@/lib/errorHandler';
 
 /** Authentication context value type */
 interface AuthContextType {
@@ -61,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
               }
             } catch (error) {
-              console.error('Error parsing pending invite:', error);
+              logError('Error parsing pending invite', error);
             }
           }
         }

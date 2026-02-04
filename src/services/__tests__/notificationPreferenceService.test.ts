@@ -18,6 +18,7 @@ vi.mock('@/lib/supabase', () => ({
 
 // Mock error handler
 vi.mock('@/lib/errorHandler', () => ({
+  logError: vi.fn(),
   throwIfSupabaseError: vi.fn((result) => {
     if (result.error) throw new Error(result.error.message);
     return result.data;

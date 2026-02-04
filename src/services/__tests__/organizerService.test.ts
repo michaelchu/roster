@@ -53,7 +53,7 @@ describe('organizerService', () => {
       const result = await organizerService.getOrganizerById('nonexistent');
 
       expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalledWith('Error fetching organizer:', {
+      expect(console.error).toHaveBeenCalledWith('Error fetching organizer', {
         message: 'Not found',
       });
     });
@@ -92,7 +92,7 @@ describe('organizerService', () => {
       const result = await organizerService.getOrganizerDisplayName('nonexistent');
 
       expect(result).toBe('Unknown');
-      expect(console.error).toHaveBeenCalledWith('Error fetching organizer display name:', {
+      expect(console.error).toHaveBeenCalledWith('Error fetching organizer display name', {
         message: 'Not found',
       });
     });

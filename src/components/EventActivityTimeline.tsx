@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserPlus, UserX, DollarSign, Edit, Tag, Clock } from 'lucide-react';
 import { participantActivityService, type ParticipantActivity } from '@/services';
+import { logError } from '@/lib/errorHandler';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface EventActivityTimelineProps {
@@ -39,7 +40,7 @@ export function EventActivityTimeline({ eventId }: EventActivityTimelineProps) {
       const data = await participantActivityService.getEventActivity(eventId);
       setActivities(data);
     } catch (error) {
-      console.error('Failed to load activities:', error);
+      logError('Failed to load activities', error, { eventId });
     } finally {
       setLoading(false);
     }

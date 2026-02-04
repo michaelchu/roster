@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { Notification, NotificationType } from '@/types/notifications';
-import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
+import { throwIfSupabaseError, requireData, logError } from '@/lib/errorHandler';
 
 /** Data needed to queue a notification */
 interface QueueNotificationParams {
@@ -169,7 +169,7 @@ export const notificationService = {
 
     // Silently ignore duplicate notifications (unique constraint violations)
     if (error && error.code !== '23505') {
-      console.error('Failed to queue notification:', error);
+      logError('Failed to queue notification', error, { params });
     }
   },
 

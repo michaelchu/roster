@@ -3,7 +3,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notificationPreferenceService } from '@/services';
-import { errorHandler } from '@/lib/errorHandler';
+import { errorHandler, logError } from '@/lib/errorHandler';
 import type { NotificationPreferences as NotificationPreferencesType } from '@/types/notifications';
 import { Bell, BellOff } from 'lucide-react';
 
@@ -43,7 +43,7 @@ export function NotificationPreferences() {
         const prefs = await notificationPreferenceService.getOrCreatePreferences();
         setPreferences(prefs);
       } catch (error) {
-        console.error('Failed to load notification preferences:', error);
+        logError('Failed to load notification preferences', error);
         errorHandler.handle(error, { action: 'load notification preferences' });
       } finally {
         setLoading(false);
@@ -66,7 +66,7 @@ export function NotificationPreferences() {
     } catch (error) {
       // Revert on error
       setPreferences({ ...preferences, [key]: previousValue });
-      console.error('Failed to update notification preference:', error);
+      logError('Failed to update notification preference', error, { key });
       errorHandler.handle(error, { action: 'update notification preference' });
     } finally {
       setUpdating(null);

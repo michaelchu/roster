@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logError } from '@/lib/errorHandler';
 
 /** Organizer profile information from auth.users */
 export interface Organizer {
@@ -21,7 +22,7 @@ export const organizerService = {
     });
 
     if (error) {
-      console.error('Error fetching organizer:', error);
+      logError('Error fetching organizer', error, { organizerId });
       return null;
     }
 
@@ -44,7 +45,7 @@ export const organizerService = {
     });
 
     if (error) {
-      console.error('Error fetching organizer display name:', error);
+      logError('Error fetching organizer display name', error, { organizerId });
       return 'Unknown';
     }
 

@@ -27,6 +27,7 @@ import { supabase } from '@/lib/supabase';
 
 // Mock error handler
 vi.mock('@/lib/errorHandler', () => ({
+  logError: vi.fn(),
   errorHandler: {
     fromSupabaseError: vi.fn((error) => new Error(error.message)),
   },

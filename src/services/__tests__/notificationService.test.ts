@@ -385,7 +385,7 @@ describe('notificationService', () => {
         body: 'Test',
       });
 
-      expect(console.error).toHaveBeenCalledWith('Failed to queue notification:', {
+      expect(console.error).toHaveBeenCalledWith('Failed to queue notification', {
         code: 'OTHER',
         message: 'Failed',
       });

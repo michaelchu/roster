@@ -7,7 +7,7 @@ import { NotificationBadge } from './NotificationBadge';
 import { NotificationItem } from './NotificationItem';
 import { PushPermissionPrompt } from './PushPermissionPrompt';
 import { useNotifications } from '@/hooks/useNotifications';
-import { errorHandler } from '@/lib/errorHandler';
+import { errorHandler, logError } from '@/lib/errorHandler';
 import { cn } from '@/lib/utils';
 
 interface NotificationCenterProps {
@@ -47,7 +47,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         try {
           await subscribe();
         } catch (error) {
-          console.error('Auto-subscribe failed:', error);
+          logError('Auto-subscribe failed', error);
         } finally {
           setSubscribing(false);
         }

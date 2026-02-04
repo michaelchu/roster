@@ -222,7 +222,7 @@ describe('participantActivityService', () => {
         claimedByUserId: null,
       });
 
-      expect(console.error).toHaveBeenCalledWith('Failed to log participant activity:', {
+      expect(console.error).toHaveBeenCalledWith('Failed to log participant activity', {
         message: 'Insert failed',
       });
     });

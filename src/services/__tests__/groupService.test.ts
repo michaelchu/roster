@@ -28,6 +28,7 @@ import { ValidationError } from '@/lib/errorHandler';
 
 // Mock error handler
 vi.mock('@/lib/errorHandler', () => ({
+  logError: vi.fn(),
   errorHandler: {
     fromSupabaseError: vi.fn((error) => new Error(error.message)),
   },

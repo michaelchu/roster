@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { PushSubscription } from '@/types/notifications';
-import { throwIfSupabaseError } from '@/lib/errorHandler';
+import { throwIfSupabaseError, logError } from '@/lib/errorHandler';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -144,7 +144,7 @@ export const pushSubscriptionService = {
 
       return subscriptionJson;
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
+      logError('Failed to subscribe to push notifications', error);
       throw error;
     }
   },
@@ -169,7 +169,7 @@ export const pushSubscriptionService = {
         await subscription.unsubscribe();
       }
     } catch (error) {
-      console.error('Failed to unsubscribe from push notifications:', error);
+      logError('Failed to unsubscribe from push notifications', error);
       throw error;
     }
   },

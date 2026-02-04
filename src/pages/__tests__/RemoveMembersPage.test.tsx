@@ -51,6 +51,7 @@ vi.mock('@/services', () => ({
 
 // Mock error handler
 vi.mock('@/lib/errorHandler', () => ({
+  logError: vi.fn(),
   errorHandler: {
     handle: vi.fn(),
     success: vi.fn(),
