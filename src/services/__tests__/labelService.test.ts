@@ -16,6 +16,20 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+// Mock error handler
+vi.mock('@/lib/errorHandler', () => ({
+  throwIfSupabaseError: vi.fn((result) => {
+    if (result.error) throw new Error(result.error.message);
+    return result.data;
+  }),
+  requireData: vi.fn((data, operation) => {
+    if (data === null || data === undefined) {
+      throw new Error(`Operation '${operation}' returned no data`);
+    }
+    return data;
+  }),
+}));
+
 import { labelService } from '../labelService';
 import { supabase } from '@/lib/supabase';
 
@@ -144,7 +158,7 @@ describe('labelService', () => {
           name: 'Test',
           color: '#000',
         })
-      ).rejects.toThrow('Failed to create label');
+      ).rejects.toThrow("Operation 'create label' returned no data");
     });
   });
 
@@ -209,7 +223,7 @@ describe('labelService', () => {
       mockSupabase.from.mockReturnValue(mockQueryChain as any);
 
       await expect(labelService.updateLabel('label-1', { name: 'Test' })).rejects.toThrow(
-        'Failed to update label'
+        "Operation 'update label' returned no data"
       );
     });
   });

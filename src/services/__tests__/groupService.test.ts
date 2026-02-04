@@ -31,6 +31,16 @@ vi.mock('@/lib/errorHandler', () => ({
   errorHandler: {
     fromSupabaseError: vi.fn((error) => new Error(error.message)),
   },
+  throwIfSupabaseError: vi.fn((result) => {
+    if (result.error) throw new Error(result.error.message);
+    return result.data;
+  }),
+  requireData: vi.fn((data, operation) => {
+    if (data === null || data === undefined) {
+      throw new Error(`Failed to ${operation}`);
+    }
+    return data;
+  }),
   ValidationError: class ValidationError extends Error {
     userMessage: string;
     constructor(message: string, userMessage: string) {

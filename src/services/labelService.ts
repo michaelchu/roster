@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/app.types';
+import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
 
 export type Label = Tables<'labels'>;
 
@@ -17,8 +18,7 @@ export const labelService = {
       .eq('event_id', eventId)
       .order('name');
 
-    if (error) throw error;
-    return data || [];
+    return throwIfSupabaseError({ data, error }) || [];
   },
 
   /**
@@ -36,10 +36,8 @@ export const labelService = {
 
     const { data, error } = await supabase.from('labels').insert(insertData).select().single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to create label');
-
-    return data;
+    throwIfSupabaseError({ data, error });
+    return requireData(data, 'create label');
   },
 
   /**
@@ -62,10 +60,8 @@ export const labelService = {
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to update label');
-
-    return data;
+    throwIfSupabaseError({ data, error });
+    return requireData(data, 'update label');
   },
 
   /**
@@ -74,8 +70,8 @@ export const labelService = {
    * @throws Error if deletion fails
    */
   async deleteLabel(labelId: string): Promise<void> {
-    const { error } = await supabase.from('labels').delete().eq('id', labelId);
+    const { data, error } = await supabase.from('labels').delete().eq('id', labelId);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 };

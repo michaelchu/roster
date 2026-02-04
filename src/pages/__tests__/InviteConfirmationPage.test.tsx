@@ -44,6 +44,16 @@ vi.mock('@/lib/errorHandler', () => ({
     handle: vi.fn(),
     success: vi.fn(),
   },
+  throwIfSupabaseError: vi.fn((result) => {
+    if (result.error) throw new Error(result.error.message);
+    return result.data;
+  }),
+  requireData: vi.fn((data, operation) => {
+    if (data === null || data === undefined) {
+      throw new Error(`Failed to ${operation}`);
+    }
+    return data;
+  }),
 }));
 const mockErrorHandler = vi.mocked(errorHandler);
 

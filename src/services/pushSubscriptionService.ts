@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { PushSubscription } from '@/types/notifications';
+import { throwIfSupabaseError } from '@/lib/errorHandler';
 
 // Note: Using type assertions because 'push_subscriptions' table types are not yet in
 // the auto-generated database.types.ts. Types will be available after running
@@ -137,14 +138,14 @@ export const pushSubscriptionService = {
       await storeVapidKeyForServiceWorker(VAPID_PUBLIC_KEY);
 
       // Save to database using RPC function that handles cross-user endpoint conflicts
-      const { error } = await supabase.rpc('upsert_push_subscription', {
+      const { data, error } = await supabase.rpc('upsert_push_subscription', {
         p_endpoint: subscriptionJson.endpoint!,
         p_p256dh_key: subscriptionJson.keys?.p256dh || '',
         p_auth_key: subscriptionJson.keys?.auth || '',
         p_user_agent: navigator.userAgent,
       });
 
-      if (error) throw error;
+      throwIfSupabaseError({ data, error });
 
       return subscriptionJson;
     } catch (error) {
@@ -207,19 +208,18 @@ export const pushSubscriptionService = {
       .eq('active', true)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return (data || []) as PushSubscription[];
+    return (throwIfSupabaseError({ data, error }) || []) as PushSubscription[];
   },
 
   /**
    * Deactivate a specific subscription (e.g., for another device)
    */
   async deactivateSubscription(subscriptionId: string): Promise<void> {
-    const { error } = await (supabase as any)
+    const { data, error } = await (supabase as any)
       .from('push_subscriptions')
       .update({ active: false })
       .eq('id', subscriptionId);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 };

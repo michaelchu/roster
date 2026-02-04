@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { Notification } from '@/types/notifications';
+import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
 
 // Note: Using type assertions because 'notifications' table types are not yet in
 // the auto-generated database.types.ts. Types will be available after running
@@ -17,8 +18,7 @@ export const notificationService = {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (error) throw error;
-    return (data || []) as Notification[];
+    return (throwIfSupabaseError({ data, error }) || []) as Notification[];
   },
 
   /**
@@ -30,7 +30,7 @@ export const notificationService = {
       .select('*', { count: 'exact', head: true })
       .is('read_at', null);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data: count, error });
     return count || 0;
   },
 
@@ -53,36 +53,36 @@ export const notificationService = {
    * Mark notification as read
    */
   async markAsRead(notificationId: string): Promise<void> {
-    const { error } = await (supabase as any)
+    const { data, error } = await (supabase as any)
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
       .eq('id', notificationId);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 
   /**
    * Mark all notifications as read
    */
   async markAllAsRead(): Promise<void> {
-    const { error } = await (supabase as any)
+    const { data, error } = await (supabase as any)
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
       .is('read_at', null);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 
   /**
    * Delete a notification
    */
   async deleteNotification(notificationId: string): Promise<void> {
-    const { error } = await (supabase as any)
+    const { data, error } = await (supabase as any)
       .from('notifications')
       .delete()
       .eq('id', notificationId);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 
   /**
@@ -109,8 +109,8 @@ export const notificationService = {
       .select()
       .single();
 
-    if (error) throw error;
-    return data as Notification;
+    throwIfSupabaseError({ data, error });
+    return requireData(data, 'create notification') as Notification;
   },
 
   /**

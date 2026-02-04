@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/supabase';
-import { errorHandler, ValidationError } from '@/lib/errorHandler';
+import { throwIfSupabaseError, requireData, ValidationError } from '@/lib/errorHandler';
 import { requireValidSession } from '@/lib/sessionValidator';
 
 /** Extended Group type with computed event and participant counts */
@@ -91,11 +91,11 @@ export const groupService = {
       p_organizer_id: organizerId,
     });
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    const groups = throwIfSupabaseError({ data, error });
 
-    if (!data) return [];
+    if (!groups) return [];
 
-    return data.map((group) => ({
+    return groups.map((group) => ({
       id: group.id,
       organizer_id: group.organizer_id,
       name: group.name,
@@ -117,10 +117,12 @@ export const groupService = {
       p_group_id: groupId,
     });
 
-    if (error) throw errorHandler.fromSupabaseError(error);
-    if (!data || data.length === 0) throw new Error('Group not found');
+    const result = throwIfSupabaseError({ data, error });
+    if (!result || result.length === 0) {
+      throw new Error('Group not found');
+    }
 
-    const group = data[0];
+    const group = result[0];
     return {
       id: group.id,
       organizer_id: group.organizer_id,
@@ -154,15 +156,15 @@ export const groupService = {
 
     const { data, error } = await supabase.from('groups').insert(insertData).select().single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to create group');
+    throwIfSupabaseError({ data, error });
+    const created = requireData(data, 'create group');
 
     await supabase.from('group_participants').insert({
-      group_id: data.id,
+      group_id: created.id,
       user_id: group.organizer_id,
     });
 
-    return data;
+    return created;
   },
 
   /**
@@ -190,10 +192,8 @@ export const groupService = {
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to update group');
-
-    return data;
+    throwIfSupabaseError({ data, error });
+    return requireData(data, 'update group');
   },
 
   /**
@@ -207,12 +207,12 @@ export const groupService = {
   async deleteGroup(groupId: string, deleteEvents: boolean = false): Promise<void> {
     await requireValidSession();
 
-    const { error } = await supabase.rpc('delete_group_atomic', {
+    const { data, error } = await supabase.rpc('delete_group_atomic', {
       p_group_id: groupId,
       p_delete_events: deleteEvents,
     });
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 
   /**
@@ -235,7 +235,7 @@ export const groupService = {
       .eq('group_id', groupId)
       .order('datetime', { ascending: true });
 
-    if (eventsError) throw errorHandler.fromSupabaseError(eventsError);
+    throwIfSupabaseError({ data: eventsData, error: eventsError });
 
     if (!eventsData) return [];
 
@@ -266,10 +266,10 @@ export const groupService = {
       { p_group_id: groupId }
     );
 
-    if (membersError) throw errorHandler.fromSupabaseError(membersError);
-    if (!membersData || membersData.length === 0) return [];
+    const members = throwIfSupabaseError({ data: membersData, error: membersError });
+    if (!members || members.length === 0) return [];
 
-    return membersData.map((member) => ({
+    return members.map((member) => ({
       id: member.user_id,
       user_id: member.user_id,
       name: member.full_name || member.email || 'Group Member',
@@ -306,21 +306,21 @@ export const groupService = {
       .select('*', { count: 'exact', head: true })
       .eq('group_id', groupId);
 
-    if (eventError) throw errorHandler.fromSupabaseError(eventError);
+    throwIfSupabaseError({ data: eventCount, error: eventError });
 
     const { count: memberCount, error: memberError } = await supabase
       .from('group_participants')
       .select('*', { count: 'exact', head: true })
       .eq('group_id', groupId);
 
-    if (memberError) throw errorHandler.fromSupabaseError(memberError);
+    throwIfSupabaseError({ data: memberCount, error: memberError });
 
     const { count: totalRegistrations, error: registrationsError } = await supabase
       .from('participants')
       .select('event_id, events!inner(group_id)', { count: 'exact', head: true })
       .eq('events.group_id', groupId);
 
-    if (registrationsError) throw errorHandler.fromSupabaseError(registrationsError);
+    throwIfSupabaseError({ data: totalRegistrations, error: registrationsError });
 
     return {
       event_count: eventCount || 0,
@@ -343,23 +343,23 @@ export const groupService = {
       .eq('id', participantId)
       .single();
 
-    if (participantError) throw errorHandler.fromSupabaseError(participantError);
-    if (!participantData) throw new Error('Participant not found');
+    throwIfSupabaseError({ data: participantData, error: participantError });
+    const participant = requireData(participantData, 'get participant');
 
-    if (!participantData.user_id) {
+    if (!participant.user_id) {
       return;
     }
 
     const insertData: TablesInsert<'group_participants'> = {
       group_id: groupId,
-      user_id: participantData.user_id,
+      user_id: participant.user_id,
     };
 
     const { error } = await supabase.from('group_participants').insert(insertData);
 
     if (error) {
       if (error.code !== '23505') {
-        throw errorHandler.fromSupabaseError(error);
+        throwIfSupabaseError({ data: null, error });
       }
     }
   },
@@ -377,10 +377,10 @@ export const groupService = {
       .select('id')
       .eq('organizer_id', organizerId);
 
-    if (groupsError) throw errorHandler.fromSupabaseError(groupsError);
-    if (!groups || groups.length === 0) return [];
+    const groupsData = throwIfSupabaseError({ data: groups, error: groupsError });
+    if (!groupsData || groupsData.length === 0) return [];
 
-    const groupIds = groups.map((g) => g.id);
+    const groupIds = groupsData.map((g) => g.id);
 
     const { data: groupMembersData, error: membersError } = await supabase
       .from('group_participants')
@@ -388,12 +388,12 @@ export const groupService = {
       .in('group_id', groupIds)
       .order('joined_at', { ascending: true });
 
-    if (membersError) throw errorHandler.fromSupabaseError(membersError);
-    if (!groupMembersData || groupMembersData.length === 0) return [];
+    const membersData = throwIfSupabaseError({ data: groupMembersData, error: membersError });
+    if (!membersData || membersData.length === 0) return [];
 
     const contactsMap = new Map<string, GroupContact>();
 
-    for (const member of groupMembersData) {
+    for (const member of membersData) {
       if (contactsMap.has(member.user_id)) continue;
 
       const { data: participantData } = await supabase
@@ -429,18 +429,19 @@ export const groupService = {
       .eq('id', participantId)
       .single();
 
-    if (participantError) throw errorHandler.fromSupabaseError(participantError);
-    if (!participantData || !participantData.user_id) {
+    throwIfSupabaseError({ data: participantData, error: participantError });
+    const participant = requireData(participantData, 'get participant');
+    if (!participant.user_id) {
       throw new Error('Cannot remove participant: user not found');
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('group_participants')
       .delete()
       .eq('group_id', groupId)
-      .eq('user_id', participantData.user_id);
+      .eq('user_id', participant.user_id);
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    throwIfSupabaseError({ data, error });
   },
 
   /**
@@ -456,7 +457,7 @@ export const groupService = {
       .eq('id', participantId)
       .single();
 
-    if (participantError) throw errorHandler.fromSupabaseError(participantError);
+    throwIfSupabaseError({ data: participantData, error: participantError });
     if (!participantData || !participantData.user_id) return [];
 
     const { data: groupData, error: groupError } = await supabase
@@ -468,11 +469,11 @@ export const groupService = {
       )
       .eq('user_id', participantData.user_id);
 
-    if (groupError) throw errorHandler.fromSupabaseError(groupError);
+    const groups = throwIfSupabaseError({ data: groupData, error: groupError });
 
-    if (!groupData) return [];
+    if (!groups) return [];
 
-    return groupData.map((item: GroupQueryResult) => {
+    return groups.map((item: GroupQueryResult) => {
       const group = item.groups;
       return Array.isArray(group) ? group[0] : group;
     });
@@ -492,7 +493,7 @@ export const groupService = {
       .eq('id', groupId)
       .single();
 
-    if (groupError) throw errorHandler.fromSupabaseError(groupError);
+    throwIfSupabaseError({ data: group, error: groupError });
     if (!group) return false;
 
     if (group.organizer_id === userId) return true;
@@ -504,7 +505,7 @@ export const groupService = {
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (adminError) throw errorHandler.fromSupabaseError(adminError);
+    throwIfSupabaseError({ data: adminRecord, error: adminError });
 
     return adminRecord !== null;
   },
@@ -523,7 +524,7 @@ export const groupService = {
 
     if (error) {
       if (error.code !== '23505') {
-        throw errorHandler.fromSupabaseError(error);
+        throwIfSupabaseError({ data: null, error });
       }
     }
   },
@@ -535,13 +536,13 @@ export const groupService = {
    * @throws Error if deletion fails
    */
   async removeGroupAdmin(groupId: string, userId: string): Promise<void> {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('group_admins')
       .delete()
       .eq('group_id', groupId)
       .eq('user_id', userId);
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    throwIfSupabaseError({ data, error });
   },
 
   /**
@@ -557,9 +558,7 @@ export const groupService = {
       .eq('group_id', groupId)
       .order('created_at', { ascending: true });
 
-    if (error) throw errorHandler.fromSupabaseError(error);
-
-    return data || [];
+    return throwIfSupabaseError({ data, error }) || [];
   },
 
   /**
@@ -578,17 +577,17 @@ export const groupService = {
       p_participant_ids: participantIds,
     });
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    const result = throwIfSupabaseError({ data, error });
 
-    if (!data || data.length === 0) {
+    if (!result || result.length === 0) {
       return { added: 0, skipped: 0, failed: participantIds.length };
     }
 
-    const result = data[0];
+    const first = result[0];
     return {
-      added: result.added_count || 0,
-      skipped: result.skipped_count || 0,
-      failed: result.failed_count || 0,
+      added: first.added_count || 0,
+      skipped: first.skipped_count || 0,
+      failed: first.failed_count || 0,
     };
   },
 
@@ -608,16 +607,16 @@ export const groupService = {
       p_participant_ids: participantIds,
     });
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    const result = throwIfSupabaseError({ data, error });
 
-    if (!data || data.length === 0) {
+    if (!result || result.length === 0) {
       return { removed: 0, failed: participantIds.length };
     }
 
-    const result = data[0];
+    const first = result[0];
     return {
-      removed: result.removed_count || 0,
-      failed: result.failed_count || 0,
+      removed: first.removed_count || 0,
+      failed: first.failed_count || 0,
     };
   },
 
@@ -636,7 +635,7 @@ export const groupService = {
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    throwIfSupabaseError({ data, error });
 
     return data !== null;
   },
@@ -662,7 +661,7 @@ export const groupService = {
 
     if (error) {
       if (error.code !== '23505') {
-        throw errorHandler.fromSupabaseError(error);
+        throwIfSupabaseError({ data: null, error });
       }
     }
   },
@@ -678,11 +677,11 @@ export const groupService = {
       p_user_id: userId,
     });
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    const groups = throwIfSupabaseError({ data, error });
 
-    if (!data || data.length === 0) return [];
+    if (!groups || groups.length === 0) return [];
 
-    return data.map((group) => ({
+    return groups.map((group) => ({
       id: group.id,
       organizer_id: group.organizer_id,
       name: group.name,
@@ -700,12 +699,12 @@ export const groupService = {
    * @throws Error if deletion fails
    */
   async leaveGroup(groupId: string, userId: string): Promise<void> {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('group_participants')
       .delete()
       .eq('group_id', groupId)
       .eq('user_id', userId);
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    throwIfSupabaseError({ data, error });
   },
 };

@@ -16,6 +16,20 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+// Mock error handler
+vi.mock('@/lib/errorHandler', () => ({
+  throwIfSupabaseError: vi.fn((result) => {
+    if (result.error) throw new Error(result.error.message);
+    return result.data;
+  }),
+  requireData: vi.fn((data, operation) => {
+    if (data === null || data === undefined) {
+      throw new Error(`Operation '${operation}' returned no data`);
+    }
+    return data;
+  }),
+}));
+
 import { notificationPreferenceService } from '../notificationPreferenceService';
 import { supabase } from '@/lib/supabase';
 
@@ -224,7 +238,7 @@ describe('notificationPreferenceService', () => {
         .mockReturnValueOnce(insertQueryChain as any);
 
       await expect(notificationPreferenceService.getOrCreatePreferences()).rejects.toThrow(
-        'Failed to create notification preferences'
+        "Operation 'create notification preferences' returned no data"
       );
     });
   });
@@ -309,7 +323,7 @@ describe('notificationPreferenceService', () => {
 
       await expect(
         notificationPreferenceService.updatePreferences({ push_enabled: false })
-      ).rejects.toThrow('Failed to update notification preferences');
+      ).rejects.toThrow("Operation 'update notification preferences' returned no data");
     });
   });
 

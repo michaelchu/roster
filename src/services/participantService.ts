@@ -7,7 +7,7 @@ import type {
   CustomField,
   Json,
 } from '@/types/app.types';
-import { errorHandler } from '@/lib/errorHandler';
+import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
 
 /** Extended Participant type with labels and computed properties */
 export interface Participant extends Omit<Tables<'participants'>, 'responses' | 'created_at'> {
@@ -104,9 +104,9 @@ export const participantService = {
       .eq('event_id', eventId)
       .order('slot_number', { ascending: true });
 
-    if (participantsError) throw errorHandler.fromSupabaseError(participantsError);
+    const data = throwIfSupabaseError({ data: participants, error: participantsError });
 
-    if (!participants || participants.length === 0) return [];
+    if (!data || data.length === 0) return [];
 
     const { data: userInfoData } = await supabase.rpc('get_event_participants_with_avatar', {
       p_event_id: eventId,
@@ -121,7 +121,7 @@ export const participantService = {
       }
     }
 
-    return participants.map((p) => {
+    return data.map((p) => {
       const labels: Label[] = [];
       if (Array.isArray(p.participant_labels)) {
         for (const pl of p.participant_labels) {
@@ -159,10 +159,8 @@ export const participantService = {
       .eq('id', participantId)
       .single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Participant not found');
-
-    return dbParticipantToParticipant(data);
+    throwIfSupabaseError({ data, error });
+    return dbParticipantToParticipant(requireData(data, 'get participant'));
   },
 
   /**
@@ -226,10 +224,8 @@ export const participantService = {
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to create participant');
-
-    return dbParticipantToParticipant(data);
+    throwIfSupabaseError({ data, error });
+    return dbParticipantToParticipant(requireData(data, 'create participant'));
   },
 
   /**
@@ -258,10 +254,8 @@ export const participantService = {
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to update participant');
-
-    return dbParticipantToParticipant(data);
+    throwIfSupabaseError({ data, error });
+    return dbParticipantToParticipant(requireData(data, 'update participant'));
   },
 
   /**
@@ -270,9 +264,9 @@ export const participantService = {
    * @throws Error if deletion fails
    */
   async deleteParticipant(participantId: string): Promise<void> {
-    const { error } = await supabase.from('participants').delete().eq('id', participantId);
+    const { data, error } = await supabase.from('participants').delete().eq('id', participantId);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 
   /**
@@ -281,9 +275,9 @@ export const participantService = {
    * @throws Error if deletion fails
    */
   async bulkDeleteParticipants(participantIds: string[]): Promise<void> {
-    const { error } = await supabase.from('participants').delete().in('id', participantIds);
+    const { data, error } = await supabase.from('participants').delete().in('id', participantIds);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 
   /**
@@ -329,13 +323,13 @@ export const participantService = {
    * @throws Error if deletion fails
    */
   async removeLabelFromParticipant(participantId: string, labelId: string): Promise<void> {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('participant_labels')
       .delete()
       .eq('participant_id', participantId)
       .eq('label_id', labelId);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 
   /**
@@ -429,10 +423,8 @@ export const participantService = {
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to update payment status');
-
-    return dbParticipantToParticipant(data);
+    throwIfSupabaseError({ data, error });
+    return dbParticipantToParticipant(requireData(data, 'update payment status'));
   },
 
   /**
@@ -458,7 +450,7 @@ export const participantService = {
       p_payment_notes: paymentNotes,
     });
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
 
     if (!data || data.length === 0) {
       return { updated: 0, requested: participantIds.length };
@@ -508,7 +500,7 @@ export const participantService = {
       .select('event_id, payment_status')
       .in('event_id', eventIds);
 
-    if (error) throw errorHandler.fromSupabaseError(error);
+    throwIfSupabaseError({ data: participants, error });
 
     const summaryMap = new Map<
       string,
