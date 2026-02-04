@@ -91,15 +91,18 @@ export function EventActivityTimeline({ eventId }: EventActivityTimelineProps) {
   if (loading) {
     return (
       <div className="p-4">
-        <div className="relative pl-8 border-l-2 border-muted space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="relative">
-              <Skeleton className="absolute -left-[41px] h-6 w-6 rounded-full" />
+        {[1, 2, 3, 4, 5].map((i, index) => (
+          <div key={i} className="flex gap-3">
+            <div className="flex flex-col items-center">
+              <Skeleton className="h-6 w-6 rounded-full flex-shrink-0" />
+              {index < 4 && <div className="flex-1 w-0.5 bg-muted mt-1" />}
+            </div>
+            <div className="flex-1 pb-4">
               <Skeleton className="h-4 w-3/4 mb-1" />
               <Skeleton className="h-3 w-1/4" />
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -115,31 +118,32 @@ export function EventActivityTimeline({ eventId }: EventActivityTimelineProps) {
 
   return (
     <div className="p-4">
-      <div className="relative pl-8 border-l-2 border-muted">
-        {activities.map((activity, index) => {
-          const Icon = activityIcons[activity.activity_type] || Clock;
-          const colorClass = activityColors[activity.activity_type] || 'text-gray-600 bg-gray-100';
-          const isLast = index === activities.length - 1;
+      {activities.map((activity, index) => {
+        const Icon = activityIcons[activity.activity_type] || Clock;
+        const colorClass = activityColors[activity.activity_type] || 'text-gray-600 bg-gray-100';
+        const isLast = index === activities.length - 1;
 
-          return (
-            <div key={activity.id} className={`relative ${isLast ? '' : 'pb-4'}`}>
-              {/* Timeline icon marker */}
+        return (
+          <div key={activity.id} className="flex gap-3">
+            {/* Timeline: icon + connecting line */}
+            <div className="flex flex-col items-center">
               <div
-                className={`absolute -left-[41px] h-6 w-6 rounded-full flex items-center justify-center border-2 border-background ${colorClass}`}
+                className={`h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 ${colorClass}`}
               >
                 <Icon className="h-3 w-3" />
               </div>
-              {/* Content */}
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{formatActivityMessage(activity)}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatRelativeTime(activity.created_at)}
-                </p>
-              </div>
+              {!isLast && <div className="flex-1 w-0.5 bg-muted mt-1" />}
             </div>
-          );
-        })}
-      </div>
+            {/* Content */}
+            <div className={`flex-1 min-w-0 ${isLast ? '' : 'pb-4'}`}>
+              <p className="text-sm font-medium">{formatActivityMessage(activity)}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatRelativeTime(activity.created_at)}
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
