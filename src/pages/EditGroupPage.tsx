@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
-import { TopNav } from '@/components/TopNav';
+import { FullScreenDrawer } from '@/components/ui/full-screen-drawer';
 import { groupService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { LoadingSpinner } from '@/components/LoadingStates';
@@ -32,6 +32,14 @@ export function EditGroupPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [group, setGroup] = useState<Group | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleClose = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/groups');
+    }
+  };
 
   const {
     register,
@@ -173,115 +181,119 @@ export function EditGroupPage() {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <LoadingSpinner />
-      </div>
+      <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <LoadingSpinner />
+        </div>
+      </FullScreenDrawer>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-muted-foreground mb-4">Please sign in to edit this group</p>
-          <Button size="sm" onClick={() => navigate('/auth/login')}>
-            Sign In
-          </Button>
+      <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
+            <p className="text-sm text-muted-foreground mb-4">Please sign in to edit this group</p>
+            <Button size="sm" onClick={() => navigate('/auth/login')}>
+              Sign In
+            </Button>
+          </div>
         </div>
-      </div>
+      </FullScreenDrawer>
     );
   }
 
   if (!group) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-lg font-semibold mb-2">Group Not Found</h1>
-          <p className="text-sm text-muted-foreground">
-            This group doesn't exist or you don't have permission to edit it.
-          </p>
+      <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <h1 className="text-lg font-semibold mb-2">Group Not Found</h1>
+            <p className="text-sm text-muted-foreground">
+              This group doesn't exist or you don't have permission to edit it.
+            </p>
+          </div>
         </div>
-      </div>
+      </FullScreenDrawer>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <TopNav showCloseButton sticky />
+    <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
+      <form
+        id="edit-group-form"
+        onSubmit={handleSubmit(onSubmit, showFormErrors)}
+        className="flex-1 flex flex-col overflow-y-auto p-3 bg-background"
+      >
+        {/* Group Name */}
+        <div className="space-y-2">
+          <Label htmlFor="name">Group Name *</Label>
+          <Input
+            {...register('name')}
+            id="name"
+            type="text"
+            placeholder="Enter group name"
+            className={errors.name ? 'border-destructive' : ''}
+            maxLength={200}
+            autoComplete="off"
+          />
+          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          <p className="text-xs text-muted-foreground">{nameValue?.length || 0}/200 characters</p>
+        </div>
 
-      <div className="p-3">
-        <form
-          id="edit-group-form"
-          onSubmit={handleSubmit(onSubmit, showFormErrors)}
-          className="space-y-6"
+        {/* Description - fills remaining space */}
+        <div className="flex-1 flex flex-col space-y-2 mt-4 min-h-0">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            {...register('description')}
+            id="description"
+            placeholder="Describe your group (optional)"
+            className={`flex-1 resize-none min-h-[100px] ${errors.description ? 'border-destructive' : ''}`}
+            maxLength={2000}
+          />
+          {errors.description && (
+            <p className="text-sm text-destructive">{errors.description.message}</p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {descriptionValue?.length || 0}/2000 characters
+          </p>
+        </div>
+
+        <div className="border-t mt-4" />
+
+        {/* Delete Group Button */}
+        <Button
+          variant="outline"
+          className="w-full mt-4 text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={() => setShowDeleteDialog(true)}
+          disabled={isSubmitting || deleting}
+          type="button"
         >
-          {/* Group Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Group Name *</Label>
-            <Input
-              {...register('name')}
-              id="name"
-              type="text"
-              placeholder="Enter group name"
-              className={errors.name ? 'border-destructive' : ''}
-              maxLength={200}
-              autoComplete="off"
-            />
-            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-            <p className="text-xs text-muted-foreground">{nameValue?.length || 0}/200 characters</p>
-          </div>
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete Group
+        </Button>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              {...register('description')}
-              id="description"
-              placeholder="Describe your group (optional)"
-              className={`min-h-[100px] ${errors.description ? 'border-destructive' : ''}`}
-              maxLength={2000}
-            />
-            {errors.description && (
-              <p className="text-sm text-destructive">{errors.description.message}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              {descriptionValue?.length || 0}/2000 characters
-            </p>
-          </div>
-
-          {/* Delete Group Button */}
-          <Button
-            variant="outline"
-            className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={isSubmitting || deleting}
-            type="button"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete Group
-          </Button>
-
-          {/* Save Changes Button */}
-          <Button
-            type="submit"
-            disabled={isSubmitting || deleting}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
-          >
-            {isSubmitting ? (
-              <>
-                <LoadingSpinner size="sm" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </form>
-      </div>
+        {/* Save Changes Button */}
+        <Button
+          type="submit"
+          disabled={isSubmitting || deleting}
+          className="w-full mt-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+        >
+          {isSubmitting ? (
+            <>
+              <LoadingSpinner size="sm" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
+        </Button>
+      </form>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -314,6 +326,6 @@ export function EditGroupPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </FullScreenDrawer>
   );
 }

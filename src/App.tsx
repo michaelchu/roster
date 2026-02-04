@@ -10,12 +10,12 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
 
 import { HomePage } from '@/pages/HomePage';
-import { EventsPage } from '@/pages/EventsPage';
+import { EventsLayout } from '@/pages/EventsLayout';
 import { NewEventPage } from '@/pages/NewEventPage';
 import { EditEventPage } from '@/pages/EditEventPage';
 import { EventDetailPage } from '@/pages/EventDetailPage';
-import { GroupsPage } from '@/pages/GroupsPage';
-import { GroupDetailPage } from '@/pages/GroupDetailPage';
+import { GroupsLayout } from '@/pages/GroupsLayout';
+import { GroupDetailLayout } from '@/pages/GroupDetailLayout';
 import { NewGroupPage } from '@/pages/NewGroupPage';
 import { EditGroupPage } from '@/pages/EditGroupPage';
 import { GroupParticipantsPage } from '@/pages/GroupParticipantsPage';
@@ -44,11 +44,16 @@ function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Hide bottom nav on auth pages, signup pages, and invite pages (but only hide signup pages for non-authenticated users)
+  // Hide bottom nav on auth pages, signup pages, invite pages, and modal routes (but only hide signup pages for non-authenticated users)
   const hideBottomNav =
     location.pathname.startsWith('/auth') ||
     location.pathname.startsWith('/invite') ||
-    (location.pathname.startsWith('/signup') && !user);
+    (location.pathname.startsWith('/signup') && !user) ||
+    location.pathname === '/events/new' ||
+    /^\/events\/[^/]+\/edit$/.test(location.pathname) ||
+    location.pathname === '/groups/new' ||
+    /^\/groups\/[^/]+\/edit$/.test(location.pathname) ||
+    /^\/groups\/[^/]+\/events\/new$/.test(location.pathname);
 
   return (
     <>
@@ -65,58 +70,37 @@ function AppContent() {
           path="/events"
           element={
             <ProtectedRoute>
-              <EventsPage />
+              <EventsLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/events/new"
-          element={
-            <ProtectedRoute>
-              <NewEventPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/events/:eventId/edit"
-          element={
-            <ProtectedRoute>
-              <EditEventPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={null} />
+          <Route path="new" element={<NewEventPage />} />
+          <Route path=":eventId/edit" element={<EditEventPage />} />
+        </Route>
         <Route
           path="/groups"
           element={
             <ProtectedRoute>
-              <GroupsPage />
+              <GroupsLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/groups/new"
-          element={
-            <ProtectedRoute>
-              <NewGroupPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={null} />
+          <Route path="new" element={<NewGroupPage />} />
+        </Route>
         <Route
           path="/groups/:groupId"
           element={
             <ProtectedRoute>
-              <GroupDetailPage />
+              <GroupDetailLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/groups/:groupId/edit"
-          element={
-            <ProtectedRoute>
-              <EditGroupPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={null} />
+          <Route path="edit" element={<EditGroupPage />} />
+          <Route path="events/new" element={<NewEventPage />} />
+        </Route>
         <Route
           path="/groups/:groupId/participants"
           element={

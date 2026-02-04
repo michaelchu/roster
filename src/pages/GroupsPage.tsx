@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +12,7 @@ export function GroupsPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { isLoading, data: groups, execute: loadGroups } = useLoadingState<Group[]>([]);
+  const hasLoadedRef = useRef(false);
 
   const loadGroupsCallback = useCallback(async () => {
     if (!user) return [];
@@ -42,7 +43,8 @@ export function GroupsPage() {
   }, [user]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       loadGroups(loadGroupsCallback);
     }
   }, [user, loadGroups, loadGroupsCallback]);

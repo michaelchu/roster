@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useCallback, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -44,6 +44,7 @@ export function EventsPage() {
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
   const [paymentSummaries, setPaymentSummaries] = useState<Map<string, PaymentSummary>>(new Map());
   const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
+  const hasLoadedRef = useRef(false);
 
   const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
@@ -77,7 +78,8 @@ export function EventsPage() {
   }, [user]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       loadOrganizingEvents(loadOrganizingEventsCallback);
       loadJoinedEvents(loadJoinedEventsCallback);
       loadArchivedEvents(loadArchivedEventsCallback);

@@ -23,7 +23,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { Plus, Trash2, Save, Lock, Unlock } from 'lucide-react';
-import { TopNav } from '@/components/TopNav';
+import { FullScreenDrawer } from '@/components/ui/full-screen-drawer';
 import { eventService } from '@/services';
 import { errorHandler, ValidationError } from '@/lib/errorHandler';
 import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
@@ -286,28 +286,40 @@ export function EditEventPage() {
     }
   };
 
+  const handleClose = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/events');
+    }
+  };
+
   if (initialLoading) {
-    return <EditEventPageSkeleton />;
+    return (
+      <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
+        <EditEventPageSkeleton />
+      </FullScreenDrawer>
+    );
   }
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-lg font-semibold mb-2">Event Not Found</h1>
-          <p className="text-sm text-muted-foreground">
-            This event doesn't exist or you don't have permission to edit it.
-          </p>
+      <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
+        <div className="flex-1 bg-background flex items-center justify-center p-4">
+          <div className="text-center">
+            <h1 className="text-lg font-semibold mb-2">Event Not Found</h1>
+            <p className="text-sm text-muted-foreground">
+              This event doesn't exist or you don't have permission to edit it.
+            </p>
+          </div>
         </div>
-      </div>
+      </FullScreenDrawer>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <TopNav showCloseButton sticky />
-
-      <div className="p-3 space-y-4">
+    <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
+      <div className="flex-1 overflow-y-auto p-3 space-y-4 bg-background">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm">
             Event Name *
@@ -651,6 +663,6 @@ export function EditEventPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </FullScreenDrawer>
   );
 }

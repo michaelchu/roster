@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { Plus, Trash2, Lock, Unlock, X } from 'lucide-react';
-import { TopNav } from '@/components/TopNav';
+import { FullScreenDrawer } from '@/components/ui/full-screen-drawer';
 import {
   eventService,
   groupService,
@@ -47,6 +47,7 @@ interface CustomField {
 export function NewEventPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { groupId: groupIdFromParams } = useParams<{ groupId: string }>();
   const { user, loading: authLoading } = useAuth();
   const showEventPrivacy = useFeatureFlag('event_privacy');
   const showRegistrationForm = useFeatureFlag('registration_form');
@@ -116,7 +117,8 @@ export function NewEventPage() {
   }, [user, loadGroups, loadGroupsCallback]);
 
   useEffect(() => {
-    const groupParam = searchParams.get('group');
+    // Priority: URL param > query param
+    const groupParam = groupIdFromParams || searchParams.get('group');
     if (!groupParam) {
       return;
     }
@@ -139,7 +141,7 @@ export function NewEventPage() {
     if (formData.group_id !== nextGroupId) {
       setValue('group_id', nextGroupId);
     }
-  }, [searchParams, groupsLoading, groups, formData.group_id, setValue]);
+  }, [groupIdFromParams, searchParams, groupsLoading, groups, formData.group_id, setValue]);
 
   // Load group members when group changes
   useEffect(() => {
@@ -294,14 +296,20 @@ export function NewEventPage() {
   // Get selected group name for header
   const selectedGroup = groups?.find((g) => g.id === formData.group_id);
 
-  return (
-    <div className="min-h-screen bg-background pb-20">
-      <TopNav showCloseButton sticky />
+  const handleClose = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/events');
+    }
+  };
 
+  return (
+    <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
       <form
         id="create-event-form"
         onSubmit={handleSubmit(onSubmit, showFormErrors)}
-        className="p-3 space-y-4"
+        className="flex-1 overflow-y-auto p-3 space-y-4 bg-background"
       >
         {/* Header when creating event for a group */}
         {selectedGroup && (
@@ -714,6 +722,6 @@ export function NewEventPage() {
           )}
         </Button>
       </form>
-    </div>
+    </FullScreenDrawer>
   );
 }

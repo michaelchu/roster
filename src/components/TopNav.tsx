@@ -10,6 +10,7 @@ interface TopNavProps {
   onClose?: () => void;
   sticky?: boolean;
   className?: string;
+  hideNotifications?: boolean;
 }
 
 export function TopNav({
@@ -18,6 +19,7 @@ export function TopNav({
   onClose,
   sticky = false,
   className,
+  hideNotifications = false,
 }: TopNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,7 +48,7 @@ export function TopNav({
     }
   };
 
-  const showNotifications = !!user;
+  const showNotifications = !!user && !hideNotifications;
 
   return (
     <div className={cn('bg-card border-b', sticky && 'sticky top-0 z-10', className)}>
