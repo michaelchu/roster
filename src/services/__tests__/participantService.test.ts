@@ -37,7 +37,26 @@ vi.mock('@/lib/errorHandler', () => ({
     }
     return data;
   }),
-  fireAndForget: vi.fn(),
+  fireAndForget: vi.fn((promise) => {
+    // Suppress unhandled rejections from fire-and-forget calls in tests
+    if (promise && typeof promise.catch === 'function') {
+      promise.catch(() => {});
+    }
+  }),
+}));
+
+// Mock participantActivityService to prevent unhandled rejections from activity logging
+vi.mock('../participantActivityService', () => ({
+  participantActivityService: {
+    logJoined: vi.fn().mockResolvedValue(undefined),
+    logWithdrew: vi.fn().mockResolvedValue(undefined),
+    logPaymentUpdated: vi.fn().mockResolvedValue(undefined),
+    logInfoUpdated: vi.fn().mockResolvedValue(undefined),
+    logLabelAdded: vi.fn().mockResolvedValue(undefined),
+    logLabelRemoved: vi.fn().mockResolvedValue(undefined),
+    getEventActivity: vi.fn().mockResolvedValue([]),
+    getParticipantActivity: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 const mockSupabase = vi.mocked(supabase);

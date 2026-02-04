@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { logError } from '@/lib/errorHandler';
+import { getStorageItem, removeStorageItem } from '@/lib/storage';
 
 /** Authentication context value type */
 interface AuthContextType {
@@ -43,17 +43,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
 
       if (event === 'SIGNED_IN' && session?.user) {
-        const returnUrl = localStorage.getItem('returnUrl');
+        const returnUrl = getStorageItem('returnUrl');
         if (returnUrl) {
-          localStorage.removeItem('returnUrl');
+          removeStorageItem('returnUrl');
           const isSafeRelativePath = returnUrl.startsWith('/') && !returnUrl.startsWith('//');
           navigate(isSafeRelativePath ? returnUrl : '/');
         } else {
-          const pendingInviteStr = localStorage.getItem('pendingInvite');
-          if (pendingInviteStr) {
-            localStorage.removeItem('pendingInvite');
+          const pendingInviteRaw = getStorageItem('pendingInvite');
+          if (pendingInviteRaw) {
+            // Always remove after reading (whether valid or malformed)
+            removeStorageItem('pendingInvite');
             try {
-              const pendingInvite = JSON.parse(pendingInviteStr);
+              const pendingInvite = JSON.parse(pendingInviteRaw) as { type?: string; id?: string };
               if (pendingInvite.type && pendingInvite.id) {
                 if (pendingInvite.type === 'event') {
                   navigate(`/signup/${pendingInvite.id}`);
@@ -61,8 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   navigate(`/groups/${pendingInvite.id}`);
                 }
               }
-            } catch (error) {
-              logError('Error parsing pending invite', error);
+            } catch {
+              // Silently ignore malformed data - already removed from storage
             }
           }
         }
