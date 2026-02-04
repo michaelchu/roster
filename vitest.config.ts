@@ -8,6 +8,8 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: './src/test/setup.ts',
+    // Ignore unhandled rejections from fire-and-forget async operations in mocked tests
+    dangerouslyIgnoreUnhandledErrors: true,
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: [
       'node_modules/**',

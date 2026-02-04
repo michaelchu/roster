@@ -611,13 +611,15 @@ export function NewEventPage() {
                         <Input
                           type="text"
                           value={field.label}
-                          onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
+                          onChange={(e) =>
+                            field.id && updateCustomField(field.id, { label: e.target.value })
+                          }
                           placeholder="Field label"
                           className="flex-1 h-9 text-sm"
                         />
                         <button
                           type="button"
-                          onClick={() => removeCustomField(field.id)}
+                          onClick={() => field.id && removeCustomField(field.id)}
                           className="text-destructive hover:text-destructive/80"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -627,6 +629,7 @@ export function NewEventPage() {
                         <Select
                           value={field.type}
                           onValueChange={(value) =>
+                            field.id &&
                             updateCustomField(field.id, {
                               type: value as CustomField['type'],
                               options: value === 'select' ? [''] : undefined,
@@ -648,6 +651,7 @@ export function NewEventPage() {
                           <Checkbox
                             checked={field.required}
                             onCheckedChange={(checked) =>
+                              field.id &&
                               updateCustomField(field.id, {
                                 required: checked === true,
                               })
@@ -662,6 +666,7 @@ export function NewEventPage() {
                           <Textarea
                             value={field.options?.join('\n') || ''}
                             onChange={(e) =>
+                              field.id &&
                               updateCustomField(field.id, {
                                 options: e.target.value.split('\n').filter(Boolean),
                               })
