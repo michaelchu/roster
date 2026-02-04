@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,7 @@ interface CustomField {
 export function NewEventPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { groupId: groupIdFromParams } = useParams<{ groupId: string }>();
   const { user, loading: authLoading } = useAuth();
   const showEventPrivacy = useFeatureFlag('event_privacy');
   const showRegistrationForm = useFeatureFlag('registration_form');
@@ -116,7 +117,8 @@ export function NewEventPage() {
   }, [user, loadGroups, loadGroupsCallback]);
 
   useEffect(() => {
-    const groupParam = searchParams.get('group');
+    // Priority: URL param > query param
+    const groupParam = groupIdFromParams || searchParams.get('group');
     if (!groupParam) {
       return;
     }
@@ -139,7 +141,7 @@ export function NewEventPage() {
     if (formData.group_id !== nextGroupId) {
       setValue('group_id', nextGroupId);
     }
-  }, [searchParams, groupsLoading, groups, formData.group_id, setValue]);
+  }, [groupIdFromParams, searchParams, groupsLoading, groups, formData.group_id, setValue]);
 
   // Load group members when group changes
   useEffect(() => {

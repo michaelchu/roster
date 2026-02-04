@@ -263,7 +263,7 @@ export function GroupDetailPage() {
       {/* Add Event Button - Only visible to admins */}
       {isAdmin && (
         <button
-          onClick={() => navigate(`/events/new?group=${group.id}`)}
+          onClick={() => navigate(`/groups/${group.id}/events/new`)}
           className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg drop-shadow-md flex items-center justify-center font-medium transition-all"
           aria-label="Add Event"
         >
