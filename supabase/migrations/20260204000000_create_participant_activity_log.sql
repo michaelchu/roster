@@ -3,7 +3,8 @@
 
 CREATE TABLE participant_activity_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  participant_id UUID NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+  -- Nullable so activity history is preserved when participant is deleted
+  participant_id UUID REFERENCES participants(id) ON DELETE SET NULL,
   event_id TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
 
   -- Activity type

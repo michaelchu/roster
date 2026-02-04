@@ -102,7 +102,10 @@ DECLARE
   v_label RECORD;
 BEGIN
   SELECT * INTO v_participant FROM participants WHERE id = NEW.participant_id;
+  IF NOT FOUND THEN RETURN NEW; END IF;
+
   SELECT * INTO v_label FROM labels WHERE id = NEW.label_id;
+  IF NOT FOUND THEN RETURN NEW; END IF;
 
   INSERT INTO participant_activity_log (
     participant_id, event_id, activity_type, participant_name, details
@@ -125,7 +128,12 @@ DECLARE
   v_label RECORD;
 BEGIN
   SELECT * INTO v_participant FROM participants WHERE id = OLD.participant_id;
+  -- Skip logging if participant already deleted (cascade delete scenario)
+  IF NOT FOUND THEN RETURN OLD; END IF;
+
   SELECT * INTO v_label FROM labels WHERE id = OLD.label_id;
+  -- Skip logging if label already deleted (cascade delete scenario)
+  IF NOT FOUND THEN RETURN OLD; END IF;
 
   INSERT INTO participant_activity_log (
     participant_id, event_id, activity_type, participant_name, details

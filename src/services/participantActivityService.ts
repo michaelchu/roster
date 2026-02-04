@@ -10,7 +10,7 @@ export type ParticipantActivityType =
 
 export interface ParticipantActivity {
   id: string;
-  participant_id: string;
+  participant_id: string | null; // Null when participant has been deleted
   event_id: string;
   activity_type: ParticipantActivityType;
   participant_name: string;
@@ -18,8 +18,8 @@ export interface ParticipantActivity {
   created_at: string;
 }
 
-// Table name - cast needed until types are regenerated after migration
-const TABLE_NAME = 'participant_activity_log' as 'participants';
+// TODO: Remove cast once Database types are regenerated after migration
+const TABLE_NAME = 'participant_activity_log' as unknown as 'participants';
 
 export const participantActivityService = {
   /**
