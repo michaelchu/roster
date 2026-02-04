@@ -155,7 +155,7 @@ export function NotificationItem({
     }
     // Navigate using action_url, or fallback to event detail page if event_id exists
     const targetUrl =
-      notification.action_url || (notification.event_id && `/events/${notification.event_id}`);
+      notification.action_url || (notification.event_id && `/signup/${notification.event_id}`);
     if (targetUrl) {
       navigate(targetUrl);
       onNavigate?.();
