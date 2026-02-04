@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 
 import { supabase } from './supabase';
+import { setStorageItem } from './storage';
 
 /**
  * Validates the current user session and redirects to login if invalid
@@ -19,7 +20,7 @@ export async function validateSession() {
     // Store current path to return after login
     const currentPath = window.location.pathname;
     if (currentPath !== '/auth/login' && currentPath !== '/auth/register') {
-      localStorage.setItem('returnUrl', currentPath);
+      setStorageItem('returnUrl', currentPath);
     }
 
     // Redirect to login

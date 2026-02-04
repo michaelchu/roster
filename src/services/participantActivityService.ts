@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { logError } from '@/lib/errorHandler';
+import type { Tables, Json } from '@/types/supabase';
 
 export type ParticipantActivityType =
   | 'joined'
@@ -9,18 +10,12 @@ export type ParticipantActivityType =
   | 'label_added'
   | 'label_removed';
 
-export interface ParticipantActivity {
-  id: string;
-  participant_id: string | null; // Null when participant has been deleted
-  event_id: string;
+export type ParticipantActivity = Tables<'participant_activity_log'> & {
   activity_type: ParticipantActivityType;
-  participant_name: string;
   details: Record<string, unknown>;
-  created_at: string;
-}
+};
 
-// TODO: Remove cast once Database types are regenerated after migration
-const TABLE_NAME = 'participant_activity_log';
+const TABLE_NAME = 'participant_activity_log' as const;
 
 /** Helper to insert activity log entry */
 async function insertActivity(
@@ -30,13 +25,12 @@ async function insertActivity(
   participantName: string,
   details: Record<string, unknown>
 ): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any).from(TABLE_NAME).insert({
+  const { error } = await supabase.from(TABLE_NAME).insert({
     participant_id: participantId,
     event_id: eventId,
     activity_type: activityType,
     participant_name: participantName,
-    details,
+    details: details as Json,
   });
 
   if (error) {
@@ -49,8 +43,7 @@ export const participantActivityService = {
    * Get all activity for an event (for event-wide activity view)
    */
   async getEventActivity(eventId: string, limit = 100): Promise<ParticipantActivity[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
       .eq('event_id', eventId)
@@ -58,15 +51,14 @@ export const participantActivityService = {
       .limit(limit);
 
     if (error) throw error;
-    return (data || []) as unknown as ParticipantActivity[];
+    return (data || []) as ParticipantActivity[];
   },
 
   /**
    * Get activity history for a single participant
    */
   async getParticipantActivity(participantId: string, limit = 50): Promise<ParticipantActivity[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
       .eq('participant_id', participantId)
@@ -74,7 +66,7 @@ export const participantActivityService = {
       .limit(limit);
 
     if (error) throw error;
-    return (data || []) as unknown as ParticipantActivity[];
+    return (data || []) as ParticipantActivity[];
   },
 
   // ============================================================================

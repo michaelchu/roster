@@ -502,8 +502,6 @@ describe('useAuth', () => {
     it('should handle malformed pendingInvite gracefully', async () => {
       localStorage.setItem('pendingInvite', 'not-valid-json');
 
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       await waitFor(() => {
@@ -519,11 +517,9 @@ describe('useAuth', () => {
         authStateCallback?.('SIGNED_IN', mockSession);
       });
 
-      // Should have logged error and removed malformed data
-      expect(consoleSpy).toHaveBeenCalled();
+      // Malformed data should be silently removed without navigating
       expect(localStorage.getItem('pendingInvite')).toBeNull();
-
-      consoleSpy.mockRestore();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('should prioritize returnUrl over pendingInvite', async () => {

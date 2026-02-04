@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { setStorageItem } from '@/lib/storage';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,7 +20,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!user) {
     // Store the current path so we can redirect back after login
-    localStorage.setItem('returnUrl', location.pathname + location.search);
+    setStorageItem('returnUrl', location.pathname + location.search);
     return <Navigate to="/auth/login" replace />;
   }
 
