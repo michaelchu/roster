@@ -447,6 +447,51 @@ export type Database = {
           },
         ];
       };
+      participant_activity_log: {
+        Row: {
+          activity_type: string;
+          created_at: string;
+          details: Json | null;
+          event_id: string;
+          id: string;
+          participant_id: string | null;
+          participant_name: string;
+        };
+        Insert: {
+          activity_type: string;
+          created_at?: string;
+          details?: Json | null;
+          event_id: string;
+          id?: string;
+          participant_id?: string | null;
+          participant_name: string;
+        };
+        Update: {
+          activity_type?: string;
+          created_at?: string;
+          details?: Json | null;
+          event_id?: string;
+          id?: string;
+          participant_id?: string | null;
+          participant_name?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'participant_activity_log_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'participant_activity_log_participant_id_fkey';
+            columns: ['participant_id'];
+            isOneToOne: false;
+            referencedRelation: 'participants';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       participant_labels: {
         Row: {
           created_at: string;
@@ -602,10 +647,6 @@ export type Database = {
           updated_count: number;
         }[];
       };
-      check_and_notify_capacity_reached: {
-        Args: { p_event_id: string };
-        Returns: undefined;
-      };
       delete_group_atomic: {
         Args: { p_delete_events?: boolean; p_group_id: string };
         Returns: undefined;
@@ -684,6 +725,19 @@ export type Database = {
         }[];
       };
       nanoid: { Args: { size?: number }; Returns: string };
+      queue_notification: {
+        Args: {
+          p_action_url?: string;
+          p_actor_user_id?: string;
+          p_body: string;
+          p_event_id?: string;
+          p_notification_type: string;
+          p_participant_id?: string;
+          p_recipient_user_id: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
       remove_participants_from_group: {
         Args: { p_group_id: string; p_participant_ids: string[] };
         Returns: {

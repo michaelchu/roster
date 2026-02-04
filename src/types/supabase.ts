@@ -684,6 +684,19 @@ export type Database = {
         }[];
       };
       nanoid: { Args: { size?: number }; Returns: string };
+      queue_notification: {
+        Args: {
+          p_action_url?: string;
+          p_actor_user_id?: string;
+          p_body: string;
+          p_event_id?: string;
+          p_notification_type: string;
+          p_participant_id?: string;
+          p_recipient_user_id: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
       remove_participants_from_group: {
         Args: { p_group_id: string; p_participant_ids: string[] };
         Returns: {

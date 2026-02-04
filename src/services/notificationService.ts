@@ -159,19 +159,20 @@ export const notificationService = {
   // ============================================================================
 
   /**
-   * Queue a notification for delivery. This inserts into notification_queue
-   * which triggers the Edge Function to send the push notification.
+   * Queue a notification for delivery. Uses an RPC function with SECURITY DEFINER
+   * to bypass RLS, allowing users to queue notifications for other users
+   * (e.g., participant queues organizer notification).
    */
   async queueNotification(params: QueueNotificationParams): Promise<void> {
-    const { error } = await (supabase as any).from('notification_queue').insert({
-      recipient_user_id: params.recipientUserId,
-      notification_type: params.notificationType,
-      title: params.title,
-      body: params.body,
-      event_id: params.eventId || null,
-      participant_id: params.participantId || null,
-      actor_user_id: params.actorUserId || null,
-      action_url: params.actionUrl || null,
+    const { error } = await supabase.rpc('queue_notification', {
+      p_recipient_user_id: params.recipientUserId,
+      p_notification_type: params.notificationType,
+      p_title: params.title,
+      p_body: params.body,
+      p_event_id: params.eventId || undefined,
+      p_participant_id: params.participantId || undefined,
+      p_actor_user_id: params.actorUserId || undefined,
+      p_action_url: params.actionUrl || undefined,
     });
 
     // Silently ignore duplicate notifications (unique constraint violations)
