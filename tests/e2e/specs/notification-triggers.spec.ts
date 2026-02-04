@@ -22,24 +22,42 @@ test.describe('Notification Triggers', () => {
 
   /**
    * Helper to query notification queue for a specific notification
+   * Uses polling to handle async database triggers
    */
   async function getNotificationFromQueue(
     recipientUserId: string,
     notificationType: string,
-    eventId?: string
+    eventId?: string,
+    options?: { maxAttempts?: number; delayMs?: number }
   ) {
-    const query = getAdminDb()
-      .from('notification_queue')
-      .select('*')
-      .eq('recipient_user_id', recipientUserId)
-      .eq('notification_type', notificationType);
+    const maxAttempts = options?.maxAttempts ?? 10;
+    const delayMs = options?.delayMs ?? 200;
 
-    if (eventId) {
-      query.eq('event_id', eventId);
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const query = getAdminDb()
+        .from('notification_queue')
+        .select('*')
+        .eq('recipient_user_id', recipientUserId)
+        .eq('notification_type', notificationType);
+
+      if (eventId) {
+        query.eq('event_id', eventId);
+      }
+
+      const { data } = await query.order('created_at', { ascending: false }).limit(1);
+      const notification = data?.[0] || null;
+
+      if (notification) {
+        return notification;
+      }
+
+      // Wait before retrying
+      if (attempt < maxAttempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
 
-    const { data } = await query.order('created_at', { ascending: false }).limit(1);
-    return data?.[0] || null;
+    return null;
   }
 
   /**
@@ -77,10 +95,7 @@ test.describe('Notification Triggers', () => {
         .select()
         .single();
 
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
-
-      // Verify notification was queued for organizer
+      // Verify notification was queued for organizer (polling handles trigger delay)
       const notification = await getNotificationFromQueue(organizerId!, 'new_signup', event.id);
 
       expect(notification).not.toBeNull();
@@ -117,9 +132,6 @@ test.describe('Notification Triggers', () => {
         })
         .select()
         .single();
-
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
 
       // Verify NO notification was queued for organizer (they signed up themselves)
       const notification = await getNotificationFromQueue(organizerId!, 'new_signup', event.id);
@@ -164,9 +176,6 @@ test.describe('Notification Triggers', () => {
         .select()
         .single();
 
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
-
       // Verify signup_confirmed notification was queued for participant
       const notification = await getNotificationFromQueue(
         participantUserId!,
@@ -209,9 +218,6 @@ test.describe('Notification Triggers', () => {
         })
         .select()
         .single();
-
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
 
       // Verify NO signup_confirmed notification was queued (no user to send to)
       // We check that there's no signup_confirmed in the queue for this event
@@ -256,9 +262,6 @@ test.describe('Notification Triggers', () => {
       await page.waitForTimeout(500);
       await getAdminDb().from('participants').delete().eq('id', participant!.id);
 
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
-
       // Verify withdrawal notification was queued for organizer
       const notification = await getNotificationFromQueue(organizerId!, 'withdrawal', event.id);
 
@@ -300,9 +303,6 @@ test.describe('Notification Triggers', () => {
       await page.waitForTimeout(500);
       await getAdminDb().from('participants').delete().eq('id', participant!.id);
 
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
-
       // Verify NO withdrawal notification was queued
       const notification = await getNotificationFromQueue(organizerId!, 'withdrawal', event.id);
 
@@ -343,9 +343,6 @@ test.describe('Notification Triggers', () => {
         .from('participants')
         .update({ payment_status: 'paid' })
         .eq('id', participant!.id);
-
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
 
       // Verify payment_received notification was queued
       const notification = await getNotificationFromQueue(
@@ -398,9 +395,6 @@ test.describe('Notification Triggers', () => {
         .update({ payment_status: 'pending' })
         .eq('id', participant!.id);
 
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
-
       // Verify NO payment_received notification was queued (only fires for paid)
       const notification = await getNotificationFromQueue(
         organizerId!,
@@ -444,9 +438,6 @@ test.describe('Notification Triggers', () => {
         name: 'Participant 2',
         email: generateTestEmail('p2'),
       });
-
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
 
       // Verify capacity_reached notification was queued
       const notification = await getNotificationFromQueue(
@@ -496,9 +487,6 @@ test.describe('Notification Triggers', () => {
         email: generateTestEmail('p2'),
       });
 
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
-
       // Exactly one capacity_reached notification should exist
       const { data: notifications } = await getAdminDb()
         .from('notification_queue')
@@ -533,9 +521,6 @@ test.describe('Notification Triggers', () => {
           email: generateTestEmail(`p${i}`),
         });
       }
-
-      // Wait for trigger
-      await page.waitForTimeout(1000);
 
       // Verify NO capacity_reached notification (no limit set)
       const notification = await getNotificationFromQueue(
@@ -588,9 +573,6 @@ test.describe('Notification Triggers', () => {
         .update({ location: 'New Location', name: 'Updated Event Name' })
         .eq('id', event.id);
 
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
-
       // Verify event_updated notification was queued for participant
       const notification = await getNotificationFromQueue(
         participantUserId!,
@@ -633,9 +615,6 @@ test.describe('Notification Triggers', () => {
       // Update event
       await getAdminDb().from('events').update({ location: 'New Location' }).eq('id', event.id);
 
-      // Wait for trigger
-      await page.waitForTimeout(1000);
-
       // Verify organizer did NOT receive event_updated (they made the change)
       const notification = await getNotificationFromQueue(organizerId!, 'event_updated', event.id);
 
@@ -670,9 +649,6 @@ test.describe('Notification Triggers', () => {
       // Update event
       await getAdminDb().from('events').update({ location: 'New Location' }).eq('id', event.id);
 
-      // Wait for trigger
-      await page.waitForTimeout(1000);
-
       // Verify NO event_updated notifications (guest has no user account)
       const { data } = await getAdminDb()
         .from('notification_queue')
@@ -681,6 +657,67 @@ test.describe('Notification Triggers', () => {
         .eq('notification_type', 'event_updated');
 
       expect(data?.length || 0).toBe(0);
+
+      // Cleanup
+      await cleanupNotificationQueue(event.id);
+    });
+
+    test('rapid successive edits only generate one notification (deduplication)', async ({
+      page,
+    }) => {
+      // Create organizer
+      const organizerEmail = generateTestEmail('organizer');
+      await register(page, { email: organizerEmail, password: 'TestPassword123!' });
+      const organizerId = await getUserId(page);
+
+      // Create event
+      const event = await createTestEvent(organizerId!, {
+        name: generateTestName('Dedup Test'),
+        location: 'Original Location',
+        description: 'Original description',
+      });
+
+      await clearAuth(page);
+
+      // Create participant with user account
+      const participantEmail = generateTestEmail('participant');
+      await register(page, { email: participantEmail, password: 'TestPassword123!' });
+      const participantUserId = await getUserId(page);
+
+      // Register participant
+      await getAdminDb().from('participants').insert({
+        event_id: event.id,
+        name: 'Registered Participant',
+        email: participantEmail,
+        user_id: participantUserId,
+      });
+
+      // Clear signup notifications
+      await cleanupNotificationQueue(event.id);
+
+      // Make multiple rapid edits in quick succession
+      await getAdminDb().from('events').update({ name: 'First Edit' }).eq('id', event.id);
+
+      await getAdminDb().from('events').update({ location: 'Second Edit Location' }).eq('id', event.id);
+
+      await getAdminDb()
+        .from('events')
+        .update({ description: 'Third edit description' })
+        .eq('id', event.id);
+
+      // Wait for triggers to process
+      await page.waitForTimeout(1000);
+
+      // Count event_updated notifications for this participant/event
+      const { data } = await getAdminDb()
+        .from('notification_queue')
+        .select('*')
+        .eq('event_id', event.id)
+        .eq('recipient_user_id', participantUserId)
+        .eq('notification_type', 'event_updated');
+
+      // Should only have ONE notification despite three edits
+      expect(data?.length || 0).toBe(1);
 
       // Cleanup
       await cleanupNotificationQueue(event.id);
@@ -722,9 +759,6 @@ test.describe('Notification Triggers', () => {
 
       // Delete event (organizer cancels it)
       await getAdminDb().from('events').delete().eq('id', eventId);
-
-      // Wait for trigger to process
-      await page.waitForTimeout(1000);
 
       // Verify event_cancelled notification was queued for participant
       // Note: event_id is NULL for event_cancelled notifications because the event is deleted
@@ -777,9 +811,6 @@ test.describe('Notification Triggers', () => {
       // Delete event
       await getAdminDb().from('events').delete().eq('id', eventId);
 
-      // Wait for trigger
-      await page.waitForTimeout(1000);
-
       // Verify organizer did NOT receive event_cancelled
       const notification = await getNotificationFromQueue(organizerId!, 'event_cancelled', eventId);
 
@@ -818,9 +849,6 @@ test.describe('Notification Triggers', () => {
 
       // Delete event
       await getAdminDb().from('events').delete().eq('id', eventId);
-
-      // Wait for trigger
-      await page.waitForTimeout(1000);
 
       // Verify NO event_cancelled notifications (guest has no user account)
       const { data } = await getAdminDb()
@@ -863,9 +891,6 @@ test.describe('Notification Triggers', () => {
         email: participantEmail,
         user_id: participantUserId,
       });
-
-      // Wait for triggers
-      await page.waitForTimeout(1000);
 
       // Verify BOTH notifications were queued
       const newSignupNotif = await getNotificationFromQueue(organizerId!, 'new_signup', event.id);

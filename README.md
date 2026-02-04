@@ -246,6 +246,48 @@ VALUES ('your_user_id', 'test', 'Test Push', 'Hello from local!', NOW(), 'pendin
 - Local VAPID keys are different from production. Push subscriptions created locally won't work in production and vice versa.
 - Ensure your system allows notifications from your browser. On macOS: System Settings → Notifications → Chrome (or your browser) → Allow Notifications.
 
+## Testing
+
+### Unit Tests
+
+```bash
+npm run test          # Run Vitest test suite
+npm run test:ui       # Interactive Vitest UI
+npm run test:coverage # Generate coverage reports
+```
+
+### E2E Tests
+
+E2E tests use Playwright. All required services are automatically started.
+
+#### Prerequisites
+
+1. **Docker must be running** (required for Supabase)
+
+2. **Ensure environment variables are set** in `.env`:
+   - `VITE_SUPABASE_URL` - Your local Supabase URL (default: `http://127.0.0.1:54321`)
+   - `VITE_SUPABASE_ANON_KEY` - Get from `npx supabase status` (shown as "Publishable" key)
+   - `SUPABASE_SERVICE_ROLE_KEY` - Get from `npx supabase status` (shown as "Secret" key)
+
+#### Running E2E Tests
+
+```bash
+npm run test:e2e         # Run all E2E tests
+npm run test:e2e:ui      # Run with Playwright UI
+npm run test:e2e:headed  # Run with visible browser
+```
+
+Playwright automatically starts:
+- Supabase (if not already running)
+- Vite dev server (port 5173)
+- Supabase edge functions (port 54321)
+
+#### Troubleshooting
+
+- **Tests failing with RLS/permission errors**: Ensure `SUPABASE_SERVICE_ROLE_KEY` is set in `.env`
+- **Supabase fails to start**: Ensure Docker is running
+- **Edge functions timeout**: Check Docker has enough resources allocated
+
 ## License
 
 MIT License
