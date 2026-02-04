@@ -85,7 +85,7 @@ export function DateTimeInput({ value, onChange, id, className, disabled }: Date
           variant="outline"
           id={id}
           disabled
-          className="flex-1 justify-between font-normal opacity-50 cursor-not-allowed"
+          className="h-10 flex-1 justify-between font-normal opacity-50 cursor-not-allowed"
         >
           <span className="text-muted-foreground">TBD</span>
           <ChevronDownIcon className="h-4 w-4 opacity-50" />
@@ -93,7 +93,7 @@ export function DateTimeInput({ value, onChange, id, className, disabled }: Date
         <Input
           type="time"
           disabled
-          className="flex-1 bg-background opacity-50 cursor-not-allowed appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          className="h-10 flex-1 bg-background opacity-50 cursor-not-allowed appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         />
       </div>
     );
@@ -107,11 +107,11 @@ export function DateTimeInput({ value, onChange, id, className, disabled }: Date
             variant="outline"
             id={id}
             className={cn(
-              'flex-1 justify-between font-normal',
+              'h-10 flex-1 justify-between font-normal',
               !selectedDate && 'text-muted-foreground'
             )}
           >
-            {selectedDate ? format(selectedDate, 'PPP') : 'Select date'}
+            {selectedDate ? format(selectedDate, 'MM/dd/yyyy') : 'Select date'}
             <ChevronDownIcon className="h-4 w-4 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -129,7 +129,7 @@ export function DateTimeInput({ value, onChange, id, className, disabled }: Date
         type="time"
         value={timeValue}
         onChange={handleTimeChange}
-        className="flex-1 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+        className="h-10 flex-1 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
       />
     </div>
   );

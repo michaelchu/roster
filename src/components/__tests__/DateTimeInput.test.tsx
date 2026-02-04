@@ -15,8 +15,8 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
 
-      // Format: PPP (e.g., "December 25th, 2024")
-      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      // Format: MM/dd/yyyy
+      expect(screen.getByText('12/25/2024')).toBeInTheDocument();
     });
 
     it('renders time in time input when value provided', () => {
@@ -116,7 +116,7 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T00:00" onChange={onChange} />);
 
-      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      expect(screen.getByText('12/25/2024')).toBeInTheDocument();
       expect(screen.getByDisplayValue('00:00')).toBeInTheDocument();
     });
 
@@ -124,7 +124,7 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T12:00" onChange={onChange} />);
 
-      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      expect(screen.getByText('12/25/2024')).toBeInTheDocument();
       expect(screen.getByDisplayValue('12:00')).toBeInTheDocument();
     });
 
@@ -132,7 +132,7 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T11:59" onChange={onChange} />);
 
-      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      expect(screen.getByText('12/25/2024')).toBeInTheDocument();
       expect(screen.getByDisplayValue('11:59')).toBeInTheDocument();
     });
 
@@ -140,7 +140,7 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T23:59" onChange={onChange} />);
 
-      expect(screen.getByText('December 25th, 2024')).toBeInTheDocument();
+      expect(screen.getByText('12/25/2024')).toBeInTheDocument();
       expect(screen.getByDisplayValue('23:59')).toBeInTheDocument();
     });
   });
