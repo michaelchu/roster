@@ -56,6 +56,9 @@ export function initializeGoogleButton(
     return;
   }
 
+  const MAX_RETRIES = 50; // 5 seconds max wait (50 * 100ms)
+  let retryCount = 0;
+
   const initializeWhenReady = () => {
     if (window.google?.accounts?.id) {
       try {
@@ -85,6 +88,13 @@ export function initializeGoogleButton(
         onError(err instanceof Error ? err : new Error('Failed to initialize Google Sign-In'));
       }
     } else {
+      retryCount++;
+      if (retryCount >= MAX_RETRIES) {
+        onError(
+          new Error('Google Sign-In SDK failed to load. Please check your internet connection.')
+        );
+        return;
+      }
       setTimeout(initializeWhenReady, 100);
     }
   };

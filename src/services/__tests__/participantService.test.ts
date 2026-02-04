@@ -187,19 +187,41 @@ describe('participantService', () => {
   // are direct Supabase calls - tested via integration tests
 
   describe('addLabelToParticipant - deduplication logic', () => {
-    it('should skip adding label if already exists (deduplication check)', async () => {
-      const checkChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: { id: 'existing' }, error: null }),
+    it('should silently ignore duplicate label assignments (23505 error)', async () => {
+      const insertChain = {
+        insert: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: '23505', message: 'duplicate key value' },
+        }),
       };
 
-      mockSupabase.from.mockReturnValueOnce(checkChain as any);
+      mockSupabase.from.mockReturnValueOnce(insertChain as any);
 
-      await participantService.addLabelToParticipant('p1', 'label-1');
+      // Should not throw even though insert "failed" with duplicate key error
+      await expect(
+        participantService.addLabelToParticipant('p1', 'label-1')
+      ).resolves.toBeUndefined();
 
-      // Should only call from once (for the check), not insert
-      expect(mockSupabase.from).toHaveBeenCalledTimes(1);
+      expect(insertChain.insert).toHaveBeenCalledWith({
+        participant_id: 'p1',
+        label_id: 'label-1',
+      });
+    });
+
+    it('should throw on non-duplicate errors', async () => {
+      const insertChain = {
+        insert: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: '42501', message: 'permission denied' },
+        }),
+      };
+
+      mockSupabase.from.mockReturnValueOnce(insertChain as any);
+
+      await expect(participantService.addLabelToParticipant('p1', 'label-1')).rejects.toEqual({
+        code: '42501',
+        message: 'permission denied',
+      });
     });
   });
 
