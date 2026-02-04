@@ -3,6 +3,7 @@ import type { Tables, TablesInsert, TablesUpdate, Json } from '@/types/app.types
 import { throwIfSupabaseError, requireData, ValidationError } from '@/lib/errorHandler';
 import { safeValidateEvent, validateCustomFields, type CustomField } from '@/lib/validation';
 import { requireValidSession } from '@/lib/sessionValidator';
+import { notificationService } from './notificationService';
 
 /** Extended Event type with computed properties and properly typed custom_fields */
 export interface Event extends Omit<Tables<'events'>, 'custom_fields'> {
@@ -27,6 +28,23 @@ function dbEventToEvent(dbEvent: Tables<'events'>): Event {
     is_private: dbEvent.is_private ?? false,
     custom_fields: validatedCustomFields,
   };
+}
+
+/** Helper to get all participant user IDs for an event (for notifications) */
+async function getParticipantUserIds(eventId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from('participants')
+    .select('user_id, claimed_by_user_id')
+    .eq('event_id', eventId);
+
+  if (!data) return [];
+
+  const userIds = new Set<string>();
+  for (const p of data) {
+    const userId = p.user_id || p.claimed_by_user_id;
+    if (userId) userIds.add(userId);
+  }
+  return Array.from(userIds);
 }
 
 export const eventService = {
@@ -148,6 +166,9 @@ export const eventService = {
   async updateEvent(eventId: string, updates: Partial<Event>): Promise<Event> {
     await requireValidSession();
 
+    // Get old event data to track changes for notifications
+    const oldEvent = await this.getEventById(eventId);
+
     const updateData: TablesUpdate<'events'> = {};
 
     if (updates.name !== undefined) updateData.name = updates.name;
@@ -170,7 +191,34 @@ export const eventService = {
       .single();
 
     throwIfSupabaseError({ data, error });
-    return dbEventToEvent(requireData(data, 'update event'));
+    const updated = dbEventToEvent(requireData(data, 'update event'));
+
+    // Track changes for notification (only significant fields)
+    const changes: string[] = [];
+    if (oldEvent.name !== updated.name) changes.push('title');
+    if (oldEvent.datetime !== updated.datetime) changes.push('date/time');
+    if (oldEvent.end_datetime !== updated.end_datetime) changes.push('end time');
+    if (oldEvent.location !== updated.location) changes.push('location');
+    if (oldEvent.description !== updated.description) changes.push('description');
+
+    // Queue event_updated notifications if there were meaningful changes
+    if (changes.length > 0) {
+      getParticipantUserIds(eventId)
+        .then((participantUserIds) => {
+          notificationService
+            .queueEventUpdated({
+              organizerId: updated.organizer_id,
+              eventId: updated.id,
+              eventName: updated.name,
+              changes,
+              participantUserIds,
+            })
+            .catch((e) => console.error('Failed to queue event updated notifications:', e));
+        })
+        .catch((e) => console.error('Failed to get participant user IDs:', e));
+    }
+
+    return updated;
   },
 
   /**
@@ -181,6 +229,20 @@ export const eventService = {
    */
   async deleteEvent(eventId: string): Promise<void> {
     await requireValidSession();
+
+    // Get event info and participant user IDs BEFORE deleting
+    const event = await this.getEventById(eventId);
+    const participantUserIds = await getParticipantUserIds(eventId);
+
+    // Queue event_cancelled notifications BEFORE deleting
+    // (fire and forget - don't block on this)
+    notificationService
+      .queueEventCancelled({
+        organizerId: event.organizer_id,
+        eventName: event.name,
+        participantUserIds,
+      })
+      .catch((e) => console.error('Failed to queue event cancelled notifications:', e));
 
     const { data, error } = await supabase.from('events').delete().eq('id', eventId);
 

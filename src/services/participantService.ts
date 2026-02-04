@@ -8,6 +8,8 @@ import type {
   Json,
 } from '@/types/app.types';
 import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
+import { notificationService } from './notificationService';
+import { participantActivityService } from './participantActivityService';
 
 /** Extended Participant type with labels and computed properties */
 export interface Participant extends Omit<Tables<'participants'>, 'responses' | 'created_at'> {
@@ -80,6 +82,30 @@ async function generateClaimName(
 
   const nextClaimNumber = claimNumbers.length > 0 ? Math.max(...claimNumbers) + 1 : 1;
   return `${safeName} - ${nextClaimNumber}`;
+}
+
+/** Helper to get event info needed for notifications */
+async function getEventInfo(eventId: string): Promise<{
+  id: string;
+  name: string;
+  organizer_id: string;
+  max_participants: number | null;
+} | null> {
+  const { data } = await supabase
+    .from('events')
+    .select('id, name, organizer_id, max_participants')
+    .eq('id', eventId)
+    .single();
+  return data;
+}
+
+/** Helper to count participants for capacity check */
+async function getParticipantCount(eventId: string): Promise<number> {
+  const { count } = await supabase
+    .from('participants')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', eventId);
+  return count || 0;
 }
 
 export const participantService = {
@@ -225,7 +251,66 @@ export const participantService = {
       .single();
 
     throwIfSupabaseError({ data, error });
-    return dbParticipantToParticipant(requireData(data, 'create participant'));
+    const created = dbParticipantToParticipant(requireData(data, 'create participant'));
+
+    // Queue notifications and log activity (fire and forget - don't block on these)
+    const eventInfo = await getEventInfo(participant.event_id);
+    if (eventInfo) {
+      const actorUserId = created.user_id || created.claimed_by_user_id;
+
+      // Log activity
+      participantActivityService
+        .logJoined({
+          participantId: created.id,
+          eventId: created.event_id,
+          participantName: created.name || 'Unknown',
+          slotNumber: created.slot_number,
+          claimedByUserId: created.claimed_by_user_id,
+        })
+        .catch((e) => console.error('Failed to log joined activity:', e));
+
+      // Notify organizer of new signup
+      notificationService
+        .queueNewSignup({
+          organizerId: eventInfo.organizer_id,
+          eventId: eventInfo.id,
+          eventName: eventInfo.name,
+          participantId: created.id,
+          participantName: created.name || 'Unknown',
+          actorUserId,
+        })
+        .catch((e) => console.error('Failed to queue new signup notification:', e));
+
+      // Notify participant of confirmation (if they have a user account)
+      if (actorUserId) {
+        notificationService
+          .queueSignupConfirmed({
+            participantUserId: actorUserId,
+            organizerId: eventInfo.organizer_id,
+            eventId: eventInfo.id,
+            eventName: eventInfo.name,
+            participantId: created.id,
+          })
+          .catch((e) => console.error('Failed to queue signup confirmed notification:', e));
+      }
+
+      // Check if capacity reached and notify
+      if (eventInfo.max_participants) {
+        const count = await getParticipantCount(participant.event_id);
+        if (count === eventInfo.max_participants) {
+          notificationService
+            .queueCapacityReached({
+              organizerId: eventInfo.organizer_id,
+              eventId: eventInfo.id,
+              eventName: eventInfo.name,
+              maxParticipants: eventInfo.max_participants,
+            })
+            .catch((e) => console.error('Failed to queue capacity reached notification:', e));
+        }
+      }
+    }
+
+    return created;
   },
 
   /**
@@ -239,6 +324,9 @@ export const participantService = {
     participantId: string,
     updates: Partial<Participant>
   ): Promise<Participant> {
+    // Get old data first to track changes
+    const oldParticipant = await this.getParticipantById(participantId);
+
     const updateData: TablesUpdate<'participants'> = {};
 
     if (updates.name !== undefined) updateData.name = updates.name;
@@ -255,7 +343,41 @@ export const participantService = {
       .single();
 
     throwIfSupabaseError({ data, error });
-    return dbParticipantToParticipant(requireData(data, 'update participant'));
+    const updated = dbParticipantToParticipant(requireData(data, 'update participant'));
+
+    // Log info changes (fire and forget)
+    const changes: {
+      name?: { from: string | null; to: string | null };
+      email?: { from: string | null; to: string | null };
+      phone?: { from: string | null; to: string | null };
+      notes?: { from: string | null; to: string | null };
+    } = {};
+
+    if (oldParticipant.name !== updated.name) {
+      changes.name = { from: oldParticipant.name, to: updated.name };
+    }
+    if (oldParticipant.email !== updated.email) {
+      changes.email = { from: oldParticipant.email, to: updated.email };
+    }
+    if (oldParticipant.phone !== updated.phone) {
+      changes.phone = { from: oldParticipant.phone, to: updated.phone };
+    }
+    if (oldParticipant.notes !== updated.notes) {
+      changes.notes = { from: oldParticipant.notes, to: updated.notes };
+    }
+
+    if (Object.keys(changes).length > 0) {
+      participantActivityService
+        .logInfoUpdated({
+          participantId: updated.id,
+          eventId: updated.event_id,
+          participantName: updated.name || 'Unknown',
+          changes,
+        })
+        .catch((e) => console.error('Failed to log info updated activity:', e));
+    }
+
+    return updated;
   },
 
   /**
@@ -264,9 +386,38 @@ export const participantService = {
    * @throws Error if deletion fails
    */
   async deleteParticipant(participantId: string): Promise<void> {
+    // Get participant and event info BEFORE deleting
+    const participant = await this.getParticipantById(participantId);
+    const eventInfo = await getEventInfo(participant.event_id);
+
+    // Log withdrawal activity BEFORE deleting
+    participantActivityService
+      .logWithdrew({
+        participantId: participant.id,
+        eventId: participant.event_id,
+        participantName: participant.name || 'Unknown',
+        slotNumber: participant.slot_number,
+        paymentStatus: participant.payment_status,
+      })
+      .catch((e) => console.error('Failed to log withdrew activity:', e));
+
     const { data, error } = await supabase.from('participants').delete().eq('id', participantId);
 
     throwIfSupabaseError({ data, error });
+
+    // Queue withdrawal notification AFTER successful delete
+    if (eventInfo) {
+      const actorUserId = participant.user_id || participant.claimed_by_user_id;
+      notificationService
+        .queueWithdrawal({
+          organizerId: eventInfo.organizer_id,
+          eventId: eventInfo.id,
+          eventName: eventInfo.name,
+          participantName: participant.name || 'Unknown',
+          actorUserId,
+        })
+        .catch((e) => console.error('Failed to queue withdrawal notification:', e));
+    }
   },
 
   /**
@@ -314,6 +465,27 @@ export const participantService = {
 
     // Ignore duplicate key errors (label already assigned)
     if (error && error.code !== '23505') throw error;
+
+    // Log activity if insert succeeded (not a duplicate)
+    if (!error) {
+      // Fetch participant and label info for logging
+      const [participant, labelResult] = await Promise.all([
+        this.getParticipantById(participantId),
+        supabase.from('labels').select('name').eq('id', labelId).single(),
+      ]);
+
+      if (labelResult.data) {
+        participantActivityService
+          .logLabelAdded({
+            participantId,
+            eventId: participant.event_id,
+            participantName: participant.name || 'Unknown',
+            labelId,
+            labelName: labelResult.data.name,
+          })
+          .catch((e) => console.error('Failed to log label added activity:', e));
+      }
+    }
   },
 
   /**
@@ -323,6 +495,12 @@ export const participantService = {
    * @throws Error if deletion fails
    */
   async removeLabelFromParticipant(participantId: string, labelId: string): Promise<void> {
+    // Fetch participant and label info BEFORE deleting for logging
+    const [participant, labelResult] = await Promise.all([
+      this.getParticipantById(participantId),
+      supabase.from('labels').select('name').eq('id', labelId).single(),
+    ]);
+
     const { data, error } = await supabase
       .from('participant_labels')
       .delete()
@@ -330,6 +508,19 @@ export const participantService = {
       .eq('label_id', labelId);
 
     throwIfSupabaseError({ data, error });
+
+    // Log activity after successful delete
+    if (labelResult.data) {
+      participantActivityService
+        .logLabelRemoved({
+          participantId,
+          eventId: participant.event_id,
+          participantName: participant.name || 'Unknown',
+          labelId,
+          labelName: labelResult.data.name,
+        })
+        .catch((e) => console.error('Failed to log label removed activity:', e));
+    }
   },
 
   /**
@@ -410,6 +601,10 @@ export const participantService = {
     paymentStatus: 'pending' | 'paid' | 'waived',
     paymentNotes?: string
   ): Promise<Participant> {
+    // Get old participant data to track changes
+    const oldParticipant = await this.getParticipantById(participantId);
+    const oldStatus = oldParticipant.payment_status;
+
     const updateData: TablesUpdate<'participants'> = {
       payment_status: paymentStatus,
       payment_marked_at: paymentStatus !== 'pending' ? new Date().toISOString() : null,
@@ -424,7 +619,39 @@ export const participantService = {
       .single();
 
     throwIfSupabaseError({ data, error });
-    return dbParticipantToParticipant(requireData(data, 'update payment status'));
+    const updated = dbParticipantToParticipant(requireData(data, 'update payment status'));
+
+    // Log payment status change if it actually changed
+    if (oldStatus !== paymentStatus) {
+      participantActivityService
+        .logPaymentUpdated({
+          participantId: updated.id,
+          eventId: updated.event_id,
+          participantName: updated.name || 'Unknown',
+          fromStatus: oldStatus,
+          toStatus: paymentStatus,
+        })
+        .catch((e) => console.error('Failed to log payment updated activity:', e));
+
+      // Queue payment_received notification if status became 'paid'
+      if (paymentStatus === 'paid') {
+        const eventInfo = await getEventInfo(updated.event_id);
+        if (eventInfo) {
+          notificationService
+            .queuePaymentReceived({
+              organizerId: eventInfo.organizer_id,
+              eventId: eventInfo.id,
+              eventName: eventInfo.name,
+              participantId: updated.id,
+              participantName: updated.name || 'Unknown',
+              actorUserId: updated.user_id || updated.claimed_by_user_id,
+            })
+            .catch((e) => console.error('Failed to queue payment received notification:', e));
+        }
+      }
+    }
+
+    return updated;
   },
 
   /**
@@ -444,6 +671,14 @@ export const participantService = {
       return { updated: 0, requested: 0 };
     }
 
+    // Fetch old participant data to track changes
+    const { data: oldParticipants } = await supabase
+      .from('participants')
+      .select('id, name, event_id, user_id, claimed_by_user_id, payment_status')
+      .in('id', participantIds);
+
+    const oldStatusMap = new Map(oldParticipants?.map((p) => [p.id, p.payment_status]) || []);
+
     const { data, error } = await supabase.rpc('bulk_update_payment_status', {
       p_participant_ids: participantIds,
       p_payment_status: paymentStatus,
@@ -454,6 +689,57 @@ export const participantService = {
 
     if (!data || data.length === 0) {
       return { updated: 0, requested: participantIds.length };
+    }
+
+    // Log activity and send notifications for each updated participant
+    if (oldParticipants) {
+      // Group participants by event for efficient event info lookup
+      const eventIds = [...new Set(oldParticipants.map((p) => p.event_id))];
+      const eventInfoMap = new Map<string, Awaited<ReturnType<typeof getEventInfo>>>();
+
+      for (const eventId of eventIds) {
+        const eventInfo = await getEventInfo(eventId);
+        if (eventInfo) {
+          eventInfoMap.set(eventId, eventInfo);
+        }
+      }
+
+      for (const participant of oldParticipants) {
+        const oldStatus = oldStatusMap.get(participant.id);
+
+        // Only process if status actually changed
+        if (oldStatus !== paymentStatus) {
+          // Log payment activity
+          participantActivityService
+            .logPaymentUpdated({
+              participantId: participant.id,
+              eventId: participant.event_id,
+              participantName: participant.name || 'Unknown',
+              fromStatus: oldStatus || 'pending',
+              toStatus: paymentStatus,
+            })
+            .catch((e) => console.error('Failed to log bulk payment updated activity:', e));
+
+          // Queue payment_received notification if status became 'paid'
+          if (paymentStatus === 'paid') {
+            const eventInfo = eventInfoMap.get(participant.event_id);
+            if (eventInfo) {
+              notificationService
+                .queuePaymentReceived({
+                  organizerId: eventInfo.organizer_id,
+                  eventId: eventInfo.id,
+                  eventName: eventInfo.name,
+                  participantId: participant.id,
+                  participantName: participant.name || 'Unknown',
+                  actorUserId: participant.user_id || participant.claimed_by_user_id,
+                })
+                .catch((e) =>
+                  console.error('Failed to queue bulk payment received notification:', e)
+                );
+            }
+          }
+        }
+      }
     }
 
     return {
