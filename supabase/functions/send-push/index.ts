@@ -414,14 +414,21 @@ serve(async (req) => {
     }
 
     // Batch insert all inbox notifications
+    let inboxError: string | null = null;
     if (inboxInserts.length > 0) {
-      await supabase.from('notifications').insert(inboxInserts);
+      const { error: insertError } = await supabase.from('notifications').insert(inboxInserts);
+      if (insertError) {
+        // Log the error but don't fail the entire function - push notifications were already sent
+        console.error('Failed to insert inbox notifications:', insertError);
+        inboxError = insertError.message;
+      }
     }
 
     return new Response(
       JSON.stringify({
         processed: results.length,
         results,
+        ...(inboxError && { inboxError }),
       }),
       { headers }
     );
