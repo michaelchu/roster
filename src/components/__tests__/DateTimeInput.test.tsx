@@ -9,6 +9,7 @@ describe('DateTimeInput', () => {
       render(<DateTimeInput value="" onChange={onChange} />);
 
       expect(screen.getByText('Select date')).toBeInTheDocument();
+      expect(screen.getByText('Select time')).toBeInTheDocument();
     });
 
     it('renders formatted date when value provided', () => {
@@ -19,13 +20,12 @@ describe('DateTimeInput', () => {
       expect(screen.getByText('12/25/2024')).toBeInTheDocument();
     });
 
-    it('renders time in time input when value provided', () => {
+    it('renders time in 12-hour format when value provided', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
 
-      const timeInput = screen.getByDisplayValue('14:30');
-      expect(timeInput).toBeInTheDocument();
-      expect(timeInput).toHaveAttribute('type', 'time');
+      // Format: h:mm a (2:30 PM)
+      expect(screen.getByText('2:30 PM')).toBeInTheDocument();
     });
 
     it('renders TBD when disabled', () => {
@@ -33,37 +33,34 @@ describe('DateTimeInput', () => {
       render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} disabled />);
 
       expect(screen.getByText('TBD')).toBeInTheDocument();
+      expect(screen.getByText('--:-- --')).toBeInTheDocument();
     });
 
-    it('applies custom id to trigger button', () => {
+    it('applies custom id to date trigger button', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="" onChange={onChange} id="test-datetime" />);
 
-      expect(screen.getByRole('button')).toHaveAttribute('id', 'test-datetime');
+      const buttons = screen.getAllByRole('button');
+      expect(buttons[0]).toHaveAttribute('id', 'test-datetime');
     });
   });
 
   describe('disabled state', () => {
-    it('disables the trigger button when disabled prop is true', () => {
+    it('disables both buttons when disabled prop is true', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="" onChange={onChange} disabled />);
 
-      expect(screen.getByRole('button')).toBeDisabled();
-    });
-
-    it('disables the time input when disabled prop is true', () => {
-      const onChange = vi.fn();
-      render(<DateTimeInput value="" onChange={onChange} disabled />);
-
-      const timeInput = document.querySelector('input[type="time"]');
-      expect(timeInput).toBeDisabled();
+      const buttons = screen.getAllByRole('button');
+      expect(buttons[0]).toBeDisabled();
+      expect(buttons[1]).toBeDisabled();
     });
 
     it('does not open popover when disabled', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="" onChange={onChange} disabled />);
 
-      fireEvent.click(screen.getByRole('button'));
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[0]);
 
       // Calendar should not appear
       expect(screen.queryByRole('grid')).not.toBeInTheDocument();
@@ -71,43 +68,112 @@ describe('DateTimeInput', () => {
   });
 
   describe('popover interaction', () => {
-    it('opens popover on button click', () => {
+    it('opens date popover on date button click', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="" onChange={onChange} />);
 
-      fireEvent.click(screen.getByRole('button'));
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[0]); // Date button
 
       // Calendar grid should appear
       expect(screen.getByRole('grid')).toBeInTheDocument();
     });
-  });
 
-  describe('time input interaction', () => {
-    it('calls onChange when time is changed', () => {
+    it('opens time popover on time button click', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
 
-      const timeInput = screen.getByDisplayValue('14:30');
-      fireEvent.change(timeInput, { target: { value: '09:15' } });
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[1]); // Time button
 
+      // Hour/Minute/AM-PM labels should appear
+      expect(screen.getByText('Hour')).toBeInTheDocument();
+      expect(screen.getByText('Min')).toBeInTheDocument();
+      expect(screen.getByText('AM/PM')).toBeInTheDocument();
+    });
+
+    it('shows hour buttons in time popover', () => {
+      const onChange = vi.fn();
+      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
+
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[1]); // Time button
+
+      // Hour buttons (1-12)
+      expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '12' })).toBeInTheDocument();
+    });
+
+    it('shows minute buttons in time popover', () => {
+      const onChange = vi.fn();
+      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
+
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[1]); // Time button
+
+      // Minute buttons
+      expect(screen.getByRole('button', { name: '00' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '30' })).toBeInTheDocument();
+    });
+
+    it('shows AM/PM buttons in time popover', () => {
+      const onChange = vi.fn();
+      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
+
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[1]); // Time button
+
+      expect(screen.getByRole('button', { name: 'AM' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'PM' })).toBeInTheDocument();
+    });
+  });
+
+  describe('time selection', () => {
+    it('calls onChange when hour is selected', () => {
+      const onChange = vi.fn();
+      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
+
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[1]); // Time button
+
+      // Click hour 3
+      fireEvent.click(screen.getByRole('button', { name: '3' }));
+
+      // Should call onChange with updated hour (3 PM = 15:00)
       expect(onChange).toHaveBeenCalled();
       const newValue = onChange.mock.calls[0][0];
       expect(newValue).toContain('2024-12-25');
-      expect(newValue).toContain('09:15');
+      expect(newValue).toContain('15:30');
     });
 
-    it('uses current date when time is changed without date', () => {
+    it('calls onChange when minute is selected', () => {
       const onChange = vi.fn();
-      render(<DateTimeInput value="" onChange={onChange} />);
+      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
 
-      // When no date is set, time input is empty
-      const timeInput = document.querySelector('input[type="time"]') as HTMLInputElement;
-      fireEvent.change(timeInput, { target: { value: '09:15' } });
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[1]); // Time button
+
+      // Click minute 45
+      fireEvent.click(screen.getByRole('button', { name: '45' }));
 
       expect(onChange).toHaveBeenCalled();
       const newValue = onChange.mock.calls[0][0];
-      // Should use current date with the new time
-      expect(newValue).toContain('09:15');
+      expect(newValue).toContain('14:45');
+    });
+
+    it('calls onChange when AM/PM is toggled', () => {
+      const onChange = vi.fn();
+      render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
+
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[1]); // Time button
+
+      // Current is PM (14:30), click AM
+      fireEvent.click(screen.getByRole('button', { name: 'AM' }));
+
+      expect(onChange).toHaveBeenCalled();
+      const newValue = onChange.mock.calls[0][0];
+      expect(newValue).toContain('02:30');
     });
   });
 
@@ -117,7 +183,8 @@ describe('DateTimeInput', () => {
       render(<DateTimeInput value="2024-12-25T00:00" onChange={onChange} />);
 
       expect(screen.getByText('12/25/2024')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('00:00')).toBeInTheDocument();
+      // Midnight should display as 12:00 AM
+      expect(screen.getByText('12:00 AM')).toBeInTheDocument();
     });
 
     it('handles noon correctly', () => {
@@ -125,7 +192,8 @@ describe('DateTimeInput', () => {
       render(<DateTimeInput value="2024-12-25T12:00" onChange={onChange} />);
 
       expect(screen.getByText('12/25/2024')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('12:00')).toBeInTheDocument();
+      // Noon should display as 12:00 PM
+      expect(screen.getByText('12:00 PM')).toBeInTheDocument();
     });
 
     it('handles edge of AM correctly', () => {
@@ -133,7 +201,7 @@ describe('DateTimeInput', () => {
       render(<DateTimeInput value="2024-12-25T11:59" onChange={onChange} />);
 
       expect(screen.getByText('12/25/2024')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('11:59')).toBeInTheDocument();
+      expect(screen.getByText('11:59 AM')).toBeInTheDocument();
     });
 
     it('handles edge of PM correctly', () => {
@@ -141,7 +209,7 @@ describe('DateTimeInput', () => {
       render(<DateTimeInput value="2024-12-25T23:59" onChange={onChange} />);
 
       expect(screen.getByText('12/25/2024')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('23:59')).toBeInTheDocument();
+      expect(screen.getByText('11:59 PM')).toBeInTheDocument();
     });
   });
 
@@ -150,12 +218,11 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="2024-12-25T14:30" onChange={onChange} />);
 
-      fireEvent.click(screen.getByRole('button'));
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[0]); // Date button
 
       // Find and click a different date - find a button inside a gridcell
-      // The calendar shows dates as buttons within gridcells
       const gridCells = screen.getAllByRole('gridcell');
-      // Find a day that is not the 25th (current date)
       const differentDay = gridCells.find((cell) => {
         const button = cell.querySelector('button');
         return button && button.textContent === '15';
@@ -178,7 +245,8 @@ describe('DateTimeInput', () => {
       const onChange = vi.fn();
       render(<DateTimeInput value="" onChange={onChange} />);
 
-      fireEvent.click(screen.getByRole('button'));
+      const buttons = screen.getAllByRole('button');
+      fireEvent.click(buttons[0]); // Date button
 
       // Find and click a date
       const gridCells = screen.getAllByRole('gridcell');
