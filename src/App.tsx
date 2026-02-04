@@ -10,7 +10,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
 
 import { HomePage } from '@/pages/HomePage';
-import { EventsPage } from '@/pages/EventsPage';
+import { EventsLayout } from '@/pages/EventsLayout';
 import { NewEventPage } from '@/pages/NewEventPage';
 import { EditEventPage } from '@/pages/EditEventPage';
 import { EventDetailPage } from '@/pages/EventDetailPage';
@@ -67,26 +67,14 @@ function AppContent() {
           path="/events"
           element={
             <ProtectedRoute>
-              <EventsPage />
+              <EventsLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/events/new"
-          element={
-            <ProtectedRoute>
-              <NewEventPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/events/:eventId/edit"
-          element={
-            <ProtectedRoute>
-              <EditEventPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={null} />
+          <Route path="new" element={<NewEventPage />} />
+          <Route path=":eventId/edit" element={<EditEventPage />} />
+        </Route>
         <Route
           path="/groups"
           element={
