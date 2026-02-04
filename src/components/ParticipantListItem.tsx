@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UserAvatar } from '@/components/UserAvatar';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
-import { DollarSign, Trash2, UserX } from 'lucide-react';
+import { DollarSign, Trash2, UserX, UserPlus } from 'lucide-react';
 import type { Participant as ServiceParticipant, Label as LabelType } from '@/services';
 
 type Participant = ServiceParticipant & {
@@ -197,6 +197,7 @@ export function EmptySlot({ slotNumber, canClaimSpot, onClaim }: EmptySlotProps)
               onClick={() => onClaim(slotNumber)}
               className="text-xs h-6 px-2"
             >
+              <UserPlus className="h-3 w-3 mr-1" />
               Claim
             </Button>
           )}
