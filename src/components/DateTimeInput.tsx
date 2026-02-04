@@ -93,7 +93,7 @@ export function DateTimeInput({ value, onChange, id, className, disabled }: Date
         <Input
           type="time"
           disabled
-          className="w-28 bg-background opacity-50 cursor-not-allowed appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          className="flex-1 bg-background opacity-50 cursor-not-allowed appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         />
       </div>
     );
@@ -129,7 +129,7 @@ export function DateTimeInput({ value, onChange, id, className, disabled }: Date
         type="time"
         value={timeValue}
         onChange={handleTimeChange}
-        className="w-28 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+        className="flex-1 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
       />
     </div>
   );
