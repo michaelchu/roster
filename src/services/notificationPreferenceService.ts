@@ -2,11 +2,6 @@ import { supabase } from '@/lib/supabase';
 import type { NotificationPreferences, NotificationPreferencesInput } from '@/types/notifications';
 import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
 
-// Note: Using type assertions because 'notification_preferences' table types are not yet in
-// the auto-generated supabase.ts. Types will be available after running
-// `npx supabase gen types typescript --local > src/types/supabase.ts`
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // Default preferences for new users
 const DEFAULT_PREFERENCES: Omit<
   NotificationPreferences,
@@ -30,10 +25,7 @@ export const notificationPreferenceService = {
    * Returns null if none exist
    */
   async getPreferences(): Promise<NotificationPreferences | null> {
-    const { data, error } = await (supabase as any)
-      .from('notification_preferences')
-      .select('*')
-      .single();
+    const { data, error } = await supabase.from('notification_preferences').select('*').single();
 
     // PGRST116 = no rows returned
     if (error && error.code !== 'PGRST116') throw error;
@@ -55,7 +47,7 @@ export const notificationPreferenceService = {
     if (!user) throw new Error('Not authenticated');
 
     // Create default preferences
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notification_preferences')
       .insert({
         user_id: user.id,
@@ -85,7 +77,7 @@ export const notificationPreferenceService = {
     } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notification_preferences')
       .upsert(
         {

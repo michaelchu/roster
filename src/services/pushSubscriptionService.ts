@@ -2,11 +2,6 @@ import { supabase } from '@/lib/supabase';
 import type { PushSubscription } from '@/types/notifications';
 import { throwIfSupabaseError } from '@/lib/errorHandler';
 
-// Note: Using type assertions because 'push_subscriptions' table types are not yet in
-// the auto-generated supabase.ts. Types will be available after running
-// `npx supabase gen types typescript --local > src/types/supabase.ts`
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 /**
@@ -168,10 +163,7 @@ export const pushSubscriptionService = {
 
       if (subscription) {
         // Remove from database
-        await (supabase as any)
-          .from('push_subscriptions')
-          .delete()
-          .eq('endpoint', subscription.endpoint);
+        await supabase.from('push_subscriptions').delete().eq('endpoint', subscription.endpoint);
 
         // Unsubscribe from browser
         await subscription.unsubscribe();
@@ -202,7 +194,7 @@ export const pushSubscriptionService = {
    * Get all push subscriptions for the current user
    */
   async getSubscriptions(): Promise<PushSubscription[]> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('push_subscriptions')
       .select('*')
       .eq('active', true)
@@ -215,7 +207,7 @@ export const pushSubscriptionService = {
    * Deactivate a specific subscription (e.g., for another device)
    */
   async deactivateSubscription(subscriptionId: string): Promise<void> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('push_subscriptions')
       .update({ active: false })
       .eq('id', subscriptionId);

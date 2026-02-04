@@ -2,11 +2,6 @@ import { supabase } from '@/lib/supabase';
 import type { Notification, NotificationType } from '@/types/notifications';
 import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
 
-// Note: Using type assertions because 'notifications' table types are not yet in
-// the auto-generated supabase.ts. Types will be available after running
-// `npx supabase gen types typescript --local > src/types/supabase.ts`
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /** Data needed to queue a notification */
 interface QueueNotificationParams {
   recipientUserId: string;
@@ -24,7 +19,7 @@ export const notificationService = {
    * Get user's notifications (inbox)
    */
   async getNotifications(limit = 50, offset = 0): Promise<Notification[]> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notifications')
       .select('*')
       .order('created_at', { ascending: false })
@@ -37,7 +32,7 @@ export const notificationService = {
    * Get unread notification count
    */
   async getUnreadCount(): Promise<number> {
-    const { count, error } = await (supabase as any)
+    const { count, error } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
       .is('read_at', null);
@@ -50,7 +45,7 @@ export const notificationService = {
    * Get a single notification by ID
    */
   async getNotificationById(notificationId: string): Promise<Notification | null> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notifications')
       .select('*')
       .eq('id', notificationId)
@@ -65,7 +60,7 @@ export const notificationService = {
    * Mark notification as read
    */
   async markAsRead(notificationId: string): Promise<void> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
       .eq('id', notificationId);
@@ -77,7 +72,7 @@ export const notificationService = {
    * Mark all notifications as read
    */
   async markAllAsRead(): Promise<void> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
       .is('read_at', null);
@@ -89,10 +84,7 @@ export const notificationService = {
    * Delete a notification
    */
   async deleteNotification(notificationId: string): Promise<void> {
-    const { data, error } = await (supabase as any)
-      .from('notifications')
-      .delete()
-      .eq('id', notificationId);
+    const { data, error } = await supabase.from('notifications').delete().eq('id', notificationId);
 
     throwIfSupabaseError({ data, error });
   },
@@ -112,7 +104,7 @@ export const notificationService = {
     } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('notifications')
       .insert({
         ...notification,
