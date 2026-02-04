@@ -3,8 +3,8 @@ import type { NotificationPreferences, NotificationPreferencesInput } from '@/ty
 import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
 
 // Note: Using type assertions because 'notification_preferences' table types are not yet in
-// the auto-generated database.types.ts. Types will be available after running
-// `npx supabase gen types typescript` once the migration is applied.
+// the auto-generated supabase.ts. Types will be available after running
+// `npx supabase gen types typescript --local > src/types/supabase.ts`
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Default preferences for new users

@@ -3,8 +3,8 @@ import type { Notification, NotificationType } from '@/types/notifications';
 import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
 
 // Note: Using type assertions because 'notifications' table types are not yet in
-// the auto-generated database.types.ts. Types will be available after running
-// `npx supabase gen types typescript` once the migration is applied.
+// the auto-generated supabase.ts. Types will be available after running
+// `npx supabase gen types typescript --local > src/types/supabase.ts`
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /** Data needed to queue a notification */

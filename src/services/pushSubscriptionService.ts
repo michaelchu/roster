@@ -3,8 +3,8 @@ import type { PushSubscription } from '@/types/notifications';
 import { throwIfSupabaseError } from '@/lib/errorHandler';
 
 // Note: Using type assertions because 'push_subscriptions' table types are not yet in
-// the auto-generated database.types.ts. Types will be available after running
-// `npx supabase gen types typescript` once the migration is applied.
+// the auto-generated supabase.ts. Types will be available after running
+// `npx supabase gen types typescript --local > src/types/supabase.ts`
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
