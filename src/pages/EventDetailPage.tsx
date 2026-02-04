@@ -39,7 +39,6 @@ import {
   Zap,
   DollarSign,
   Trash2,
-  History,
 } from 'lucide-react';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { TopNav } from '@/components/TopNav';
@@ -717,15 +716,13 @@ export function EventDetailPage() {
 
         {/* Participants List */}
         <Tabs defaultValue="participants" className="bg-card rounded-lg border overflow-hidden">
-          <div className="px-3 py-2 border-b bg-muted flex items-center justify-between">
-            <TabsList className="h-8 p-0.5 bg-background/50">
-              <TabsTrigger value="participants" className="h-7 px-3 text-xs gap-1.5">
-                <Users className="h-3.5 w-3.5" />
+          <div className="px-3 py-2 border-b flex items-center justify-between">
+            <TabsList className="h-8 p-0.5">
+              <TabsTrigger value="participants" className="h-7 px-3 text-xs">
                 Participants
               </TabsTrigger>
               {isOrganizer && (
-                <TabsTrigger value="activity" className="h-7 px-3 text-xs gap-1.5">
-                  <History className="h-3.5 w-3.5" />
+                <TabsTrigger value="activity" className="h-7 px-3 text-xs">
                   Activity
                 </TabsTrigger>
               )}
@@ -742,7 +739,7 @@ export function EventDetailPage() {
           </div>
 
           <TabsContent value="participants" className="mt-0">
-            <p className="text-xs text-muted-foreground px-3 py-1.5 border-b">
+            <p className="text-xs text-muted-foreground px-3 py-1.5 border-b bg-muted/50">
               {(() => {
                 // Count unique users (by user_id and email for non-users)
                 const uniqueUsers = new Set();

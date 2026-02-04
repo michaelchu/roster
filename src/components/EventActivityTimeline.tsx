@@ -90,16 +90,16 @@ export function EventActivityTimeline({ eventId }: EventActivityTimelineProps) {
 
   if (loading) {
     return (
-      <div className="p-3 space-y-3">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex gap-3">
-            <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-            <div className="flex-1">
+      <div className="p-4">
+        <div className="relative pl-8 border-l-2 border-muted space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="relative">
+              <Skeleton className="absolute -left-[41px] h-6 w-6 rounded-full" />
               <Skeleton className="h-4 w-3/4 mb-1" />
               <Skeleton className="h-3 w-1/4" />
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
@@ -114,27 +114,32 @@ export function EventActivityTimeline({ eventId }: EventActivityTimelineProps) {
   }
 
   return (
-    <div className="divide-y">
-      {activities.map((activity) => {
-        const Icon = activityIcons[activity.activity_type] || Clock;
-        const colorClass = activityColors[activity.activity_type] || 'text-gray-600 bg-gray-100';
+    <div className="p-4">
+      <div className="relative pl-8 border-l-2 border-muted">
+        {activities.map((activity, index) => {
+          const Icon = activityIcons[activity.activity_type] || Clock;
+          const colorClass = activityColors[activity.activity_type] || 'text-gray-600 bg-gray-100';
+          const isLast = index === activities.length - 1;
 
-        return (
-          <div key={activity.id} className="px-3 py-2 flex gap-3">
-            <div
-              className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${colorClass}`}
-            >
-              <Icon className="h-4 w-4" />
+          return (
+            <div key={activity.id} className={`relative ${isLast ? '' : 'pb-4'}`}>
+              {/* Timeline icon marker */}
+              <div
+                className={`absolute -left-[41px] h-6 w-6 rounded-full flex items-center justify-center border-2 border-background ${colorClass}`}
+              >
+                <Icon className="h-3 w-3" />
+              </div>
+              {/* Content */}
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{formatActivityMessage(activity)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatRelativeTime(activity.created_at)}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{formatActivityMessage(activity)}</p>
-              <p className="text-xs text-muted-foreground">
-                {formatRelativeTime(activity.created_at)}
-              </p>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
