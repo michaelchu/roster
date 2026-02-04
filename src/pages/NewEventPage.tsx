@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
-import { Plus, Trash2, Lock, Unlock, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { FullScreenDrawer } from '@/components/ui/full-screen-drawer';
 import {
   eventService,
@@ -31,12 +31,13 @@ import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { useCustomFields } from '@/hooks/useCustomFields';
 import { fromLocalInputValue } from '@/lib/utils';
-import { DateTimeInput } from '@/components/DateTimeInput';
 import { showFormErrors } from '@/lib/formUtils';
 import { newEventFormSchema, type NewEventFormData } from '@/lib/validation';
 import { toast } from 'sonner';
 import { UserAvatar } from '@/components/UserAvatar';
-import type { CustomField } from '@/types/app.types';
+import { CustomFieldsEditor } from '@/components/CustomFieldsEditor';
+import { PrivacyToggle } from '@/components/PrivacyToggle';
+import { TbdDateTimeField } from '@/components/TbdDateTimeField';
 
 export function NewEventPage() {
   const navigate = useNavigate();
@@ -319,101 +320,62 @@ export function NewEventPage() {
 
         <div className="border-t" />
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="datetime" className="text-sm">
-              Start Date & Time
-            </Label>
-            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-              <Checkbox
-                checked={formData.datetimeTbd}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setPreviousValues((prev) => ({ ...prev, datetime: formData.datetime || '' }));
-                    setValue('datetimeTbd', true);
-                    setValue('datetime', '');
-                  } else {
-                    setValue('datetimeTbd', false);
-                    setValue('datetime', previousValues.datetime);
-                  }
-                }}
-              />
-              TBD
-            </label>
-          </div>
-          <DateTimeInput
-            id="datetime"
-            value={formData.datetime || ''}
-            onChange={(value) => setValue('datetime', value)}
-            disabled={formData.datetimeTbd}
-          />
-        </div>
+        <TbdDateTimeField
+          id="datetime"
+          label="Start Date & Time"
+          value={formData.datetime || ''}
+          isTbd={formData.datetimeTbd}
+          onValueChange={(value) => setValue('datetime', value)}
+          onTbdChange={(isTbd, prevValue) => {
+            if (isTbd) {
+              setPreviousValues((prev) => ({ ...prev, datetime: prevValue }));
+              setValue('datetimeTbd', true);
+              setValue('datetime', '');
+            } else {
+              setValue('datetimeTbd', false);
+              setValue('datetime', previousValues.datetime);
+            }
+          }}
+          type="datetime"
+        />
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="end_datetime" className="text-sm">
-              End Date & Time
-            </Label>
-            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-              <Checkbox
-                checked={formData.endDatetimeTbd}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setPreviousValues((prev) => ({
-                      ...prev,
-                      end_datetime: formData.end_datetime || '',
-                    }));
-                    setValue('endDatetimeTbd', true);
-                    setValue('end_datetime', '');
-                  } else {
-                    setValue('endDatetimeTbd', false);
-                    setValue('end_datetime', previousValues.end_datetime);
-                  }
-                }}
-              />
-              TBD
-            </label>
-          </div>
-          <DateTimeInput
-            id="end_datetime"
-            value={formData.end_datetime || ''}
-            onChange={(value) => setValue('end_datetime', value)}
-            disabled={formData.endDatetimeTbd}
-          />
-        </div>
+        <TbdDateTimeField
+          id="end_datetime"
+          label="End Date & Time"
+          value={formData.end_datetime || ''}
+          isTbd={formData.endDatetimeTbd}
+          onValueChange={(value) => setValue('end_datetime', value)}
+          onTbdChange={(isTbd, prevValue) => {
+            if (isTbd) {
+              setPreviousValues((prev) => ({ ...prev, end_datetime: prevValue }));
+              setValue('endDatetimeTbd', true);
+              setValue('end_datetime', '');
+            } else {
+              setValue('endDatetimeTbd', false);
+              setValue('end_datetime', previousValues.end_datetime);
+            }
+          }}
+          type="datetime"
+        />
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="location" className="text-sm">
-              Location
-            </Label>
-            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-              <Checkbox
-                checked={formData.locationTbd}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setPreviousValues((prev) => ({ ...prev, location: formData.location || '' }));
-                    setValue('locationTbd', true);
-                    setValue('location', '');
-                  } else {
-                    setValue('locationTbd', false);
-                    setValue('location', previousValues.location);
-                  }
-                }}
-              />
-              TBD
-            </label>
-          </div>
-          <Input
-            {...register('location')}
-            id="location"
-            type="text"
-            value={formData.locationTbd ? '' : formData.location || ''}
-            className="h-10 text-sm"
-            disabled={formData.locationTbd}
-            placeholder={formData.locationTbd ? 'TBD' : ''}
-          />
-        </div>
+        <TbdDateTimeField
+          id="location"
+          label="Location"
+          value={formData.location || ''}
+          isTbd={formData.locationTbd}
+          onValueChange={(value) => setValue('location', value)}
+          onTbdChange={(isTbd, prevValue) => {
+            if (isTbd) {
+              setPreviousValues((prev) => ({ ...prev, location: prevValue }));
+              setValue('locationTbd', true);
+              setValue('location', '');
+            } else {
+              setValue('locationTbd', false);
+              setValue('location', previousValues.location);
+            }
+          }}
+          type="text"
+        />
 
         <div className="border-t" />
 
@@ -551,137 +513,21 @@ export function NewEventPage() {
         <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
 
         {showEventPrivacy && (
-          <div className="space-y-2">
-            <Label className="text-sm">Event Privacy</Label>
-            <button
-              type="button"
-              onClick={() => setValue('is_private', !formData.is_private)}
-              className={`flex items-center justify-between w-full p-2 rounded-lg border-2 transition-colors ${
-                formData.is_private
-                  ? 'border-destructive/20 bg-destructive/5'
-                  : 'border-primary/20 bg-primary/5'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                {formData.is_private ? (
-                  <Lock className="h-3.5 w-3.5 text-destructive" />
-                ) : (
-                  <Unlock className="h-3.5 w-3.5 text-primary" />
-                )}
-                <span
-                  className={`text-sm font-medium ${
-                    formData.is_private ? 'text-destructive' : 'text-primary'
-                  }`}
-                >
-                  {formData.is_private ? 'Private Event' : 'Public Event'}
-                </span>
-              </div>
-            </button>
-            <p className="text-xs text-muted-foreground">
-              {formData.is_private
-                ? 'Only people you invite can view and sign up for this event'
-                : 'Anyone with the link can view and sign up for this event'}
-            </p>
-          </div>
+          <PrivacyToggle
+            isPrivate={formData.is_private}
+            onChange={(isPrivate) => setValue('is_private', isPrivate)}
+          />
         )}
 
         {showRegistrationForm && (
           <>
             <div className="border-t" />
-            <div>
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium">Custom Fields</h2>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="h-8 px-2"
-                  onClick={addCustomField}
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add Field
-                </Button>
-              </div>
-
-              {customFields.length > 0 && (
-                <div className="space-y-3 mt-3">
-                  {customFields.map((field) => (
-                    <div key={field.id} className="p-3 bg-muted rounded border space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="text"
-                          value={field.label}
-                          onChange={(e) =>
-                            field.id && updateCustomField(field.id, { label: e.target.value })
-                          }
-                          placeholder="Field label"
-                          className="flex-1 h-9 text-sm"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => field.id && removeCustomField(field.id)}
-                          className="text-destructive hover:text-destructive/80"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={field.type}
-                          onValueChange={(value) =>
-                            field.id &&
-                            updateCustomField(field.id, {
-                              type: value as CustomField['type'],
-                              options: value === 'select' ? [''] : undefined,
-                            })
-                          }
-                        >
-                          <SelectTrigger className="flex-1 h-9 text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="text">Text</SelectItem>
-                            <SelectItem value="email">Email</SelectItem>
-                            <SelectItem value="tel">Phone</SelectItem>
-                            <SelectItem value="number">Number</SelectItem>
-                            <SelectItem value="select">Dropdown</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                          <Checkbox
-                            checked={field.required}
-                            onCheckedChange={(checked) =>
-                              field.id &&
-                              updateCustomField(field.id, {
-                                required: checked === true,
-                              })
-                            }
-                          />
-                          Required
-                        </label>
-                      </div>
-                      {field.type === 'select' && (
-                        <div className="space-y-2">
-                          <Label className="text-xs">Options (one per line)</Label>
-                          <Textarea
-                            value={field.options?.join('\n') || ''}
-                            onChange={(e) =>
-                              field.id &&
-                              updateCustomField(field.id, {
-                                options: e.target.value.split('\n').filter(Boolean),
-                              })
-                            }
-                            placeholder="Option 1&#10;Option 2&#10;Option 3"
-                            className="text-sm resize-none"
-                            rows={3}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <CustomFieldsEditor
+              customFields={customFields}
+              onAdd={addCustomField}
+              onUpdate={updateCustomField}
+              onRemove={removeCustomField}
+            />
           </>
         )}
 
