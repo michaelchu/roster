@@ -685,6 +685,67 @@ test.describe('Notification Triggers', () => {
       // Cleanup
       await cleanupNotificationQueue(event.id);
     });
+
+    test('rapid successive edits only generate one notification (deduplication)', async ({
+      page,
+    }) => {
+      // Create organizer
+      const organizerEmail = generateTestEmail('organizer');
+      await register(page, { email: organizerEmail, password: 'TestPassword123!' });
+      const organizerId = await getUserId(page);
+
+      // Create event
+      const event = await createTestEvent(organizerId!, {
+        name: generateTestName('Dedup Test'),
+        location: 'Original Location',
+        description: 'Original description',
+      });
+
+      await clearAuth(page);
+
+      // Create participant with user account
+      const participantEmail = generateTestEmail('participant');
+      await register(page, { email: participantEmail, password: 'TestPassword123!' });
+      const participantUserId = await getUserId(page);
+
+      // Register participant
+      await getAdminDb().from('participants').insert({
+        event_id: event.id,
+        name: 'Registered Participant',
+        email: participantEmail,
+        user_id: participantUserId,
+      });
+
+      // Clear signup notifications
+      await cleanupNotificationQueue(event.id);
+
+      // Make multiple rapid edits in quick succession
+      await getAdminDb().from('events').update({ name: 'First Edit' }).eq('id', event.id);
+
+      await getAdminDb().from('events').update({ location: 'Second Edit Location' }).eq('id', event.id);
+
+      await getAdminDb()
+        .from('events')
+        .update({ description: 'Third edit description' })
+        .eq('id', event.id);
+
+      // Wait for triggers to process
+      await page.waitForTimeout(1000);
+
+      // Count event_updated notifications for this participant/event
+      const { data } = await getAdminDb()
+        .from('notification_queue')
+        .select('*')
+        .eq('event_id', event.id)
+        .eq('recipient_user_id', participantUserId)
+        .eq('notification_type', 'event_updated');
+
+      // Should only have ONE notification despite three edits
+      expect(data?.length || 0).toBe(1);
+
+      // Cleanup
+      await cleanupNotificationQueue(event.id);
+    });
   });
 
   test.describe('event_cancelled Notification', () => {
