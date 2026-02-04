@@ -25,6 +25,7 @@ export function GroupDetailPage() {
   const [memberCount, setMemberCount] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const loadingRef = useRef(false);
+  const hasLoadedRef = useRef(false);
   const {
     isLoading: eventsLoading,
     data: events,
@@ -97,7 +98,8 @@ export function GroupDetailPage() {
   }, [group]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       // Only load events if group loads successfully
       loadGroup().then((success) => {
         if (success) {
