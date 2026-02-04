@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   UserPlus,
@@ -19,6 +19,8 @@ interface NotificationItemProps {
   onRead: (id: string) => void;
   onDelete: (id: string) => void;
   onNavigate?: () => void;
+  isRevealed: boolean;
+  onRevealChange: (revealed: boolean) => void;
 }
 
 const notificationIcons: Record<NotificationType, typeof Bell> = {
@@ -61,18 +63,17 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString();
 }
 
-// Threshold to reveal delete button (snap to this position)
-const REVEAL_THRESHOLD = 40;
-// Width of the revealed delete button area
-const REVEAL_WIDTH = 80;
-// Threshold to delete immediately (drag far enough)
-const IMMEDIATE_DELETE_THRESHOLD = 160;
+// Get viewport-based thresholds
+const getDeleteThreshold = () => window.innerWidth / 3;
+const getRevealWidth = () => window.innerWidth / 4;
 
 export function NotificationItem({
   notification,
   onRead,
   onDelete,
   onNavigate,
+  isRevealed,
+  onRevealChange,
 }: NotificationItemProps) {
   const navigate = useNavigate();
   const isUnread = !notification.read_at;
@@ -80,11 +81,19 @@ export function NotificationItem({
   const iconColor = notificationColors[notification.type] || 'text-muted-foreground';
 
   const [swipeX, setSwipeX] = useState(0);
-  const [isRevealed, setIsRevealed] = useState(false);
   const [isSwiping, setIsSwiping] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const startXRef = useRef(0);
-  const currentXRef = useRef(0);
+  const startYRef = useRef(0);
+  const swipeStartXRef = useRef(0);
+  const directionLockedRef = useRef<'horizontal' | 'vertical' | null>(null);
+
+  // Sync swipeX when revealed state changes from parent
+  useEffect(() => {
+    if (!isSwiping) {
+      setSwipeX(isRevealed ? getRevealWidth() : 0);
+    }
+  }, [isRevealed, isSwiping]);
 
   const triggerDelete = () => {
     setIsDeleting(true);
@@ -97,44 +106,52 @@ export function NotificationItem({
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isDeleting) return;
     startXRef.current = e.touches[0].clientX;
-    currentXRef.current = e.touches[0].clientX;
+    startYRef.current = e.touches[0].clientY;
+    swipeStartXRef.current = swipeX;
+    directionLockedRef.current = null;
     setIsSwiping(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isSwiping || isDeleting) return;
-    currentXRef.current = e.touches[0].clientX;
-    const diff = startXRef.current - currentXRef.current;
+    const diffX = startXRef.current - e.touches[0].clientX;
+    const diffY = e.touches[0].clientY - startYRef.current;
 
-    // If already revealed, allow swiping right to close or left to delete
-    if (isRevealed) {
-      const newSwipeX = Math.max(0, Math.min(REVEAL_WIDTH + diff, IMMEDIATE_DELETE_THRESHOLD + 20));
-      setSwipeX(newSwipeX);
-    } else {
-      // Only allow left swipe (positive diff)
-      const newSwipeX = Math.max(0, Math.min(diff, IMMEDIATE_DELETE_THRESHOLD + 20));
-      setSwipeX(newSwipeX);
+    // Lock direction on first significant movement
+    if (directionLockedRef.current === null) {
+      const absX = Math.abs(diffX);
+      const absY = Math.abs(diffY);
+      if (absX > 10 || absY > 10) {
+        directionLockedRef.current = absX > absY ? 'horizontal' : 'vertical';
+      }
     }
+
+    // Ignore if scrolling vertically
+    if (directionLockedRef.current === 'vertical') return;
+
+    // Follow the finger from where we started
+    setSwipeX(Math.max(0, swipeStartXRef.current + diffX));
   };
 
   const handleTouchEnd = () => {
     if (isDeleting) return;
     setIsSwiping(false);
+    directionLockedRef.current = null;
 
-    // If swiped far enough, trigger delete animation
-    if (swipeX >= IMMEDIATE_DELETE_THRESHOLD) {
+    const deleteThreshold = getDeleteThreshold();
+    const revealWidth = getRevealWidth();
+
+    // If swiped more than 1/3 of viewport, trigger delete
+    if (swipeX >= deleteThreshold) {
       triggerDelete();
-      return;
-    }
-
-    // If swiped past reveal threshold, snap to revealed position
-    if (swipeX >= REVEAL_THRESHOLD) {
-      setSwipeX(REVEAL_WIDTH);
-      setIsRevealed(true);
+    } else if (swipeX > 20) {
+      // Snap to 1/4 of viewport showing delete button
+      setSwipeX(revealWidth);
+      onRevealChange(true);
     } else {
-      // Snap back to closed
+      // Spring back to closed
       setSwipeX(0);
-      setIsRevealed(false);
+      onRevealChange(false);
     }
   };
 
@@ -145,8 +162,7 @@ export function NotificationItem({
   const handleClick = () => {
     // If revealed, close it instead of navigating
     if (isRevealed) {
-      setSwipeX(0);
-      setIsRevealed(false);
+      onRevealChange(false);
       return;
     }
     if (swipeX > 10) return; // Ignore click if swiping
@@ -184,7 +200,7 @@ export function NotificationItem({
           'active:bg-destructive/80',
           swipeX > 0 && !isDeleting ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
-        style={{ width: Math.max(swipeX, REVEAL_WIDTH) }}
+        style={{ width: swipeX }}
         aria-label="Delete notification"
       >
         <Trash2 className="h-5 w-5 text-destructive-foreground" />
@@ -212,12 +228,12 @@ export function NotificationItem({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className={cn('text-sm font-medium truncate', isUnread && 'font-semibold')}>
+            <p className={cn('text-xs font-medium truncate', isUnread && 'font-semibold')}>
               {notification.title}
             </p>
             {isUnread && <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-1.5" />}
           </div>
-          <p className="text-sm text-muted-foreground line-clamp-2">{notification.body}</p>
+          <p className="text-xs text-muted-foreground truncate">{notification.body}</p>
           <p className="text-xs text-muted-foreground mt-1">
             {formatTimeAgo(notification.created_at)}
           </p>

@@ -17,6 +17,7 @@ interface NotificationCenterProps {
 export function NotificationCenter({ className }: NotificationCenterProps) {
   const [open, setOpen] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
+  const [revealedId, setRevealedId] = useState<string | null>(null);
 
   const {
     notifications,
@@ -149,6 +150,8 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                     onRead={markAsRead}
                     onDelete={handleDelete}
                     onNavigate={() => setOpen(false)}
+                    isRevealed={revealedId === notification.id}
+                    onRevealChange={(revealed) => setRevealedId(revealed ? notification.id : null)}
                   />
                 ))}
               </div>
