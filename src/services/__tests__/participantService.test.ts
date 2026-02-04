@@ -239,6 +239,46 @@ describe('participantService', () => {
 
   describe('bulkUpdatePaymentStatus', () => {
     it('should update payment status via RPC and return counts', async () => {
+      // Mock fetching old participants
+      const mockSelectChain = {
+        select: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({
+          data: [
+            {
+              id: 'p1',
+              name: 'User 1',
+              event_id: 'e1',
+              user_id: 'u1',
+              claimed_by_user_id: null,
+              payment_status: 'pending',
+            },
+            {
+              id: 'p2',
+              name: 'User 2',
+              event_id: 'e1',
+              user_id: 'u2',
+              claimed_by_user_id: null,
+              payment_status: 'pending',
+            },
+            {
+              id: 'p3',
+              name: 'User 3',
+              event_id: 'e1',
+              user_id: null,
+              claimed_by_user_id: 'u1',
+              payment_status: 'pending',
+            },
+          ],
+          error: null,
+        }),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: 'e1', name: 'Test Event', organizer_id: 'org1', max_participants: 10 },
+          error: null,
+        }),
+      };
+      mockSupabase.from.mockReturnValue(mockSelectChain as any);
+
       mockSupabase.rpc.mockResolvedValue({
         data: [{ updated_count: 3, requested_count: 3 }],
         error: null,
@@ -266,6 +306,46 @@ describe('participantService', () => {
     });
 
     it('should handle partial updates', async () => {
+      // Mock fetching old participants
+      const mockSelectChain = {
+        select: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({
+          data: [
+            {
+              id: 'p1',
+              name: 'User 1',
+              event_id: 'e1',
+              user_id: 'u1',
+              claimed_by_user_id: null,
+              payment_status: 'pending',
+            },
+            {
+              id: 'p2',
+              name: 'User 2',
+              event_id: 'e1',
+              user_id: 'u2',
+              claimed_by_user_id: null,
+              payment_status: 'pending',
+            },
+            {
+              id: 'p3',
+              name: 'User 3',
+              event_id: 'e1',
+              user_id: null,
+              claimed_by_user_id: 'u1',
+              payment_status: 'pending',
+            },
+          ],
+          error: null,
+        }),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: 'e1', name: 'Test Event', organizer_id: 'org1', max_participants: 10 },
+          error: null,
+        }),
+      };
+      mockSupabase.from.mockReturnValue(mockSelectChain as any);
+
       mockSupabase.rpc.mockResolvedValue({
         data: [{ updated_count: 2, requested_count: 3 }],
         error: null,
@@ -277,6 +357,25 @@ describe('participantService', () => {
     });
 
     it('should throw error on RPC failure', async () => {
+      // Mock fetching old participants
+      const mockSelectChain = {
+        select: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({
+          data: [
+            {
+              id: 'p1',
+              name: 'User 1',
+              event_id: 'e1',
+              user_id: 'u1',
+              claimed_by_user_id: null,
+              payment_status: 'pending',
+            },
+          ],
+          error: null,
+        }),
+      };
+      mockSupabase.from.mockReturnValue(mockSelectChain as any);
+
       mockSupabase.rpc.mockResolvedValue({
         data: null,
         error: { message: 'Invalid payment status' },

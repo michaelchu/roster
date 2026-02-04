@@ -671,6 +671,14 @@ export const participantService = {
       return { updated: 0, requested: 0 };
     }
 
+    // Fetch old participant data to track changes
+    const { data: oldParticipants } = await supabase
+      .from('participants')
+      .select('id, name, event_id, user_id, claimed_by_user_id, payment_status')
+      .in('id', participantIds);
+
+    const oldStatusMap = new Map(oldParticipants?.map((p) => [p.id, p.payment_status]) || []);
+
     const { data, error } = await supabase.rpc('bulk_update_payment_status', {
       p_participant_ids: participantIds,
       p_payment_status: paymentStatus,
@@ -681,6 +689,57 @@ export const participantService = {
 
     if (!data || data.length === 0) {
       return { updated: 0, requested: participantIds.length };
+    }
+
+    // Log activity and send notifications for each updated participant
+    if (oldParticipants) {
+      // Group participants by event for efficient event info lookup
+      const eventIds = [...new Set(oldParticipants.map((p) => p.event_id))];
+      const eventInfoMap = new Map<string, Awaited<ReturnType<typeof getEventInfo>>>();
+
+      for (const eventId of eventIds) {
+        const eventInfo = await getEventInfo(eventId);
+        if (eventInfo) {
+          eventInfoMap.set(eventId, eventInfo);
+        }
+      }
+
+      for (const participant of oldParticipants) {
+        const oldStatus = oldStatusMap.get(participant.id);
+
+        // Only process if status actually changed
+        if (oldStatus !== paymentStatus) {
+          // Log payment activity
+          participantActivityService
+            .logPaymentUpdated({
+              participantId: participant.id,
+              eventId: participant.event_id,
+              participantName: participant.name || 'Unknown',
+              fromStatus: oldStatus || 'pending',
+              toStatus: paymentStatus,
+            })
+            .catch((e) => console.error('Failed to log bulk payment updated activity:', e));
+
+          // Queue payment_received notification if status became 'paid'
+          if (paymentStatus === 'paid') {
+            const eventInfo = eventInfoMap.get(participant.event_id);
+            if (eventInfo) {
+              notificationService
+                .queuePaymentReceived({
+                  organizerId: eventInfo.organizer_id,
+                  eventId: eventInfo.id,
+                  eventName: eventInfo.name,
+                  participantId: participant.id,
+                  participantName: participant.name || 'Unknown',
+                  actorUserId: participant.user_id || participant.claimed_by_user_id,
+                })
+                .catch((e) =>
+                  console.error('Failed to queue bulk payment received notification:', e)
+                );
+            }
+          }
+        }
+      }
     }
 
     return {
