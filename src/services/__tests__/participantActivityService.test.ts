@@ -416,4 +416,34 @@ describe('participantActivityService', () => {
       });
     });
   });
+
+  describe('activity logging with null participantId', () => {
+    it('should handle null participantId for deleted participants', async () => {
+      const mockQueryChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      // This simulates logging activity for a participant that was deleted
+      // The participantId can be null per the type definition
+      await participantActivityService.logWithdrew({
+        participantId: null as unknown as string, // Type coercion for test
+        eventId: 'e-1',
+        participantName: 'Deleted User',
+        slotNumber: 5,
+        paymentStatus: 'pending',
+      });
+
+      expect(mockQueryChain.insert).toHaveBeenCalledWith({
+        participant_id: null,
+        event_id: 'e-1',
+        activity_type: 'withdrew',
+        participant_name: 'Deleted User',
+        details: {
+          slot_number: 5,
+          payment_status: 'pending',
+        },
+      });
+    });
+  });
 });

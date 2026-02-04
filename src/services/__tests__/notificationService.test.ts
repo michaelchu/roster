@@ -449,6 +449,30 @@ describe('notificationService', () => {
 
       expect(mockSupabase.from).not.toHaveBeenCalled();
     });
+
+    it('should notify organizer for guest signup (null actorUserId)', async () => {
+      const mockQueryChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await notificationService.queueNewSignup({
+        organizerId: 'org-1',
+        eventId: 'event-1',
+        eventName: 'Test Event',
+        participantId: 'p-1',
+        participantName: 'Guest User',
+        actorUserId: null, // Guest registration
+      });
+
+      expect(mockQueryChain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recipient_user_id: 'org-1',
+          notification_type: 'new_signup',
+          actor_user_id: null,
+        })
+      );
+    });
   });
 
   describe('queueSignupConfirmed', () => {
@@ -566,6 +590,29 @@ describe('notificationService', () => {
 
       expect(mockSupabase.from).not.toHaveBeenCalled();
     });
+
+    it('should notify organizer when actorUserId is null', async () => {
+      const mockQueryChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await notificationService.queueWithdrawal({
+        organizerId: 'org-1',
+        eventId: 'event-1',
+        eventName: 'Test Event',
+        participantName: 'Guest User',
+        actorUserId: null, // Unknown actor
+      });
+
+      expect(mockQueryChain.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recipient_user_id: 'org-1',
+          notification_type: 'withdrawal',
+          actor_user_id: null,
+        })
+      );
+    });
   });
 
   describe('queuePaymentReceived', () => {
@@ -671,6 +718,23 @@ describe('notificationService', () => {
 
       expect(mockQueryChain.insert).not.toHaveBeenCalled();
     });
+
+    it('should send zero notifications when only organizer is participant', async () => {
+      const mockQueryChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await notificationService.queueEventUpdated({
+        organizerId: 'org-1',
+        eventId: 'event-1',
+        eventName: 'Test Event',
+        changes: ['location'],
+        participantUserIds: ['org-1'], // Only organizer registered
+      });
+
+      expect(mockQueryChain.insert).not.toHaveBeenCalled();
+    });
   });
 
   describe('queueEventCancelled', () => {
@@ -722,6 +786,21 @@ describe('notificationService', () => {
         organizerId: 'org-1',
         eventName: 'Test Event',
         participantUserIds: ['org-1'], // Only organizer
+      });
+
+      expect(mockQueryChain.insert).not.toHaveBeenCalled();
+    });
+
+    it('should handle empty participant list', async () => {
+      const mockQueryChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await notificationService.queueEventCancelled({
+        organizerId: 'org-1',
+        eventName: 'Test Event',
+        participantUserIds: [],
       });
 
       expect(mockQueryChain.insert).not.toHaveBeenCalled();
