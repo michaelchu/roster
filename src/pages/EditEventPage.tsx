@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { useCustomFields } from '@/hooks/useCustomFields';
 import { Plus, Trash2, Save, Lock, Unlock } from 'lucide-react';
 import { FullScreenDrawer } from '@/components/ui/full-screen-drawer';
 import { eventService } from '@/services';
@@ -30,14 +31,7 @@ import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { toLocalInputValue, fromLocalInputValue } from '@/lib/utils';
 import { DateTimeInput } from '@/components/DateTimeInput';
-
-interface CustomField {
-  id?: string;
-  label: string;
-  type: 'text' | 'email' | 'tel' | 'number' | 'select';
-  required: boolean;
-  options?: string[];
-}
+import type { CustomField } from '@/types/app.types';
 
 interface EventData {
   id: string;
@@ -81,7 +75,8 @@ export function EditEventPage() {
     endDatetimeTbd: false,
     locationTbd: false,
   });
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const { customFields, addCustomField, updateCustomField, removeCustomField, resetCustomFields } =
+    useCustomFields();
   const [maxParticipants, setMaxParticipants] = useState<number>(10);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   // Store previous values when TBD is checked so we can restore them
@@ -128,7 +123,7 @@ export function EditEventPage() {
         endDatetimeTbd: !data.end_datetime,
         locationTbd: !data.location,
       });
-      setCustomFields(data.custom_fields || []);
+      resetCustomFields(data.custom_fields || []);
       setMaxParticipants(data.max_participants || 10);
     } catch (error) {
       errorHandler.handle(error, {
@@ -139,26 +134,6 @@ export function EditEventPage() {
     } finally {
       setInitialLoading(false);
     }
-  };
-
-  const addCustomField = () => {
-    const newField: CustomField = {
-      id: Date.now().toString(),
-      label: '',
-      type: 'text',
-      required: false,
-    };
-    setCustomFields([...customFields, newField]);
-  };
-
-  const updateCustomField = (id: string, updates: Partial<CustomField>) => {
-    setCustomFields(
-      customFields.map((field) => (field.id === id ? { ...field, ...updates } : field))
-    );
-  };
-
-  const removeCustomField = (id: string) => {
-    setCustomFields(customFields.filter((field) => field.id !== id));
   };
 
   const saveChanges = async () => {

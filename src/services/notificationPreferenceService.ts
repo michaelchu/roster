@@ -110,18 +110,7 @@ export const notificationPreferenceService = {
    * Enable all notifications
    */
   async enableAll(): Promise<NotificationPreferences> {
-    return this.updatePreferences({
-      push_enabled: true,
-      notify_new_signup: true,
-      notify_withdrawal: true,
-      notify_payment_received: true,
-      notify_capacity_reached: true,
-      notify_signup_confirmed: true,
-      notify_event_updated: true,
-      notify_event_cancelled: true,
-      notify_payment_reminder: true,
-      notify_waitlist_promotion: true,
-    });
+    return this.updatePreferences(DEFAULT_PREFERENCES);
   },
 
   /**

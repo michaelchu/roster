@@ -29,20 +29,14 @@ import {
 import { errorHandler } from '@/lib/errorHandler';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
+import { useCustomFields } from '@/hooks/useCustomFields';
 import { fromLocalInputValue } from '@/lib/utils';
 import { DateTimeInput } from '@/components/DateTimeInput';
 import { showFormErrors } from '@/lib/formUtils';
 import { newEventFormSchema, type NewEventFormData } from '@/lib/validation';
 import { toast } from 'sonner';
 import { UserAvatar } from '@/components/UserAvatar';
-
-interface CustomField {
-  id: string;
-  label: string;
-  type: 'text' | 'email' | 'tel' | 'number' | 'select';
-  required: boolean;
-  options?: string[];
-}
+import type { CustomField } from '@/types/app.types';
 
 export function NewEventPage() {
   const navigate = useNavigate();
@@ -82,7 +76,7 @@ export function NewEventPage() {
   });
 
   const formData = watch();
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const { customFields, addCustomField, updateCustomField, removeCustomField } = useCustomFields();
   const [maxParticipants, setMaxParticipants] = useState<number>(10);
   // Store previous values when TBD is checked so we can restore them
   const [previousValues, setPreviousValues] = useState({
@@ -196,26 +190,6 @@ export function NewEventPage() {
 
   const removeMember = (memberId: string) => {
     setSelectedMembers(selectedMembers.filter((m) => m.id !== memberId));
-  };
-
-  const addCustomField = () => {
-    const newField: CustomField = {
-      id: Date.now().toString(),
-      label: '',
-      type: 'text',
-      required: false,
-    };
-    setCustomFields([...customFields, newField]);
-  };
-
-  const updateCustomField = (id: string, updates: Partial<CustomField>) => {
-    setCustomFields(
-      customFields.map((field) => (field.id === id ? { ...field, ...updates } : field))
-    );
-  };
-
-  const removeCustomField = (id: string) => {
-    setCustomFields(customFields.filter((field) => field.id !== id));
   };
 
   const onSubmit = async (data: NewEventFormData) => {

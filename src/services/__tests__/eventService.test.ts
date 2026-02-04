@@ -48,6 +48,7 @@ vi.mock('@/lib/errorHandler', () => ({
       this.name = 'ValidationError';
     }
   },
+  fireAndForget: vi.fn(),
 }));
 
 // Mock validation

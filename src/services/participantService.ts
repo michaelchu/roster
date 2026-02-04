@@ -7,7 +7,7 @@ import type {
   CustomField,
   Json,
 } from '@/types/app.types';
-import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
+import { throwIfSupabaseError, requireData, fireAndForget } from '@/lib/errorHandler';
 import { notificationService } from './notificationService';
 import { participantActivityService } from './participantActivityService';
 
@@ -259,53 +259,57 @@ export const participantService = {
       const actorUserId = created.user_id || created.claimed_by_user_id;
 
       // Log activity
-      participantActivityService
-        .logJoined({
+      fireAndForget(
+        participantActivityService.logJoined({
           participantId: created.id,
           eventId: created.event_id,
           participantName: created.name || 'Unknown',
           slotNumber: created.slot_number,
           claimedByUserId: created.claimed_by_user_id,
-        })
-        .catch((e) => console.error('Failed to log joined activity:', e));
+        }),
+        'log joined activity'
+      );
 
       // Notify organizer of new signup
-      notificationService
-        .queueNewSignup({
+      fireAndForget(
+        notificationService.queueNewSignup({
           organizerId: eventInfo.organizer_id,
           eventId: eventInfo.id,
           eventName: eventInfo.name,
           participantId: created.id,
           participantName: created.name || 'Unknown',
           actorUserId,
-        })
-        .catch((e) => console.error('Failed to queue new signup notification:', e));
+        }),
+        'queue new signup notification'
+      );
 
       // Notify participant of confirmation (if they have a user account)
       if (actorUserId) {
-        notificationService
-          .queueSignupConfirmed({
+        fireAndForget(
+          notificationService.queueSignupConfirmed({
             participantUserId: actorUserId,
             organizerId: eventInfo.organizer_id,
             eventId: eventInfo.id,
             eventName: eventInfo.name,
             participantId: created.id,
-          })
-          .catch((e) => console.error('Failed to queue signup confirmed notification:', e));
+          }),
+          'queue signup confirmed notification'
+        );
       }
 
       // Check if capacity reached and notify
       if (eventInfo.max_participants) {
         const count = await getParticipantCount(participant.event_id);
         if (count === eventInfo.max_participants) {
-          notificationService
-            .queueCapacityReached({
+          fireAndForget(
+            notificationService.queueCapacityReached({
               organizerId: eventInfo.organizer_id,
               eventId: eventInfo.id,
               eventName: eventInfo.name,
               maxParticipants: eventInfo.max_participants,
-            })
-            .catch((e) => console.error('Failed to queue capacity reached notification:', e));
+            }),
+            'queue capacity reached notification'
+          );
         }
       }
     }
@@ -367,14 +371,15 @@ export const participantService = {
     }
 
     if (Object.keys(changes).length > 0) {
-      participantActivityService
-        .logInfoUpdated({
+      fireAndForget(
+        participantActivityService.logInfoUpdated({
           participantId: updated.id,
           eventId: updated.event_id,
           participantName: updated.name || 'Unknown',
           changes,
-        })
-        .catch((e) => console.error('Failed to log info updated activity:', e));
+        }),
+        'log info updated activity'
+      );
     }
 
     return updated;
@@ -391,15 +396,16 @@ export const participantService = {
     const eventInfo = await getEventInfo(participant.event_id);
 
     // Log withdrawal activity BEFORE deleting
-    participantActivityService
-      .logWithdrew({
+    fireAndForget(
+      participantActivityService.logWithdrew({
         participantId: participant.id,
         eventId: participant.event_id,
         participantName: participant.name || 'Unknown',
         slotNumber: participant.slot_number,
         paymentStatus: participant.payment_status,
-      })
-      .catch((e) => console.error('Failed to log withdrew activity:', e));
+      }),
+      'log withdrew activity'
+    );
 
     const { data, error } = await supabase.from('participants').delete().eq('id', participantId);
 
@@ -408,15 +414,16 @@ export const participantService = {
     // Queue withdrawal notification AFTER successful delete
     if (eventInfo) {
       const actorUserId = participant.user_id || participant.claimed_by_user_id;
-      notificationService
-        .queueWithdrawal({
+      fireAndForget(
+        notificationService.queueWithdrawal({
           organizerId: eventInfo.organizer_id,
           eventId: eventInfo.id,
           eventName: eventInfo.name,
           participantName: participant.name || 'Unknown',
           actorUserId,
-        })
-        .catch((e) => console.error('Failed to queue withdrawal notification:', e));
+        }),
+        'queue withdrawal notification'
+      );
     }
   },
 
@@ -475,15 +482,16 @@ export const participantService = {
       ]);
 
       if (labelResult.data) {
-        participantActivityService
-          .logLabelAdded({
+        fireAndForget(
+          participantActivityService.logLabelAdded({
             participantId,
             eventId: participant.event_id,
             participantName: participant.name || 'Unknown',
             labelId,
             labelName: labelResult.data.name,
-          })
-          .catch((e) => console.error('Failed to log label added activity:', e));
+          }),
+          'log label added activity'
+        );
       }
     }
   },
@@ -511,15 +519,16 @@ export const participantService = {
 
     // Log activity after successful delete
     if (labelResult.data) {
-      participantActivityService
-        .logLabelRemoved({
+      fireAndForget(
+        participantActivityService.logLabelRemoved({
           participantId,
           eventId: participant.event_id,
           participantName: participant.name || 'Unknown',
           labelId,
           labelName: labelResult.data.name,
-        })
-        .catch((e) => console.error('Failed to log label removed activity:', e));
+        }),
+        'log label removed activity'
+      );
     }
   },
 
@@ -623,30 +632,32 @@ export const participantService = {
 
     // Log payment status change if it actually changed
     if (oldStatus !== paymentStatus) {
-      participantActivityService
-        .logPaymentUpdated({
+      fireAndForget(
+        participantActivityService.logPaymentUpdated({
           participantId: updated.id,
           eventId: updated.event_id,
           participantName: updated.name || 'Unknown',
           fromStatus: oldStatus,
           toStatus: paymentStatus,
-        })
-        .catch((e) => console.error('Failed to log payment updated activity:', e));
+        }),
+        'log payment updated activity'
+      );
 
       // Queue payment_received notification if status became 'paid'
       if (paymentStatus === 'paid') {
         const eventInfo = await getEventInfo(updated.event_id);
         if (eventInfo) {
-          notificationService
-            .queuePaymentReceived({
+          fireAndForget(
+            notificationService.queuePaymentReceived({
               organizerId: eventInfo.organizer_id,
               eventId: eventInfo.id,
               eventName: eventInfo.name,
               participantId: updated.id,
               participantName: updated.name || 'Unknown',
               actorUserId: updated.user_id || updated.claimed_by_user_id,
-            })
-            .catch((e) => console.error('Failed to queue payment received notification:', e));
+            }),
+            'queue payment received notification'
+          );
         }
       }
     }
@@ -710,32 +721,32 @@ export const participantService = {
         // Only process if status actually changed
         if (oldStatus !== paymentStatus) {
           // Log payment activity
-          participantActivityService
-            .logPaymentUpdated({
+          fireAndForget(
+            participantActivityService.logPaymentUpdated({
               participantId: participant.id,
               eventId: participant.event_id,
               participantName: participant.name || 'Unknown',
               fromStatus: oldStatus || 'pending',
               toStatus: paymentStatus,
-            })
-            .catch((e) => console.error('Failed to log bulk payment updated activity:', e));
+            }),
+            'log bulk payment updated activity'
+          );
 
           // Queue payment_received notification if status became 'paid'
           if (paymentStatus === 'paid') {
             const eventInfo = eventInfoMap.get(participant.event_id);
             if (eventInfo) {
-              notificationService
-                .queuePaymentReceived({
+              fireAndForget(
+                notificationService.queuePaymentReceived({
                   organizerId: eventInfo.organizer_id,
                   eventId: eventInfo.id,
                   eventName: eventInfo.name,
                   participantId: participant.id,
                   participantName: participant.name || 'Unknown',
                   actorUserId: participant.user_id || participant.claimed_by_user_id,
-                })
-                .catch((e) =>
-                  console.error('Failed to queue bulk payment received notification:', e)
-                );
+                }),
+                'queue bulk payment received notification'
+              );
             }
           }
         }

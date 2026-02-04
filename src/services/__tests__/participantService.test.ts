@@ -36,6 +36,7 @@ vi.mock('@/lib/errorHandler', () => ({
     }
     return data;
   }),
+  fireAndForget: vi.fn(),
 }));
 
 const mockSupabase = vi.mocked(supabase);

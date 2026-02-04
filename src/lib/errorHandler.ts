@@ -1,5 +1,19 @@
 import { toast } from 'sonner';
 
+/**
+ * Executes an async function without blocking, logging errors to console.
+ * Use for non-critical operations like notifications, activity logging, etc.
+ *
+ * @param promise - The promise to execute
+ * @param action - Description of the action for error logging
+ *
+ * @example
+ * fireAndForget(notificationService.queueNewSignup(data), 'queue new signup notification');
+ */
+export function fireAndForget(promise: Promise<unknown>, action: string): void {
+  promise.catch((e) => console.error(`Failed to ${action}:`, e));
+}
+
 export interface ErrorContext {
   userId?: string;
   action?: string;

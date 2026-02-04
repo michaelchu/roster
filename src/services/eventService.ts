@@ -1,6 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate, Json } from '@/types/app.types';
-import { throwIfSupabaseError, requireData, ValidationError } from '@/lib/errorHandler';
+import {
+  throwIfSupabaseError,
+  requireData,
+  ValidationError,
+  fireAndForget,
+} from '@/lib/errorHandler';
 import { safeValidateEvent, validateCustomFields, type CustomField } from '@/lib/validation';
 import { requireValidSession } from '@/lib/sessionValidator';
 import { notificationService } from './notificationService';
@@ -203,19 +208,18 @@ export const eventService = {
 
     // Queue event_updated notifications if there were meaningful changes
     if (changes.length > 0) {
-      getParticipantUserIds(eventId)
-        .then((participantUserIds) => {
-          notificationService
-            .queueEventUpdated({
-              organizerId: updated.organizer_id,
-              eventId: updated.id,
-              eventName: updated.name,
-              changes,
-              participantUserIds,
-            })
-            .catch((e) => console.error('Failed to queue event updated notifications:', e));
-        })
-        .catch((e) => console.error('Failed to get participant user IDs:', e));
+      fireAndForget(
+        getParticipantUserIds(eventId).then((participantUserIds) =>
+          notificationService.queueEventUpdated({
+            organizerId: updated.organizer_id,
+            eventId: updated.id,
+            eventName: updated.name,
+            changes,
+            participantUserIds,
+          })
+        ),
+        'queue event updated notifications'
+      );
     }
 
     return updated;
@@ -234,15 +238,15 @@ export const eventService = {
     const event = await this.getEventById(eventId);
     const participantUserIds = await getParticipantUserIds(eventId);
 
-    // Queue event_cancelled notifications BEFORE deleting
-    // (fire and forget - don't block on this)
-    notificationService
-      .queueEventCancelled({
+    // Queue event_cancelled notifications BEFORE deleting (fire and forget)
+    fireAndForget(
+      notificationService.queueEventCancelled({
         organizerId: event.organizer_id,
         eventName: event.name,
         participantUserIds,
-      })
-      .catch((e) => console.error('Failed to queue event cancelled notifications:', e));
+      }),
+      'queue event cancelled notifications'
+    );
 
     const { data, error } = await supabase.from('events').delete().eq('id', eventId);
 
