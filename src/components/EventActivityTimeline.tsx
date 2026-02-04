@@ -136,8 +136,8 @@ export function EventActivityTimeline({ eventId }: EventActivityTimelineProps) {
             </div>
             {/* Content */}
             <div className={`flex-1 min-w-0 ${isLast ? '' : 'pb-4'}`}>
-              <p className="text-sm font-medium">{formatActivityMessage(activity)}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs font-medium">{formatActivityMessage(activity)}</p>
+              <p className="text-[11px] text-muted-foreground">
                 {formatRelativeTime(activity.created_at)}
               </p>
             </div>
