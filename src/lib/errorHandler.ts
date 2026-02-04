@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { Sentry } from './sentry';
 
 /**
  * Executes an async function without blocking, logging errors to console.
@@ -159,11 +160,8 @@ export const errorHandler = {
       toast.error(userMessage);
     }
 
-    // In production, send to error tracking service
-    if (process.env.NODE_ENV === 'production') {
-      // Send to error tracking service (e.g., Sentry)
-      // Sentry.captureException(error, { extra: context });
-    }
+    // Send to Sentry error tracking
+    Sentry.captureException(error, { extra: context as Record<string, unknown> });
   },
 
   /**
