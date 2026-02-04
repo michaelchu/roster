@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate, Json } from '@/types/app.types';
-import { errorHandler, ValidationError } from '@/lib/errorHandler';
+import { throwIfSupabaseError, requireData, ValidationError } from '@/lib/errorHandler';
 import { safeValidateEvent, validateCustomFields, type CustomField } from '@/lib/validation';
 import { requireValidSession } from '@/lib/sessionValidator';
 
@@ -50,11 +50,11 @@ export const eventService = {
       .eq('organizer_id', organizerId)
       .order('created_at', { ascending: false });
 
-    if (eventsError) throw errorHandler.fromSupabaseError(eventsError);
+    const data = throwIfSupabaseError({ data: eventsData, error: eventsError });
 
-    if (!eventsData) return [];
+    if (!data) return [];
 
-    return eventsData.map((event) => {
+    return data.map((event) => {
       const participantCount = Array.isArray(event.participants)
         ? event.participants.filter((p) => p !== null).length
         : 0;
@@ -86,10 +86,8 @@ export const eventService = {
   async getEventById(eventId: string): Promise<Event> {
     const { data, error } = await supabase.from('events').select('*').eq('id', eventId).single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Event not found');
-
-    return dbEventToEvent(data);
+    throwIfSupabaseError({ data, error });
+    return dbEventToEvent(requireData(data, 'get event'));
   },
 
   /**
@@ -135,10 +133,8 @@ export const eventService = {
 
     const { data, error } = await supabase.from('events').insert(insertData).select().single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to create event');
-
-    return dbEventToEvent(data);
+    throwIfSupabaseError({ data, error });
+    return dbEventToEvent(requireData(data, 'create event'));
   },
 
   /**
@@ -173,10 +169,8 @@ export const eventService = {
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to update event');
-
-    return dbEventToEvent(data);
+    throwIfSupabaseError({ data, error });
+    return dbEventToEvent(requireData(data, 'update event'));
   },
 
   /**
@@ -188,9 +182,9 @@ export const eventService = {
   async deleteEvent(eventId: string): Promise<void> {
     await requireValidSession();
 
-    const { error } = await supabase.from('events').delete().eq('id', eventId);
+    const { data, error } = await supabase.from('events').delete().eq('id', eventId);
 
-    if (error) throw error;
+    throwIfSupabaseError({ data, error });
   },
 
   /**
@@ -211,21 +205,21 @@ export const eventService = {
       .eq('id', eventId)
       .single();
 
-    if (fetchError) throw fetchError;
-    if (!originalEvent) throw new Error('Original event not found');
+    throwIfSupabaseError({ data: originalEvent, error: fetchError });
+    const original = requireData(originalEvent, 'get original event');
 
     const insertData: TablesInsert<'events'> = {
       organizer_id: organizerId,
-      name: `${originalEvent.name} (Copy)`,
-      description: originalEvent.description,
-      datetime: originalEvent.datetime,
-      end_datetime: originalEvent.end_datetime,
-      location: originalEvent.location,
-      custom_fields: originalEvent.custom_fields,
-      parent_event_id: originalEvent.id,
-      is_private: originalEvent.is_private,
-      max_participants: originalEvent.max_participants,
-      group_id: originalEvent.group_id,
+      name: `${original.name} (Copy)`,
+      description: original.description,
+      datetime: original.datetime,
+      end_datetime: original.end_datetime,
+      location: original.location,
+      custom_fields: original.custom_fields,
+      parent_event_id: original.id,
+      is_private: original.is_private,
+      max_participants: original.max_participants,
+      group_id: original.group_id,
     };
 
     const { data: newEvent, error: createError } = await supabase
@@ -234,14 +228,14 @@ export const eventService = {
       .select()
       .single();
 
-    if (createError) throw createError;
-    if (!newEvent) throw new Error('Failed to duplicate event');
+    throwIfSupabaseError({ data: newEvent, error: createError });
+    const created = requireData(newEvent, 'duplicate event');
 
     const { data: labels } = await supabase.from('labels').select('*').eq('event_id', eventId);
 
     if (labels && labels.length > 0) {
       const labelInserts: TablesInsert<'labels'>[] = labels.map((label) => ({
-        event_id: newEvent.id,
+        event_id: created.id,
         name: label.name,
         color: label.color,
       }));
@@ -249,7 +243,7 @@ export const eventService = {
       await supabase.from('labels').insert(labelInserts);
     }
 
-    return dbEventToEvent(newEvent);
+    return dbEventToEvent(created);
   },
 
   /**
@@ -264,9 +258,7 @@ export const eventService = {
       .eq('is_private', false)
       .order('datetime', { ascending: true });
 
-    if (error) throw error;
-
-    return (data || []).map(dbEventToEvent);
+    return (throwIfSupabaseError({ data, error }) || []).map(dbEventToEvent);
   },
 
   /**
@@ -289,19 +281,17 @@ export const eventService = {
       .eq('participants.user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (eventsError) throw errorHandler.fromSupabaseError(eventsError);
+    const events = throwIfSupabaseError({ data: eventsData, error: eventsError });
 
-    if (!eventsData) return [];
+    if (!events || events.length === 0) return [];
 
-    if (eventsData.length === 0) return [];
-
-    const eventIds = eventsData.map((e) => e.id);
+    const eventIds = events.map((e) => e.id);
     const { data: allParticipants, error: participantsError } = await supabase
       .from('participants')
       .select('event_id, id')
       .in('event_id', eventIds);
 
-    if (participantsError) throw errorHandler.fromSupabaseError(participantsError);
+    throwIfSupabaseError({ data: allParticipants, error: participantsError });
 
     const participantCountMap = new Map<string, number>();
     if (allParticipants) {
@@ -311,7 +301,7 @@ export const eventService = {
       });
     }
 
-    return eventsData.map((event) => {
+    return events.map((event) => {
       const participantCount = participantCountMap.get(event.id) || 0;
       const groupName =
         event.groups && !Array.isArray(event.groups) ? event.groups.name : undefined;

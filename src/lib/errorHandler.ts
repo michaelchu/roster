@@ -73,6 +73,57 @@ function getUserFriendlyMessage(error: unknown): string {
   return 'Something went wrong. Please try again.';
 }
 
+/**
+ * Type for Supabase query results with data and error.
+ */
+interface SupabaseResult<T> {
+  data: T;
+  error: unknown;
+}
+
+/**
+ * Throws a converted AppError if the Supabase result contains an error.
+ * Use this instead of `if (error) throw error` for consistent error handling.
+ *
+ * @param result - Supabase query result with data and error properties
+ * @returns The data if no error
+ * @throws AppError converted from Supabase error
+ *
+ * @example
+ * const { data, error } = await supabase.from('events').select('*');
+ * return throwIfSupabaseError({ data, error });
+ */
+export function throwIfSupabaseError<T>(result: SupabaseResult<T>): T {
+  if (result.error) {
+    throw errorHandler.fromSupabaseError(result.error);
+  }
+  return result.data;
+}
+
+/**
+ * Ensures data exists after a database operation, throwing if null/undefined.
+ * Use this instead of `if (!data) throw new Error('Failed to X')` for consistent error messages.
+ *
+ * @param data - The data to check
+ * @param operation - Description of the operation (e.g., "create event", "update participant")
+ * @returns The data if it exists
+ * @throws DatabaseError if data is null or undefined
+ *
+ * @example
+ * const { data, error } = await supabase.from('events').insert(event).select().single();
+ * throwIfSupabaseError({ data, error });
+ * return requireData(data, 'create event');
+ */
+export function requireData<T>(data: T | null | undefined, operation: string): T {
+  if (data === null || data === undefined) {
+    throw new DatabaseError(
+      `Operation '${operation}' returned no data`,
+      `Failed to ${operation}. Please try again.`
+    );
+  }
+  return data;
+}
+
 export const errorHandler = {
   /**
    * Handle and log errors with optional user notification

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { NotificationPreferences, NotificationPreferencesInput } from '@/types/notifications';
+import { throwIfSupabaseError, requireData } from '@/lib/errorHandler';
 
 // Note: Using type assertions because 'notification_preferences' table types are not yet in
 // the auto-generated database.types.ts. Types will be available after running
@@ -68,13 +69,11 @@ export const notificationPreferenceService = {
     if (error?.code === '23505') {
       const existingAfterRace = await this.getPreferences();
       if (existingAfterRace) return existingAfterRace;
-      throw new Error('Failed to get notification preferences after race condition');
+      throw requireData(null, 'get notification preferences after race condition');
     }
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to create notification preferences');
-
-    return data as NotificationPreferences;
+    throwIfSupabaseError({ data, error });
+    return requireData(data, 'create notification preferences') as NotificationPreferences;
   },
 
   /**
@@ -101,10 +100,8 @@ export const notificationPreferenceService = {
       .select()
       .single();
 
-    if (error) throw error;
-    if (!data) throw new Error('Failed to update notification preferences');
-
-    return data as NotificationPreferences;
+    throwIfSupabaseError({ data, error });
+    return requireData(data, 'update notification preferences') as NotificationPreferences;
   },
 
   /**
