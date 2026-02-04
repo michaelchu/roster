@@ -18,7 +18,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger: On participant updated (payment changes)
 CREATE OR REPLACE FUNCTION log_participant_updated()
@@ -72,7 +72,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger: Before participant deleted (withdrew)
 CREATE OR REPLACE FUNCTION log_participant_withdrew()
@@ -92,7 +92,7 @@ BEGIN
   );
   RETURN OLD;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger: On participant_labels insert (label added)
 CREATE OR REPLACE FUNCTION log_label_added()
@@ -118,7 +118,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger: On participant_labels delete (label removed)
 CREATE OR REPLACE FUNCTION log_label_removed()
@@ -146,7 +146,7 @@ BEGIN
   );
   RETURN OLD;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Create triggers on participants table
 CREATE TRIGGER trigger_log_participant_joined
