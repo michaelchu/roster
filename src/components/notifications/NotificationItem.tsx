@@ -18,6 +18,7 @@ interface NotificationItemProps {
   notification: Notification;
   onRead: (id: string) => void;
   onDelete: (id: string) => void;
+  onNavigate?: () => void;
 }
 
 const notificationIcons: Record<NotificationType, typeof Bell> = {
@@ -67,7 +68,12 @@ const REVEAL_WIDTH = 80;
 // Threshold to delete immediately (drag far enough)
 const IMMEDIATE_DELETE_THRESHOLD = 160;
 
-export function NotificationItem({ notification, onRead, onDelete }: NotificationItemProps) {
+export function NotificationItem({
+  notification,
+  onRead,
+  onDelete,
+  onNavigate,
+}: NotificationItemProps) {
   const navigate = useNavigate();
   const isUnread = !notification.read_at;
   const Icon = notificationIcons[notification.type] || Bell;
@@ -147,8 +153,12 @@ export function NotificationItem({ notification, onRead, onDelete }: Notificatio
     if (isUnread) {
       onRead(notification.id);
     }
-    if (notification.action_url) {
-      navigate(notification.action_url);
+    // Navigate using action_url, or fallback to event detail page if event_id exists
+    const targetUrl =
+      notification.action_url || (notification.event_id && `/events/${notification.event_id}`);
+    if (targetUrl) {
+      navigate(targetUrl);
+      onNavigate?.();
     }
   };
 

@@ -148,6 +148,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                     notification={notification}
                     onRead={markAsRead}
                     onDelete={handleDelete}
+                    onNavigate={() => setOpen(false)}
                   />
                 ))}
               </div>
