@@ -531,6 +531,118 @@ test.describe('Notification Delivery', () => {
     });
   });
 
+  test.describe('Capacity Reached Notifications', () => {
+    test('system can queue capacity_reached notification for organizer when event fills up', async ({
+      page,
+    }) => {
+      // Step 1: Create organizer and event with max_participants
+      const organizerEmail = generateTestEmail('capacityorg');
+      await register(page, { email: organizerEmail, password: 'TestPassword123!' });
+      const organizerId = await getUserId(page);
+      const organizerToken = await getAccessToken(page);
+
+      const maxParticipants = 5;
+      const event = await createTestEvent(organizerId!, {
+        name: generateTestName('Capacity Test Event'),
+        max_participants: maxParticipants,
+      });
+
+      // Step 2: Queue capacity_reached notification (simulating what participantService does)
+      // This is triggered by the system when participant count === max_participants
+      const organizerClient = createAuthenticatedClient(organizerToken!);
+
+      const { error } = await organizerClient.rpc('queue_notification', {
+        p_recipient_user_id: organizerId,
+        p_notification_type: 'capacity_reached',
+        p_title: `${event.name} is now full!`,
+        p_body: `Your event has reached maximum capacity (${maxParticipants} participants)`,
+        p_event_id: event.id,
+        p_participant_id: null,
+        p_actor_user_id: null, // No actor - this is a system notification
+        p_action_url: `/events/${event.id}`,
+      });
+
+      // Step 3: Verify the RPC succeeded
+      expect(error).toBeNull();
+
+      // Step 4: Verify notification was created with correct data
+      const queuedNotifications = await getQueuedNotifications(organizerId!, event.id);
+      const capacityNotification = queuedNotifications.find(
+        (n) => n.notification_type === 'capacity_reached'
+      );
+
+      expect(capacityNotification).toBeDefined();
+      expect(capacityNotification?.recipient_user_id).toBe(organizerId);
+      expect(capacityNotification?.actor_user_id).toBeNull(); // System notification
+      expect(capacityNotification?.title).toContain('is now full');
+      expect(capacityNotification?.body).toContain(`${maxParticipants} participants`);
+
+      // Cleanup
+      await cleanupTestData({
+        eventId: event.id,
+        organizerId: organizerId!,
+      });
+    });
+
+    test('capacity_reached notification is only sent once (duplicate prevention)', async ({
+      page,
+    }) => {
+      // Setup
+      const organizerEmail = generateTestEmail('dupeorg');
+      await register(page, { email: organizerEmail, password: 'TestPassword123!' });
+      const organizerId = await getUserId(page);
+      const organizerToken = await getAccessToken(page);
+
+      const event = await createTestEvent(organizerId!, {
+        name: generateTestName('Duplicate Capacity Test'),
+        max_participants: 3,
+      });
+
+      const organizerClient = createAuthenticatedClient(organizerToken!);
+
+      // Queue capacity_reached notification twice (simulating race condition)
+      const { error: error1 } = await organizerClient.rpc('queue_notification', {
+        p_recipient_user_id: organizerId,
+        p_notification_type: 'capacity_reached',
+        p_title: `${event.name} is now full!`,
+        p_body: 'Your event has reached maximum capacity (3 participants)',
+        p_event_id: event.id,
+        p_participant_id: null,
+        p_actor_user_id: null,
+        p_action_url: `/events/${event.id}`,
+      });
+
+      const { error: error2 } = await organizerClient.rpc('queue_notification', {
+        p_recipient_user_id: organizerId,
+        p_notification_type: 'capacity_reached',
+        p_title: `${event.name} is now full!`,
+        p_body: 'Your event has reached maximum capacity (3 participants)',
+        p_event_id: event.id,
+        p_participant_id: null,
+        p_actor_user_id: null,
+        p_action_url: `/events/${event.id}`,
+      });
+
+      // First should succeed, second may fail with duplicate constraint or succeed silently
+      expect(error1).toBeNull();
+      // error2 may be null (if RPC handles duplicates) or have code 23505
+
+      // Verify only ONE notification exists
+      const queuedNotifications = await getQueuedNotifications(organizerId!, event.id);
+      const capacityNotifications = queuedNotifications.filter(
+        (n) => n.notification_type === 'capacity_reached'
+      );
+
+      expect(capacityNotifications.length).toBe(1);
+
+      // Cleanup
+      await cleanupTestData({
+        eventId: event.id,
+        organizerId: organizerId!,
+      });
+    });
+  });
+
   test.describe('Payment Notifications', () => {
     test('organizer can queue payment_received notification', async ({ page }) => {
       // Setup: Create organizer and event
