@@ -492,6 +492,50 @@ export const participantService = {
   },
 
   /**
+   * Gets payment statistics for multiple events in a single query.
+   * @param eventIds - Array of event UUIDs
+   * @returns Map of event ID to payment summary
+   */
+  async getPaymentSummariesBatch(
+    eventIds: string[]
+  ): Promise<Map<string, { total: number; paid: number; pending: number; waived: number }>> {
+    if (eventIds.length === 0) {
+      return new Map();
+    }
+
+    const { data: participants, error } = await supabase
+      .from('participants')
+      .select('event_id, payment_status')
+      .in('event_id', eventIds);
+
+    if (error) throw errorHandler.fromSupabaseError(error);
+
+    const summaryMap = new Map<
+      string,
+      { total: number; paid: number; pending: number; waived: number }
+    >();
+
+    // Initialize all events with zero counts
+    for (const eventId of eventIds) {
+      summaryMap.set(eventId, { total: 0, paid: 0, pending: 0, waived: 0 });
+    }
+
+    // Aggregate counts from participants
+    if (participants) {
+      for (const p of participants) {
+        const summary = summaryMap.get(p.event_id);
+        if (summary) {
+          summary.total++;
+          const status = (p.payment_status as 'pending' | 'paid' | 'waived') || 'pending';
+          summary[status]++;
+        }
+      }
+    }
+
+    return summaryMap;
+  },
+
+  /**
    * Creates multiple participants in batch, typically for adding group members to an event.
    * Handles duplicates gracefully by tracking them separately.
    * @param eventId - UUID of the event
