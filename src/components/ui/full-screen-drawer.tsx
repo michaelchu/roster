@@ -15,7 +15,7 @@ export function FullScreenDrawer({ open, onOpenChange, children }: FullScreenDra
         <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80" />
         <DrawerPrimitive.Content
           className={cn(
-            'fixed inset-x-0 bottom-0 z-50 flex h-full flex-col bg-background',
+            'fixed inset-x-0 bottom-0 z-50 flex h-[80vh] flex-col rounded-t-xl bg-background',
             'focus:outline-none'
           )}
         >
