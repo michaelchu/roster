@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { TopNav } from '@/components/TopNav';
+import { FullScreenDrawer } from '@/components/ui/full-screen-drawer';
 import { groupService } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
 import { Plus } from 'lucide-react';
@@ -16,6 +16,14 @@ import { showFormErrors } from '@/lib/formUtils';
 export function NewGroupPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const handleClose = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/groups');
+    }
+  };
 
   const {
     register,
@@ -55,26 +63,26 @@ export function NewGroupPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background pb-14 flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
-          <p className="text-sm text-muted-foreground mb-4">Please sign in to create a group</p>
-          <Button size="sm" onClick={() => navigate('/auth/login')}>
-            Sign In
-          </Button>
+      <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <h1 className="text-lg font-semibold mb-2">Sign In Required</h1>
+            <p className="text-sm text-muted-foreground mb-4">Please sign in to create a group</p>
+            <Button size="sm" onClick={() => navigate('/auth/login')}>
+              Sign In
+            </Button>
+          </div>
         </div>
-      </div>
+      </FullScreenDrawer>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-16">
-      <TopNav showCloseButton sticky />
-
+    <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
       <form
         id="create-group-form"
         onSubmit={handleSubmit(onSubmit, showFormErrors)}
-        className="p-3 space-y-4"
+        className="flex-1 overflow-y-auto p-3 space-y-4 bg-background"
       >
         {/* Group Name */}
         <div className="space-y-2">
@@ -131,6 +139,6 @@ export function NewGroupPage() {
           )}
         </Button>
       </form>
-    </div>
+    </FullScreenDrawer>
   );
 }

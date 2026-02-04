@@ -14,7 +14,7 @@ import { EventsLayout } from '@/pages/EventsLayout';
 import { NewEventPage } from '@/pages/NewEventPage';
 import { EditEventPage } from '@/pages/EditEventPage';
 import { EventDetailPage } from '@/pages/EventDetailPage';
-import { GroupsPage } from '@/pages/GroupsPage';
+import { GroupsLayout } from '@/pages/GroupsLayout';
 import { GroupDetailPage } from '@/pages/GroupDetailPage';
 import { NewGroupPage } from '@/pages/NewGroupPage';
 import { EditGroupPage } from '@/pages/EditGroupPage';
@@ -50,7 +50,9 @@ function AppContent() {
     location.pathname.startsWith('/invite') ||
     (location.pathname.startsWith('/signup') && !user) ||
     location.pathname === '/events/new' ||
-    /^\/events\/[^/]+\/edit$/.test(location.pathname);
+    /^\/events\/[^/]+\/edit$/.test(location.pathname) ||
+    location.pathname === '/groups/new' ||
+    /^\/groups\/[^/]+\/edit$/.test(location.pathname);
 
   return (
     <>
@@ -79,31 +81,19 @@ function AppContent() {
           path="/groups"
           element={
             <ProtectedRoute>
-              <GroupsPage />
+              <GroupsLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/groups/new"
-          element={
-            <ProtectedRoute>
-              <NewGroupPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={null} />
+          <Route path="new" element={<NewGroupPage />} />
+          <Route path=":groupId/edit" element={<EditGroupPage />} />
+        </Route>
         <Route
           path="/groups/:groupId"
           element={
             <ProtectedRoute>
               <GroupDetailPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/groups/:groupId/edit"
-          element={
-            <ProtectedRoute>
-              <EditGroupPage />
             </ProtectedRoute>
           }
         />
