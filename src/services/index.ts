@@ -20,3 +20,6 @@ export { notificationService } from './notificationService';
 export { pushSubscriptionService } from './pushSubscriptionService';
 
 export { notificationPreferenceService } from './notificationPreferenceService';
+
+export { participantActivityService } from './participantActivityService';
+export type { ParticipantActivity, ParticipantActivityType } from './participantActivityService';
