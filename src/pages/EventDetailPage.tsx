@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -13,8 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { FormDrawer } from '@/components/FormDrawer';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
@@ -27,33 +23,14 @@ import {
   type Label as LabelType,
 } from '@/services';
 import type { CustomField } from '@/types/app.types';
-import {
-  Users,
-  Share2,
-  Download,
-  Search,
-  Edit,
-  UserPlus,
-  UserCheck,
-  UserX,
-  Zap,
-  DollarSign,
-  Trash2,
-} from 'lucide-react';
-import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
+import { Users, Share2, Download, Search, Edit, UserPlus, UserCheck, UserX } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { EventActivityTimeline } from '@/components/EventActivityTimeline';
-import { Label } from '@/components/ui/label';
 import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
-import { UserAvatar } from '@/components/UserAvatar';
+import { ParticipantListItem, EmptySlot } from '@/components/ParticipantListItem';
+import { ParticipantDetailsSheet } from '@/components/ParticipantDetailsSheet';
+import { SignupFormDrawer } from '@/components/SignupFormDrawer';
 
 type Participant = ServiceParticipant & {
   notes?: string | null;
@@ -787,152 +764,20 @@ export function EventDetailPage() {
                 // Add existing participants to slots (already ordered by slot_number)
                 for (let i = 0; i < Math.min(filteredParticipants.length, maxSlots); i++) {
                   const participant = filteredParticipants[i];
-                  const isOwnClaimedSpot = isClaimedSpot(participant);
-                  const claimNumber = getClaimBadgeNumber(participant);
-                  const displayName = getDisplayName(participant);
-
-                  const isOrganizerItem = participant.user_id === event.organizer_id;
-
                   slots.push(
-                    <div
+                    <ParticipantListItem
                       key={participant.id}
-                      className={`px-3 py-2 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
-                          {participant.slot_number}.
-                        </div>
-                        <UserAvatar
-                          name={displayName}
-                          avatarUrl={participant.avatar_url}
-                          size="sm"
-                        />
-                        <div className="flex-1 min-w-0 flex justify-between items-center gap-2">
-                          {/* Left column: name, badges, signup time */}
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 min-w-0">
-                              {showRegistrationForm ? (
-                                <button
-                                  onClick={() => setSelectedParticipant(participant)}
-                                  className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors truncate text-left min-w-0 max-w-full"
-                                >
-                                  {displayName}
-                                </button>
-                              ) : (
-                                <span className="text-sm font-medium text-foreground truncate min-w-0 max-w-full">
-                                  {displayName}
-                                </span>
-                              )}
-                              {isOwnClaimedSpot && claimNumber && (
-                                <Badge variant="outline" className="text-xs h-5 px-1">
-                                  +{claimNumber}
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="text-xs text-muted-foreground -mt-1">
-                              Signed up{' '}
-                              {(() => {
-                                const now = new Date();
-                                const signupTime = new Date(participant.created_at);
-                                const diffMs = now.getTime() - signupTime.getTime();
-                                const diffMins = Math.floor(diffMs / (1000 * 60));
-                                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-                                if (diffMins < 60) {
-                                  return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
-                                } else if (diffHours < 24) {
-                                  return `${diffHours}h ago`;
-                                } else if (diffDays < 7) {
-                                  return `${diffDays}d ago`;
-                                } else {
-                                  return `on ${signupTime.toLocaleDateString()}`;
-                                }
-                              })()}
-                            </div>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {participant.labels?.map((label) => (
-                                <Badge key={label.id} variant="outline" className="text-xs h-5">
-                                  {label.name}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                          {/* Right column: badges and action buttons */}
-                          <div className="flex flex-col gap-2 flex-shrink-0 items-end">
-                            {isOrganizerItem && (
-                              <Badge
-                                variant="outline"
-                                className="bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200/50 text-xs"
-                              >
-                                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-medium">
-                                  Organizer
-                                </span>
-                              </Badge>
-                            )}
-                            {isOrganizer &&
-                              participant.payment_status !== 'pending' &&
-                              !isOrganizerItem && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    togglePaymentStatus(participant);
-                                  }}
-                                >
-                                  <PaymentStatusBadge
-                                    status={participant.payment_status}
-                                    size="sm"
-                                  />
-                                </button>
-                              )}
-                            {isOrganizer &&
-                              participant.payment_status === 'pending' &&
-                              !isOrganizerItem && (
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      togglePaymentStatus(participant);
-                                    }}
-                                    className="h-8 w-8"
-                                    title="Mark Paid"
-                                  >
-                                    <DollarSign className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="outline"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setWithdrawingParticipant(participant);
-                                    }}
-                                    className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
-                                    title="Remove"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              )}
-                            {isOwnClaimedSpot && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setWithdrawingParticipant(participant);
-                                }}
-                                className="text-xs h-6 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-                              >
-                                <UserX className="h-3 w-3 mr-1" />
-                                Withdraw
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      participant={participant}
+                      displayName={getDisplayName(participant)}
+                      isOrganizer={isOrganizer}
+                      isOrganizerItem={participant.user_id === event.organizer_id}
+                      isOwnClaimedSpot={isClaimedSpot(participant)}
+                      claimNumber={getClaimBadgeNumber(participant)}
+                      showRegistrationForm={showRegistrationForm}
+                      onSelect={setSelectedParticipant}
+                      onTogglePayment={togglePaymentStatus}
+                      onWithdraw={setWithdrawingParticipant}
+                    />
                   );
                 }
 
@@ -941,49 +786,31 @@ export function EventDetailPage() {
                   event.max_participants &&
                   filteredParticipants.length < event.max_participants
                 ) {
-                  // Find the highest slot number used
                   const maxUsedSlot =
                     filteredParticipants.length > 0
                       ? Math.max(...filteredParticipants.map((p) => p.slot_number))
                       : 0;
 
-                  // Add empty slots for remaining capacity
                   for (
                     let slotNum = maxUsedSlot + 1;
                     slotNum <= event.max_participants;
                     slotNum++
                   ) {
                     const isFirstEmptySlot = slotNum === maxUsedSlot + 1;
-                    const canClaimSpot =
-                      user && userRegistration && isFirstEmptySlot && showGuestRegistration;
+                    const canClaimSpot = !!(
+                      user &&
+                      userRegistration &&
+                      isFirstEmptySlot &&
+                      showGuestRegistration
+                    );
 
                     slots.push(
-                      <div key={`empty-${slotNum}`} className="p-3 border-dashed border-border">
-                        <div className="flex items-center gap-3">
-                          <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
-                            {slotNum}.
-                          </div>
-                          <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-xs text-muted-foreground">?</span>
-                          </div>
-                          <div className="flex-1 flex items-center justify-between">
-                            <div className="text-sm text-muted-foreground italic">
-                              Available slot
-                            </div>
-                            {canClaimSpot && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => openSignupDrawer(slotNum)}
-                                className="text-xs h-6 px-2"
-                              >
-                                <UserPlus className="h-3 w-3 mr-1" />
-                                Claim
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      <EmptySlot
+                        key={`empty-${slotNum}`}
+                        slotNumber={slotNum}
+                        canClaimSpot={canClaimSpot}
+                        onClaim={openSignupDrawer}
+                      />
                     );
                   }
                 }
@@ -1081,7 +908,7 @@ export function EventDetailPage() {
       </div>
 
       {/* Signup Drawer */}
-      <FormDrawer
+      <SignupFormDrawer
         open={showSignupDrawer}
         onOpenChange={(open) => {
           if (!open) {
@@ -1089,307 +916,27 @@ export function EventDetailPage() {
           }
           setShowSignupDrawer(open);
         }}
-        footer={
-          <div className="flex gap-1.5 w-full">
-            {userRegistration && !isClaimingForOther && (
-              <Button
-                variant="destructive"
-                size="sm"
-                className="flex-1 h-10"
-                onClick={() => setShowWithdrawDialog(true)}
-                disabled={submitting}
-              >
-                <UserX className="h-4 w-4 mr-2" />
-                Withdraw
-              </Button>
-            )}
-            {!userRegistration && !isClaimingForOther && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 h-10"
-                onClick={quickFillFromProfile}
-                disabled={submitting}
-              >
-                <Zap className="h-4 w-4 mr-2" />
-                Quick Fill
-              </Button>
-            )}
-            <Button
-              type="submit"
-              form="signup-form"
-              size="sm"
-              className="flex-1 bg-primary hover:bg-primary/90 text-white h-10"
-              disabled={submitting}
-            >
-              {submitting ? (
-                isClaimingForOther ? (
-                  'Claiming...'
-                ) : userRegistration ? (
-                  'Updating...'
-                ) : (
-                  'Joining...'
-                )
-              ) : isClaimingForOther ? (
-                'Claim'
-              ) : userRegistration ? (
-                <>
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  Update
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Join Event
-                </>
-              )}
-            </Button>
-          </div>
-        }
-      >
-        <form id="signup-form" onSubmit={handleSignup} className="space-y-2 pt-3 pb-3">
-          <Tabs defaultValue="registration" className="w-full">
-            <TabsList className="w-full h-10">
-              <TabsTrigger value="registration" className="flex-1">
-                Registration
-              </TabsTrigger>
-              <TabsTrigger value="notes" className="flex-1">
-                Notes
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="registration" className="space-y-2 mt-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="signup-name" className="text-xs">
-                  Name {!isClaimingForOther && '*'}
-                </Label>
-                <Input
-                  id="signup-name"
-                  type="text"
-                  value={signupForm.name}
-                  onChange={(e) =>
-                    setSignupForm((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  required={!isClaimingForOther}
-                  autoComplete="off"
-                  className="h-9 text-sm"
-                  placeholder={isClaimingForOther ? 'Leave empty to claim under your name' : ''}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="signup-email" className="text-xs">
-                  Email (optional)
-                </Label>
-                <Input
-                  id="signup-email"
-                  type="email"
-                  value={signupForm.email}
-                  onChange={(e) =>
-                    setSignupForm((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                  autoComplete="off"
-                  className="h-9 text-sm"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="signup-phone" className="text-xs">
-                  Phone (optional)
-                </Label>
-                <Input
-                  id="signup-phone"
-                  type="tel"
-                  value={signupForm.phone}
-                  onChange={(e) =>
-                    setSignupForm((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }))
-                  }
-                  autoComplete="off"
-                  className="h-9 text-sm"
-                />
-              </div>
-
-              {event?.custom_fields && event.custom_fields.length > 0 && (
-                <div className="pt-2">
-                  <h3 className="text-sm font-medium">Additional Information</h3>
-                  {event.custom_fields.map((field) => (
-                    <div key={field.id} className="space-y-1.5 mb-2">
-                      <Label htmlFor={`signup-${field.id}`} className="text-xs">
-                        {field.label} {field.required && '*'}
-                      </Label>
-                      {field.type === 'select' && field.options ? (
-                        <Select
-                          value={signupForm.responses[field.id || ''] || ''}
-                          onValueChange={(value) =>
-                            setSignupForm((prev) => ({
-                              ...prev,
-                              responses: {
-                                ...prev.responses,
-                                [field.id || '']: value,
-                              },
-                            }))
-                          }
-                        >
-                          <SelectTrigger className="h-9 text-sm">
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {field.options.map((option: string) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          id={`signup-${field.id}`}
-                          type={field.type}
-                          value={signupForm.responses[field.id || ''] || ''}
-                          onChange={(e) =>
-                            setSignupForm((prev) => ({
-                              ...prev,
-                              responses: {
-                                ...prev.responses,
-                                [field.id || '']: e.target.value,
-                              },
-                            }))
-                          }
-                          required={field.required}
-                          autoComplete="off"
-                          className="h-9 text-sm"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="notes" className="space-y-2 mt-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="signup-notes" className="text-xs">
-                  Notes (optional)
-                </Label>
-                <Textarea
-                  id="signup-notes"
-                  value={signupForm.notes}
-                  onChange={(e) =>
-                    setSignupForm((prev) => ({
-                      ...prev,
-                      notes: e.target.value,
-                    }))
-                  }
-                  placeholder="Any additional notes or comments..."
-                  className="min-h-[300px] text-sm"
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-        </form>
-      </FormDrawer>
+        formData={signupForm}
+        onFormChange={(updates) => setSignupForm((prev) => ({ ...prev, ...updates }))}
+        customFields={event?.custom_fields || []}
+        isClaimingForOther={isClaimingForOther}
+        hasExistingRegistration={!!userRegistration}
+        submitting={submitting}
+        onSubmit={handleSignup}
+        onWithdraw={() => setShowWithdrawDialog(true)}
+        onQuickFill={quickFillFromProfile}
+      />
 
       {/* Participant Details Sheet */}
-      <Sheet
-        open={!!selectedParticipant}
-        onOpenChange={(open) => !open && setSelectedParticipant(null)}
-      >
-        <SheetContent side="bottom" className="h-[80vh]">
-          {selectedParticipant && (
-            <>
-              <SheetHeader>
-                <SheetTitle>{selectedParticipant.name}</SheetTitle>
-              </SheetHeader>
-              <div className="mt-3 space-y-2">
-                <div className="space-y-1.5">
-                  <h3 className="text-sm font-medium">Contact Information</h3>
-                  <div className="text-sm space-y-0.5">
-                    <div>Email: {selectedParticipant.email || 'Not provided'}</div>
-                    <div>Phone: {selectedParticipant.phone || 'Not provided'}</div>
-                    <div>
-                      Registered: {new Date(selectedParticipant.created_at).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-
-                {isOrganizer && (
-                  <div className="space-y-1.5">
-                    <h3 className="text-sm font-medium">Payment Status</h3>
-                    <div className="flex items-center gap-2">
-                      <PaymentStatusBadge status={selectedParticipant.payment_status} size="md" />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => togglePaymentStatus(selectedParticipant)}
-                        className="text-xs h-7 px-3"
-                      >
-                        {selectedParticipant.payment_status === 'paid'
-                          ? 'Mark as Pending'
-                          : 'Mark as Paid'}
-                      </Button>
-                    </div>
-                    {selectedParticipant.payment_marked_at && (
-                      <div className="text-xs text-muted-foreground">
-                        Updated: {new Date(selectedParticipant.payment_marked_at).toLocaleString()}
-                      </div>
-                    )}
-                    {selectedParticipant.payment_notes && (
-                      <div className="text-xs text-muted-foreground">
-                        Notes: {selectedParticipant.payment_notes}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {event.custom_fields && event.custom_fields.length > 0 && (
-                  <div className="space-y-1.5">
-                    <h3 className="text-sm font-medium">Additional Information</h3>
-                    <div className="text-sm space-y-0.5">
-                      {event.custom_fields.map((field) => (
-                        <div key={field.id}>
-                          {field.label}:{' '}
-                          {selectedParticipant.responses[field.id || ''] || 'Not provided'}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <h3 className="text-sm font-medium">Labels</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {labels.map((label) => {
-                      const hasLabel =
-                        selectedParticipant.labels?.some((l) => l.id === label.id) || false;
-                      return (
-                        <button
-                          key={label.id}
-                          onClick={() => toggleParticipantLabel(selectedParticipant, label)}
-                          className={`px-2.5 py-0.5 text-xs rounded-full border transition-colors ${
-                            hasLabel
-                              ? 'bg-primary text-white border-primary'
-                              : 'bg-card text-muted-foreground border-border hover:bg-muted'
-                          }`}
-                        >
-                          {label.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <ParticipantDetailsSheet
+        participant={selectedParticipant}
+        labels={labels}
+        customFields={event?.custom_fields || []}
+        isOrganizer={isOrganizer}
+        onClose={() => setSelectedParticipant(null)}
+        onTogglePayment={togglePaymentStatus}
+        onToggleLabel={toggleParticipantLabel}
+      />
 
       {/* Withdraw Confirmation Dialog */}
       <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
