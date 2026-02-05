@@ -5,33 +5,36 @@ A mobile-first event management platform built with React, TypeScript, and Supab
 ## Features
 
 ### For Participants
-- **Mobile-Only Access** - Platform enforces mobile device usage
-- **Quick Signup** - Simple form-based registration for events
+- **Event Signup** - Register for events via shareable links
 - **Quick Fill** - Auto-fills participant information from localStorage
-- **Custom Fields** - Support for event-specific custom fields
-- **Confirmation Screen** - Shows registration success
+- **Custom Fields** - Support for event-specific form fields
+- **Waitlist** - Join waitlist when events are full
+- **Push Notifications** - Get notified about event updates, cancellations, and waitlist promotions
 
 ### For Organizers
-- **Event Management** - Create, view, and manage events
-- **Participant Management** - View all registered participants
+- **Event Management** - Create, edit, duplicate, and delete events
+- **Group Management** - Organize events and members into groups with role-based access
+- **Participant Management** - View, search, and manage registered participants
 - **Label System** - Organize participants with custom labels
-- **Event Duplication** - Copy events with all settings and labels
+- **Payment Tracking** - Track payment status for participants
 - **CSV Export** - Download participant lists with labels
-- **Real-time Updates** - Live participant counts and registration
+- **Push Notifications** - Get notified about new signups, withdrawals, and capacity changes
+- **Private Events** - Restrict event visibility to group members
 
 ### Design
-- **WeChat-Style UI** - Compact, dense layouts with minimal whitespace
-- **List-Based Interface** - No floating cards, everything in lists
-- **Mobile Navigation** - Persistent bottom navigation bar
-- **Responsive** - Optimized for mobile screens only
+- **Mobile-First** - Optimized for mobile screens with bottom navigation
+- **Dark Mode** - Theme toggle with system preference support
+- **Adjustable Font Size** - Customizable text size for accessibility
 
 ## Tech Stack
 
-- **Frontend**: Vite + React + TypeScript
+- **Frontend**: Vite + React 19 + TypeScript (strict mode)
 - **Styling**: Tailwind CSS + shadcn/ui components
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Storage**: localStorage for Quick Fill
+- **Database**: Supabase (PostgreSQL with Row Level Security)
+- **Authentication**: Supabase Auth with Google OAuth
+- **Push Notifications**: Web Push API with VAPID
+- **Testing**: Vitest + Playwright
+- **Storage**: localStorage for Quick Fill and appearance settings
 
 ## Database Schema
 
@@ -41,6 +44,13 @@ The app uses the following tables:
 - `participants` - Event registrations
 - `labels` - Event-specific participant labels
 - `participant_labels` - Many-to-many relationship for labels
+- `groups` - Event groups for organizing related events
+- `notification_preferences` - User push notification settings
+- `push_subscriptions` - Web Push subscription data per device
+- `notifications` - Notification inbox/history
+- `notification_queue` - Queue for pending push notifications
+- `feature_flags` - Platform-wide feature toggles
+- `feature_flag_overrides` - User/group-level feature flag overrides
 
 ## Getting Started
 
@@ -54,12 +64,20 @@ The app uses the following tables:
    ```
    VITE_SUPABASE_URL=your-supabase-url
    VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+   VITE_GOOGLE_CLIENT_ID=your-google-client-id
    ```
 
-3. **Run Database Migration**
-   Execute the SQL in `supabase/migrations/001_initial_schema.sql` in your Supabase SQL Editor
+3. **Start Local Supabase**
+   ```bash
+   npx supabase start
+   ```
 
-4. **Start Development Server**
+4. **Apply Database Migrations**
+   ```bash
+   npx supabase migration up
+   ```
+
+5. **Start Development Server**
    ```bash
    npm run dev
    ```
@@ -89,10 +107,14 @@ The app uses the following tables:
 
 - `src/App.tsx` - Main app with routing
 - `src/hooks/useAuth.tsx` - Authentication context
+- `src/hooks/useNotifications.ts` - Push notification state management
+- `src/hooks/useFeatureFlags.ts` - Feature flag system
 - `src/lib/supabase.ts` - Database client and types
+- `src/services/` - Business logic and database abstraction layer
 - `src/components/BottomNav.tsx` - Mobile navigation
 - `src/components/MobileOnly.tsx` - Desktop restriction
-- `supabase/migrations/001_initial_schema.sql` - Database schema
+- `supabase/migrations/` - Database migrations (applied via `npx supabase migration up`)
+- `supabase/functions/` - Edge functions for push notifications
 
 ## Development
 
@@ -290,4 +312,4 @@ Playwright automatically starts:
 
 ## License
 
-MIT License
+Proprietary - All rights reserved.
