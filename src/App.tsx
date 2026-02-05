@@ -13,7 +13,6 @@ import { HomePage } from '@/pages/HomePage';
 import { EventsLayout } from '@/pages/EventsLayout';
 import { NewEventPage } from '@/pages/NewEventPage';
 import { EditEventPage } from '@/pages/EditEventPage';
-import { EventDetailPage } from '@/pages/EventDetailPage';
 import { EventDetailLayout } from '@/pages/EventDetailLayout';
 import { GroupsLayout } from '@/pages/GroupsLayout';
 import { GroupDetailLayout } from '@/pages/GroupDetailLayout';
