@@ -12,7 +12,7 @@ const mockUser = {
 // Mock services
 const mockGetNotifications = vi.fn();
 const mockGetUnreadCount = vi.fn();
-const mockGetPreferences = vi.fn();
+const mockGetOrCreatePreferences = vi.fn();
 const mockUpdatePreferences = vi.fn();
 const mockIsSubscribed = vi.fn();
 const mockSubscribe = vi.fn();
@@ -31,7 +31,7 @@ vi.mock('@/services', () => ({
     deleteNotification: vi.fn(),
   },
   notificationPreferenceService: {
-    getPreferences: () => mockGetPreferences(),
+    getOrCreatePreferences: () => mockGetOrCreatePreferences(),
     updatePreferences: (updates: unknown) => mockUpdatePreferences(updates),
   },
   pushSubscriptionService: {
@@ -80,7 +80,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: false });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false });
       mockIsSubscribed.mockResolvedValue(true); // Browser HAS subscription
       mockGetPermissionStatus.mockReturnValue('granted'); // Permission was previously granted
       mockSubscribe.mockResolvedValue({ endpoint: 'https://example.com/push' });
@@ -106,7 +106,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: false });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false });
       mockIsSubscribed.mockResolvedValue(false); // Browser has NO subscription
       mockGetPermissionStatus.mockReturnValue('default'); // Never prompted
 
@@ -127,7 +127,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: true });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
       mockIsSubscribed.mockResolvedValue(true); // Browser has subscription
       mockGetPermissionStatus.mockReturnValue('denied'); // But permission is now denied
 
@@ -147,7 +147,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: true });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
       mockIsSubscribed.mockResolvedValue(true);
       mockGetPermissionStatus.mockReturnValue('granted');
       mockSubscribe.mockRejectedValue(new Error('Network error'));
@@ -175,7 +175,7 @@ describe('useNotifications', () => {
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       // Database preference is enabled (from browser session)
-      mockGetPreferences.mockResolvedValue({ push_enabled: true });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
       // But iOS PWA has no browser subscription (separate storage)
       mockIsSubscribed.mockResolvedValue(false);
       mockGetPermissionStatus.mockReturnValue('default'); // New context, never prompted
@@ -201,7 +201,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: true });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
       // Android PWA shares browser subscription
       mockIsSubscribed.mockResolvedValue(true);
       mockGetPermissionStatus.mockReturnValue('granted');
@@ -226,7 +226,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: true });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
       mockIsSubscribed.mockResolvedValue(true);
       mockGetPermissionStatus.mockReturnValue('granted');
       mockSubscribe.mockResolvedValue({ endpoint: 'https://example.com/push' });
@@ -259,7 +259,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: userB });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: false }); // User B has different preferences
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false }); // User B has different preferences
       mockIsSubscribed.mockResolvedValue(true); // Browser still has subscription
       mockGetPermissionStatus.mockReturnValue('granted');
       mockSubscribe.mockResolvedValue({ endpoint: 'https://example.com/push' });
@@ -300,7 +300,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: false });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false });
       mockIsSubscribed.mockResolvedValue(false);
       mockGetPermissionStatus.mockReturnValue('default');
       mockIsSupported.mockReturnValue(true);
@@ -320,7 +320,7 @@ describe('useNotifications', () => {
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetPreferences.mockResolvedValue({ push_enabled: false });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false });
       mockIsSubscribed.mockResolvedValue(false);
       mockGetPermissionStatus.mockReturnValue('default');
       mockIsSupported.mockReturnValue(false); // Browser doesn't support push

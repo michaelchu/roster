@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { notificationPreferenceService } from '@/services';
-import { errorHandler, logError } from '@/lib/errorHandler';
+import { logError } from '@/lib/errorHandler';
 import type { NotificationPreferences as NotificationPreferencesType } from '@/types/notifications';
 import { Bell, BellOff } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -34,41 +33,49 @@ const PARTICIPANT_NOTIFICATIONS: NotificationToggle[] = [
 ];
 
 export function NotificationPreferences() {
-  const [preferences, setPreferences] = useState<NotificationPreferencesType | null>(null);
-  const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<PreferenceKey | null>(null);
   const {
-    isSubscribed,
+    isSubscribed: hookIsSubscribed,
     permission,
     isSupported,
-    loading: hookLoading,
+    loading,
+    preferences: hookPreferences,
     subscribe: subscribeToPush,
     unsubscribe: unsubscribeFromPush,
+    updatePreferences: updateHookPreferences,
   } = useNotifications();
 
+  // Track local optimistic state for both preferences and subscription
+  const [localPreferences, setLocalPreferences] = useState<NotificationPreferencesType | null>(
+    null
+  );
+  const [localIsSubscribed, setLocalIsSubscribed] = useState<boolean | null>(null);
+
+  // Sync local state when hook state changes
   useEffect(() => {
-    async function loadPreferences() {
-      try {
-        const prefs = await notificationPreferenceService.getOrCreatePreferences();
-        setPreferences(prefs);
-      } catch (error) {
-        logError('Failed to load notification preferences', error);
-        errorHandler.handle(error, { action: 'load notification preferences' });
-      } finally {
-        setLoading(false);
-      }
+    if (hookPreferences) {
+      setLocalPreferences(hookPreferences);
     }
-    loadPreferences();
-  }, []);
+  }, [hookPreferences]);
+
+  useEffect(() => {
+    setLocalIsSubscribed(hookIsSubscribed);
+  }, [hookIsSubscribed]);
+
+  // Use local state for display (allows optimistic updates)
+  const preferences = localPreferences;
+  const isSubscribed = localIsSubscribed ?? hookIsSubscribed;
 
   const handlePushToggle = async (enabled: boolean) => {
     if (!preferences) return;
 
     setUpdating('push_enabled');
-    const previousValue = preferences.push_enabled;
+    const previousPrefValue = preferences.push_enabled;
+    const previousSubValue = isSubscribed;
 
-    // Optimistic update
-    setPreferences({ ...preferences, push_enabled: enabled });
+    // Optimistic update for both preference and subscription state
+    setLocalPreferences({ ...preferences, push_enabled: enabled });
+    setLocalIsSubscribed(enabled);
 
     try {
       if (enabled) {
@@ -76,7 +83,8 @@ export function NotificationPreferences() {
         const perm = await subscribeToPush();
         if (perm !== 'granted') {
           // User denied permission, revert
-          setPreferences({ ...preferences, push_enabled: false });
+          setLocalPreferences({ ...preferences, push_enabled: false });
+          setLocalIsSubscribed(false);
           return;
         }
       } else {
@@ -84,13 +92,13 @@ export function NotificationPreferences() {
         await unsubscribeFromPush();
       }
 
-      // Update database preference
-      await notificationPreferenceService.toggleNotificationType('push_enabled', enabled);
+      // Update database preference (also updates hook state)
+      await updateHookPreferences({ push_enabled: enabled });
     } catch (error) {
       // Revert on error
-      setPreferences({ ...preferences, push_enabled: previousValue });
+      setLocalPreferences({ ...preferences, push_enabled: previousPrefValue });
+      setLocalIsSubscribed(previousSubValue);
       logError('Failed to toggle push notifications', error);
-      errorHandler.handle(error, { action: 'toggle push notifications' });
     } finally {
       setUpdating(null);
     }
@@ -108,15 +116,14 @@ export function NotificationPreferences() {
     const previousValue = preferences[key];
 
     // Optimistic update
-    setPreferences({ ...preferences, [key]: enabled });
+    setLocalPreferences({ ...preferences, [key]: enabled });
 
     try {
-      await notificationPreferenceService.toggleNotificationType(key, enabled);
+      await updateHookPreferences({ [key]: enabled });
     } catch (error) {
       // Revert on error
-      setPreferences({ ...preferences, [key]: previousValue });
+      setLocalPreferences({ ...preferences, [key]: previousValue });
       logError('Failed to update notification preference', error, { key });
-      errorHandler.handle(error, { action: 'update notification preference' });
     } finally {
       setUpdating(null);
     }
@@ -125,8 +132,8 @@ export function NotificationPreferences() {
   // Determine the actual push state - subscribed in browser AND database preference enabled
   const isPushEnabled = isSubscribed && preferences?.push_enabled;
 
-  // Wait for both local preferences AND hook state (isSubscribed check) to load
-  if (loading || hookLoading) {
+  // Wait for hook state (preferences and isSubscribed) to load
+  if (loading) {
     return (
       <div className="bg-card rounded-lg border overflow-hidden">
         <div className="p-3 border-b bg-muted">

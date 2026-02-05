@@ -48,7 +48,7 @@ export function useNotifications() {
         const [notifs, count, prefs, browserHasSubscription] = await Promise.all([
           notificationService.getNotifications(),
           notificationService.getUnreadCount(),
-          notificationPreferenceService.getPreferences(),
+          notificationPreferenceService.getOrCreatePreferences(),
           pushSubscriptionService.isSubscribed(),
         ]);
 

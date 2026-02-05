@@ -1,53 +1,31 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { NotificationPreferences } from '../NotificationPreferences';
-import { notificationPreferenceService } from '@/services';
 import type { NotificationPreferences as NotificationPreferencesType } from '@/types/notifications';
 
 // Mock useNotifications hook
 const mockSubscribe = vi.fn();
 const mockUnsubscribe = vi.fn();
+const mockUpdatePreferences = vi.fn();
+let mockHookPreferences: NotificationPreferencesType | null = null;
+
 vi.mock('@/hooks/useNotifications', () => ({
   useNotifications: () => ({
     isSubscribed: true,
     permission: 'granted' as NotificationPermission,
     isSupported: true,
+    loading: false,
+    preferences: mockHookPreferences,
     subscribe: mockSubscribe,
     unsubscribe: mockUnsubscribe,
+    updatePreferences: mockUpdatePreferences,
   }),
-}));
-
-// Mock services
-vi.mock('@/services', () => ({
-  notificationPreferenceService: {
-    getOrCreatePreferences: vi.fn(),
-    toggleNotificationType: vi.fn(),
-  },
-  pushSubscriptionService: {
-    isSupported: vi.fn(() => true),
-    getPermissionStatus: vi.fn(() => 'granted'),
-  },
 }));
 
 // Mock error handler
 vi.mock('@/lib/errorHandler', () => ({
   logError: vi.fn(),
-  errorHandler: {
-    handle: vi.fn(),
-  },
-  throwIfSupabaseError: vi.fn((result) => {
-    if (result.error) throw new Error(result.error.message);
-    return result.data;
-  }),
-  requireData: vi.fn((data, operation) => {
-    if (data === null || data === undefined) {
-      throw new Error(`Failed to ${operation}`);
-    }
-    return data;
-  }),
 }));
-
-const mockNotificationPreferenceService = vi.mocked(notificationPreferenceService);
 
 const createMockPreferences = (
   overrides: Partial<NotificationPreferencesType> = {}
@@ -72,12 +50,11 @@ const createMockPreferences = (
 describe('NotificationPreferences', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockHookPreferences = null;
   });
 
   it('hides individual toggles when master toggle is disabled', async () => {
-    mockNotificationPreferenceService.getOrCreatePreferences.mockResolvedValue(
-      createMockPreferences({ push_enabled: false })
-    );
+    mockHookPreferences = createMockPreferences({ push_enabled: false });
 
     render(<NotificationPreferences />);
 
@@ -91,9 +68,7 @@ describe('NotificationPreferences', () => {
   });
 
   it('shows individual toggles when master toggle is enabled', async () => {
-    mockNotificationPreferenceService.getOrCreatePreferences.mockResolvedValue(
-      createMockPreferences({ push_enabled: true })
-    );
+    mockHookPreferences = createMockPreferences({ push_enabled: true });
 
     render(<NotificationPreferences />);
 
@@ -106,12 +81,8 @@ describe('NotificationPreferences', () => {
   });
 
   it('reverts optimistic update on error', async () => {
-    mockNotificationPreferenceService.getOrCreatePreferences.mockResolvedValue(
-      createMockPreferences({ push_enabled: true, notify_new_signup: true })
-    );
-    mockNotificationPreferenceService.toggleNotificationType.mockRejectedValue(
-      new Error('Network error')
-    );
+    mockHookPreferences = createMockPreferences({ push_enabled: true, notify_new_signup: true });
+    mockUpdatePreferences.mockRejectedValue(new Error('Network error'));
 
     render(<NotificationPreferences />);
 
