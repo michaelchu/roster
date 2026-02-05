@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Detailed Reference Documentation
+
+For in-depth technical references, see the `/docs/` directory:
+- [`docs/DATABASE.md`](docs/DATABASE.md) — Complete database schema: all tables, columns, RLS policies, triggers, and RPC functions
+- [`docs/SERVICES.md`](docs/SERVICES.md) — Service layer patterns, error handling conventions, Supabase query recipes
+- [`docs/TESTING.md`](docs/TESTING.md) — Test setup, Supabase mocking patterns, fixtures, E2E conventions
+- [`docs/FRONTEND.md`](docs/FRONTEND.md) — Routing, provider hierarchy, hook reference, component patterns
+
+Consult these when working on database changes, adding services, writing tests, or building UI.
+
 ## Environment Setup
 
 1. Copy `.env.example` to `.env`:
