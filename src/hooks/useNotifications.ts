@@ -45,7 +45,7 @@ export function useNotifications() {
       setError(null);
 
       try {
-        const [notifs, count, prefs, subscribed] = await Promise.all([
+        const [notifs, count, prefs, browserHasSubscription] = await Promise.all([
           notificationService.getNotifications(),
           notificationService.getUnreadCount(),
           notificationPreferenceService.getPreferences(),
@@ -57,8 +57,24 @@ export function useNotifications() {
         setNotifications(notifs);
         setUnreadCount(count);
         setPreferences(prefs);
-        setIsSubscribed(subscribed);
         setPermission(pushSubscriptionService.getPermissionStatus());
+
+        // Auto-resubscribe: If browser has an active subscription and permission is granted,
+        // register it in the database for this user. This handles the case where a user
+        // signs out (database record removed) and signs back in - they shouldn't need to
+        // re-enable notifications manually.
+        const currentPermission = pushSubscriptionService.getPermissionStatus();
+        if (browserHasSubscription && currentPermission === 'granted') {
+          try {
+            await pushSubscriptionService.subscribe();
+            setIsSubscribed(true);
+          } catch {
+            // If auto-resubscribe fails, user can still manually enable
+            setIsSubscribed(false);
+          }
+        } else {
+          setIsSubscribed(false);
+        }
       } catch (err) {
         if (cancelled) return;
         setError(err instanceof Error ? err : new Error('Failed to load notifications'));
