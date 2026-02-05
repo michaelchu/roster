@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { getStorageItem, removeStorageItem } from '@/lib/storage';
+import { pushSubscriptionService } from '@/services/pushSubscriptionService';
 
 /** Authentication context value type */
 interface AuthContextType {
@@ -137,9 +138,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Signs out the current user.
+   * Also cleans up push notification subscription to prevent
+   * notifications from being sent to the wrong user on shared devices.
    * @throws Error if sign out fails
    */
   const signOut = async () => {
+    // Clean up push subscription before signing out to prevent
+    // notifications from leaking to the next user on this device
+    try {
+      await pushSubscriptionService.unsubscribe();
+    } catch {
+      // Don't block sign out if unsubscribe fails
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };

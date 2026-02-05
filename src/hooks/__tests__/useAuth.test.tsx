@@ -36,6 +36,14 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+// Mock pushSubscriptionService
+const mockPushUnsubscribe = vi.fn();
+vi.mock('@/services/pushSubscriptionService', () => ({
+  pushSubscriptionService: {
+    unsubscribe: () => mockPushUnsubscribe(),
+  },
+}));
+
 import { AuthProvider, useAuth } from '../useAuth';
 import { supabase } from '@/lib/supabase';
 
@@ -331,8 +339,13 @@ describe('useAuth', () => {
   });
 
   describe('signOut', () => {
+    beforeEach(() => {
+      mockPushUnsubscribe.mockReset();
+    });
+
     it('should call supabase signOut', async () => {
       mockSupabaseAuth.signOut.mockResolvedValue({ error: null });
+      mockPushUnsubscribe.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -350,6 +363,7 @@ describe('useAuth', () => {
     it('should throw error when signOut fails', async () => {
       const authError = new Error('Sign out failed');
       mockSupabaseAuth.signOut.mockResolvedValue({ error: authError as any });
+      mockPushUnsubscribe.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -362,6 +376,74 @@ describe('useAuth', () => {
           await result.current.signOut();
         })
       ).rejects.toThrow('Sign out failed');
+    });
+
+    it('should unsubscribe from push notifications before signing out', async () => {
+      mockSupabaseAuth.signOut.mockResolvedValue({ error: null });
+      mockPushUnsubscribe.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      // Verify push unsubscribe was called
+      expect(mockPushUnsubscribe).toHaveBeenCalled();
+      // Verify it was called before signOut (both should have been called)
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+    });
+
+    it('should complete sign out even if push unsubscribe fails', async () => {
+      mockSupabaseAuth.signOut.mockResolvedValue({ error: null });
+      mockPushUnsubscribe.mockRejectedValue(new Error('Push unsubscribe failed'));
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should not throw even though push unsubscribe failed
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      // Push unsubscribe was attempted
+      expect(mockPushUnsubscribe).toHaveBeenCalled();
+      // Sign out still completed
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+    });
+
+    it('should prevent notification leak by cleaning up subscription on account switch', async () => {
+      // Scenario: User A logs out, User B logs in on same device
+      // The push subscription should be cleaned up when User A logs out
+      // to prevent User B from receiving User A's notifications
+      mockSupabaseAuth.signOut.mockResolvedValue({ error: null });
+      mockPushUnsubscribe.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // User A signs out
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      // Verify push subscription was cleaned up
+      expect(mockPushUnsubscribe).toHaveBeenCalledTimes(1);
+
+      // This ensures that when User B signs in on the same device,
+      // they won't receive User A's push notifications because
+      // the subscription endpoint has been removed from the database
+      // and unsubscribed from the browser
     });
   });
 
