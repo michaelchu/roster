@@ -138,17 +138,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Signs out the current user.
-   * Also cleans up push notification subscription to prevent
+   * Also cleans up push notification subscription from the database to prevent
    * notifications from being sent to the wrong user on shared devices.
+   * Note: Browser subscription is preserved so users don't need to re-grant
+   * permission when signing back in.
    * @throws Error if sign out fails
    */
   const signOut = async () => {
-    // Clean up push subscription before signing out to prevent
-    // notifications from leaking to the next user on this device
+    // Remove subscription from database only (keep browser subscription)
+    // This prevents notifications from leaking to the next user while
+    // preserving browser permission for easier re-subscription
     try {
-      await pushSubscriptionService.unsubscribe();
+      await pushSubscriptionService.removeSubscriptionFromDatabase();
     } catch {
-      // Don't block sign out if unsubscribe fails
+      // Don't block sign out if cleanup fails
     }
 
     const { error } = await supabase.auth.signOut();

@@ -280,6 +280,61 @@ describe('pushSubscriptionService', () => {
     });
   });
 
+  describe('removeSubscriptionFromDatabase', () => {
+    it('should remove subscription from database but keep browser subscription', async () => {
+      mockServiceWorkerRegistration.pushManager.getSubscription.mockResolvedValue(
+        mockPushSubscription
+      );
+
+      const mockQueryChain = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      };
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await pushSubscriptionService.removeSubscriptionFromDatabase();
+
+      // Should delete from database
+      expect(mockQueryChain.delete).toHaveBeenCalled();
+      expect(mockQueryChain.eq).toHaveBeenCalledWith(
+        'endpoint',
+        'https://fcm.googleapis.com/fcm/send/test-endpoint'
+      );
+      // Should NOT unsubscribe from browser
+      expect(mockPushSubscription.unsubscribe).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing when not subscribed', async () => {
+      mockServiceWorkerRegistration.pushManager.getSubscription.mockResolvedValue(null);
+
+      await pushSubscriptionService.removeSubscriptionFromDatabase();
+
+      expect(mockSupabase.from).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing when not supported', async () => {
+      delete (global.navigator as any).serviceWorker;
+      await pushSubscriptionService.removeSubscriptionFromDatabase();
+      expect(mockSupabase.from).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when database delete fails', async () => {
+      mockServiceWorkerRegistration.pushManager.getSubscription.mockResolvedValue(
+        mockPushSubscription
+      );
+
+      const mockQueryChain = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockRejectedValue(new Error('Database delete failed')),
+      };
+      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+
+      await expect(pushSubscriptionService.removeSubscriptionFromDatabase()).rejects.toThrow(
+        'Database delete failed'
+      );
+    });
+  });
+
   describe('isSubscribed', () => {
     it('should return true when subscribed', async () => {
       mockServiceWorkerRegistration.pushManager.getSubscription.mockResolvedValue(
