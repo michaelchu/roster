@@ -13,7 +13,7 @@ import { HomePage } from '@/pages/HomePage';
 import { EventsLayout } from '@/pages/EventsLayout';
 import { NewEventPage } from '@/pages/NewEventPage';
 import { EditEventPage } from '@/pages/EditEventPage';
-import { EventDetailPage } from '@/pages/EventDetailPage';
+import { EventDetailLayout } from '@/pages/EventDetailLayout';
 import { GroupsLayout } from '@/pages/GroupsLayout';
 import { GroupDetailLayout } from '@/pages/GroupDetailLayout';
 import { NewGroupPage } from '@/pages/NewGroupPage';
@@ -51,6 +51,7 @@ function AppContent() {
     (location.pathname.startsWith('/signup') && !user) ||
     location.pathname === '/events/new' ||
     /^\/events\/[^/]+\/edit$/.test(location.pathname) ||
+    /^\/signup\/[^/]+\/edit$/.test(location.pathname) ||
     location.pathname === '/groups/new' ||
     /^\/groups\/[^/]+\/edit$/.test(location.pathname) ||
     /^\/groups\/[^/]+\/events\/new$/.test(location.pathname);
@@ -63,7 +64,17 @@ function AppContent() {
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/invite/:type/:id" element={<InviteConfirmationPage />} />
-        <Route path="/signup/:eventId" element={<EventDetailPage />} />
+        <Route path="/signup/:eventId" element={<EventDetailLayout />}>
+          <Route index element={null} />
+          <Route
+            path="edit"
+            element={
+              <ProtectedRoute>
+                <EditEventPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
 
         {/* Protected routes - require authentication */}
         <Route

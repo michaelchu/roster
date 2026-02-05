@@ -628,7 +628,7 @@ export function EventDetailPage() {
             <div className="flex divide-x divide-border">
               {isOrganizer && (
                 <button
-                  onClick={() => navigate(`/events/${eventId}/edit`)}
+                  onClick={() => navigate(`/signup/${eventId}/edit`)}
                   className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
                 >
                   <Edit className="h-4 w-4 mr-2" />
