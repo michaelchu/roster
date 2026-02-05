@@ -41,6 +41,7 @@ export function NotificationPreferences() {
     isSubscribed,
     permission,
     isSupported,
+    loading: hookLoading,
     subscribe: subscribeToPush,
     unsubscribe: unsubscribeFromPush,
   } = useNotifications();
@@ -124,7 +125,8 @@ export function NotificationPreferences() {
   // Determine the actual push state - subscribed in browser AND database preference enabled
   const isPushEnabled = isSubscribed && preferences?.push_enabled;
 
-  if (loading) {
+  // Wait for both local preferences AND hook state (isSubscribed check) to load
+  if (loading || hookLoading) {
     return (
       <div className="bg-card rounded-lg border overflow-hidden">
         <div className="p-3 border-b bg-muted">
