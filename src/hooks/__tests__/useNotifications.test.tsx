@@ -144,10 +144,11 @@ describe('useNotifications', () => {
 
     it('should handle auto-resubscribe failure gracefully', async () => {
       // Scenario: Auto-resubscribe fails (e.g., network error)
+      // Browser has subscription but DB is out of sync (push_enabled: false)
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
-      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
+      mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false }); // DB out of sync
       mockIsSubscribed.mockResolvedValue(true);
       mockGetPermissionStatus.mockReturnValue('granted');
       mockSubscribe.mockRejectedValue(new Error('Network error'));
@@ -158,10 +159,11 @@ describe('useNotifications', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      // Should have attempted to subscribe
+      // Should have attempted to subscribe to sync with DB
       expect(mockSubscribe).toHaveBeenCalled();
-      // But should gracefully fall back to not subscribed
-      expect(result.current.isSubscribed).toBe(false);
+      // Should still show as subscribed since browser has subscription
+      // (sync failure shouldn't affect UI state)
+      expect(result.current.isSubscribed).toBe(true);
       // Should not have updated database preferences since subscribe failed
       expect(mockUpdatePreferences).not.toHaveBeenCalled();
     });
@@ -195,9 +197,10 @@ describe('useNotifications', () => {
   });
 
   describe('Android PWA scenario (shared storage context)', () => {
-    it('should auto-resubscribe when Android PWA shares browser subscription', async () => {
+    it('should show as subscribed when Android PWA shares browser subscription', async () => {
       // Scenario: User enabled notifications in browser, then installed PWA on Android
       // Android PWA shares storage with browser - subscription persists
+      // DB already has push_enabled: true, so no sync needed
       mockUseAuth.mockReturnValue({ user: mockUser });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -205,8 +208,6 @@ describe('useNotifications', () => {
       // Android PWA shares browser subscription
       mockIsSubscribed.mockResolvedValue(true);
       mockGetPermissionStatus.mockReturnValue('granted');
-      mockSubscribe.mockResolvedValue({ endpoint: 'https://example.com/push' });
-      mockUpdatePreferences.mockResolvedValue({ push_enabled: true });
 
       const { result } = renderHook(() => useNotifications(), { wrapper });
 
@@ -214,8 +215,9 @@ describe('useNotifications', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      // Should auto-resubscribe since browser subscription exists
-      expect(mockSubscribe).toHaveBeenCalled();
+      // Should show as subscribed without needing to call subscribe
+      // (DB and browser are already in sync)
+      expect(mockSubscribe).not.toHaveBeenCalled();
       expect(result.current.isSubscribed).toBe(true);
     });
   });

@@ -43,7 +43,13 @@ export function NotificationPreferences() {
     subscribe: subscribeToPush,
     unsubscribe: unsubscribeFromPush,
     updatePreferences: updateHookPreferences,
+    refreshSubscriptionState,
   } = useNotifications();
+
+  // Refresh subscription state on mount to ensure fresh state after navigation
+  useEffect(() => {
+    refreshSubscriptionState();
+  }, [refreshSubscriptionState]);
 
   // Track local optimistic state for both preferences and subscription
   const [localPreferences, setLocalPreferences] = useState<NotificationPreferencesType | null>(

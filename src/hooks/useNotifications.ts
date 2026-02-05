@@ -25,6 +25,7 @@ export function useNotifications() {
   const [error, setError] = useState<Error | null>(null);
 
   const unsubscribeRef = useRef<(() => void) | null>(null);
+  const hasLoadedRef = useRef(false);
 
   const isSupported = pushSubscriptionService.isSupported();
   const isConfigured = pushSubscriptionService.isConfigured();
@@ -34,14 +35,19 @@ export function useNotifications() {
       setNotifications([]);
       setUnreadCount(0);
       setPreferences(null);
+      setIsSubscribed(false);
       setLoading(false);
+      hasLoadedRef.current = false;
       return;
     }
 
     let cancelled = false;
 
     const load = async () => {
-      setLoading(true);
+      // Only show loading state on first load, not on refetches
+      if (!hasLoadedRef.current) {
+        setLoading(true);
+      }
       setError(null);
 
       try {
@@ -61,25 +67,29 @@ export function useNotifications() {
 
         const currentPermission = pushSubscriptionService.getPermissionStatus();
 
+        // Set subscription state based on actual browser state
+        // Don't auto-resubscribe here - let user explicitly enable via settings toggle
         if (browserHasSubscription && currentPermission === 'granted') {
-          // Auto-resubscribe: Browser has an active subscription, register it for this user.
-          // This handles sign out/sign in flows seamlessly - returning users don't need
-          // to manually re-enable notifications.
-          try {
-            await pushSubscriptionService.subscribe();
-            setIsSubscribed(true);
-            // Also ensure database preference is enabled
-            await notificationPreferenceService.updatePreferences({ push_enabled: true });
-          } catch {
-            // If auto-resubscribe fails, user can still manually enable
-            setIsSubscribed(false);
+          setIsSubscribed(true);
+          // If browser has subscription but DB doesn't have push_enabled,
+          // sync the DB to match (user previously enabled, just needs DB update)
+          if (!prefs.push_enabled) {
+            try {
+              await pushSubscriptionService.subscribe();
+              await notificationPreferenceService.updatePreferences({ push_enabled: true });
+              // Update local state to reflect the sync
+              if (!cancelled) {
+                setPreferences({ ...prefs, push_enabled: true });
+              }
+            } catch {
+              // If sync fails, still show as subscribed since browser has subscription
+            }
           }
         } else {
-          // New users: Don't auto-prompt for permission on sign-in.
-          // Let them opt-in via settings toggle (industry best practice).
-          // This avoids surprising users with permission prompts.
           setIsSubscribed(false);
         }
+
+        hasLoadedRef.current = true;
       } catch (err) {
         if (cancelled) return;
         setError(err instanceof Error ? err : new Error('Failed to load notifications'));
@@ -138,6 +148,28 @@ export function useNotifications() {
       logError('Failed to refresh notifications', err);
     }
   }, [user]);
+
+  /** Refreshes subscription state from browser - useful after navigation */
+  const refreshSubscriptionState = useCallback(async () => {
+    try {
+      const [browserHasSubscription, prefs] = await Promise.all([
+        pushSubscriptionService.isSubscribed(),
+        notificationPreferenceService.getOrCreatePreferences(),
+      ]);
+
+      const currentPermission = pushSubscriptionService.getPermissionStatus();
+      setPermission(currentPermission);
+      setPreferences(prefs);
+
+      if (browserHasSubscription && currentPermission === 'granted') {
+        setIsSubscribed(true);
+      } else {
+        setIsSubscribed(false);
+      }
+    } catch (err) {
+      logError('Failed to refresh subscription state', err);
+    }
+  }, []);
 
   /** Requests permission and subscribes to push notifications */
   const subscribe = useCallback(async () => {
@@ -243,5 +275,6 @@ export function useNotifications() {
     deleteNotification,
     updatePreferences,
     refresh,
+    refreshSubscriptionState,
   };
 }

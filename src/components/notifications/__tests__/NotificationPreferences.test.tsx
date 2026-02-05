@@ -7,6 +7,7 @@ import type { NotificationPreferences as NotificationPreferencesType } from '@/t
 const mockSubscribe = vi.fn();
 const mockUnsubscribe = vi.fn();
 const mockUpdatePreferences = vi.fn();
+const mockRefreshSubscriptionState = vi.fn();
 let mockHookPreferences: NotificationPreferencesType | null = null;
 
 vi.mock('@/hooks/useNotifications', () => ({
@@ -19,6 +20,7 @@ vi.mock('@/hooks/useNotifications', () => ({
     subscribe: mockSubscribe,
     unsubscribe: mockUnsubscribe,
     updatePreferences: mockUpdatePreferences,
+    refreshSubscriptionState: mockRefreshSubscriptionState,
   }),
 }));
 
