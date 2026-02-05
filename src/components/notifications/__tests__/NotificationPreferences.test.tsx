@@ -4,11 +4,28 @@ import { NotificationPreferences } from '../NotificationPreferences';
 import { notificationPreferenceService } from '@/services';
 import type { NotificationPreferences as NotificationPreferencesType } from '@/types/notifications';
 
+// Mock useNotifications hook
+const mockSubscribe = vi.fn();
+const mockUnsubscribe = vi.fn();
+vi.mock('@/hooks/useNotifications', () => ({
+  useNotifications: () => ({
+    isSubscribed: true,
+    permission: 'granted' as NotificationPermission,
+    isSupported: true,
+    subscribe: mockSubscribe,
+    unsubscribe: mockUnsubscribe,
+  }),
+}));
+
 // Mock services
 vi.mock('@/services', () => ({
   notificationPreferenceService: {
     getOrCreatePreferences: vi.fn(),
     toggleNotificationType: vi.fn(),
+  },
+  pushSubscriptionService: {
+    isSupported: vi.fn(() => true),
+    getPermissionStatus: vi.fn(() => 'granted'),
   },
 }));
 

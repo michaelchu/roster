@@ -150,7 +150,8 @@ export const pushSubscriptionService = {
   },
 
   /**
-   * Unsubscribe from push notifications
+   * Unsubscribe from push notifications (both database and browser)
+   * Use this when user explicitly disables notifications in settings
    */
   async unsubscribe(): Promise<void> {
     if (!this.isSupported()) return;
@@ -170,6 +171,30 @@ export const pushSubscriptionService = {
       }
     } catch (error) {
       logError('Failed to unsubscribe from push notifications', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove subscription from database only (keeps browser subscription intact)
+   * Use this on sign out to prevent notification leaks while preserving
+   * browser permission for easier re-subscription on next sign in
+   */
+  async removeSubscriptionFromDatabase(): Promise<void> {
+    if (!this.isSupported()) return;
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) return;
+
+      const subscription = await registration.pushManager.getSubscription();
+
+      if (subscription) {
+        // Only remove from database, keep browser subscription
+        await supabase.from('push_subscriptions').delete().eq('endpoint', subscription.endpoint);
+      }
+    } catch (error) {
+      logError('Failed to remove push subscription from database', error);
       throw error;
     }
   },

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { getStorageItem, removeStorageItem } from '@/lib/storage';
+import { pushSubscriptionService } from '@/services/pushSubscriptionService';
 
 /** Authentication context value type */
 interface AuthContextType {
@@ -137,9 +138,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Signs out the current user.
+   * Also cleans up push notification subscription from the database to prevent
+   * notifications from being sent to the wrong user on shared devices.
+   * Note: Browser subscription is preserved so users don't need to re-grant
+   * permission when signing back in.
    * @throws Error if sign out fails
    */
   const signOut = async () => {
+    // Remove subscription from database only (keep browser subscription)
+    // This prevents notifications from leaking to the next user while
+    // preserving browser permission for easier re-subscription
+    try {
+      await pushSubscriptionService.removeSubscriptionFromDatabase();
+    } catch {
+      // Don't block sign out if cleanup fails
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };

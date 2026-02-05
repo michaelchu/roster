@@ -6,6 +6,7 @@ import { notificationPreferenceService } from '@/services';
 import { errorHandler, logError } from '@/lib/errorHandler';
 import type { NotificationPreferences as NotificationPreferencesType } from '@/types/notifications';
 import { Bell, BellOff } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
 
 type PreferenceKey = keyof Omit<
   NotificationPreferencesType,
@@ -36,6 +37,13 @@ export function NotificationPreferences() {
   const [preferences, setPreferences] = useState<NotificationPreferencesType | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<PreferenceKey | null>(null);
+  const {
+    isSubscribed,
+    permission,
+    isSupported,
+    subscribe: subscribeToPush,
+    unsubscribe: unsubscribeFromPush,
+  } = useNotifications();
 
   useEffect(() => {
     async function loadPreferences() {
@@ -52,8 +60,48 @@ export function NotificationPreferences() {
     loadPreferences();
   }, []);
 
+  const handlePushToggle = async (enabled: boolean) => {
+    if (!preferences) return;
+
+    setUpdating('push_enabled');
+    const previousValue = preferences.push_enabled;
+
+    // Optimistic update
+    setPreferences({ ...preferences, push_enabled: enabled });
+
+    try {
+      if (enabled) {
+        // Subscribe to push notifications (handles permission request if needed)
+        const perm = await subscribeToPush();
+        if (perm !== 'granted') {
+          // User denied permission, revert
+          setPreferences({ ...preferences, push_enabled: false });
+          return;
+        }
+      } else {
+        // Unsubscribe from push notifications
+        await unsubscribeFromPush();
+      }
+
+      // Update database preference
+      await notificationPreferenceService.toggleNotificationType('push_enabled', enabled);
+    } catch (error) {
+      // Revert on error
+      setPreferences({ ...preferences, push_enabled: previousValue });
+      logError('Failed to toggle push notifications', error);
+      errorHandler.handle(error, { action: 'toggle push notifications' });
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   const handleToggle = async (key: PreferenceKey, enabled: boolean) => {
     if (!preferences) return;
+
+    // Handle push_enabled separately since it needs to manage the actual subscription
+    if (key === 'push_enabled') {
+      return handlePushToggle(enabled);
+    }
 
     setUpdating(key);
     const previousValue = preferences[key];
@@ -72,6 +120,9 @@ export function NotificationPreferences() {
       setUpdating(null);
     }
   };
+
+  // Determine the actual push state - subscribed in browser AND database preference enabled
+  const isPushEnabled = isSubscribed && preferences?.push_enabled;
 
   if (loading) {
     return (
@@ -96,7 +147,22 @@ export function NotificationPreferences() {
 
   if (!preferences) return null;
 
-  const masterEnabled = preferences.push_enabled;
+  // Show helper text based on state
+  const getHelperText = () => {
+    if (!isSupported) {
+      return 'Push notifications are not supported in this browser.';
+    }
+    if (permission === 'denied') {
+      return 'Notifications are blocked. Please enable them in your browser settings.';
+    }
+    if (isPushEnabled) {
+      return 'You will receive push notifications for the events you choose below.';
+    }
+    return null;
+  };
+
+  const helperText = getHelperText();
+  const isDisabled = !isSupported || permission === 'denied' || updating === 'push_enabled';
 
   return (
     <div className="bg-card rounded-lg border overflow-hidden">
@@ -109,7 +175,7 @@ export function NotificationPreferences() {
         <div className="p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {masterEnabled ? (
+              {isPushEnabled ? (
                 <Bell className="h-5 w-5 text-muted-foreground" />
               ) : (
                 <BellOff className="h-5 w-5 text-muted-foreground" />
@@ -120,19 +186,15 @@ export function NotificationPreferences() {
             </div>
             <Switch
               id="push-enabled"
-              checked={masterEnabled}
+              checked={isPushEnabled}
               onCheckedChange={(checked) => handleToggle('push_enabled', checked)}
-              disabled={updating === 'push_enabled'}
+              disabled={isDisabled}
             />
           </div>
-          {masterEnabled && (
-            <p className="text-xs text-muted-foreground mt-2 ml-8">
-              Make sure notifications are allowed for your browser in your phone's settings.
-            </p>
-          )}
+          {helperText && <p className="text-xs text-muted-foreground mt-2 ml-8">{helperText}</p>}
         </div>
 
-        {masterEnabled && (
+        {isPushEnabled && (
           <>
             {/* Organizer notifications */}
             <div className="p-3">

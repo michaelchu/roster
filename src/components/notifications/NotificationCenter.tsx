@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Bell, Check, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Bell, BellOff, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { NotificationBadge } from './NotificationBadge';
 import { NotificationItem } from './NotificationItem';
-import { PushPermissionPrompt } from './PushPermissionPrompt';
 import { useNotifications } from '@/hooks/useNotifications';
-import { errorHandler, logError } from '@/lib/errorHandler';
+import { errorHandler } from '@/lib/errorHandler';
 import { cn } from '@/lib/utils';
 
 interface NotificationCenterProps {
@@ -16,63 +15,17 @@ interface NotificationCenterProps {
 
 export function NotificationCenter({ className }: NotificationCenterProps) {
   const [open, setOpen] = useState(false);
-  const [subscribing, setSubscribing] = useState(false);
   const [revealedId, setRevealedId] = useState<string | null>(null);
 
   const {
     notifications,
     unreadCount,
     permission,
-    isSupported,
-    isConfigured,
-    isSubscribed,
     loading,
-    subscribe,
     markAsRead,
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
-
-  // Auto-subscribe if permission is granted but no subscription exists
-  useEffect(() => {
-    const autoSubscribe = async () => {
-      if (
-        permission === 'granted' &&
-        isSupported &&
-        isConfigured &&
-        !isSubscribed &&
-        !subscribing
-      ) {
-        setSubscribing(true);
-        try {
-          await subscribe();
-        } catch (error) {
-          logError('Auto-subscribe failed', error);
-        } finally {
-          setSubscribing(false);
-        }
-      }
-    };
-    autoSubscribe();
-  }, [permission, isSupported, isConfigured, isSubscribed, subscribing, subscribe]);
-
-  const handleEnableNotifications = async () => {
-    setSubscribing(true);
-    try {
-      const result = await subscribe();
-      if (result === 'granted') {
-        errorHandler.success('Push notifications enabled');
-      } else if (result === 'denied') {
-        errorHandler.handle(
-          new Error('Notification permission denied. Please enable in browser settings.')
-        );
-      }
-    } catch (error) {
-      errorHandler.handle(error, { action: 'enable notifications' });
-    } finally {
-      setSubscribing(false);
-    }
-  };
 
   const handleMarkAllRead = async () => {
     try {
@@ -117,15 +70,18 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         </SheetHeader>
 
         <div className="flex flex-col h-[calc(100vh-60px)]">
-          {/* Push permission prompt */}
-          <PushPermissionPrompt
-            permission={permission}
-            isSupported={isSupported}
-            isConfigured={isConfigured}
-            onEnable={handleEnableNotifications}
-            loading={subscribing}
-            className="m-3"
-          />
+          {/* Show message if notifications are blocked */}
+          {permission === 'denied' && (
+            <div className="flex items-center gap-3 p-4 m-3 rounded-lg bg-muted/50 border border-border">
+              <BellOff className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Notifications blocked</p>
+                <p className="text-xs text-muted-foreground">
+                  Enable notifications in your browser settings to receive updates.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Notifications list */}
           <ScrollArea className="flex-1">

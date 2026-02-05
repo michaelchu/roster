@@ -36,6 +36,14 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+// Mock pushSubscriptionService
+const mockRemoveSubscriptionFromDatabase = vi.fn();
+vi.mock('@/services/pushSubscriptionService', () => ({
+  pushSubscriptionService: {
+    removeSubscriptionFromDatabase: () => mockRemoveSubscriptionFromDatabase(),
+  },
+}));
+
 import { AuthProvider, useAuth } from '../useAuth';
 import { supabase } from '@/lib/supabase';
 
@@ -331,8 +339,13 @@ describe('useAuth', () => {
   });
 
   describe('signOut', () => {
+    beforeEach(() => {
+      mockRemoveSubscriptionFromDatabase.mockReset();
+    });
+
     it('should call supabase signOut', async () => {
       mockSupabaseAuth.signOut.mockResolvedValue({ error: null });
+      mockRemoveSubscriptionFromDatabase.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -350,6 +363,7 @@ describe('useAuth', () => {
     it('should throw error when signOut fails', async () => {
       const authError = new Error('Sign out failed');
       mockSupabaseAuth.signOut.mockResolvedValue({ error: authError as any });
+      mockRemoveSubscriptionFromDatabase.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -362,6 +376,75 @@ describe('useAuth', () => {
           await result.current.signOut();
         })
       ).rejects.toThrow('Sign out failed');
+    });
+
+    it('should remove push subscription from database before signing out', async () => {
+      mockSupabaseAuth.signOut.mockResolvedValue({ error: null });
+      mockRemoveSubscriptionFromDatabase.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      // Verify database cleanup was called (browser subscription preserved)
+      expect(mockRemoveSubscriptionFromDatabase).toHaveBeenCalled();
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+    });
+
+    it('should complete sign out even if database cleanup fails', async () => {
+      mockSupabaseAuth.signOut.mockResolvedValue({ error: null });
+      mockRemoveSubscriptionFromDatabase.mockRejectedValue(new Error('Database cleanup failed'));
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // Should not throw even though database cleanup failed
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      // Database cleanup was attempted
+      expect(mockRemoveSubscriptionFromDatabase).toHaveBeenCalled();
+      // Sign out still completed
+      expect(mockSupabaseAuth.signOut).toHaveBeenCalled();
+    });
+
+    it('should prevent notification leak by cleaning up database subscription on account switch', async () => {
+      // Scenario: User A logs out, User B logs in on same device
+      // The push subscription database record should be cleaned up when User A logs out
+      // to prevent User B from receiving User A's notifications
+      // Note: Browser subscription is preserved for easier re-subscription
+      mockSupabaseAuth.signOut.mockResolvedValue({ error: null });
+      mockRemoveSubscriptionFromDatabase.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      // User A signs out
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      // Verify push subscription database record was cleaned up
+      expect(mockRemoveSubscriptionFromDatabase).toHaveBeenCalledTimes(1);
+
+      // This ensures that when User B signs in on the same device,
+      // they won't receive User A's push notifications because
+      // the subscription endpoint has been removed from the database.
+      // The browser subscription is preserved so User A (or User B)
+      // can easily re-enable notifications without re-granting permission.
     });
   });
 
