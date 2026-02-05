@@ -195,7 +195,7 @@ export const notificationService = {
       eventId: params.eventId,
       participantId: params.participantId,
       actorUserId: params.actorUserId,
-      actionUrl: `/events/${params.eventId}/participants`,
+      actionUrl: `/signup/${params.eventId}`,
     });
   },
 
@@ -219,7 +219,7 @@ export const notificationService = {
       body: `You're registered for ${params.eventName}`,
       eventId: params.eventId,
       participantId: params.participantId,
-      actionUrl: `/events/${params.eventId}`,
+      actionUrl: `/signup/${params.eventId}`,
     });
   },
 
@@ -238,7 +238,7 @@ export const notificationService = {
       title: `${params.eventName} is now full!`,
       body: `Your event has reached maximum capacity (${params.maxParticipants} participants)`,
       eventId: params.eventId,
-      actionUrl: `/events/${params.eventId}`,
+      actionUrl: `/signup/${params.eventId}`,
     });
   },
 
@@ -262,7 +262,7 @@ export const notificationService = {
       body: `${params.participantName} has withdrawn`,
       eventId: params.eventId,
       actorUserId: params.actorUserId,
-      actionUrl: `/events/${params.eventId}/participants`,
+      actionUrl: `/signup/${params.eventId}`,
     });
   },
 
@@ -285,7 +285,7 @@ export const notificationService = {
       eventId: params.eventId,
       participantId: params.participantId,
       actorUserId: params.actorUserId,
-      actionUrl: `/events/${params.eventId}/participants`,
+      actionUrl: `/signup/${params.eventId}`,
     });
   },
 
@@ -314,7 +314,7 @@ export const notificationService = {
         body: `The ${changesText} has been updated`,
         eventId: params.eventId,
         actorUserId: params.organizerId,
-        actionUrl: `/events/${params.eventId}`,
+        actionUrl: `/signup/${params.eventId}`,
       });
     }
   },

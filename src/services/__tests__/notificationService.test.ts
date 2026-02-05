@@ -325,7 +325,7 @@ describe('notificationService', () => {
         eventId: 'event-1',
         participantId: 'participant-1',
         actorUserId: 'actor-1',
-        actionUrl: '/events/event-1',
+        actionUrl: '/signup/event-1',
       });
 
       expect(mockSupabase.rpc).toHaveBeenCalledWith('queue_notification', {
@@ -336,7 +336,7 @@ describe('notificationService', () => {
         p_event_id: 'event-1',
         p_participant_id: 'participant-1',
         p_actor_user_id: 'actor-1',
-        p_action_url: '/events/event-1',
+        p_action_url: '/signup/event-1',
       });
     });
 
@@ -413,7 +413,7 @@ describe('notificationService', () => {
         p_event_id: 'event-1',
         p_participant_id: 'p-1',
         p_actor_user_id: 'user-1',
-        p_action_url: '/events/event-1/participants',
+        p_action_url: '/signup/event-1',
       });
     });
 
@@ -475,7 +475,7 @@ describe('notificationService', () => {
         p_event_id: 'event-1',
         p_participant_id: 'p-1',
         p_actor_user_id: undefined,
-        p_action_url: '/events/event-1',
+        p_action_url: '/signup/event-1',
       });
     });
 
@@ -513,7 +513,7 @@ describe('notificationService', () => {
         p_event_id: 'event-1',
         p_participant_id: undefined,
         p_actor_user_id: undefined,
-        p_action_url: '/events/event-1',
+        p_action_url: '/signup/event-1',
       });
     });
   });
@@ -538,7 +538,7 @@ describe('notificationService', () => {
         p_event_id: 'event-1',
         p_participant_id: undefined,
         p_actor_user_id: 'user-1',
-        p_action_url: '/events/event-1/participants',
+        p_action_url: '/signup/event-1',
       });
     });
 
@@ -599,7 +599,7 @@ describe('notificationService', () => {
         p_event_id: 'event-1',
         p_participant_id: 'p-1',
         p_actor_user_id: 'user-1',
-        p_action_url: '/events/event-1/participants',
+        p_action_url: '/signup/event-1',
       });
     });
   });
@@ -627,7 +627,7 @@ describe('notificationService', () => {
         p_event_id: 'event-1',
         p_participant_id: undefined,
         p_actor_user_id: 'org-1',
-        p_action_url: '/events/event-1',
+        p_action_url: '/signup/event-1',
       });
 
       expect(mockSupabase.rpc).toHaveBeenCalledWith('queue_notification', {
@@ -638,7 +638,7 @@ describe('notificationService', () => {
         p_event_id: 'event-1',
         p_participant_id: undefined,
         p_actor_user_id: 'org-1',
-        p_action_url: '/events/event-1',
+        p_action_url: '/signup/event-1',
       });
     });
 
