@@ -228,6 +228,10 @@ export function SettingsPage() {
             </div>
           </div>
 
+          <div className="text-center text-xs text-muted-foreground py-2">
+            Version {__APP_VERSION__}
+          </div>
+
           <Button
             variant="outline"
             className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
