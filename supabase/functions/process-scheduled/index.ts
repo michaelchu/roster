@@ -11,6 +11,23 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
+
+// Initialize Sentry
+const SENTRY_DSN = Deno.env.get('SENTRY_DSN');
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    defaultIntegrations: false,
+    tracesSampleRate: 1.0,
+    environment: Deno.env.get('SENTRY_ENVIRONMENT') || 'production',
+  });
+
+  // Set Supabase-specific tags
+  Sentry.setTag('region', Deno.env.get('SB_REGION'));
+  Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
+  Sentry.setTag('function', 'process-scheduled');
+}
 
 // Environment variables
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -66,6 +83,11 @@ serve(async (req) => {
 
     if (participantsError) {
       console.error('Failed to fetch unpaid participants:', participantsError);
+      if (SENTRY_DSN) {
+        Sentry.captureException(participantsError, {
+          tags: { operation: 'fetchUnpaidParticipants' },
+        });
+      }
     } else if (unpaidParticipants) {
       // Batch-load existing payment reminders for all relevant participants
       // Collect all participant IDs in the current batch
@@ -79,7 +101,15 @@ serve(async (req) => {
         .eq('notification_type', 'payment_reminder');
 
       if (existingQueueError) {
-        console.error('Failed to fetch existing payment reminders from notification_queue:', existingQueueError);
+        console.error(
+          'Failed to fetch existing payment reminders from notification_queue:',
+          existingQueueError
+        );
+        if (SENTRY_DSN) {
+          Sentry.captureException(existingQueueError, {
+            tags: { operation: 'fetchExistingQueueReminders' },
+          });
+        }
       }
 
       // Fetch already-sent payment reminders from notifications table
@@ -90,20 +120,33 @@ serve(async (req) => {
         .eq('type', 'payment_reminder');
 
       if (existingNotificationsError) {
-        console.error('Failed to fetch existing payment reminders from notifications:', existingNotificationsError);
+        console.error(
+          'Failed to fetch existing payment reminders from notifications:',
+          existingNotificationsError
+        );
+        if (SENTRY_DSN) {
+          Sentry.captureException(existingNotificationsError, {
+            tags: { operation: 'fetchExistingNotifications' },
+          });
+        }
       }
 
       // Build lookup sets for quick membership tests inside the loop
       const queuedReminderParticipantIds = new Set(
-        (existingQueueReminders ?? []).map((row: { participant_id: string }) => row.participant_id),
+        (existingQueueReminders ?? []).map((row: { participant_id: string }) => row.participant_id)
       );
       const sentReminderParticipantIds = new Set(
-        (existingNotifications ?? []).map((row: { participant_id: string }) => row.participant_id),
+        (existingNotifications ?? []).map((row: { participant_id: string }) => row.participant_id)
       );
 
       for (const participant of unpaidParticipants) {
         // Get event end time (fall back to datetime if no end_datetime)
-        const event = participant.events as { id: string; name: string; datetime: string; end_datetime: string | null };
+        const event = participant.events as {
+          id: string;
+          name: string;
+          datetime: string;
+          end_datetime: string | null;
+        };
         const eventEndTime = event.end_datetime || event.datetime;
 
         if (!eventEndTime) continue;
@@ -142,6 +185,16 @@ serve(async (req) => {
           queued++;
         } else {
           console.error('Failed to queue payment reminder:', insertError);
+          if (SENTRY_DSN) {
+            Sentry.captureException(insertError, {
+              tags: { operation: 'queuePaymentReminder' },
+              extra: {
+                participantId: participant.id,
+                eventId: participant.event_id,
+                userId,
+              },
+            });
+          }
         }
       }
     }
@@ -161,22 +214,53 @@ serve(async (req) => {
         });
 
         if (!response.ok) {
-          console.error('Failed to trigger send-push:', await response.text());
+          const errorText = await response.text();
+          console.error('Failed to trigger send-push:', errorText);
+          if (SENTRY_DSN) {
+            Sentry.captureMessage(`Failed to trigger send-push: ${errorText}`, {
+              level: 'error',
+              tags: { operation: 'triggerSendPush' },
+              extra: { statusCode: response.status, queued },
+            });
+          }
         }
       } catch (error) {
         console.error('Failed to invoke send-push:', error);
+        if (SENTRY_DSN) {
+          Sentry.captureException(error, {
+            tags: { operation: 'invokeSendPush' },
+            extra: { queued },
+          });
+        }
       }
+    }
+
+    // Flush Sentry before returning to ensure all events are sent
+    if (SENTRY_DSN) {
+      await Sentry.flush(2000);
     }
 
     return new Response(
       JSON.stringify({
         queued,
-        message: queued > 0 ? `Queued ${queued} payment reminders` : 'No scheduled notifications to process',
+        message:
+          queued > 0
+            ? `Queued ${queued} payment reminders`
+            : 'No scheduled notifications to process',
       }),
       { headers }
     );
   } catch (error) {
     console.error('Edge function error:', error);
+
+    // Capture to Sentry and flush before returning
+    if (SENTRY_DSN) {
+      Sentry.captureException(error, {
+        tags: { operation: 'process-scheduled-main' },
+      });
+      await Sentry.flush(2000);
+    }
+
     return new Response(
       JSON.stringify({
         error: error instanceof Error ? error.message : 'Internal error',

@@ -13,6 +13,23 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import webpush from 'npm:web-push@3.6.7';
+import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
+
+// Initialize Sentry
+const SENTRY_DSN = Deno.env.get('SENTRY_DSN');
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    defaultIntegrations: false,
+    tracesSampleRate: 1.0,
+    environment: Deno.env.get('SENTRY_ENVIRONMENT') || 'production',
+  });
+
+  // Set Supabase-specific tags
+  Sentry.setTag('region', Deno.env.get('SB_REGION'));
+  Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
+  Sentry.setTag('function', 'send-push');
+}
 
 // Environment variables
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -127,7 +144,7 @@ async function sendWebPush(
     if (error instanceof Error) {
       const statusCode = (error as { statusCode?: number }).statusCode;
 
-      // 404 or 410 means the subscription is no longer valid
+      // 404 or 410 means the subscription is no longer valid - not an error to report
       if (statusCode === 404 || statusCode === 410) {
         console.log('Subscription expired or invalid:', subscription.id);
         // Mark the subscription as inactive in the database (fire-and-forget)
@@ -137,16 +154,32 @@ async function sendWebPush(
           .eq('id', subscription.id)
           .then(({ error: updateError }) => {
             if (updateError) {
-              console.error(`Failed to mark subscription ${subscription.id} as inactive:`, updateError);
+              console.error(
+                `Failed to mark subscription ${subscription.id} as inactive:`,
+                updateError
+              );
             } else {
               console.log('Successfully marked subscription as inactive:', subscription.id);
             }
           });
       } else {
+        // Unexpected error - log to Sentry
         console.error('Failed to send push:', error.message);
+        if (SENTRY_DSN) {
+          Sentry.captureException(error, {
+            tags: { operation: 'sendWebPush' },
+            extra: { subscriptionId: subscription.id, statusCode },
+          });
+        }
       }
     } else {
       console.error('Failed to send push:', error);
+      if (SENTRY_DSN) {
+        Sentry.captureException(error, {
+          tags: { operation: 'sendWebPush' },
+          extra: { subscriptionId: subscription.id },
+        });
+      }
     }
     return false;
   }
@@ -196,7 +229,7 @@ serve(async (req) => {
       .eq('status', 'processing')
       .lt('updated_at', staleThreshold)
       .lt('attempts', MAX_ATTEMPTS);
-    
+
     if (cleanupError) {
       console.error('Failed to clean up stale items:', cleanupError);
       // Continue anyway - this is not critical enough to abort the entire function
@@ -214,6 +247,12 @@ serve(async (req) => {
 
     if (queueError) {
       console.error('Failed to fetch queue:', queueError);
+      if (SENTRY_DSN) {
+        Sentry.captureException(queueError, {
+          tags: { operation: 'fetchQueue' },
+        });
+        await Sentry.flush(2000);
+      }
       return new Response(JSON.stringify({ error: queueError.message }), {
         status: 500,
         headers,
@@ -299,10 +338,7 @@ serve(async (req) => {
             console.log(`Item ${item.id} already claimed by another instance, skipping`);
           } else {
             // Genuine error when trying to claim the item
-            console.error(
-              `Failed to claim item ${item.id} from notification_queue:`,
-              updateError,
-            );
+            console.error(`Failed to claim item ${item.id} from notification_queue:`, updateError);
           }
           continue;
         }
@@ -310,7 +346,7 @@ serve(async (req) => {
         if (!updated) {
           // No data returned without an explicit error: treat as not claimed
           console.log(
-            `Item ${item.id} was not updated (no data returned), likely claimed by another instance, skipping`,
+            `Item ${item.id} was not updated (no data returned), likely claimed by another instance, skipping`
           );
           continue;
         }
@@ -397,6 +433,22 @@ serve(async (req) => {
         const itemId = claimedItem?.id || item.id;
         console.error(`Failed to process item ${itemId}:`, error);
 
+        // Capture to Sentry with context
+        if (SENTRY_DSN) {
+          Sentry.captureException(error, {
+            tags: {
+              operation: 'processQueueItem',
+              notificationType: item.notification_type,
+            },
+            extra: {
+              itemId,
+              recipientUserId: item.recipient_user_id,
+              eventId: item.event_id,
+              attempts: claimedItem?.attempts || item.attempts + 1,
+            },
+          });
+        }
+
         // Retry or fail based on attempts
         // If we successfully claimed the item, use its attempts count; otherwise calculate from original
         const currentAttempts = claimedItem?.attempts || item.attempts + 1;
@@ -421,7 +473,18 @@ serve(async (req) => {
         // Log the error but don't fail the entire function - push notifications were already sent
         console.error('Failed to insert inbox notifications:', insertError);
         inboxError = insertError.message;
+        if (SENTRY_DSN) {
+          Sentry.captureException(insertError, {
+            tags: { operation: 'insertInboxNotifications' },
+            extra: { count: inboxInserts.length },
+          });
+        }
       }
+    }
+
+    // Flush Sentry before returning to ensure all events are sent
+    if (SENTRY_DSN) {
+      await Sentry.flush(2000);
     }
 
     return new Response(
@@ -434,6 +497,15 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Edge function error:', error);
+
+    // Capture to Sentry and flush before returning
+    if (SENTRY_DSN) {
+      Sentry.captureException(error, {
+        tags: { operation: 'send-push-main' },
+      });
+      await Sentry.flush(2000);
+    }
+
     return new Response(
       JSON.stringify({
         error: error instanceof Error ? error.message : 'Internal error',
