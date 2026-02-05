@@ -63,33 +63,21 @@ export function useNotifications() {
 
         if (browserHasSubscription && currentPermission === 'granted') {
           // Auto-resubscribe: Browser has an active subscription, register it for this user.
-          // This handles sign out/sign in flows seamlessly.
+          // This handles sign out/sign in flows seamlessly - returning users don't need
+          // to manually re-enable notifications.
           try {
             await pushSubscriptionService.subscribe();
             setIsSubscribed(true);
+            // Also ensure database preference is enabled
+            await notificationPreferenceService.updatePreferences({ push_enabled: true });
           } catch {
             // If auto-resubscribe fails, user can still manually enable
             setIsSubscribed(false);
           }
-        } else if (!browserHasSubscription && currentPermission === 'default') {
-          // New user or first time on this device: request permission and subscribe.
-          // This provides a seamless onboarding experience - users don't need to
-          // manually enable push notifications.
-          try {
-            const perm = await pushSubscriptionService.requestPermission();
-            setPermission(perm);
-            if (perm === 'granted') {
-              await pushSubscriptionService.subscribe();
-              setIsSubscribed(true);
-              // Also enable in database preferences
-              await notificationPreferenceService.updatePreferences({ push_enabled: true });
-            } else {
-              setIsSubscribed(false);
-            }
-          } catch {
-            setIsSubscribed(false);
-          }
         } else {
+          // New users: Don't auto-prompt for permission on sign-in.
+          // Let them opt-in via settings toggle (industry best practice).
+          // This avoids surprising users with permission prompts.
           setIsSubscribed(false);
         }
       } catch (err) {
