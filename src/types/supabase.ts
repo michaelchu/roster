@@ -724,6 +724,16 @@ export type Database = {
           name: string;
         }[];
       };
+      log_participant_activity: {
+        Args: {
+          p_participant_id: string | null;
+          p_event_id: string;
+          p_activity_type: string;
+          p_participant_name: string;
+          p_details?: Json;
+        };
+        Returns: string;
+      };
       nanoid: { Args: { size?: number }; Returns: string };
       queue_notification: {
         Args: {

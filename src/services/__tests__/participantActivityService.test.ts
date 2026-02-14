@@ -11,6 +11,7 @@ vi.mock('@/lib/supabase', () => ({
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
     })),
+    rpc: vi.fn().mockResolvedValue({ data: 'mock-id', error: null }),
   },
 }));
 
@@ -155,11 +156,8 @@ describe('participantActivityService', () => {
   });
 
   describe('logJoined', () => {
-    it('should insert joined activity with correct details', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+    it('should call RPC with correct parameters', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logJoined({
         participantId: 'p-1',
@@ -169,13 +167,12 @@ describe('participantActivityService', () => {
         claimedByUserId: 'user-1',
       });
 
-      expect(mockSupabase.from).toHaveBeenCalledWith('participant_activity_log');
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: 'p-1',
-        event_id: 'e-1',
-        activity_type: 'joined',
-        participant_name: 'John Doe',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: 'p-1',
+        p_event_id: 'e-1',
+        p_activity_type: 'joined',
+        p_participant_name: 'John Doe',
+        p_details: {
           slot_number: 5,
           claimed_by_user_id: 'user-1',
         },
@@ -183,10 +180,7 @@ describe('participantActivityService', () => {
     });
 
     it('should handle null claimedByUserId', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logJoined({
         participantId: 'p-1',
@@ -196,23 +190,23 @@ describe('participantActivityService', () => {
         claimedByUserId: null,
       });
 
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: 'p-1',
-        event_id: 'e-1',
-        activity_type: 'joined',
-        participant_name: 'John Doe',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: 'p-1',
+        p_event_id: 'e-1',
+        p_activity_type: 'joined',
+        p_participant_name: 'John Doe',
+        p_details: {
           slot_number: 1,
           claimed_by_user_id: null,
         },
       });
     });
 
-    it('should log error on insert failure without throwing', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: { message: 'Insert failed' } }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+    it('should log error on RPC failure without throwing', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: 'Insert failed' },
+      } as any);
 
       await participantActivityService.logJoined({
         participantId: 'p-1',
@@ -229,11 +223,8 @@ describe('participantActivityService', () => {
   });
 
   describe('logWithdrew', () => {
-    it('should insert withdrew activity with correct details', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+    it('should call RPC with correct parameters', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logWithdrew({
         participantId: 'p-1',
@@ -243,12 +234,12 @@ describe('participantActivityService', () => {
         paymentStatus: 'paid',
       });
 
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: 'p-1',
-        event_id: 'e-1',
-        activity_type: 'withdrew',
-        participant_name: 'John Doe',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: 'p-1',
+        p_event_id: 'e-1',
+        p_activity_type: 'withdrew',
+        p_participant_name: 'John Doe',
+        p_details: {
           slot_number: 3,
           payment_status: 'paid',
         },
@@ -257,11 +248,8 @@ describe('participantActivityService', () => {
   });
 
   describe('logPaymentUpdated', () => {
-    it('should insert payment_updated activity with from/to status', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+    it('should call RPC with correct parameters', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logPaymentUpdated({
         participantId: 'p-1',
@@ -271,12 +259,12 @@ describe('participantActivityService', () => {
         toStatus: 'paid',
       });
 
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: 'p-1',
-        event_id: 'e-1',
-        activity_type: 'payment_updated',
-        participant_name: 'John Doe',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: 'p-1',
+        p_event_id: 'e-1',
+        p_activity_type: 'payment_updated',
+        p_participant_name: 'John Doe',
+        p_details: {
           from: 'pending',
           to: 'paid',
         },
@@ -285,11 +273,8 @@ describe('participantActivityService', () => {
   });
 
   describe('logInfoUpdated', () => {
-    it('should insert info_updated activity with all changed fields', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+    it('should call RPC with all changed fields', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logInfoUpdated({
         participantId: 'p-1',
@@ -303,12 +288,12 @@ describe('participantActivityService', () => {
         },
       });
 
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: 'p-1',
-        event_id: 'e-1',
-        activity_type: 'info_updated',
-        participant_name: 'John Doe',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: 'p-1',
+        p_event_id: 'e-1',
+        p_activity_type: 'info_updated',
+        p_participant_name: 'John Doe',
+        p_details: {
           name: { from: 'John', to: 'John Doe' },
           email: { from: 'old@test.com', to: 'new@test.com' },
           phone: { from: null, to: '555-1234' },
@@ -318,10 +303,7 @@ describe('participantActivityService', () => {
     });
 
     it('should only include changed fields in details', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logInfoUpdated({
         participantId: 'p-1',
@@ -332,22 +314,19 @@ describe('participantActivityService', () => {
         },
       });
 
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: 'p-1',
-        event_id: 'e-1',
-        activity_type: 'info_updated',
-        participant_name: 'John Doe',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: 'p-1',
+        p_event_id: 'e-1',
+        p_activity_type: 'info_updated',
+        p_participant_name: 'John Doe',
+        p_details: {
           name: { from: 'John', to: 'John Doe' },
         },
       });
     });
 
-    it('should not insert when no changes provided', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+    it('should not call RPC when no changes provided', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logInfoUpdated({
         participantId: 'p-1',
@@ -356,17 +335,13 @@ describe('participantActivityService', () => {
         changes: {},
       });
 
-      expect(mockSupabase.from).not.toHaveBeenCalled();
-      expect(mockQueryChain.insert).not.toHaveBeenCalled();
+      expect(mockSupabase.rpc).not.toHaveBeenCalled();
     });
   });
 
   describe('logLabelAdded', () => {
-    it('should insert label_added activity with label details', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+    it('should call RPC with label details', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logLabelAdded({
         participantId: 'p-1',
@@ -376,12 +351,12 @@ describe('participantActivityService', () => {
         labelName: 'VIP',
       });
 
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: 'p-1',
-        event_id: 'e-1',
-        activity_type: 'label_added',
-        participant_name: 'John Doe',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: 'p-1',
+        p_event_id: 'e-1',
+        p_activity_type: 'label_added',
+        p_participant_name: 'John Doe',
+        p_details: {
           label_id: 'label-1',
           label_name: 'VIP',
         },
@@ -390,11 +365,8 @@ describe('participantActivityService', () => {
   });
 
   describe('logLabelRemoved', () => {
-    it('should insert label_removed activity with label details', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+    it('should call RPC with label details', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       await participantActivityService.logLabelRemoved({
         participantId: 'p-1',
@@ -404,12 +376,12 @@ describe('participantActivityService', () => {
         labelName: 'VIP',
       });
 
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: 'p-1',
-        event_id: 'e-1',
-        activity_type: 'label_removed',
-        participant_name: 'John Doe',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: 'p-1',
+        p_event_id: 'e-1',
+        p_activity_type: 'label_removed',
+        p_participant_name: 'John Doe',
+        p_details: {
           label_id: 'label-1',
           label_name: 'VIP',
         },
@@ -419,10 +391,7 @@ describe('participantActivityService', () => {
 
   describe('activity logging with null participantId', () => {
     it('should handle null participantId for deleted participants', async () => {
-      const mockQueryChain = {
-        insert: vi.fn().mockResolvedValue({ error: null }),
-      };
-      mockSupabase.from.mockReturnValue(mockQueryChain as any);
+      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
 
       // This simulates logging activity for a participant that was deleted
       // The participantId can be null per the type definition
@@ -434,12 +403,12 @@ describe('participantActivityService', () => {
         paymentStatus: 'pending',
       });
 
-      expect(mockQueryChain.insert).toHaveBeenCalledWith({
-        participant_id: null,
-        event_id: 'e-1',
-        activity_type: 'withdrew',
-        participant_name: 'Deleted User',
-        details: {
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
+        p_participant_id: null,
+        p_event_id: 'e-1',
+        p_activity_type: 'withdrew',
+        p_participant_name: 'Deleted User',
+        p_details: {
           slot_number: 5,
           payment_status: 'pending',
         },
