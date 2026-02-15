@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface EventActivityTimelineProps {
   eventId: string;
+  refreshKey?: number;
 }
 
 const activityIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -26,13 +27,13 @@ const activityColors: Record<string, string> = {
   label_removed: 'text-orange-600 bg-orange-100',
 };
 
-export function EventActivityTimeline({ eventId }: EventActivityTimelineProps) {
+export function EventActivityTimeline({ eventId, refreshKey }: EventActivityTimelineProps) {
   const [activities, setActivities] = useState<ParticipantActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadActivities();
-  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [eventId, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadActivities = async () => {
     try {
