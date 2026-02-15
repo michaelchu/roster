@@ -294,7 +294,28 @@ export function EventDetailPage() {
         `Payment marked as ${newStatus === 'paid' ? 'paid' : 'pending'} for ${participant.name}`
       );
       setSelectedParticipant(null); // Close the sheet
-      loadEventData();
+
+      // Update participant in place to preserve list order (avoid full refetch)
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === participant.id
+            ? {
+                ...p,
+                payment_status: newStatus,
+                payment_marked_at: newStatus !== 'pending' ? new Date().toISOString() : null,
+              }
+            : p
+        )
+      );
+
+      // Update payment summary counts locally
+      const oldStatus = participant.payment_status as 'pending' | 'paid' | 'waived';
+      setPaymentSummary((prev) => ({
+        ...prev,
+        [oldStatus]: prev[oldStatus] - 1,
+        [newStatus]: prev[newStatus] + 1,
+      }));
+
       setActivityRefreshKey((k) => k + 1);
     } catch (error) {
       errorHandler.handle(error, {
