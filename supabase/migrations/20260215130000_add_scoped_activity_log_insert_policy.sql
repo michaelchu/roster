@@ -7,7 +7,8 @@
 -- This policy allows event organizers and participants to insert activity log
 -- entries for events they're involved with:
 --   1. Event organizers (for payment updates, label changes, etc.)
---   2. Participants who claimed a spot (for join/withdraw logging)
+--   2. Self-registered participants (user_id match, for join/withdraw logging)
+--   3. Participants who claimed a spot (claimed_by_user_id match)
 --
 -- The SECURITY DEFINER RPC is kept for its server-side validation, but we
 -- don't rely on it bypassing RLS since that behavior is inconsistent across
@@ -34,7 +35,15 @@ CREATE POLICY "Event organizers and participants can insert activity logs"
         AND events.organizer_id = auth.uid()
       )
       OR
-      -- User claimed this specific participant record
+      -- User is the self-registered participant (user_id set during self-registration)
+      EXISTS (
+        SELECT 1 FROM participants
+        WHERE participants.id = participant_activity_log.participant_id
+        AND participants.user_id = auth.uid()
+      )
+      OR
+      -- User claimed this specific participant record (claimed_by_user_id set when
+      -- registering on behalf of someone else)
       EXISTS (
         SELECT 1 FROM participants
         WHERE participants.id = participant_activity_log.participant_id

@@ -100,6 +100,7 @@ export function EventDetailPage() {
     pending: 0,
     waived: 0,
   });
+  const [activityRefreshKey, setActivityRefreshKey] = useState(0);
 
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
@@ -261,6 +262,7 @@ export function EventDetailPage() {
         errorHandler.success(`Label "${label.name}" added to ${participant.name}`);
       }
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (error) {
       errorHandler.handle(error, {
         userId: user?.id,
@@ -286,6 +288,7 @@ export function EventDetailPage() {
       );
       setSelectedParticipant(null); // Close the sheet
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (error) {
       errorHandler.handle(error, {
         userId: user?.id,
@@ -375,6 +378,7 @@ export function EventDetailPage() {
       });
 
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (err) {
       const error = err as Error;
       errorHandler.handle(error, {
@@ -461,6 +465,7 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (err) {
       const error = err as Error;
       const errorMessage = error.message || '';
@@ -505,6 +510,7 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (err) {
       errorHandler.handle(err, { userId: user?.id, action: 'withdraw from event' });
     } finally {
@@ -833,7 +839,7 @@ export function EventDetailPage() {
 
           {isOrganizer && (
             <TabsContent value="activity" className="mt-0">
-              <EventActivityTimeline eventId={eventId!} />
+              <EventActivityTimeline eventId={eventId!} refreshKey={activityRefreshKey} />
             </TabsContent>
           )}
         </Tabs>
@@ -1003,6 +1009,7 @@ export function EventDetailPage() {
                   await participantService.deleteParticipant(withdrawingParticipant.id);
                   setWithdrawingParticipant(null);
                   loadEventData();
+                  setActivityRefreshKey((k) => k + 1);
                 } catch (err) {
                   errorHandler.handle(err, {
                     userId: user?.id,
