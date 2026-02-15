@@ -129,7 +129,7 @@ export function ParticipantListItem({
               )}
             {isOrganizer &&
               !isOrganizerItem &&
-              (isPaid ? participant.payment_status === 'pending' : true) && (
+              participant.payment_status === 'pending' && (
                 <div className="flex gap-2">
                   {isPaid && (
                     <Button
