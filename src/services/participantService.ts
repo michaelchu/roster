@@ -395,17 +395,15 @@ export const participantService = {
     const participant = await this.getParticipantById(participantId);
     const eventInfo = await getEventInfo(participant.event_id);
 
-    // Log withdrawal activity BEFORE deleting
-    fireAndForget(
-      participantActivityService.logWithdrew({
-        participantId: participant.id,
-        eventId: participant.event_id,
-        participantName: participant.name || 'Unknown',
-        slotNumber: participant.slot_number,
-        paymentStatus: participant.payment_status,
-      }),
-      'log withdrew activity'
-    );
+    // Log withdrawal activity BEFORE deleting — must be awaited so the participant
+    // row still exists when the activity log insert references it via FK.
+    await participantActivityService.logWithdrew({
+      participantId: participant.id,
+      eventId: participant.event_id,
+      participantName: participant.name || 'Unknown',
+      slotNumber: participant.slot_number,
+      paymentStatus: participant.payment_status,
+    });
 
     const { data, error } = await supabase.from('participants').delete().eq('id', participantId);
 
