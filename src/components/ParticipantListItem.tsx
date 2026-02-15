@@ -13,6 +13,7 @@ type Participant = ServiceParticipant & {
 interface ParticipantListItemProps {
   participant: Participant;
   displayName: string;
+  displaySlotNumber?: number;
   isOrganizer: boolean;
   isOrganizerItem: boolean;
   isOwnClaimedSpot: boolean;
@@ -30,6 +31,7 @@ interface ParticipantListItemProps {
 export function ParticipantListItem({
   participant,
   displayName,
+  displaySlotNumber,
   isOrganizer,
   isOrganizerItem,
   isOwnClaimedSpot,
@@ -64,7 +66,7 @@ export function ParticipantListItem({
     >
       <div className="flex items-center gap-3">
         <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
-          {participant.slot_number}.
+          {displaySlotNumber ?? participant.slot_number}.
         </div>
         <UserAvatar name={displayName} avatarUrl={participant.avatar_url} size="sm" />
         <div className="flex-1 min-w-0 flex justify-between items-center gap-2">

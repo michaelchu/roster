@@ -770,6 +770,7 @@ export function EventDetailPage() {
                 const slots = [];
 
                 // Add existing participants to slots (already ordered by slot_number)
+                // Use sequential index for display to avoid gaps from database slot_number issues
                 for (let i = 0; i < Math.min(filteredParticipants.length, maxSlots); i++) {
                   const participant = filteredParticipants[i];
                   slots.push(
@@ -777,6 +778,7 @@ export function EventDetailPage() {
                       key={participant.id}
                       participant={participant}
                       displayName={getDisplayName(participant)}
+                      displaySlotNumber={i + 1}
                       isOrganizer={isOrganizer}
                       isOrganizerItem={participant.user_id === event.organizer_id}
                       isOwnClaimedSpot={isClaimedSpot(participant)}
@@ -794,17 +796,10 @@ export function EventDetailPage() {
                   event.max_participants &&
                   filteredParticipants.length < event.max_participants
                 ) {
-                  const maxUsedSlot =
-                    filteredParticipants.length > 0
-                      ? Math.max(...filteredParticipants.map((p) => p.slot_number))
-                      : 0;
+                  const firstEmptySlot = filteredParticipants.length + 1;
 
-                  for (
-                    let slotNum = maxUsedSlot + 1;
-                    slotNum <= event.max_participants;
-                    slotNum++
-                  ) {
-                    const isFirstEmptySlot = slotNum === maxUsedSlot + 1;
+                  for (let slotNum = firstEmptySlot; slotNum <= event.max_participants; slotNum++) {
+                    const isFirstEmptySlot = slotNum === firstEmptySlot;
                     const canClaimSpot = !!(
                       user &&
                       userRegistration &&
