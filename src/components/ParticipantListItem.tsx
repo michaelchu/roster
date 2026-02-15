@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Spinner } from '@/components/ui/spinner';
 import { UserAvatar } from '@/components/UserAvatar';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { DollarSign, Trash2, UserX, UserPlus } from 'lucide-react';
@@ -20,7 +22,7 @@ interface ParticipantListItemProps {
   claimNumber: string | null;
   showRegistrationForm: boolean;
   onSelect: (participant: Participant) => void;
-  onTogglePayment: (participant: Participant) => void;
+  onTogglePayment: (participant: Participant) => void | Promise<void>;
   onWithdraw: (participant: Participant) => void;
 }
 
@@ -41,6 +43,18 @@ export function ParticipantListItem({
   onTogglePayment,
   onWithdraw,
 }: ParticipantListItemProps) {
+  const [isTogglingPayment, setIsTogglingPayment] = useState(false);
+
+  const handleTogglePayment = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsTogglingPayment(true);
+    try {
+      await onTogglePayment(participant);
+    } finally {
+      setIsTogglingPayment(false);
+    }
+  };
+
   return (
     <div
       className={`px-3 py-2 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
@@ -90,13 +104,12 @@ export function ParticipantListItem({
           {/* Right column: badges and action buttons */}
           <div className="flex flex-col gap-2 flex-shrink-0 items-end">
             {isOrganizer && participant.payment_status !== 'pending' && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTogglePayment(participant);
-                }}
-              >
-                <PaymentStatusBadge status={participant.payment_status} size="sm" />
+              <button onClick={handleTogglePayment} disabled={isTogglingPayment}>
+                {isTogglingPayment ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                )}
               </button>
             )}
             {isOrganizer && participant.payment_status === 'pending' && (
@@ -104,14 +117,16 @@ export function ParticipantListItem({
                 <Button
                   size="icon"
                   variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTogglePayment(participant);
-                  }}
+                  onClick={handleTogglePayment}
+                  disabled={isTogglingPayment}
                   className="h-8 w-8"
                   title="Mark Paid"
                 >
-                  <DollarSign className="h-4 w-4" />
+                  {isTogglingPayment ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    <DollarSign className="h-4 w-4" />
+                  )}
                 </Button>
                 {!isOrganizerItem && (
                   <Button
