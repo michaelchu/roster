@@ -163,7 +163,7 @@ export function NotificationItem({
   };
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden max-w-[100vw]">
       {/* Full-width delete background (shown during delete animation) */}
       <div
         className={cn(
