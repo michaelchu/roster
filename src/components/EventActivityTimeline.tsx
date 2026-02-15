@@ -123,10 +123,16 @@ export function EventActivityTimeline({ eventId, refreshKey }: EventActivityTime
             <div className={`flex-1 min-w-0 ${isLast ? '' : 'pb-4'}`}>
               <p className="text-xs">
                 <span className="font-medium">{formatActivityMessage(activity)}</span>
-                <span className="text-muted-foreground">
-                  {' '}
-                  · {formatTimeAgo(activity.created_at)}
-                </span>
+                {activity.activity_type === 'payment_updated' ? (
+                  <span className="block text-muted-foreground">
+                    {formatTimeAgo(activity.created_at)}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">
+                    {' '}
+                    · {formatTimeAgo(activity.created_at)}
+                  </span>
+                )}
               </p>
             </div>
           </div>
