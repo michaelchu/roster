@@ -53,7 +53,7 @@ export function ParticipantListItem({
         <div className="flex-1 min-w-0 flex justify-between items-center gap-2">
           {/* Left column: name, badges */}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
               {showRegistrationForm ? (
                 <button
                   onClick={() => onSelect(participant)}
@@ -64,6 +64,13 @@ export function ParticipantListItem({
               ) : (
                 <span className="text-sm font-medium text-foreground truncate min-w-0 max-w-full">
                   {displayName}
+                </span>
+              )}
+              {isOrganizerItem && (
+                <span className="flex-shrink-0 text-[10px] leading-none px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200/50 bg-clip-padding">
+                  <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-medium">
+                    Organizer
+                  </span>
                 </span>
               )}
               {isOwnClaimedSpot && claimNumber && (
@@ -82,17 +89,7 @@ export function ParticipantListItem({
           </div>
           {/* Right column: badges and action buttons */}
           <div className="flex flex-col gap-2 flex-shrink-0 items-end">
-            {isOrganizerItem && (
-              <Badge
-                variant="outline"
-                className="bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200/50 text-xs"
-              >
-                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-medium">
-                  Organizer
-                </span>
-              </Badge>
-            )}
-            {isOrganizer && participant.payment_status !== 'pending' && !isOrganizerItem && (
+            {isOrganizer && participant.payment_status !== 'pending' && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -102,7 +99,7 @@ export function ParticipantListItem({
                 <PaymentStatusBadge status={participant.payment_status} size="sm" />
               </button>
             )}
-            {isOrganizer && participant.payment_status === 'pending' && !isOrganizerItem && (
+            {isOrganizer && participant.payment_status === 'pending' && (
               <div className="flex gap-2">
                 <Button
                   size="icon"
@@ -116,18 +113,20 @@ export function ParticipantListItem({
                 >
                   <DollarSign className="h-4 w-4" />
                 </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onWithdraw(participant);
-                  }}
-                  className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
-                  title="Remove"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {!isOrganizerItem && (
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onWithdraw(participant);
+                    }}
+                    className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
+                    title="Remove"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             )}
             {isOwnClaimedSpot && (
