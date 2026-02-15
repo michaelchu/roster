@@ -217,9 +217,9 @@ export function NotificationItem({
             </p>
             {isUnread && <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-1.5" />}
           </div>
-          <p className="text-xs text-muted-foreground truncate">{notification.body}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {formatTimeAgo(notification.created_at)}
+          <p className="text-xs text-muted-foreground truncate">
+            {notification.body}
+            <span> · {formatTimeAgo(notification.created_at)}</span>
           </p>
         </div>
       </div>
