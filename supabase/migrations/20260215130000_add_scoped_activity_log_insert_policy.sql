@@ -1,17 +1,17 @@
--- Replace the overly permissive INSERT policy on participant_activity_log
--- with a scoped policy that only allows event organizers and participants.
+-- Add a scoped INSERT policy for participant_activity_log.
 --
--- The previous policy (WITH CHECK (true)) allowed any authenticated user to
--- insert activity log entries for any event. This scoped policy restricts
--- inserts to users who are actually involved with the event:
+-- The SECURITY DEFINER RPC function (log_participant_activity) should bypass RLS,
+-- but in some Supabase environments the function owner's role does not bypass RLS
+-- as expected, causing error 42501 when participants sign up or withdraw.
+--
+-- This policy allows event organizers and participants to insert activity log
+-- entries for events they're involved with:
 --   1. Event organizers (for payment updates, label changes, etc.)
 --   2. Participants who claimed a spot (for join/withdraw logging)
 --
--- The SECURITY DEFINER RPC (log_participant_activity) is kept for its
--- server-side validation, but we don't rely on it bypassing RLS since
--- that behavior is inconsistent across Supabase environments.
-
-DROP POLICY "Authenticated users can insert activity logs" ON participant_activity_log;
+-- The SECURITY DEFINER RPC is kept for its server-side validation, but we
+-- don't rely on it bypassing RLS since that behavior is inconsistent across
+-- Supabase environments.
 
 CREATE POLICY "Event organizers and participants can insert activity logs"
   ON participant_activity_log FOR INSERT
