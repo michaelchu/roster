@@ -105,19 +105,16 @@ export function ParticipantListItem({
           </div>
           {/* Right column: badges and action buttons */}
           <div className="flex flex-col gap-2 flex-shrink-0 items-end">
-            {isPaid &&
-              isOrganizer &&
-              participant.payment_status !== 'pending' &&
-              !isOrganizerItem && (
-                <button onClick={handleTogglePayment} disabled={isTogglingPayment}>
-                  {isTogglingPayment ? (
-                    <Spinner className="h-4 w-4" />
-                  ) : (
-                    <PaymentStatusBadge status={participant.payment_status} size="sm" />
-                  )}
-                </button>
-              )}
-            {isOrganizer && !isOrganizerItem && participant.payment_status === 'pending' && (
+            {isPaid && isOrganizer && participant.payment_status !== 'pending' && (
+              <button onClick={handleTogglePayment} disabled={isTogglingPayment}>
+                {isTogglingPayment ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                )}
+              </button>
+            )}
+            {isOrganizer && participant.payment_status === 'pending' && (
               <div className="flex gap-2">
                 {isPaid && (
                   <Button
@@ -135,18 +132,20 @@ export function ParticipantListItem({
                     )}
                   </Button>
                 )}
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onWithdraw(participant);
-                  }}
-                  className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
-                  title="Remove"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {!isOrganizerItem && (
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onWithdraw(participant);
+                    }}
+                    className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
+                    title="Remove"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             )}
             {isOwnClaimedSpot && (
