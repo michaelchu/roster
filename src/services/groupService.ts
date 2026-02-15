@@ -10,10 +10,7 @@ export interface Group extends Tables<'groups'> {
 }
 
 export interface GroupParticipant
-  extends Omit<
-    Tables<'participants'>,
-    'event_id' | 'payment_status' | 'slot_number' | 'checked_in_at'
-  > {
+  extends Omit<Tables<'participants'>, 'event_id' | 'payment_status' | 'checked_in_at'> {
   event_id: string | null;
   payment_status: string | null;
   checked_in_at: string | null;

@@ -12,8 +12,7 @@ import { notificationService } from './notificationService';
 import { participantActivityService } from './participantActivityService';
 
 /** Extended Participant type with labels and computed properties */
-export interface Participant
-  extends Omit<Tables<'participants'>, 'responses' | 'created_at' | 'slot_number'> {
+export interface Participant extends Omit<Tables<'participants'>, 'responses' | 'created_at'> {
   created_at: string;
   labels?: Label[];
   responses: ResponseRecord;
@@ -37,10 +36,8 @@ export type ParticipantLabel = Tables<'participant_labels'>;
  * @returns Typed Participant object with defaults applied
  */
 function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Participant {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { slot_number: _slot, ...rest } = dbParticipant;
   return {
-    ...rest,
+    ...dbParticipant,
     created_at: dbParticipant.created_at || new Date().toISOString(),
     responses: (dbParticipant.responses as ResponseRecord) || {},
     claimed_by_user_id: dbParticipant.claimed_by_user_id || null,
