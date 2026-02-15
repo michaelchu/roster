@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +59,7 @@ export function NewEventPage() {
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { isSubmitting },
   } = useForm<NewEventFormData>({
     resolver: zodResolver(newEventFormSchema),
@@ -515,10 +516,12 @@ export function NewEventPage() {
         <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
 
         <div className="flex items-center space-x-2">
-          <Checkbox
-            id="is_paid"
-            checked={formData.is_paid}
-            onCheckedChange={(checked) => setValue('is_paid', checked === true)}
+          <Controller
+            name="is_paid"
+            control={control}
+            render={({ field }) => (
+              <Checkbox id="is_paid" checked={field.value} onCheckedChange={field.onChange} />
+            )}
           />
           <label htmlFor="is_paid" className="text-sm cursor-pointer">
             Paid event

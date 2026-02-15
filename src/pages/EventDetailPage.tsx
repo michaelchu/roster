@@ -185,7 +185,12 @@ export function EventDetailPage() {
 
         // Load payment summary if user is organizer and event is paid (or archived)
         const archived = isEventCompleted(eventData.datetime, eventData.end_datetime);
-        if (user && eventData.organizer_id === user.id && (eventData.is_paid || archived)) {
+        if (
+          user &&
+          eventData.organizer_id === user.id &&
+          (eventData.is_paid || archived) &&
+          participantsData.length > 0
+        ) {
           const summary = await participantService.getPaymentSummary(eventId);
           setPaymentSummary(summary);
         }
