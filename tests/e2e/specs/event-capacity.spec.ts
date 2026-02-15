@@ -28,7 +28,6 @@ test.describe('Event Capacity Enforcement', () => {
         user_id: organizerId!,
         name: 'Organizer',
         email: 'organizer@test.com',
-        slot_number: 1,
       });
 
       // Add second participant to fill the event
@@ -37,7 +36,6 @@ test.describe('Event Capacity Enforcement', () => {
         user_id: null,
         name: 'Second Participant',
         email: 'second@test.com',
-        slot_number: 2,
       });
 
       await clearAuth(page);
@@ -87,7 +85,6 @@ test.describe('Event Capacity Enforcement', () => {
         user_id: userId!,
         name: 'Registered User',
         email: 'registered@test.com',
-        slot_number: 1,
       });
 
       // Add second participant to fill the event
@@ -96,7 +93,6 @@ test.describe('Event Capacity Enforcement', () => {
         user_id: null,
         name: 'Second Participant',
         email: 'second@test.com',
-        slot_number: 2,
       });
 
       // Navigate to the full event
@@ -133,7 +129,6 @@ test.describe('Event Capacity Enforcement', () => {
           user_id: null,
           name: `Participant ${i}`,
           email: `participant${i}@test.com`,
-          slot_number: i,
         });
       }
 
@@ -175,7 +170,6 @@ test.describe('Event Capacity Enforcement', () => {
         user_id: null,
         name: 'First Participant',
         email: 'first@test.com',
-        slot_number: 1,
       });
 
       // Try to add another participant directly to database - should fail
@@ -289,7 +283,6 @@ test.describe('Event Capacity Enforcement', () => {
           user_id: null,
           name: 'First Participant',
           email: 'first@test.com',
-          slot_number: 1,
         })
         .select()
         .single();
@@ -299,7 +292,6 @@ test.describe('Event Capacity Enforcement', () => {
         user_id: null,
         name: 'Second Participant',
         email: 'second@test.com',
-        slot_number: 2,
       });
 
       // Remove first participant
