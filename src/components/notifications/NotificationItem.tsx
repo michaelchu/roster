@@ -210,9 +210,9 @@ export function NotificationItem({
         <div className={cn('flex-shrink-0 mt-0.5', iconColor)}>
           <Icon className="h-5 w-5" />
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-start justify-between gap-2">
-            <p className={cn('text-xs font-medium truncate', isUnread && 'font-semibold')}>
+            <p className={cn('text-xs font-medium truncate min-w-0', isUnread && 'font-semibold')}>
               {notification.title}
             </p>
             {isUnread && <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-1.5" />}
