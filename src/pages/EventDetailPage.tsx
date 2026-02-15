@@ -694,16 +694,18 @@ export function EventDetailPage() {
         {/* Participants List */}
         <Tabs defaultValue="participants" className="bg-card rounded-lg border overflow-hidden">
           <div className="px-3 py-2 border-b flex items-center justify-between">
-            <TabsList className="h-8 p-0.5">
-              <TabsTrigger value="participants" className="h-7 px-3 text-xs">
-                Participants
-              </TabsTrigger>
-              {isOrganizer && (
+            {isOrganizer ? (
+              <TabsList className="h-8 p-0.5">
+                <TabsTrigger value="participants" className="h-7 px-3 text-xs">
+                  Participants
+                </TabsTrigger>
                 <TabsTrigger value="activity" className="h-7 px-3 text-xs">
                   Activity
                 </TabsTrigger>
-              )}
-            </TabsList>
+              </TabsList>
+            ) : (
+              <span className="text-xs font-medium">Participants</span>
+            )}
             <Button
               size="sm"
               variant="ghost"
