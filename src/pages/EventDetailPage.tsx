@@ -699,7 +699,7 @@ export function EventDetailPage() {
 
         {/* Participants List */}
         <Tabs defaultValue="participants" className="bg-card rounded-lg border overflow-hidden">
-          <div className="px-3 py-2 border-b flex items-center justify-between">
+          <div className="p-3 border-b bg-muted flex items-center justify-between">
             {isOrganizer ? (
               <TabsList className="h-8 p-0.5">
                 <TabsTrigger value="participants" className="h-7 px-3 text-xs">
@@ -710,7 +710,7 @@ export function EventDetailPage() {
                 </TabsTrigger>
               </TabsList>
             ) : (
-              <span className="text-xs font-medium">Participants</span>
+              <span className="text-sm font-medium">Participants</span>
             )}
             <Button
               size="sm"
