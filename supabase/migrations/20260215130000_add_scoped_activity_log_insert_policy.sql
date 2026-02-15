@@ -17,17 +17,28 @@ CREATE POLICY "Event organizers and participants can insert activity logs"
   ON participant_activity_log FOR INSERT
   TO authenticated
   WITH CHECK (
-    -- User is the event organizer
-    EXISTS (
-      SELECT 1 FROM events
-      WHERE events.id = participant_activity_log.event_id
-      AND events.organizer_id = auth.uid()
+    -- participant_id must belong to the event (or be null for deleted participants)
+    (
+      participant_activity_log.participant_id IS NULL
+      OR EXISTS (
+        SELECT 1 FROM participants
+        WHERE participants.id = participant_activity_log.participant_id
+        AND participants.event_id = participant_activity_log.event_id
+      )
     )
-    OR
-    -- User is a participant in the event (claimed a spot)
-    EXISTS (
-      SELECT 1 FROM participants
-      WHERE participants.event_id = participant_activity_log.event_id
-      AND participants.claimed_by_user_id = auth.uid()
+    AND (
+      -- User is the event organizer
+      EXISTS (
+        SELECT 1 FROM events
+        WHERE events.id = participant_activity_log.event_id
+        AND events.organizer_id = auth.uid()
+      )
+      OR
+      -- User is a participant in the event (claimed a spot)
+      EXISTS (
+        SELECT 1 FROM participants
+        WHERE participants.event_id = participant_activity_log.event_id
+        AND participants.claimed_by_user_id = auth.uid()
+      )
     )
   );
