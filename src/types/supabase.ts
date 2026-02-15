@@ -542,7 +542,6 @@ export type Database = {
           payment_status: string;
           phone: string | null;
           responses: Json;
-          slot_number: number;
           user_id: string | null;
         };
         Insert: {
@@ -558,7 +557,6 @@ export type Database = {
           payment_status?: string;
           phone?: string | null;
           responses?: Json;
-          slot_number: number;
           user_id?: string | null;
         };
         Update: {
@@ -574,7 +572,6 @@ export type Database = {
           payment_status?: string;
           phone?: string | null;
           responses?: Json;
-          slot_number?: number;
           user_id?: string | null;
         };
         Relationships: [
@@ -693,10 +690,6 @@ export type Database = {
           organizer_id: string;
           participant_count: number;
         }[];
-      };
-      get_next_slot_number: {
-        Args: { p_event_id: string; p_user_id?: string };
-        Returns: number;
       };
       get_or_create_user: {
         Args: { user_email: string; user_name: string };
