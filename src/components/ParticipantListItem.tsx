@@ -17,6 +17,7 @@ interface ParticipantListItemProps {
   isOrganizerItem: boolean;
   isOwnClaimedSpot: boolean;
   claimNumber: string | null;
+  isPaid: boolean;
   showRegistrationForm: boolean;
   onSelect: (participant: Participant) => void;
   onTogglePayment: (participant: Participant) => void;
@@ -34,6 +35,7 @@ export function ParticipantListItem({
   isOrganizerItem,
   isOwnClaimedSpot,
   claimNumber,
+  isPaid,
   showRegistrationForm,
   onSelect,
   onTogglePayment,
@@ -112,44 +114,51 @@ export function ParticipantListItem({
                 </span>
               </Badge>
             )}
-            {isOrganizer && participant.payment_status !== 'pending' && !isOrganizerItem && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTogglePayment(participant);
-                }}
-              >
-                <PaymentStatusBadge status={participant.payment_status} size="sm" />
-              </button>
-            )}
-            {isOrganizer && participant.payment_status === 'pending' && !isOrganizerItem && (
-              <div className="flex gap-2">
-                <Button
-                  size="icon"
-                  variant="outline"
+            {isPaid &&
+              isOrganizer &&
+              participant.payment_status !== 'pending' &&
+              !isOrganizerItem && (
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onTogglePayment(participant);
                   }}
-                  className="h-8 w-8"
-                  title="Mark Paid"
                 >
-                  <DollarSign className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onWithdraw(participant);
-                  }}
-                  className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
-                  title="Remove"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+                  <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                </button>
+              )}
+            {isOrganizer &&
+              !isOrganizerItem &&
+              (isPaid ? participant.payment_status === 'pending' : true) && (
+                <div className="flex gap-2">
+                  {isPaid && (
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTogglePayment(participant);
+                      }}
+                      className="h-8 w-8"
+                      title="Mark Paid"
+                    >
+                      <DollarSign className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onWithdraw(participant);
+                    }}
+                    className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
+                    title="Remove"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             {isOwnClaimedSpot && (
               <Button
                 size="sm"

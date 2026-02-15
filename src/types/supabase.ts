@@ -37,6 +37,7 @@ export type Database = {
           end_datetime: string | null;
           group_id: string | null;
           id: string;
+          is_paid: boolean;
           is_private: boolean;
           location: string | null;
           max_participants: number | null;
@@ -52,6 +53,7 @@ export type Database = {
           end_datetime?: string | null;
           group_id?: string | null;
           id?: string;
+          is_paid?: boolean;
           is_private?: boolean;
           location?: string | null;
           max_participants?: number | null;
@@ -67,6 +69,7 @@ export type Database = {
           end_datetime?: string | null;
           group_id?: string | null;
           id?: string;
+          is_paid?: boolean;
           is_private?: boolean;
           location?: string | null;
           max_participants?: number | null;

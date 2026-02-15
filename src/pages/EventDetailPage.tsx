@@ -46,6 +46,7 @@ interface EventData {
   location: string | null;
   max_participants: number | null;
   organizer_id: string;
+  is_paid: boolean;
   is_private: boolean | null;
   custom_fields: CustomField[];
   group_id: string | null;
@@ -103,6 +104,10 @@ export function EventDetailPage() {
 
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
+
+  // Archived (completed) events are always treated as paid for payment tracking
+  const isArchived = event ? isEventCompleted(event.datetime, event.end_datetime) : false;
+  const effectiveIsPaid = isArchived || (event?.is_paid ?? true);
 
   // Check if event is at full capacity
   const isEventFull =
@@ -178,8 +183,9 @@ export function EventDetailPage() {
 
         setUserRegistration(currentUserRegistration || null);
 
-        // Load payment summary if user is organizer
-        if (user && eventData.organizer_id === user.id) {
+        // Load payment summary if user is organizer and event is paid (or archived)
+        const archived = isEventCompleted(eventData.datetime, eventData.end_datetime);
+        if (user && eventData.organizer_id === user.id && (eventData.is_paid || archived)) {
           const summary = await participantService.getPaymentSummary(eventId);
           setPaymentSummary(summary);
         }
@@ -655,8 +661,8 @@ export function EventDetailPage() {
           </div>
         </div>
 
-        {/* Payment Summary (Organizer Only) */}
-        {isOrganizer && participants.length > 0 && (
+        {/* Payment Summary (Organizer Only, Paid Events Only) */}
+        {isOrganizer && participants.length > 0 && effectiveIsPaid && (
           <div className="bg-card rounded-lg border overflow-hidden">
             <div className="px-3 py-2 border-b bg-muted">
               <h3 className="text-sm font-medium">Payment Status</h3>
@@ -773,6 +779,7 @@ export function EventDetailPage() {
                       isOrganizerItem={participant.user_id === event.organizer_id}
                       isOwnClaimedSpot={isClaimedSpot(participant)}
                       claimNumber={getClaimBadgeNumber(participant)}
+                      isPaid={effectiveIsPaid}
                       showRegistrationForm={showRegistrationForm}
                       onSelect={setSelectedParticipant}
                       onTogglePayment={togglePaymentStatus}
@@ -933,6 +940,7 @@ export function EventDetailPage() {
         labels={labels}
         customFields={event?.custom_fields || []}
         isOrganizer={isOrganizer}
+        isPaid={effectiveIsPaid}
         onClose={() => setSelectedParticipant(null)}
         onTogglePayment={togglePaymentStatus}
         onToggleLabel={toggleParticipantLabel}

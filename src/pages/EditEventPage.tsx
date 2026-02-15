@@ -25,6 +25,7 @@ import { toLocalInputValue, fromLocalInputValue } from '@/lib/utils';
 import { CustomFieldsEditor } from '@/components/CustomFieldsEditor';
 import { PrivacyToggle } from '@/components/PrivacyToggle';
 import { TbdDateTimeField } from '@/components/TbdDateTimeField';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { CustomField } from '@/types/app.types';
 
 interface EventData {
@@ -35,6 +36,7 @@ interface EventData {
   end_datetime: string | null;
   location: string | null;
   max_participants: number | null;
+  is_paid: boolean;
   is_private: boolean | null;
   custom_fields: CustomField[];
 }
@@ -64,6 +66,7 @@ export function EditEventPage() {
     datetime: '',
     end_datetime: '',
     location: '',
+    is_paid: true,
     is_private: false,
     datetimeTbd: false,
     endDatetimeTbd: false,
@@ -112,6 +115,7 @@ export function EditEventPage() {
         datetime: data.datetime ? toLocalInputValue(data.datetime) : '',
         end_datetime: data.end_datetime ? toLocalInputValue(data.end_datetime) : '',
         location: data.location || '',
+        is_paid: data.is_paid ?? true,
         is_private: data.is_private ?? false,
         datetimeTbd: !data.datetime,
         endDatetimeTbd: !data.end_datetime,
@@ -200,6 +204,7 @@ export function EditEventPage() {
         end_datetime: formData.end_datetime ? fromLocalInputValue(formData.end_datetime) : null,
         location: formData.location || null,
         max_participants: maxParticipants,
+        is_paid: formData.is_paid,
         is_private: formData.is_private,
         custom_fields: customFields
           .filter((f) => f.label)
@@ -390,6 +395,19 @@ export function EditEventPage() {
         <div className="border-t" />
 
         <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="is_paid"
+            checked={formData.is_paid}
+            onCheckedChange={(checked) =>
+              setFormData((prev) => ({ ...prev, is_paid: checked === true }))
+            }
+          />
+          <label htmlFor="is_paid" className="text-sm cursor-pointer">
+            Paid event
+          </label>
+        </div>
 
         {showEventPrivacy && (
           <PrivacyToggle

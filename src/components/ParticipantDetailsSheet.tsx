@@ -14,6 +14,7 @@ interface ParticipantDetailsSheetProps {
   labels: LabelType[];
   customFields: CustomField[];
   isOrganizer: boolean;
+  isPaid: boolean;
   onClose: () => void;
   onTogglePayment: (participant: Participant) => void;
   onToggleLabel: (participant: Participant, label: LabelType) => void;
@@ -28,6 +29,7 @@ export function ParticipantDetailsSheet({
   labels,
   customFields,
   isOrganizer,
+  isPaid,
   onClose,
   onTogglePayment,
   onToggleLabel,
@@ -50,7 +52,7 @@ export function ParticipantDetailsSheet({
             </div>
           </div>
 
-          {isOrganizer && (
+          {isOrganizer && isPaid && (
             <div className="space-y-1.5">
               <h3 className="text-sm font-medium">Payment Status</h3>
               <div className="flex items-center gap-2">

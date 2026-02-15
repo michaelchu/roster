@@ -30,6 +30,7 @@ function dbEventToEvent(dbEvent: Tables<'events'>): Event {
 
   return {
     ...dbEvent,
+    is_paid: dbEvent.is_paid ?? true,
     is_private: dbEvent.is_private ?? false,
     custom_fields: validatedCustomFields,
   };
@@ -147,6 +148,7 @@ export const eventService = {
       datetime: event.datetime,
       end_datetime: event.end_datetime,
       location: event.location,
+      is_paid: event.is_paid ?? true,
       is_private: event.is_private ?? false,
       custom_fields: event.custom_fields as unknown as Json,
       parent_event_id: event.parent_event_id,
@@ -181,6 +183,7 @@ export const eventService = {
     if (updates.datetime !== undefined) updateData.datetime = updates.datetime;
     if (updates.end_datetime !== undefined) updateData.end_datetime = updates.end_datetime;
     if (updates.location !== undefined) updateData.location = updates.location;
+    if (updates.is_paid !== undefined) updateData.is_paid = updates.is_paid;
     if (updates.is_private !== undefined) updateData.is_private = updates.is_private;
     if (updates.max_participants !== undefined)
       updateData.max_participants = updates.max_participants;
@@ -283,6 +286,7 @@ export const eventService = {
       location: original.location,
       custom_fields: original.custom_fields,
       parent_event_id: original.id,
+      is_paid: original.is_paid,
       is_private: original.is_private,
       max_participants: original.max_participants,
       group_id: original.group_id,
