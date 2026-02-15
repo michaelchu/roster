@@ -101,6 +101,7 @@ export function EventDetailPage() {
     pending: 0,
     waived: 0,
   });
+  const [activityRefreshKey, setActivityRefreshKey] = useState(0);
 
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
@@ -174,7 +175,14 @@ export function EventDetailPage() {
       const participantsData = await participantService.getParticipantsByEventId(eventId);
 
       if (participantsData) {
-        setParticipants(participantsData as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        // Sort organizer first (if participating), then by registration time
+        const sorted = [...participantsData].sort((a, b) => {
+          const aIsOrganizer = a.user_id === eventData.organizer_id ? 1 : 0;
+          const bIsOrganizer = b.user_id === eventData.organizer_id ? 1 : 0;
+          if (aIsOrganizer !== bIsOrganizer) return bIsOrganizer - aIsOrganizer;
+          return 0; // already sorted by created_at from the service
+        });
+        setParticipants(sorted as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
         // Check if current user is already registered
         const currentUserRegistration = participantsData.find(
@@ -272,6 +280,7 @@ export function EventDetailPage() {
         errorHandler.success(`Label "${label.name}" added to ${participant.name}`);
       }
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (error) {
       errorHandler.handle(error, {
         userId: user?.id,
@@ -296,7 +305,29 @@ export function EventDetailPage() {
         `Payment marked as ${newStatus === 'paid' ? 'paid' : 'pending'} for ${participant.name}`
       );
       setSelectedParticipant(null); // Close the sheet
-      loadEventData();
+
+      // Update participant in place to preserve list order (avoid full refetch)
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === participant.id
+            ? {
+                ...p,
+                payment_status: newStatus,
+                payment_marked_at: newStatus !== 'pending' ? new Date().toISOString() : null,
+              }
+            : p
+        )
+      );
+
+      // Update payment summary counts locally
+      const oldStatus = participant.payment_status as 'pending' | 'paid' | 'waived';
+      setPaymentSummary((prev) => ({
+        ...prev,
+        [oldStatus]: prev[oldStatus] - 1,
+        [newStatus]: prev[newStatus] + 1,
+      }));
+
+      setActivityRefreshKey((k) => k + 1);
     } catch (error) {
       errorHandler.handle(error, {
         userId: user?.id,
@@ -309,9 +340,9 @@ export function EventDetailPage() {
     }
   };
 
-  const openSignupDrawer = (slotNumber?: number) => {
+  const openSignupDrawer = (claiming?: boolean) => {
     // Determine if this is for claiming a spot for someone else
-    const isClaiming = slotNumber !== undefined;
+    const isClaiming = claiming === true;
 
     // Require authentication for:
     // 1. Claiming spots for others
@@ -386,6 +417,7 @@ export function EventDetailPage() {
       });
 
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (err) {
       const error = err as Error;
       errorHandler.handle(error, {
@@ -472,6 +504,7 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (err) {
       const error = err as Error;
       const errorMessage = error.message || '';
@@ -516,6 +549,7 @@ export function EventDetailPage() {
 
       // Reload participants
       loadEventData();
+      setActivityRefreshKey((k) => k + 1);
     } catch (err) {
       errorHandler.handle(err, { userId: user?.id, action: 'withdraw from event' });
     } finally {
@@ -704,17 +738,19 @@ export function EventDetailPage() {
 
         {/* Participants List */}
         <Tabs defaultValue="participants" className="bg-card rounded-lg border overflow-hidden">
-          <div className="px-3 py-2 border-b flex items-center justify-between">
-            <TabsList className="h-8 p-0.5">
-              <TabsTrigger value="participants" className="h-7 px-3 text-xs">
-                Participants
-              </TabsTrigger>
-              {isOrganizer && (
+          <div className="p-3 border-b bg-muted flex items-center justify-between">
+            {isOrganizer ? (
+              <TabsList className="h-8 p-0.5">
+                <TabsTrigger value="participants" className="h-7 px-3 text-xs">
+                  Participants
+                </TabsTrigger>
                 <TabsTrigger value="activity" className="h-7 px-3 text-xs">
                   Activity
                 </TabsTrigger>
-              )}
-            </TabsList>
+              </TabsList>
+            ) : (
+              <span className="text-sm font-medium">Participants</span>
+            )}
             <Button
               size="sm"
               variant="ghost"
@@ -772,7 +808,8 @@ export function EventDetailPage() {
                 const maxSlots = event.max_participants || filteredParticipants.length;
                 const slots = [];
 
-                // Add existing participants to slots (already ordered by slot_number)
+                // Display participants ordered by organizer-first, then registration time
+                // Display number is derived from array position (1-indexed)
                 for (let i = 0; i < Math.min(filteredParticipants.length, maxSlots); i++) {
                   const participant = filteredParticipants[i];
                   slots.push(
@@ -780,6 +817,7 @@ export function EventDetailPage() {
                       key={participant.id}
                       participant={participant}
                       displayName={getDisplayName(participant)}
+                      displayNumber={i + 1}
                       isOrganizer={isOrganizer}
                       isOrganizerItem={participant.user_id === event.organizer_id}
                       isOwnClaimedSpot={isClaimedSpot(participant)}
@@ -793,22 +831,16 @@ export function EventDetailPage() {
                   );
                 }
 
-                // Add empty slots if we have max_participants set
+                // Add empty slots if we have max_participants set (only when not filtering)
                 if (
+                  !searchQuery &&
                   event.max_participants &&
-                  filteredParticipants.length < event.max_participants
+                  participants.length < event.max_participants
                 ) {
-                  const maxUsedSlot =
-                    filteredParticipants.length > 0
-                      ? Math.max(...filteredParticipants.map((p) => p.slot_number))
-                      : 0;
+                  const firstEmptySlot = participants.length + 1;
 
-                  for (
-                    let slotNum = maxUsedSlot + 1;
-                    slotNum <= event.max_participants;
-                    slotNum++
-                  ) {
-                    const isFirstEmptySlot = slotNum === maxUsedSlot + 1;
+                  for (let slotNum = firstEmptySlot; slotNum <= event.max_participants; slotNum++) {
+                    const isFirstEmptySlot = slotNum === firstEmptySlot;
                     const canClaimSpot = !!(
                       user &&
                       userRegistration &&
@@ -821,7 +853,7 @@ export function EventDetailPage() {
                         key={`empty-${slotNum}`}
                         slotNumber={slotNum}
                         canClaimSpot={canClaimSpot}
-                        onClaim={openSignupDrawer}
+                        onClaim={() => openSignupDrawer(true)}
                       />
                     );
                   }
@@ -845,7 +877,7 @@ export function EventDetailPage() {
 
           {isOrganizer && (
             <TabsContent value="activity" className="mt-0">
-              <EventActivityTimeline eventId={eventId!} />
+              <EventActivityTimeline eventId={eventId!} refreshKey={activityRefreshKey} />
             </TabsContent>
           )}
         </Tabs>
@@ -1016,6 +1048,7 @@ export function EventDetailPage() {
                   await participantService.deleteParticipant(withdrawingParticipant.id);
                   setWithdrawingParticipant(null);
                   loadEventData();
+                  setActivityRefreshKey((k) => k + 1);
                 } catch (err) {
                   errorHandler.handle(err, {
                     userId: user?.id,

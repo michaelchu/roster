@@ -209,7 +209,7 @@ export function GroupDetailPage() {
 
         {/* Events Section */}
         <div className="bg-card rounded-lg border overflow-hidden">
-          <div className="p-3 border-b">
+          <div className="p-3 border-b bg-muted">
             <h2 className="text-sm font-medium">Group Events</h2>
           </div>
 

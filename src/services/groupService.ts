@@ -10,13 +10,9 @@ export interface Group extends Tables<'groups'> {
 }
 
 export interface GroupParticipant
-  extends Omit<
-    Tables<'participants'>,
-    'event_id' | 'payment_status' | 'slot_number' | 'checked_in_at'
-  > {
+  extends Omit<Tables<'participants'>, 'event_id' | 'payment_status' | 'checked_in_at'> {
   event_id: string | null;
   payment_status: string | null;
-  slot_number: number | null;
   checked_in_at: string | null;
   event: {
     id: string;
@@ -288,7 +284,6 @@ export const groupService = {
       payment_marked_at: null,
       payment_notes: null,
       payment_status: null,
-      slot_number: null,
       checked_in_at: null,
       avatar_url: member.avatar_url || null,
     }));

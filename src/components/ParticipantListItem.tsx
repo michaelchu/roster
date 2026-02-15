@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Spinner } from '@/components/ui/spinner';
 import { UserAvatar } from '@/components/UserAvatar';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { DollarSign, Trash2, UserX, UserPlus } from 'lucide-react';
@@ -13,6 +15,7 @@ type Participant = ServiceParticipant & {
 interface ParticipantListItemProps {
   participant: Participant;
   displayName: string;
+  displayNumber: number;
   isOrganizer: boolean;
   isOrganizerItem: boolean;
   isOwnClaimedSpot: boolean;
@@ -20,7 +23,7 @@ interface ParticipantListItemProps {
   isPaid: boolean;
   showRegistrationForm: boolean;
   onSelect: (participant: Participant) => void;
-  onTogglePayment: (participant: Participant) => void;
+  onTogglePayment: (participant: Participant) => void | Promise<void>;
   onWithdraw: (participant: Participant) => void;
 }
 
@@ -31,6 +34,7 @@ interface ParticipantListItemProps {
 export function ParticipantListItem({
   participant,
   displayName,
+  displayNumber,
   isOrganizer,
   isOrganizerItem,
   isOwnClaimedSpot,
@@ -41,22 +45,15 @@ export function ParticipantListItem({
   onTogglePayment,
   onWithdraw,
 }: ParticipantListItemProps) {
-  const formatSignupTime = (createdAt: string) => {
-    const now = new Date();
-    const signupTime = new Date(createdAt);
-    const diffMs = now.getTime() - signupTime.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const [isTogglingPayment, setIsTogglingPayment] = useState(false);
 
-    if (diffMins < 60) {
-      return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
-    } else {
-      return `on ${signupTime.toLocaleDateString()}`;
+  const handleTogglePayment = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsTogglingPayment(true);
+    try {
+      await onTogglePayment(participant);
+    } finally {
+      setIsTogglingPayment(false);
     }
   };
 
@@ -66,13 +63,13 @@ export function ParticipantListItem({
     >
       <div className="flex items-center gap-3">
         <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
-          {participant.slot_number}.
+          {displayNumber}.
         </div>
         <UserAvatar name={displayName} avatarUrl={participant.avatar_url} size="sm" />
         <div className="flex-1 min-w-0 flex justify-between items-center gap-2">
-          {/* Left column: name, badges, signup time */}
+          {/* Left column: name, badges */}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
               {showRegistrationForm ? (
                 <button
                   onClick={() => onSelect(participant)}
@@ -85,14 +82,18 @@ export function ParticipantListItem({
                   {displayName}
                 </span>
               )}
+              {isOrganizerItem && (
+                <span className="flex-shrink-0 text-[10px] leading-none px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200/50 bg-clip-padding">
+                  <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-medium">
+                    Organizer
+                  </span>
+                </span>
+              )}
               {isOwnClaimedSpot && claimNumber && (
                 <Badge variant="outline" className="text-xs h-5 px-1">
                   +{claimNumber}
                 </Badge>
               )}
-            </div>
-            <div className="text-xs text-muted-foreground -mt-1">
-              Signed up {formatSignupTime(participant.created_at)}
             </div>
             <div className="flex flex-wrap gap-1 mt-1">
               {participant.labels?.map((label: LabelType) => (
@@ -104,27 +105,16 @@ export function ParticipantListItem({
           </div>
           {/* Right column: badges and action buttons */}
           <div className="flex flex-col gap-2 flex-shrink-0 items-end">
-            {isOrganizerItem && (
-              <Badge
-                variant="outline"
-                className="bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200/50 text-xs"
-              >
-                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-medium">
-                  Organizer
-                </span>
-              </Badge>
-            )}
             {isPaid &&
               isOrganizer &&
               participant.payment_status !== 'pending' &&
               !isOrganizerItem && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTogglePayment(participant);
-                  }}
-                >
-                  <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                <button onClick={handleTogglePayment} disabled={isTogglingPayment}>
+                  {isTogglingPayment ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    <PaymentStatusBadge status={participant.payment_status} size="sm" />
+                  )}
                 </button>
               )}
             {isOrganizer && !isOrganizerItem && participant.payment_status === 'pending' && (
@@ -133,14 +123,16 @@ export function ParticipantListItem({
                   <Button
                     size="icon"
                     variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onTogglePayment(participant);
-                    }}
+                    onClick={handleTogglePayment}
+                    disabled={isTogglingPayment}
                     className="h-8 w-8"
                     title="Mark Paid"
                   >
-                    <DollarSign className="h-4 w-4" />
+                    {isTogglingPayment ? (
+                      <Spinner className="h-4 w-4" />
+                    ) : (
+                      <DollarSign className="h-4 w-4" />
+                    )}
                   </Button>
                 )}
                 <Button
@@ -181,7 +173,7 @@ export function ParticipantListItem({
 interface EmptySlotProps {
   slotNumber: number;
   canClaimSpot: boolean;
-  onClaim: (slotNumber: number) => void;
+  onClaim: () => void;
 }
 
 /**
@@ -198,12 +190,7 @@ export function EmptySlot({ slotNumber, canClaimSpot, onClaim }: EmptySlotProps)
         <div className="flex-1 flex items-center justify-between">
           <div className="text-sm text-muted-foreground italic">Available slot</div>
           {canClaimSpot && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onClaim(slotNumber)}
-              className="text-xs h-6 px-2"
-            >
+            <Button size="sm" variant="outline" onClick={onClaim} className="text-xs h-6 px-2">
               <UserPlus className="h-3 w-3 mr-1" />
               Claim
             </Button>

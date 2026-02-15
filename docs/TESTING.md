@@ -258,7 +258,6 @@ export const mockParticipant = {
   notes: null,
   user_id: null,
   claimed_by_user_id: null,
-  slot_number: 1,
   responses: {},
   payment_status: 'pending',
   payment_marked_at: null,
@@ -268,7 +267,7 @@ export const mockParticipant = {
 
 export const mockParticipantsList = [
   mockParticipant,
-  { ...mockParticipant, id: '...', name: 'Participant 2', slot_number: 2 },
+  { ...mockParticipant, id: '...', name: 'Participant 2', created_at: '2024-01-01T00:01:00Z' },
 ];
 
 export const mockLabel = {

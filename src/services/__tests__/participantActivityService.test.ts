@@ -163,7 +163,6 @@ describe('participantActivityService', () => {
         participantId: 'p-1',
         eventId: 'e-1',
         participantName: 'John Doe',
-        slotNumber: 5,
         claimedByUserId: 'user-1',
       });
 
@@ -173,7 +172,6 @@ describe('participantActivityService', () => {
         p_activity_type: 'joined',
         p_participant_name: 'John Doe',
         p_details: {
-          slot_number: 5,
           claimed_by_user_id: 'user-1',
         },
       });
@@ -186,7 +184,6 @@ describe('participantActivityService', () => {
         participantId: 'p-1',
         eventId: 'e-1',
         participantName: 'John Doe',
-        slotNumber: 1,
         claimedByUserId: null,
       });
 
@@ -196,7 +193,6 @@ describe('participantActivityService', () => {
         p_activity_type: 'joined',
         p_participant_name: 'John Doe',
         p_details: {
-          slot_number: 1,
           claimed_by_user_id: null,
         },
       });
@@ -212,7 +208,6 @@ describe('participantActivityService', () => {
         participantId: 'p-1',
         eventId: 'e-1',
         participantName: 'John Doe',
-        slotNumber: 1,
         claimedByUserId: null,
       });
 
@@ -230,7 +225,6 @@ describe('participantActivityService', () => {
         participantId: 'p-1',
         eventId: 'e-1',
         participantName: 'John Doe',
-        slotNumber: 3,
         paymentStatus: 'paid',
       });
 
@@ -240,7 +234,6 @@ describe('participantActivityService', () => {
         p_activity_type: 'withdrew',
         p_participant_name: 'John Doe',
         p_details: {
-          slot_number: 3,
           payment_status: 'paid',
         },
       });
@@ -399,7 +392,6 @@ describe('participantActivityService', () => {
         participantId: null as unknown as string, // Type coercion for test
         eventId: 'e-1',
         participantName: 'Deleted User',
-        slotNumber: 5,
         paymentStatus: 'pending',
       });
 
@@ -409,7 +401,6 @@ describe('participantActivityService', () => {
         p_activity_type: 'withdrew',
         p_participant_name: 'Deleted User',
         p_details: {
-          slot_number: 5,
           payment_status: 'pending',
         },
       });
