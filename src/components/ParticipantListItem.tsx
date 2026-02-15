@@ -21,6 +21,7 @@ interface ParticipantListItemProps {
   isOwnClaimedSpot: boolean;
   claimNumber: string | null;
   isPaid: boolean;
+  isArchived: boolean;
   showRegistrationForm: boolean;
   onSelect: (participant: Participant) => void;
   onTogglePayment: (participant: Participant) => void | Promise<void>;
@@ -40,6 +41,7 @@ export function ParticipantListItem({
   isOwnClaimedSpot,
   claimNumber,
   isPaid,
+  isArchived,
   showRegistrationForm,
   onSelect,
   onTogglePayment,
@@ -132,7 +134,7 @@ export function ParticipantListItem({
                     )}
                   </Button>
                 )}
-                {!isOrganizerItem && (
+                {!isOrganizerItem && !isArchived && (
                   <Button
                     size="icon"
                     variant="outline"
@@ -148,7 +150,7 @@ export function ParticipantListItem({
                 )}
               </div>
             )}
-            {isOwnClaimedSpot && (
+            {isOwnClaimedSpot && !isArchived && (
               <Button
                 size="sm"
                 variant="outline"

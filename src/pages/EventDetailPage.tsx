@@ -823,6 +823,7 @@ export function EventDetailPage() {
                       isOwnClaimedSpot={isClaimedSpot(participant)}
                       claimNumber={getClaimBadgeNumber(participant)}
                       isPaid={effectiveIsPaid}
+                      isArchived={isArchived}
                       showRegistrationForm={showRegistrationForm}
                       onSelect={setSelectedParticipant}
                       onTogglePayment={togglePaymentStatus}
