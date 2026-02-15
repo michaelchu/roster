@@ -34,10 +34,10 @@ CREATE POLICY "Event organizers and participants can insert activity logs"
         AND events.organizer_id = auth.uid()
       )
       OR
-      -- User is a participant in the event (claimed a spot)
+      -- User claimed this specific participant record
       EXISTS (
         SELECT 1 FROM participants
-        WHERE participants.event_id = participant_activity_log.event_id
+        WHERE participants.id = participant_activity_log.participant_id
         AND participants.claimed_by_user_id = auth.uid()
       )
     )
