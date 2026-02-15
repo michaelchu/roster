@@ -13,7 +13,7 @@ type Participant = ServiceParticipant & {
 interface ParticipantListItemProps {
   participant: Participant;
   displayName: string;
-  displaySlotNumber?: number;
+  displayNumber: number;
   isOrganizer: boolean;
   isOrganizerItem: boolean;
   isOwnClaimedSpot: boolean;
@@ -31,7 +31,7 @@ interface ParticipantListItemProps {
 export function ParticipantListItem({
   participant,
   displayName,
-  displaySlotNumber,
+  displayNumber,
   isOrganizer,
   isOrganizerItem,
   isOwnClaimedSpot,
@@ -66,7 +66,7 @@ export function ParticipantListItem({
     >
       <div className="flex items-center gap-3">
         <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
-          {displaySlotNumber ?? participant.slot_number}.
+          {displayNumber}.
         </div>
         <UserAvatar name={displayName} avatarUrl={participant.avatar_url} size="sm" />
         <div className="flex-1 min-w-0 flex justify-between items-center gap-2">
@@ -176,7 +176,7 @@ export function ParticipantListItem({
 interface EmptySlotProps {
   slotNumber: number;
   canClaimSpot: boolean;
-  onClaim: (slotNumber: number) => void;
+  onClaim: () => void;
 }
 
 /**
@@ -193,12 +193,7 @@ export function EmptySlot({ slotNumber, canClaimSpot, onClaim }: EmptySlotProps)
         <div className="flex-1 flex items-center justify-between">
           <div className="text-sm text-muted-foreground italic">Available slot</div>
           {canClaimSpot && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onClaim(slotNumber)}
-              className="text-xs h-6 px-2"
-            >
+            <Button size="sm" variant="outline" onClick={onClaim} className="text-xs h-6 px-2">
               <UserPlus className="h-3 w-3 mr-1" />
               Claim
             </Button>

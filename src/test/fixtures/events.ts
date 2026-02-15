@@ -66,7 +66,6 @@ export const mockParticipant: Participant = {
     'Dietary Restrictions': 'Vegetarian',
   },
   created_at: '2024-01-01T00:00:00Z',
-  slot_number: 1,
   labels: [],
   payment_status: 'pending',
   payment_marked_at: null,
@@ -80,7 +79,7 @@ export const mockParticipantsList: Participant[] = [
     id: '550e8400-e29b-41d4-a716-446655440011',
     name: 'Jane Doe',
     email: 'jane@example.com',
-    slot_number: 2,
+    created_at: '2024-01-01T00:01:00Z',
     labels: [],
   },
   {
@@ -88,7 +87,7 @@ export const mockParticipantsList: Participant[] = [
     id: '550e8400-e29b-41d4-a716-446655440012',
     name: 'Bob Smith',
     email: 'bob@example.com',
-    slot_number: 3,
+    created_at: '2024-01-01T00:02:00Z',
     labels: [],
   },
 ];

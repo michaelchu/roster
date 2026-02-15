@@ -80,11 +80,9 @@ export const participantActivityService = {
     participantId: string;
     eventId: string;
     participantName: string;
-    slotNumber: number;
     claimedByUserId: string | null;
   }): Promise<void> {
     await insertActivity(params.participantId, params.eventId, 'joined', params.participantName, {
-      slot_number: params.slotNumber,
       claimed_by_user_id: params.claimedByUserId,
     });
   },
@@ -96,11 +94,9 @@ export const participantActivityService = {
     participantId: string;
     eventId: string;
     participantName: string;
-    slotNumber: number;
     paymentStatus: string;
   }): Promise<void> {
     await insertActivity(params.participantId, params.eventId, 'withdrew', params.participantName, {
-      slot_number: params.slotNumber,
       payment_status: params.paymentStatus,
     });
   },

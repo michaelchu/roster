@@ -12,11 +12,11 @@ import { notificationService } from './notificationService';
 import { participantActivityService } from './participantActivityService';
 
 /** Extended Participant type with labels and computed properties */
-export interface Participant extends Omit<Tables<'participants'>, 'responses' | 'created_at'> {
+export interface Participant
+  extends Omit<Tables<'participants'>, 'responses' | 'created_at' | 'slot_number'> {
   created_at: string;
   labels?: Label[];
   responses: ResponseRecord;
-  slot_number: number;
   claimed_by_user_id: string | null;
   payment_status: 'pending' | 'paid' | 'waived';
   payment_marked_at: string | null;
@@ -37,11 +37,12 @@ export type ParticipantLabel = Tables<'participant_labels'>;
  * @returns Typed Participant object with defaults applied
  */
 function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Participant {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { slot_number: _slot, ...rest } = dbParticipant;
   return {
-    ...dbParticipant,
+    ...rest,
     created_at: dbParticipant.created_at || new Date().toISOString(),
     responses: (dbParticipant.responses as ResponseRecord) || {},
-    slot_number: dbParticipant.slot_number || 0,
     claimed_by_user_id: dbParticipant.claimed_by_user_id || null,
     payment_status: (dbParticipant.payment_status as 'pending' | 'paid' | 'waived') || 'pending',
     payment_marked_at: dbParticipant.payment_marked_at || null,
@@ -113,7 +114,7 @@ export const participantService = {
    * Retrieves all participants for an event with their labels and avatar URLs.
    * Uses JOINs to fetch labels and an RPC call to get user avatars.
    * @param eventId - UUID of the event
-   * @returns Participants sorted by slot_number, with labels and avatar_url populated
+   * @returns Participants sorted by created_at, with labels and avatar_url populated
    * @throws Error if database query fails
    */
   async getParticipantsByEventId(eventId: string): Promise<Participant[]> {
@@ -128,7 +129,7 @@ export const participantService = {
       `
       )
       .eq('event_id', eventId)
-      .order('slot_number', { ascending: true });
+      .order('created_at', { ascending: true });
 
     const data = throwIfSupabaseError({ data: participants, error: participantsError });
 
@@ -192,19 +193,17 @@ export const participantService = {
   /**
    * Creates a new participant registration.
    * Handles both self-registration and claiming spots for others.
-   * slot_number is auto-assigned by database trigger.
-   * @param participant - Participant data without id, created_at, labels, or slot_number
+   * @param participant - Participant data without id, created_at, or labels
    * @param options - Optional claiming options for registering on behalf of others
    * @param options.claimingUserId - UUID of user claiming the spot (sets claimed_by_user_id)
    * @param options.claimingUserName - Name for generating claim names
    * @param options.claimingUserEmail - Email for claimed spots
-   * @returns The created participant with assigned slot_number
+   * @returns The created participant
    * @throws Error if insertion fails
    */
   async createParticipant(
-    participant: Omit<Participant, 'id' | 'created_at' | 'labels' | 'slot_number'>,
+    participant: Omit<Participant, 'id' | 'created_at' | 'labels'>,
     options?: {
-      targetSlotNumber?: number;
       claimingUserId?: string;
       claimingUserName?: string;
       claimingUserEmail?: string;
@@ -264,7 +263,6 @@ export const participantService = {
           participantId: created.id,
           eventId: created.event_id,
           participantName: created.name || 'Unknown',
-          slotNumber: created.slot_number,
           claimedByUserId: created.claimed_by_user_id,
         }),
         'log joined activity'
@@ -401,7 +399,6 @@ export const participantService = {
       participantId: participant.id,
       eventId: participant.event_id,
       participantName: participant.name || 'Unknown',
-      slotNumber: participant.slot_number,
       paymentStatus: participant.payment_status,
     });
 

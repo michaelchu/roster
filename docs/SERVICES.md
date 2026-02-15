@@ -377,7 +377,6 @@ fireAndForget(
     participantId: participant.id,
     eventId: participant.event_id,
     participantName: participant.name,
-    slotNumber: participant.slot_number,
     claimedByUserId: participant.claimed_by_user_id,
   }),
   'log participant joined activity'

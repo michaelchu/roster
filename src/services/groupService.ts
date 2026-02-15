@@ -16,7 +16,6 @@ export interface GroupParticipant
   > {
   event_id: string | null;
   payment_status: string | null;
-  slot_number: number | null;
   checked_in_at: string | null;
   event: {
     id: string;
@@ -288,7 +287,6 @@ export const groupService = {
       payment_marked_at: null,
       payment_notes: null,
       payment_status: null,
-      slot_number: null,
       checked_in_at: null,
       avatar_url: member.avatar_url || null,
     }));

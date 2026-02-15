@@ -146,18 +146,11 @@ User profile table. Created automatically via database trigger on auth signup.
 | `notes` | TEXT | — | YES | max 1000 chars |
 | `user_id` | UUID | — | YES | FK to `auth.users(id)` ON DELETE SET NULL |
 | `claimed_by_user_id` | UUID | — | YES | FK to `auth.users(id)` — for claimed spots |
-| `slot_number` | INTEGER | — | NOT NULL | auto-assigned by trigger |
 | `responses` | JSONB | `'{}'::jsonb` | — | custom field responses |
 | `payment_status` | TEXT | `'pending'` | — | CHECK: `'pending'`, `'paid'`, `'waived'` |
 | `payment_marked_at` | TIMESTAMPTZ | — | YES | — |
 | `payment_notes` | TEXT | — | YES | max 500 chars |
 | `created_at` | TIMESTAMPTZ | `now()` | NOT NULL | — |
-
-**Unique Constraints:**
-
-| Constraint | Columns |
-|-----------|---------|
-| (unnamed) | `(event_id, slot_number)` |
 
 **Indexes:**
 
@@ -167,7 +160,6 @@ User profile table. Created automatically via database trigger on auth signup.
 | `idx_participants_user_id` | `user_id` |
 | `idx_participants_claimed_by_user` | `claimed_by_user_id` |
 | `idx_participants_email` | `email` |
-| `idx_participants_slot_number` | `slot_number` |
 | `idx_participants_created_at` | `created_at` |
 | `idx_participants_payment_status` | `payment_status` |
 
@@ -186,15 +178,11 @@ User profile table. Created automatically via database trigger on auth signup.
 | Trigger | Timing | Event | Function |
 |---------|--------|-------|----------|
 | `a_check_event_capacity_trigger` | BEFORE INSERT | row | `check_event_capacity()` — enforces `max_participants` limit |
-| `assign_participant_slot_trigger` | BEFORE INSERT | row | `assign_participant_slot()` — assigns sequential slot numbers |
 | `auto_add_participant_to_group_trigger` | AFTER INSERT | row | `auto_add_participant_to_group()` — adds user to event's group |
-| `trigger_participant_created` | AFTER INSERT | row | `notify_on_participant_created()` — queues `new_signup`, `signup_confirmed`, `capacity_reached` |
 | `auto_remove_participant_from_group_trigger` | AFTER DELETE | row | `auto_remove_participant_from_group()` — removes from group |
-| `compact_slots_after_participant_deletion` | AFTER DELETE | row | `compact_slots_after_deletion()` — recompacts slot numbers |
-| `trigger_participant_deleted` | AFTER DELETE | row | `notify_on_participant_deleted()` — queues `withdrawal` notification |
-| `trigger_payment_changed` | AFTER UPDATE | `payment_status` column | `notify_on_payment_changed()` — queues `payment_received` |
+| `prevent_participant_ownership_change_trigger` | BEFORE UPDATE | row | `prevent_participant_ownership_change()` — prevents changing ownership fields |
 
-Note: Trigger `a_check_event_capacity_trigger` is prefixed with `a_` to ensure it fires before `assign_participant_slot_trigger` (alphabetical ordering).
+Note: Participant ordering is determined by `created_at` (registration time). Display numbers are derived from array position at the application level, with the organizer sorted first if participating.
 
 ---
 
@@ -506,7 +494,6 @@ Immutable audit log of participant-related actions within events.
 **`joined`:**
 ```json
 {
-  "slot_number": 3,
   "claimed_by_user_id": "uuid-string-or-null"
 }
 ```
@@ -514,7 +501,6 @@ Immutable audit log of participant-related actions within events.
 **`withdrew`:**
 ```json
 {
-  "slot_number": 3,
   "payment_status": "pending"
 }
 ```
@@ -563,12 +549,6 @@ Only changed fields are included.
 | Function | Signature | Notes |
 |----------|-----------|-------|
 | `nanoid` | `(size INTEGER DEFAULT 10) RETURNS TEXT` | Generates NANOID string; used as default for `events.id` and `groups.id` |
-
-### Slot Management
-
-| Function | Signature | Notes |
-|----------|-----------|-------|
-| `get_next_slot_number` | `(p_event_id TEXT, p_user_id UUID DEFAULT NULL) RETURNS INTEGER` | Returns next available slot number for an event |
 
 ### Notification
 
@@ -631,8 +611,6 @@ Only changed fields are included.
 | Function | Table | Timing | Behavior |
 |----------|-------|--------|----------|
 | `check_event_capacity` | `participants` | BEFORE INSERT | Counts current participants; raises exception if `max_participants` would be exceeded |
-| `assign_participant_slot` | `participants` | BEFORE INSERT | Sets `slot_number` to next sequential value for the event |
-| `compact_slots_after_deletion` | `participants` | AFTER DELETE | Recompacts slot numbers to fill gaps after a participant is removed |
 | `check_capacity_reduction` | `events` | BEFORE UPDATE | Prevents setting `max_participants` below the current participant count |
 | `auto_add_participant_to_group` | `participants` | AFTER INSERT | If the event belongs to a group, adds the participant's user to `group_participants` |
 | `auto_remove_participant_from_group` | `participants` | AFTER DELETE | If the event belongs to a group, removes the user from `group_participants` (if not in other group events) |

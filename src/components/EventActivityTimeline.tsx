@@ -53,7 +53,7 @@ export function EventActivityTimeline({ eventId, refreshKey }: EventActivityTime
 
     switch (activity.activity_type) {
       case 'joined':
-        return `${name} joined${details.slot_number ? ` as #${details.slot_number}` : ''}`;
+        return `${name} joined`;
       case 'withdrew':
         return `${name} withdrew`;
       case 'payment_updated': {

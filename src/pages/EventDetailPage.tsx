@@ -170,7 +170,14 @@ export function EventDetailPage() {
       const participantsData = await participantService.getParticipantsByEventId(eventId);
 
       if (participantsData) {
-        setParticipants(participantsData as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        // Sort organizer first (if participating), then by registration time
+        const sorted = [...participantsData].sort((a, b) => {
+          const aIsOrganizer = a.user_id === eventData.organizer_id ? 1 : 0;
+          const bIsOrganizer = b.user_id === eventData.organizer_id ? 1 : 0;
+          if (aIsOrganizer !== bIsOrganizer) return bIsOrganizer - aIsOrganizer;
+          return 0; // already sorted by created_at from the service
+        });
+        setParticipants(sorted as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
         // Check if current user is already registered
         const currentUserRegistration = participantsData.find(
@@ -301,9 +308,9 @@ export function EventDetailPage() {
     }
   };
 
-  const openSignupDrawer = (slotNumber?: number) => {
+  const openSignupDrawer = (claiming?: boolean) => {
     // Determine if this is for claiming a spot for someone else
-    const isClaiming = slotNumber !== undefined;
+    const isClaiming = claiming === true;
 
     // Require authentication for:
     // 1. Claiming spots for others
@@ -769,8 +776,8 @@ export function EventDetailPage() {
                 const maxSlots = event.max_participants || filteredParticipants.length;
                 const slots = [];
 
-                // Add existing participants to slots (already ordered by slot_number)
-                // Use sequential index for display to avoid gaps from database slot_number issues
+                // Display participants ordered by organizer-first, then registration time
+                // Display number is derived from array position (1-indexed)
                 for (let i = 0; i < Math.min(filteredParticipants.length, maxSlots); i++) {
                   const participant = filteredParticipants[i];
                   slots.push(
@@ -778,7 +785,7 @@ export function EventDetailPage() {
                       key={participant.id}
                       participant={participant}
                       displayName={getDisplayName(participant)}
-                      displaySlotNumber={i + 1}
+                      displayNumber={i + 1}
                       isOrganizer={isOrganizer}
                       isOrganizerItem={participant.user_id === event.organizer_id}
                       isOwnClaimedSpot={isClaimedSpot(participant)}
@@ -812,7 +819,7 @@ export function EventDetailPage() {
                         key={`empty-${slotNum}`}
                         slotNumber={slotNum}
                         canClaimSpot={canClaimSpot}
-                        onClaim={openSignupDrawer}
+                        onClaim={() => openSignupDrawer(true)}
                       />
                     );
                   }
