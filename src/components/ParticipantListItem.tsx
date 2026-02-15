@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { UserAvatar } from '@/components/UserAvatar';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { DollarSign, Trash2, UserX, UserPlus } from 'lucide-react';
-import { formatTimeAgo } from '@/lib/utils';
 import type { Participant as ServiceParticipant, Label as LabelType } from '@/services';
 
 type Participant = ServiceParticipant & {
@@ -52,7 +51,7 @@ export function ParticipantListItem({
         </div>
         <UserAvatar name={displayName} avatarUrl={participant.avatar_url} size="sm" />
         <div className="flex-1 min-w-0 flex justify-between items-center gap-2">
-          {/* Left column: name, badges, signup time */}
+          {/* Left column: name, badges */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
               {showRegistrationForm ? (
@@ -72,9 +71,6 @@ export function ParticipantListItem({
                   +{claimNumber}
                 </Badge>
               )}
-            </div>
-            <div className="text-xs text-muted-foreground -mt-1">
-              Signed up {formatTimeAgo(participant.created_at)}
             </div>
             <div className="flex flex-wrap gap-1 mt-1">
               {participant.labels?.map((label: LabelType) => (
