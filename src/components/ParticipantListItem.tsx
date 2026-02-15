@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { UserAvatar } from '@/components/UserAvatar';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { DollarSign, Trash2, UserX, UserPlus } from 'lucide-react';
+import { formatTimeAgo } from '@/lib/utils';
 import type { Participant as ServiceParticipant, Label as LabelType } from '@/services';
 
 type Participant = ServiceParticipant & {
@@ -13,6 +14,7 @@ type Participant = ServiceParticipant & {
 interface ParticipantListItemProps {
   participant: Participant;
   displayName: string;
+  displayNumber: number;
   isOrganizer: boolean;
   isOrganizerItem: boolean;
   isOwnClaimedSpot: boolean;
@@ -30,6 +32,7 @@ interface ParticipantListItemProps {
 export function ParticipantListItem({
   participant,
   displayName,
+  displayNumber,
   isOrganizer,
   isOrganizerItem,
   isOwnClaimedSpot,
@@ -39,32 +42,13 @@ export function ParticipantListItem({
   onTogglePayment,
   onWithdraw,
 }: ParticipantListItemProps) {
-  const formatSignupTime = (createdAt: string) => {
-    const now = new Date();
-    const signupTime = new Date(createdAt);
-    const diffMs = now.getTime() - signupTime.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 60) {
-      return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
-    } else {
-      return `on ${signupTime.toLocaleDateString()}`;
-    }
-  };
-
   return (
     <div
       className={`px-3 py-2 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
     >
       <div className="flex items-center gap-3">
         <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
-          {participant.slot_number}.
+          {displayNumber}.
         </div>
         <UserAvatar name={displayName} avatarUrl={participant.avatar_url} size="sm" />
         <div className="flex-1 min-w-0 flex justify-between items-center gap-2">
@@ -90,7 +74,7 @@ export function ParticipantListItem({
               )}
             </div>
             <div className="text-xs text-muted-foreground -mt-1">
-              Signed up {formatSignupTime(participant.created_at)}
+              Signed up {formatTimeAgo(participant.created_at)}
             </div>
             <div className="flex flex-wrap gap-1 mt-1">
               {participant.labels?.map((label: LabelType) => (
@@ -174,7 +158,7 @@ export function ParticipantListItem({
 interface EmptySlotProps {
   slotNumber: number;
   canClaimSpot: boolean;
-  onClaim: (slotNumber: number) => void;
+  onClaim: () => void;
 }
 
 /**
@@ -191,12 +175,7 @@ export function EmptySlot({ slotNumber, canClaimSpot, onClaim }: EmptySlotProps)
         <div className="flex-1 flex items-center justify-between">
           <div className="text-sm text-muted-foreground italic">Available slot</div>
           {canClaimSpot && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onClaim(slotNumber)}
-              className="text-xs h-6 px-2"
-            >
+            <Button size="sm" variant="outline" onClick={onClaim} className="text-xs h-6 px-2">
               <UserPlus className="h-3 w-3 mr-1" />
               Claim
             </Button>

@@ -252,7 +252,7 @@ test.describe('Participant Registration Flow', () => {
       }
     });
 
-    test('slot numbers are assigned correctly', async ({ page }) => {
+    test('participants are ordered by registration time', async ({ page }) => {
       test.setTimeout(60000); // Increase timeout for multiple claims
       // Setup
       await register(page, {
@@ -263,7 +263,7 @@ test.describe('Participant Registration Flow', () => {
 
       const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
-        name: generateTestName('Slot Number Event'),
+        name: generateTestName('Registration Order Event'),
         max_participants: 10, // Need max_participants for claim button to appear
       });
 
@@ -272,31 +272,26 @@ test.describe('Participant Registration Flow', () => {
 
       // Claim two additional spots
       await claimAdditionalSpot(page, event.id);
-      
+
       // Wait a moment between claims to ensure first claim is fully processed
       await page.waitForTimeout(2000);
-      
+
       await claimAdditionalSpot(page, event.id);
 
-      // Verify slot numbers
+      // Verify participants are created and ordered by created_at
       const { data: participants } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('event_id', event.id)
-        .order('slot_number', { ascending: true });
+        .order('created_at', { ascending: true });
 
       expect(participants?.length).toBe(3);
-      
-      // Slot numbers should be sequential per user
+
+      // Participants should be ordered by creation time
       if (participants && participants.length === 3) {
-        expect(participants[0].slot_number).toBeDefined();
-        expect(participants[1].slot_number).toBeDefined();
-        expect(participants[2].slot_number).toBeDefined();
-        
-        // All slots should have values
-        expect(participants[0].slot_number).toBeGreaterThanOrEqual(0);
-        expect(participants[1].slot_number).toBeGreaterThanOrEqual(0);
-        expect(participants[2].slot_number).toBeGreaterThanOrEqual(0);
+        const times = participants.map((p) => new Date(p.created_at).getTime());
+        expect(times[0]).toBeLessThanOrEqual(times[1]);
+        expect(times[1]).toBeLessThanOrEqual(times[2]);
       }
     });
   });

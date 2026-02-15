@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { UserPlus, UserX, DollarSign, Edit, Tag, Clock } from 'lucide-react';
 import { participantActivityService, type ParticipantActivity } from '@/services';
 import { logError } from '@/lib/errorHandler';
+import { formatTimeAgo } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface EventActivityTimelineProps {
@@ -53,7 +54,7 @@ export function EventActivityTimeline({ eventId, refreshKey }: EventActivityTime
 
     switch (activity.activity_type) {
       case 'joined':
-        return `${name} joined${details.slot_number ? ` as #${details.slot_number}` : ''}`;
+        return `${name} joined`;
       case 'withdrew':
         return `${name} withdrew`;
       case 'payment_updated': {
@@ -70,24 +71,6 @@ export function EventActivityTimeline({ eventId, refreshKey }: EventActivityTime
       default:
         return `${name}: activity recorded`;
     }
-  };
-
-  const formatRelativeTime = (timestamp: string): string => {
-    const now = new Date();
-    const time = new Date(timestamp);
-    const diffMs = now.getTime() - time.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 60) {
-      return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
-    }
-    return time.toLocaleDateString();
   };
 
   if (loading) {
@@ -138,9 +121,12 @@ export function EventActivityTimeline({ eventId, refreshKey }: EventActivityTime
             </div>
             {/* Content */}
             <div className={`flex-1 min-w-0 ${isLast ? '' : 'pb-4'}`}>
-              <p className="text-xs font-medium">{formatActivityMessage(activity)}</p>
-              <p className="text-[11px] text-muted-foreground">
-                {formatRelativeTime(activity.created_at)}
+              <p className="text-xs">
+                <span className="font-medium">{formatActivityMessage(activity)}</span>
+                <span className="text-muted-foreground">
+                  {' '}
+                  · {formatTimeAgo(activity.created_at)}
+                </span>
               </p>
             </div>
           </div>
