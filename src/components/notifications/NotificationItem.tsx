@@ -11,7 +11,7 @@ import {
   ArrowUpCircle,
   Trash2,
 } from 'lucide-react';
-import { cn, formatTimeAgo } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { Notification, NotificationType } from '@/types/notifications';
 
 interface NotificationItemProps {
@@ -217,10 +217,7 @@ export function NotificationItem({
             </p>
             {isUnread && <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-1.5" />}
           </div>
-          <p className="text-xs text-muted-foreground truncate">
-            {notification.body}
-            <span> · {formatTimeAgo(notification.created_at)}</span>
-          </p>
+          <p className="text-xs text-muted-foreground truncate">{notification.body}</p>
         </div>
       </div>
     </div>
