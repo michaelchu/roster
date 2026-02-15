@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import type { ReactElement } from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
@@ -276,6 +276,208 @@ describe('NewEventPage', () => {
       const checkbox = screen.getByLabelText('Include myself as participant');
       // Default should be checked
       expect(checkbox).toBeChecked();
+    });
+  });
+
+  describe('Paid Event Checkbox', () => {
+    it('renders the paid event checkbox', () => {
+      const mockUser: User = {
+        id: '123',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2023-01-01T00:00:00Z',
+      } as User;
+
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      renderWithRouter(<NewEventPage />);
+
+      const paidEventCheckbox = screen.getByLabelText('Paid event');
+      expect(paidEventCheckbox).toBeInTheDocument();
+    });
+
+    it('defaults to checked (paid event)', () => {
+      const mockUser: User = {
+        id: '123',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2023-01-01T00:00:00Z',
+      } as User;
+
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      renderWithRouter(<NewEventPage />);
+
+      const paidEventCheckbox = screen.getByLabelText('Paid event');
+      expect(paidEventCheckbox).toBeChecked();
+    });
+
+    it('allows toggling between paid and unpaid', () => {
+      const mockUser: User = {
+        id: '123',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2023-01-01T00:00:00Z',
+      } as User;
+
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      renderWithRouter(<NewEventPage />);
+
+      const paidEventCheckbox = screen.getByLabelText('Paid event');
+      expect(paidEventCheckbox).toBeChecked();
+
+      // Click to uncheck (make it unpaid)
+      fireEvent.click(paidEventCheckbox);
+      expect(paidEventCheckbox).not.toBeChecked();
+
+      // Click to check again (make it paid)
+      fireEvent.click(paidEventCheckbox);
+      expect(paidEventCheckbox).toBeChecked();
+    });
+
+    it('is properly registered with react-hook-form and submits with is_paid: true when checked', async () => {
+      const mockUser: User = {
+        id: '123',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: { full_name: 'Test User' },
+        aud: 'authenticated',
+        created_at: '2023-01-01T00:00:00Z',
+      } as User;
+
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      const { eventService } = await import('@/services');
+      const mockCreateEvent = vi.fn().mockResolvedValue({ id: '1', name: 'Test Event' });
+      (eventService.createEvent as ReturnType<typeof vi.fn>) = mockCreateEvent;
+
+      renderWithRouter(<NewEventPage />);
+
+      // Fill in required fields
+      const nameInput = screen.getByLabelText('Event Name *');
+      fireEvent.change(nameInput, { target: { value: 'Test Event' } });
+
+      // Verify checkbox is checked by default
+      const paidEventCheckbox = screen.getByLabelText('Paid event');
+      expect(paidEventCheckbox).toBeChecked();
+
+      // Submit form
+      const submitButton = screen.getByRole('button', { name: 'Create Event' });
+      fireEvent.click(submitButton);
+
+      // Wait for submission to complete
+      await waitFor(
+        () => {
+          expect(mockCreateEvent).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+
+      // Verify createEvent was called with is_paid: true
+      expect(mockCreateEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          is_paid: true,
+        })
+      );
+    });
+
+    it('is properly registered with react-hook-form and submits with is_paid: false when unchecked', async () => {
+      const mockUser: User = {
+        id: '123',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: { full_name: 'Test User' },
+        aud: 'authenticated',
+        created_at: '2023-01-01T00:00:00Z',
+      } as User;
+
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        session: null,
+        loading: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signInWithGoogle: vi.fn(),
+        signInWithGoogleIdToken: vi.fn(),
+        signOut: vi.fn(),
+      });
+
+      const { eventService } = await import('@/services');
+      const mockCreateEvent = vi.fn().mockResolvedValue({ id: '1', name: 'Free Event' });
+      (eventService.createEvent as ReturnType<typeof vi.fn>) = mockCreateEvent;
+
+      renderWithRouter(<NewEventPage />);
+
+      // Fill in required fields
+      const nameInput = screen.getByLabelText('Event Name *');
+      fireEvent.change(nameInput, { target: { value: 'Free Event' } });
+
+      // Uncheck the paid event checkbox
+      const paidEventCheckbox = screen.getByLabelText('Paid event');
+      fireEvent.click(paidEventCheckbox);
+      expect(paidEventCheckbox).not.toBeChecked();
+
+      // Submit form
+      const submitButton = screen.getByRole('button', { name: 'Create Event' });
+      fireEvent.click(submitButton);
+
+      // Wait for submission to complete
+      await waitFor(
+        () => {
+          expect(mockCreateEvent).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+
+      // Verify createEvent was called with is_paid: false
+      expect(mockCreateEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          is_paid: false,
+        })
+      );
     });
   });
 });

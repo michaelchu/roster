@@ -520,11 +520,7 @@ export function NewEventPage() {
             name="is_paid"
             control={control}
             render={({ field }) => (
-              <Checkbox
-                id="is_paid"
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
+              <Checkbox id="is_paid" checked={field.value} onCheckedChange={field.onChange} />
             )}
           />
           <label htmlFor="is_paid" className="text-sm cursor-pointer">

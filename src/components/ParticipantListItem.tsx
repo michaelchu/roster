@@ -127,38 +127,36 @@ export function ParticipantListItem({
                   <PaymentStatusBadge status={participant.payment_status} size="sm" />
                 </button>
               )}
-            {isOrganizer &&
-              !isOrganizerItem &&
-              participant.payment_status === 'pending' && (
-                <div className="flex gap-2">
-                  {isPaid && (
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTogglePayment(participant);
-                      }}
-                      className="h-8 w-8"
-                      title="Mark Paid"
-                    >
-                      <DollarSign className="h-4 w-4" />
-                    </Button>
-                  )}
+            {isOrganizer && !isOrganizerItem && participant.payment_status === 'pending' && (
+              <div className="flex gap-2">
+                {isPaid && (
                   <Button
                     size="icon"
                     variant="outline"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onWithdraw(participant);
+                      onTogglePayment(participant);
                     }}
-                    className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
-                    title="Remove"
+                    className="h-8 w-8"
+                    title="Mark Paid"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <DollarSign className="h-4 w-4" />
                   </Button>
-                </div>
-              )}
+                )}
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onWithdraw(participant);
+                  }}
+                  className="h-8 w-8 text-destructive border-destructive hover:text-destructive hover:bg-destructive/10"
+                  title="Remove"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             {isOwnClaimedSpot && (
               <Button
                 size="sm"
