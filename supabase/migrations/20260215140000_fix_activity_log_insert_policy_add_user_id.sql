@@ -1,17 +1,15 @@
--- Add a scoped INSERT policy for participant_activity_log.
+-- Fix: Add user_id check to activity log INSERT policy
 --
--- The SECURITY DEFINER RPC function (log_participant_activity) should bypass RLS,
--- but in some Supabase environments the function owner's role does not bypass RLS
--- as expected, causing error 42501 when participants sign up or withdraw.
+-- The previous scoped INSERT policy only checked claimed_by_user_id, but
+-- self-registered participants have user_id set instead (claimed_by_user_id
+-- is NULL for self-registration). This caused silent INSERT failures when
+-- participants withdrew, because the SECURITY DEFINER RPC doesn't reliably
+-- bypass RLS in all Supabase environments.
 --
--- This policy allows event organizers and participants to insert activity log
--- entries for events they're involved with:
---   1. Event organizers (for payment updates, label changes, etc.)
---   2. Participants who claimed a spot (for join/withdraw logging)
---
--- The SECURITY DEFINER RPC is kept for its server-side validation, but we
--- don't rely on it bypassing RLS since that behavior is inconsistent across
--- Supabase environments.
+-- This migration drops and recreates the policy to also check user_id.
+
+DROP POLICY IF EXISTS "Event organizers and participants can insert activity logs"
+  ON participant_activity_log;
 
 CREATE POLICY "Event organizers and participants can insert activity logs"
   ON participant_activity_log FOR INSERT
@@ -34,7 +32,14 @@ CREATE POLICY "Event organizers and participants can insert activity logs"
         AND events.organizer_id = auth.uid()
       )
       OR
-      -- User claimed this specific participant record
+      -- User is the self-registered participant
+      EXISTS (
+        SELECT 1 FROM participants
+        WHERE participants.id = participant_activity_log.participant_id
+        AND participants.user_id = auth.uid()
+      )
+      OR
+      -- User claimed this participant record on behalf of someone else
       EXISTS (
         SELECT 1 FROM participants
         WHERE participants.id = participant_activity_log.participant_id
