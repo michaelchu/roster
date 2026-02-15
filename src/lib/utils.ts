@@ -1,8 +1,17 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { formatDistanceToNow } from 'date-fns';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * Formats a timestamp as a human-friendly relative time string.
+ * Examples: "less than a minute ago", "5 minutes ago", "3 hours ago", "2 days ago"
+ */
+export function formatTimeAgo(dateString: string): string {
+  return formatDistanceToNow(new Date(dateString), { addSuffix: true });
 }
 
 /**

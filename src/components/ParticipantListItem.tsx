@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { UserAvatar } from '@/components/UserAvatar';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 import { DollarSign, Trash2, UserX, UserPlus } from 'lucide-react';
+import { formatTimeAgo } from '@/lib/utils';
 import type { Participant as ServiceParticipant, Label as LabelType } from '@/services';
 
 type Participant = ServiceParticipant & {
@@ -41,25 +42,6 @@ export function ParticipantListItem({
   onTogglePayment,
   onWithdraw,
 }: ParticipantListItemProps) {
-  const formatSignupTime = (createdAt: string) => {
-    const now = new Date();
-    const signupTime = new Date(createdAt);
-    const diffMs = now.getTime() - signupTime.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 60) {
-      return diffMins <= 1 ? 'just now' : `${diffMins}m ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
-    } else {
-      return `on ${signupTime.toLocaleDateString()}`;
-    }
-  };
-
   return (
     <div
       className={`px-3 py-2 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
@@ -92,7 +74,7 @@ export function ParticipantListItem({
               )}
             </div>
             <div className="text-xs text-muted-foreground -mt-1">
-              Signed up {formatSignupTime(participant.created_at)}
+              Signed up {formatTimeAgo(participant.created_at)}
             </div>
             <div className="flex flex-wrap gap-1 mt-1">
               {participant.labels?.map((label: LabelType) => (
