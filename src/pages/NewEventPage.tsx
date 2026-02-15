@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +59,7 @@ export function NewEventPage() {
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { isSubmitting },
   } = useForm<NewEventFormData>({
     resolver: zodResolver(newEventFormSchema),
@@ -68,6 +69,7 @@ export function NewEventPage() {
       datetime: '',
       end_datetime: '',
       location: '',
+      is_paid: true,
       is_private: false,
       group_id: '__no_group__',
       datetimeTbd: false,
@@ -233,6 +235,7 @@ export function NewEventPage() {
         end_datetime: data.end_datetime ? fromLocalInputValue(data.end_datetime) : null,
         location: data.location || null,
         max_participants: maxParticipants,
+        is_paid: data.is_paid,
         is_private: data.is_private,
         custom_fields: customFields.filter((f) => f.label),
         parent_event_id: null,
@@ -511,6 +514,19 @@ export function NewEventPage() {
         <div className="border-t" />
 
         <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
+
+        <div className="flex items-center space-x-2">
+          <Controller
+            name="is_paid"
+            control={control}
+            render={({ field }) => (
+              <Checkbox id="is_paid" checked={field.value} onCheckedChange={field.onChange} />
+            )}
+          />
+          <label htmlFor="is_paid" className="text-sm cursor-pointer">
+            Paid event
+          </label>
+        </div>
 
         {showEventPrivacy && (
           <PrivacyToggle

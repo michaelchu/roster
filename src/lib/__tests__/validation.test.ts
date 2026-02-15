@@ -95,6 +95,7 @@ describe('validation', () => {
     it('should validate required fields with custom error messages', () => {
       const validData = {
         name: 'Event',
+        is_paid: true,
         is_private: false,
         group_id: '__no_group__',
         datetimeTbd: true,

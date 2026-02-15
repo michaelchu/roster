@@ -89,6 +89,7 @@ const mockEvent = {
   datetime: '2024-12-01T14:00:00Z',
   end_datetime: '2024-12-01T16:00:00Z',
   location: 'Test Location',
+  is_paid: true,
   is_private: false,
   custom_fields: [],
   created_at: '2024-01-01T00:00:00Z',

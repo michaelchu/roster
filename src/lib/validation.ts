@@ -69,6 +69,7 @@ export const eventSchema = z
       .max(500, 'Location must be less than 500 characters')
       .nullable()
       .optional(),
+    is_paid: z.boolean().default(true),
     is_private: z.boolean().default(false),
     custom_fields: z.array(customFieldSchema).default([]),
     max_participants: z
@@ -229,6 +230,7 @@ export const newEventFormSchema = z.object({
   datetime: z.string().optional(),
   end_datetime: z.string().optional(),
   location: z.string().max(500, 'Location must be less than 500 characters').optional(),
+  is_paid: z.boolean(),
   is_private: z.boolean(),
   group_id: z.string(),
   datetimeTbd: z.boolean(),

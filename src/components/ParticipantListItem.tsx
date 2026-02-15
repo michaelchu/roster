@@ -20,6 +20,8 @@ interface ParticipantListItemProps {
   isOrganizerItem: boolean;
   isOwnClaimedSpot: boolean;
   claimNumber: string | null;
+  isPaid: boolean;
+  isArchived: boolean;
   showRegistrationForm: boolean;
   onSelect: (participant: Participant) => void;
   onTogglePayment: (participant: Participant) => void | Promise<void>;
@@ -38,6 +40,8 @@ export function ParticipantListItem({
   isOrganizerItem,
   isOwnClaimedSpot,
   claimNumber,
+  isPaid,
+  isArchived,
   showRegistrationForm,
   onSelect,
   onTogglePayment,
@@ -103,7 +107,7 @@ export function ParticipantListItem({
           </div>
           {/* Right column: badges and action buttons */}
           <div className="flex flex-col gap-2 flex-shrink-0 items-end">
-            {isOrganizer && participant.payment_status !== 'pending' && (
+            {isPaid && isOrganizer && participant.payment_status !== 'pending' && (
               <button onClick={handleTogglePayment} disabled={isTogglingPayment}>
                 {isTogglingPayment ? (
                   <Spinner className="h-4 w-4" />
@@ -114,21 +118,23 @@ export function ParticipantListItem({
             )}
             {isOrganizer && participant.payment_status === 'pending' && (
               <div className="flex gap-2">
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={handleTogglePayment}
-                  disabled={isTogglingPayment}
-                  className="h-8 w-8"
-                  title="Mark Paid"
-                >
-                  {isTogglingPayment ? (
-                    <Spinner className="h-4 w-4" />
-                  ) : (
-                    <DollarSign className="h-4 w-4" />
-                  )}
-                </Button>
-                {!isOrganizerItem && (
+                {isPaid && (
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={handleTogglePayment}
+                    disabled={isTogglingPayment}
+                    className="h-8 w-8"
+                    title="Mark Paid"
+                  >
+                    {isTogglingPayment ? (
+                      <Spinner className="h-4 w-4" />
+                    ) : (
+                      <DollarSign className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+                {!isOrganizerItem && !isArchived && (
                   <Button
                     size="icon"
                     variant="outline"
@@ -144,7 +150,7 @@ export function ParticipantListItem({
                 )}
               </div>
             )}
-            {isOwnClaimedSpot && (
+            {isOwnClaimedSpot && !isArchived && (
               <Button
                 size="sm"
                 variant="outline"
