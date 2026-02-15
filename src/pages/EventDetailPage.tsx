@@ -798,12 +798,13 @@ export function EventDetailPage() {
                   );
                 }
 
-                // Add empty slots if we have max_participants set
+                // Add empty slots if we have max_participants set (only when not filtering)
                 if (
+                  !searchQuery &&
                   event.max_participants &&
-                  filteredParticipants.length < event.max_participants
+                  participants.length < event.max_participants
                 ) {
-                  const firstEmptySlot = filteredParticipants.length + 1;
+                  const firstEmptySlot = participants.length + 1;
 
                   for (let slotNum = firstEmptySlot; slotNum <= event.max_participants; slotNum++) {
                     const isFirstEmptySlot = slotNum === firstEmptySlot;
