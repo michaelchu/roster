@@ -17,7 +17,7 @@ export type ParticipantActivity = Tables<'participant_activity_log'> & {
 
 const TABLE_NAME = 'participant_activity_log' as const;
 
-/** Helper to insert activity log entry */
+/** Helper to insert activity log entry via RPC (bypasses RLS for cross-user logging) */
 async function insertActivity(
   participantId: string | null,
   eventId: string,
@@ -25,12 +25,12 @@ async function insertActivity(
   participantName: string,
   details: Record<string, unknown>
 ): Promise<void> {
-  const { error } = await supabase.from(TABLE_NAME).insert({
-    participant_id: participantId,
-    event_id: eventId,
-    activity_type: activityType,
-    participant_name: participantName,
-    details: details as Json,
+  const { error } = await supabase.rpc('log_participant_activity', {
+    p_participant_id: participantId,
+    p_event_id: eventId,
+    p_activity_type: activityType,
+    p_participant_name: participantName,
+    p_details: details as Json,
   });
 
   if (error) {
