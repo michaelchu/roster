@@ -30,7 +30,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { useCustomFields } from '@/hooks/useCustomFields';
-import { fromLocalInputValue } from '@/lib/utils';
+import { fromLocalInputValue, getUserDisplayName } from '@/lib/utils';
 import { showFormErrors } from '@/lib/formUtils';
 import { newEventFormSchema, type NewEventFormData } from '@/lib/validation';
 import { toast } from 'sonner';
@@ -245,7 +245,7 @@ export function NewEventPage() {
       // Add organizer (if checkbox checked) and selected members as participants
       const membersToAdd = [...selectedMembers.map((m) => ({ name: m.name, user_id: m.id }))];
       if (includeOrganizer) {
-        const organizerName = user.user_metadata?.full_name || user.email || 'Organizer';
+        const organizerName = getUserDisplayName(user, user.email || 'Organizer');
         membersToAdd.unshift({ name: organizerName, user_id: user.id });
       }
 
