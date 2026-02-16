@@ -202,6 +202,18 @@ export const errorHandler = {
   fromSupabaseError(error: unknown): AppError {
     const err = error as { code?: string; message?: string };
 
+    // Check for network errors first (TypeError: Failed to fetch, NetworkError, etc.)
+    if (
+      err?.message?.includes('Failed to fetch') ||
+      err?.message?.includes('NetworkError') ||
+      err?.message?.includes('Network request failed')
+    ) {
+      return new NetworkError(
+        err.message || 'Network error',
+        'Network connection failed. Please check your internet connection.'
+      );
+    }
+
     if (err?.code === 'PGRST116') {
       return new DatabaseError(err.message || 'Database error', 'No data found');
     }

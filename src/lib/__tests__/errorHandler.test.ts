@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { toast } from 'sonner';
-import { errorHandler, AppError, AuthError, DatabaseError } from '../errorHandler';
+import { errorHandler, AppError, AuthError, DatabaseError, NetworkError } from '../errorHandler';
 
 // Mock sonner toast
 vi.mock('sonner', () => ({
@@ -211,6 +211,39 @@ describe('errorHandler', () => {
 
       expect(result).toBeInstanceOf(DatabaseError);
       expect(result.message).toBe('Database error');
+    });
+
+    it('should convert "Failed to fetch" errors to NetworkError', () => {
+      const supabaseError = { message: 'TypeError: Failed to fetch' };
+
+      const result = errorHandler.fromSupabaseError(supabaseError);
+
+      expect(result).toBeInstanceOf(NetworkError);
+      expect(result.userMessage).toBe(
+        'Network connection failed. Please check your internet connection.'
+      );
+    });
+
+    it('should convert NetworkError messages to NetworkError', () => {
+      const supabaseError = { message: 'NetworkError when attempting to fetch resource' };
+
+      const result = errorHandler.fromSupabaseError(supabaseError);
+
+      expect(result).toBeInstanceOf(NetworkError);
+      expect(result.userMessage).toBe(
+        'Network connection failed. Please check your internet connection.'
+      );
+    });
+
+    it('should convert "Network request failed" errors to NetworkError', () => {
+      const supabaseError = { message: 'Network request failed' };
+
+      const result = errorHandler.fromSupabaseError(supabaseError);
+
+      expect(result).toBeInstanceOf(NetworkError);
+      expect(result.userMessage).toBe(
+        'Network connection failed. Please check your internet connection.'
+      );
     });
   });
 
