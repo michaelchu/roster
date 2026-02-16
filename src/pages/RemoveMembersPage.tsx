@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -235,64 +234,15 @@ export function RemoveMembersPage() {
     <div className="min-h-screen bg-background pb-32">
       <TopNav showCloseButton sticky />
 
-      <div className="p-3 space-y-4">
-        {/* Header */}
-        <div className="space-y-1">
-          <h2 className="text-sm font-medium">Removable Members ({removableMembers.length})</h2>
-          <p className="text-xs text-muted-foreground">Select members to remove from the group</p>
-        </div>
-
-        <div className="space-y-3">
-          {/* Search */}
-          <div className="space-y-2">
-            <Label htmlFor="search" className="text-xs">
-              Search Members
-            </Label>
-            <Input
-              id="search"
-              type="search"
-              placeholder="Search by name, email, or phone..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 text-sm"
-            />
+      <div className="p-3 space-y-3">
+        <div className="bg-card rounded-lg border overflow-hidden">
+          <div className="p-3 border-b bg-muted">
+            <h2 className="text-sm font-medium">
+              Remove Members {removableMembers.length > 0 && `(${removableMembers.length})`}
+            </h2>
           </div>
-
-          {/* Member List */}
-          {filteredMembers.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground">No members found</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="bg-card rounded-lg border overflow-hidden divide-y">
-                {filteredMembers.map((member) => (
-                  <label
-                    key={member.id}
-                    className="flex items-center gap-3 p-3 hover:bg-muted cursor-pointer"
-                  >
-                    <Checkbox
-                      checked={selectedMemberIds.has(member.id)}
-                      onCheckedChange={(checked) => handleToggleMember(member.id, checked === true)}
-                    />
-                    <UserAvatar name={member.name} size="sm" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{member.name}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-
-              {selectedCount > 0 && (
-                <div className="text-xs text-muted-foreground">
-                  {selectedCount} {selectedCount === 1 ? 'member' : 'members'} selected
-                </div>
-              )}
-            </div>
-          )}
-
-          {removableMembers.length === 0 && (
-            <div className="p-4 bg-card border rounded-lg">
+          {removableMembers.length === 0 ? (
+            <div className="p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
@@ -303,6 +253,45 @@ export function RemoveMembersPage() {
                 </div>
               </div>
             </div>
+          ) : (
+            <>
+              <div className="p-3 border-b">
+                <Input
+                  id="search"
+                  type="search"
+                  placeholder="Search by name, email, or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
+
+              {filteredMembers.length === 0 ? (
+                <div className="p-6 text-center">
+                  <p className="text-xs text-muted-foreground">No members found</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {filteredMembers.map((member) => (
+                    <label
+                      key={member.id}
+                      className="flex items-center gap-3 p-3 hover:bg-muted cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={selectedMemberIds.has(member.id)}
+                        onCheckedChange={(checked) =>
+                          handleToggleMember(member.id, checked === true)
+                        }
+                      />
+                      <UserAvatar name={member.name} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{member.name}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

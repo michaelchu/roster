@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
@@ -285,58 +284,51 @@ export function ManageRolesPage() {
               Promote Members to Admin {eligibleMembers.length > 0 && `(${eligibleMembers.length})`}
             </h2>
           </div>
-          <div className="p-3 space-y-3">
-            {eligibleMembers.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                No eligible members to promote. Only registered members with accounts can become
-                admins.
-              </p>
-            ) : (
-              <>
-                {/* Search */}
-                <div className="space-y-2">
-                  <Label htmlFor="search" className="text-xs">
-                    Search Members
-                  </Label>
-                  <Input
-                    id="search"
-                    type="search"
-                    placeholder="Search by name or email..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-9 text-sm"
-                  />
-                </div>
+          {eligibleMembers.length === 0 ? (
+            <div className="p-3 text-xs text-muted-foreground">
+              No eligible members to promote. Only registered members with accounts can become
+              admins.
+            </div>
+          ) : (
+            <>
+              <div className="p-3 border-b">
+                <Input
+                  id="search"
+                  type="search"
+                  placeholder="Search by name or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
 
-                {/* Member List */}
-                {filteredMembers.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-4">No members found</p>
-                ) : (
-                  <>
-                    <div className="border rounded-lg overflow-hidden divide-y">
-                      {filteredMembers.map((member) => (
-                        <label
-                          key={member.id}
-                          className="flex items-center gap-3 p-3 hover:bg-muted cursor-pointer"
-                        >
-                          <Checkbox
-                            checked={selectedMemberIds.has(member.id)}
-                            onCheckedChange={(checked) =>
-                              handleToggleMember(member.id, checked === true)
-                            }
-                          />
-                          <UserAvatar name={member.name} size="sm" />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium truncate">{member.name}</div>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </div>
+              {filteredMembers.length === 0 ? (
+                <div className="p-6 text-center">
+                  <p className="text-xs text-muted-foreground">No members found</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {filteredMembers.map((member) => (
+                    <label
+                      key={member.id}
+                      className="flex items-center gap-3 p-3 hover:bg-muted cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={selectedMemberIds.has(member.id)}
+                        onCheckedChange={(checked) =>
+                          handleToggleMember(member.id, checked === true)
+                        }
+                      />
+                      <UserAvatar name={member.name} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{member.name}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
