@@ -14,6 +14,7 @@ import { errorHandler } from '@/lib/errorHandler';
 import { ProfilePageSkeleton } from '@/components/ProfilePageSkeleton';
 import { profileFormSchema, type ProfileFormData } from '@/lib/validation';
 import { showFormErrors } from '@/lib/formUtils';
+import { getUserDisplayName } from '@/lib/utils';
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ export function ProfilePage() {
   useEffect(() => {
     if (user) {
       reset({
-        fullName: user.user_metadata?.full_name || '',
+        fullName: getUserDisplayName(user, ''),
         email: user.email || '',
       });
     }
@@ -48,7 +49,7 @@ export function ProfilePage() {
       const { error } = await supabase.auth.updateUser({
         email: data.email,
         data: {
-          full_name: data.fullName,
+          custom_name: data.fullName,
         },
       });
 
@@ -100,10 +101,10 @@ export function ProfilePage() {
           <div className="p-3 border-b bg-muted">
             <div className="flex items-center gap-3">
               <UserAvatar
-                name={user.user_metadata?.full_name}
+                name={getUserDisplayName(user, '')}
                 avatarUrl={user.user_metadata?.avatar_url || user.user_metadata?.picture}
                 size="lg"
-                showIcon={!user.user_metadata?.full_name}
+                showIcon={!getUserDisplayName(user, '')}
               />
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Edit Profile</div>

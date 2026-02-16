@@ -26,7 +26,7 @@ import type { CustomField } from '@/types/app.types';
 import { Users, Share2, Download, Search, Edit, UserPlus, UserCheck, UserX } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { EventActivityTimeline } from '@/components/EventActivityTimeline';
-import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
+import { formatEventDateTime, isEventCompleted, getUserDisplayName } from '@/lib/utils';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { ParticipantListItem, EmptySlot } from '@/components/ParticipantListItem';
 import { ParticipantDetailsSheet } from '@/components/ParticipantDetailsSheet';
@@ -380,9 +380,9 @@ export function EventDetailPage() {
       });
     } else {
       // Reset form for new registration
-      // Prepopulate name with user's full_name if available
+      // Prepopulate name with user's display name if available
       setSignupForm({
-        name: user?.user_metadata?.full_name || '',
+        name: getUserDisplayName(user ?? null, ''),
         email: user?.email || '',
         phone: user?.user_metadata?.phone || '',
         notes: '',
@@ -404,7 +404,7 @@ export function EventDetailPage() {
     try {
       await participantService.createParticipant({
         event_id: event.id,
-        name: user.user_metadata?.full_name || user.email || 'User',
+        name: getUserDisplayName(user, user.email || 'User'),
         email: user.email || null,
         phone: user.user_metadata?.phone || null,
         notes: null,
@@ -468,7 +468,7 @@ export function EventDetailPage() {
             // Don't pass targetSlotNumber - let database assign next available slot
             // targetSlotNumber: claimingSlotNumber || undefined,
             claimingUserId: user?.id,
-            claimingUserName: user?.user_metadata?.full_name || user?.email || 'User',
+            claimingUserName: getUserDisplayName(user ?? null, user?.email || 'User'),
             claimingUserEmail: user?.email || undefined,
           };
 
@@ -565,7 +565,7 @@ export function EventDetailPage() {
 
     setSignupForm((prev) => ({
       ...prev,
-      name: user.user_metadata?.full_name || prev.name,
+      name: getUserDisplayName(user, '') || prev.name,
       email: user.email || prev.email,
       phone: user.user_metadata?.phone || prev.phone,
     }));
@@ -583,14 +583,14 @@ export function EventDetailPage() {
     }
 
     // Fallback: Check if name matches claim pattern "UserName - #" (for existing claimed spots)
-    const userName = user.user_metadata?.full_name || user.email || 'User';
+    const userName = getUserDisplayName(user, user.email || 'User');
     const claimPattern = new RegExp(`^${userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - \\d+$`);
     return claimPattern.test(participant.name);
   };
 
   const getClaimBadgeNumber = (participant: Participant) => {
     if (!isClaimedSpot(participant)) return null;
-    const userName = user?.user_metadata?.full_name || user?.email || 'User';
+    const userName = getUserDisplayName(user ?? null, user?.email || 'User');
     const match = participant.name.match(
       new RegExp(`^${userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - (\\d+)$`)
     );
@@ -600,7 +600,7 @@ export function EventDetailPage() {
   const getDisplayName = (participant: Participant) => {
     // For claimed spots, show the current user's name
     if (isClaimedSpot(participant)) {
-      return user?.user_metadata?.full_name || user?.email || 'User';
+      return getUserDisplayName(user ?? null, user?.email || 'User');
     }
     // For linked users, prefer auth_full_name (current) over stored name (stale)
     if (participant.user_id && participant.auth_full_name) {

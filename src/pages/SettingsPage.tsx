@@ -16,6 +16,7 @@ import { useFontSize, type FontSize } from '@/hooks/useFontSize';
 import { useTheme } from '@/components/theme-provider';
 import { useFeatureFlag, useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { User, LogOut, Settings, Eye, Palette, Type, Minus, Plus } from 'lucide-react';
+import { getUserDisplayName } from '@/lib/utils';
 import { TopNav } from '@/components/TopNav';
 import { MobileOnly } from '@/components/MobileOnly';
 import { UserAvatar } from '@/components/UserAvatar';
@@ -102,15 +103,13 @@ export function SettingsPage() {
             <div className="p-3 border-b bg-muted">
               <div className="flex items-center gap-3">
                 <UserAvatar
-                  name={user.user_metadata?.full_name}
+                  name={getUserDisplayName(user, '')}
                   avatarUrl={user.user_metadata?.avatar_url || user.user_metadata?.picture}
                   size="md"
-                  showIcon={!user.user_metadata?.full_name}
+                  showIcon={!getUserDisplayName(user, '')}
                 />
                 <div>
-                  <div className="text-sm font-medium">
-                    {user.user_metadata?.full_name || 'User'}
-                  </div>
+                  <div className="text-sm font-medium">{getUserDisplayName(user)}</div>
                   <div className="text-xs text-muted-foreground">{user.email}</div>
                 </div>
               </div>

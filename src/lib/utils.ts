@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { formatDistanceToNow } from 'date-fns';
+import type { User } from '@supabase/supabase-js';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -89,4 +90,14 @@ export function isEventCompleted(datetime: string | null, endDatetime?: string |
   }
   // Otherwise fall back to start datetime
   return isEventInPast(datetime);
+}
+
+/**
+ * Gets the display name from a Supabase user, preferring the user-edited
+ * custom_name over the OAuth-provided full_name. This prevents Google OAuth
+ * from overwriting names that users have manually set in their profile.
+ */
+export function getUserDisplayName(user: User | null, fallback = 'User'): string {
+  if (!user) return fallback;
+  return user.user_metadata?.custom_name || user.user_metadata?.full_name || fallback;
 }
