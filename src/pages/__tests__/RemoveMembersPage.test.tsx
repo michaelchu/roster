@@ -208,9 +208,8 @@ describe('RemoveMembersPage', () => {
       render(<RemoveMembersPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Removable Members (2)')).toBeInTheDocument();
+        expect(screen.getByText('Remove Members (2)')).toBeInTheDocument();
       });
-      expect(screen.getByText('Select members to remove from the group')).toBeInTheDocument();
     });
 
     it('should display only non-protected members', async () => {
@@ -283,7 +282,7 @@ describe('RemoveMembersPage', () => {
       expect(removeButton).not.toBeDisabled();
     });
 
-    it('should show selected count', async () => {
+    it('should update remove button text when members are selected', async () => {
       render(<RemoveMembersPage />);
 
       await waitFor(() => {
@@ -294,7 +293,8 @@ describe('RemoveMembersPage', () => {
       await userEvent.click(checkboxes[0]);
       await userEvent.click(checkboxes[1]);
 
-      expect(screen.getByText('2 members selected')).toBeInTheDocument();
+      const removeButton = screen.getByRole('button', { name: /Remove.*2.*Members/i });
+      expect(removeButton).toBeInTheDocument();
     });
 
     it('should open confirmation dialog when remove button clicked', async () => {
