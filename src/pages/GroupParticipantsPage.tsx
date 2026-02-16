@@ -308,7 +308,7 @@ export function GroupParticipantsPage() {
                     const canLeave = isCurrentUser && !isOrganizer;
 
                     return (
-                      <div key={participant.id} className="w-full p-3 border-b last:border-b-0">
+                      <div key={participant.id} className="w-full p-3">
                         <div className="flex items-center gap-3">
                           <UserAvatar
                             name={participant.name}
