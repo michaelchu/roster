@@ -23,7 +23,17 @@ import {
   type Label as LabelType,
 } from '@/services';
 import type { CustomField } from '@/types/app.types';
-import { Users, Share2, Download, Search, Edit, UserPlus, UserCheck, UserX } from 'lucide-react';
+import {
+  Users,
+  Share2,
+  Download,
+  Search,
+  Edit,
+  Trash2,
+  UserPlus,
+  UserCheck,
+  UserX,
+} from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { EventActivityTimeline } from '@/components/EventActivityTimeline';
 import {
@@ -97,6 +107,7 @@ export function EventDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [userRegistration, setUserRegistration] = useState<Participant | null>(null);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [isClaimingForOther, setIsClaimingForOther] = useState(false);
   const [withdrawingParticipant, setWithdrawingParticipant] = useState<Participant | null>(null);
@@ -233,6 +244,22 @@ export function EventDetailPage() {
     }
     setLoading(false);
     loadingRef.current = false;
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!event || !user) return;
+    try {
+      await eventService.deleteEvent(event.id);
+      errorHandler.success('Event deleted successfully');
+      setShowDeleteDialog(false);
+      navigate(event.group_id ? `/groups/${event.group_id}` : '/events', { replace: true });
+    } catch (error) {
+      errorHandler.handle(error, {
+        userId: user.id,
+        action: 'deleteEvent',
+        metadata: { eventId: event.id },
+      });
+    }
   };
 
   const shareEvent = () => {
@@ -661,15 +688,24 @@ export function EventDetailPage() {
           {/* Action Buttons Footer */}
           <div className="border-t bg-muted">
             <div className="flex divide-x divide-border">
-              {isOrganizer && (
-                <button
-                  onClick={() => navigate(`/signup/${eventId}/edit`)}
-                  className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </button>
-              )}
+              {isOrganizer &&
+                (isArchived ? (
+                  <button
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-destructive hover:bg-muted transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/signup/${eventId}/edit`)}
+                    className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </button>
+                ))}
               <button
                 onClick={shareEvent}
                 className="flex-1 flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
@@ -897,7 +933,7 @@ export function EventDetailPage() {
             submitting ||
             (isEventFull && !userRegistration)
           }
-          className={`w-full text-white shadow-lg ${
+          className={`w-full text-white shadow-lg drop-shadow-md ${
             isEventCompleted(event.datetime, event.end_datetime) ||
             (isEventFull && !userRegistration)
               ? 'bg-muted-foreground'
@@ -980,9 +1016,8 @@ export function EventDetailPage() {
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
           <DialogHeader>
             <DialogTitle>Withdraw from Event</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to withdraw from this event? This action cannot be undone and
-              you'll need to register again if you change your mind.
+            <DialogDescription className="text-xs text-left">
+              You'll need to register again if you change your mind.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-1.5 sm:flex-row">
@@ -1014,10 +1049,10 @@ export function EventDetailPage() {
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
           <DialogHeader>
             <DialogTitle>Remove Participant</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to remove{' '}
-              {withdrawingParticipant ? getDisplayName(withdrawingParticipant) : ''} from this
-              event? This will free up their spot for others to claim.
+            <DialogDescription className="text-xs text-left">
+              This will remove{' '}
+              {withdrawingParticipant ? getDisplayName(withdrawingParticipant) : ''} and free up
+              their spot.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-1.5 sm:flex-row">
@@ -1054,6 +1089,36 @@ export function EventDetailPage() {
               className="w-full sm:w-auto"
             >
               {submitting ? 'Removing...' : 'Remove'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Event Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Event</DialogTitle>
+            <DialogDescription className="text-xs text-left">
+              This will permanently delete this event and all its data.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-1.5 sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={submitting}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteEvent}
+              disabled={submitting}
+              className="w-full sm:w-auto"
+            >
+              Delete Event
             </Button>
           </DialogFooter>
         </DialogContent>

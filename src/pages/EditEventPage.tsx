@@ -476,9 +476,8 @@ export function EditEventPage() {
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Event</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this event? All participants and data will be
-              permanently removed. This action cannot be undone.
+            <DialogDescription className="text-xs text-left">
+              This will permanently delete this event and all its data.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row">

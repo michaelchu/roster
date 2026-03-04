@@ -317,11 +317,8 @@ export function RemoveMembersPage() {
             <DialogTitle>
               Remove {selectedCount} {selectedCount === 1 ? 'Member' : 'Members'}?
             </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to remove{' '}
-              {selectedCount === 1 ? 'this member' : 'these members'} from the group?{' '}
-              {selectedCount === 1 ? 'This member' : 'They'} can be re-added later from the Add
-              Members page.
+            <DialogDescription className="text-xs text-left">
+              {selectedCount === 1 ? 'This member' : 'These members'} can be re-added later.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row">

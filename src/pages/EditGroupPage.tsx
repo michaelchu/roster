@@ -300,9 +300,8 @@ export function EditGroupPage() {
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Group</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this group? This will also delete all events and
-              participant data. This action cannot be undone.
+            <DialogDescription className="text-xs text-left">
+              This will delete all events and participant data in this group.
             </DialogDescription>
           </DialogHeader>
 

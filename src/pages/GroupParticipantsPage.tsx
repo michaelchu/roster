@@ -355,9 +355,8 @@ export function GroupParticipantsPage() {
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
           <DialogHeader>
             <DialogTitle>Leave Group</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to leave this group? You will no longer have access to group
-              events and will need to be re-invited to rejoin.
+            <DialogDescription className="text-xs text-left">
+              You'll need to be re-invited to rejoin this group.
             </DialogDescription>
           </DialogHeader>
 
