@@ -33,7 +33,7 @@ export function InviteConfirmationPage() {
       if (!errorHandledRef.current) {
         errorHandledRef.current = true;
         errorHandler.handle(new Error('Invalid invite link'));
-        navigate('/');
+        navigate('/', { replace: true });
       }
       return;
     }
@@ -42,7 +42,7 @@ export function InviteConfirmationPage() {
       if (!errorHandledRef.current) {
         errorHandledRef.current = true;
         errorHandler.handle(new Error('Invalid invite type'));
-        navigate('/');
+        navigate('/', { replace: true });
       }
       return;
     }
@@ -68,7 +68,7 @@ export function InviteConfirmationPage() {
 
         // Auto-redirect logged-in users to the event detail page
         if (user) {
-          navigate(`/signup/${id}`);
+          navigate(`/signup/${id}`, { replace: true });
           return;
         }
       } else if (type === 'group') {
@@ -87,7 +87,7 @@ export function InviteConfirmationPage() {
               errorHandler.handle(joinErr, { action: 'auto-join group' });
             }
           }
-          navigate(`/groups/${id}`);
+          navigate(`/groups/${id}`, { replace: true });
           return;
         }
       }
@@ -96,7 +96,7 @@ export function InviteConfirmationPage() {
       if (!errorHandledRef.current) {
         errorHandledRef.current = true;
         errorHandler.handle(err, { action: 'load invite' });
-        navigate('/');
+        navigate('/', { replace: true });
       }
       setLoading(false);
       return;

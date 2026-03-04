@@ -61,7 +61,7 @@ export function ProfilePage() {
       } else {
         errorHandler.success('Profile updated successfully!');
       }
-      navigate('/settings');
+      navigate('/settings', { replace: true });
     } catch (error) {
       errorHandler.handle(error, {
         userId: user.id,

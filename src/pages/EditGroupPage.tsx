@@ -103,7 +103,7 @@ export function EditGroupPage() {
           });
           if (!cancelled) {
             setInitialLoading(false);
-            navigate('/groups');
+            navigate('/groups', { replace: true });
           }
           return;
         }
@@ -123,7 +123,7 @@ export function EditGroupPage() {
             action: 'loadGroupForEdit',
           });
           setInitialLoading(false);
-          navigate('/groups');
+          navigate('/groups', { replace: true });
         }
       }
     };
@@ -146,7 +146,7 @@ export function EditGroupPage() {
       });
 
       errorHandler.success('Group updated successfully!');
-      navigate(`/groups/${group.id}`);
+      navigate(`/groups/${group.id}`, { replace: true });
     } catch (error) {
       errorHandler.handle(error, {
         userId: user.id,
@@ -167,7 +167,7 @@ export function EditGroupPage() {
 
       // Close dialog before navigate to avoid setState on unmounted component
       setShowDeleteDialog(false);
-      navigate('/groups');
+      navigate('/groups', { replace: true });
     } catch (error) {
       errorHandler.handle(error, {
         userId: user.id,

@@ -43,6 +43,7 @@ interface EventData {
   is_paid: boolean;
   is_private: boolean | null;
   custom_fields: CustomField[];
+  group_id: string | null;
 }
 
 /**
@@ -120,7 +121,7 @@ export function EditEventPage() {
           userId: user.id,
           action: 'loadEventForEdit',
         });
-        navigate('/events');
+        navigate('/events', { replace: true });
         return;
       }
 
@@ -147,7 +148,7 @@ export function EditEventPage() {
         userId: user?.id,
         action: 'loadEventForEdit',
       });
-      navigate('/events');
+      navigate('/events', { replace: true });
     } finally {
       setInitialLoading(false);
     }
@@ -222,7 +223,7 @@ export function EditEventPage() {
       });
 
       errorHandler.success('Event updated successfully!');
-      navigate(`/signup/${event.id}`);
+      navigate(`/signup/${event.id}`, { replace: true });
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -254,7 +255,7 @@ export function EditEventPage() {
       await eventService.deleteEvent(event.id);
 
       errorHandler.success('Event deleted successfully');
-      navigate('/events');
+      navigate(event.group_id ? `/groups/${event.group_id}` : '/events', { replace: true });
     } catch (error) {
       errorHandler.handle(error, {
         userId: user.id,
@@ -271,7 +272,7 @@ export function EditEventPage() {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
     } else {
-      navigate('/events');
+      navigate(event?.group_id ? `/groups/${event.group_id}` : '/events');
     }
   };
 

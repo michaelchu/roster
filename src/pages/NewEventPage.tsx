@@ -262,7 +262,7 @@ export function NewEventPage() {
       }
 
       errorHandler.success(`Event "${eventData.name}" created successfully!`);
-      navigate(`/signup/${eventData.id}`);
+      navigate(`/signup/${eventData.id}`, { replace: true });
     } catch (error) {
       errorHandler.handle(error, {
         userId: user.id,
@@ -278,7 +278,7 @@ export function NewEventPage() {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
     } else {
-      navigate('/events');
+      navigate(groupIdFromParams ? `/groups/${groupIdFromParams}` : '/events');
     }
   };
 

@@ -66,7 +66,7 @@ export function GroupDetailPage() {
       return true;
     } catch (error) {
       errorHandler.handle(error, { action: 'load group' });
-      navigate('/groups');
+      navigate('/groups', { replace: true });
       return false;
     } finally {
       setGroupLoading(false);

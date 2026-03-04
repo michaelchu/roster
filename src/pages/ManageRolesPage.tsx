@@ -51,7 +51,7 @@ export function ManageRolesPage() {
           userId: user.id,
           action: 'loadManageRolesPage',
         });
-        navigate('/groups');
+        navigate('/groups', { replace: true });
         return;
       }
 
@@ -90,7 +90,7 @@ export function ManageRolesPage() {
         userId: user.id,
         action: 'loadManageRolesPage',
       });
-      navigate('/groups');
+      navigate('/groups', { replace: true });
     } finally {
       setInitialLoading(false);
     }

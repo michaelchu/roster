@@ -163,7 +163,7 @@ export function EventDetailPage() {
 
         // If not organizer and not participant, deny access
         if (!participantCheck) {
-          navigate('/');
+          navigate('/', { replace: true });
           return;
         }
       }
@@ -226,7 +226,7 @@ export function EventDetailPage() {
       if (!errorHandledRef.current) {
         errorHandledRef.current = true;
         errorHandler.handle(error, { userId: user?.id, action: 'load event' });
-        navigate('/events');
+        navigate('/events', { replace: true });
       }
       setLoading(false);
       return;

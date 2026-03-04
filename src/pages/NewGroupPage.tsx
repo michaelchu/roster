@@ -55,7 +55,7 @@ export function NewGroupPage() {
       });
 
       errorHandler.success('Group created successfully!');
-      navigate(`/groups/${group.id}`);
+      navigate(`/groups/${group.id}`, { replace: true });
     } catch (error) {
       errorHandler.handle(error, { userId: user?.id, action: 'create group' });
     }

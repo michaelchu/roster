@@ -56,7 +56,7 @@ export function RemoveMembersPage() {
           userId: user.id,
           action: 'loadRemoveMembersPage',
         });
-        navigate(`/groups/${groupId}/participants`);
+        navigate(`/groups/${groupId}/participants`, { replace: true });
         return;
       }
 
@@ -90,7 +90,7 @@ export function RemoveMembersPage() {
         userId: user.id,
         action: 'loadRemoveMembersPage',
       });
-      navigate(`/groups/${groupId}/participants`);
+      navigate(`/groups/${groupId}/participants`, { replace: true });
     } finally {
       setInitialLoading(false);
     }

@@ -61,7 +61,7 @@ export function GroupParticipantsPage() {
       return true;
     } catch (error) {
       errorHandler.handle(error, { action: 'load group' });
-      navigate('/groups');
+      navigate('/groups', { replace: true });
       return false;
     } finally {
       setGroupLoading(false);
@@ -107,7 +107,7 @@ export function GroupParticipantsPage() {
       await groupService.leaveGroup(groupId, user.id);
       errorHandler.success('You have left the group');
       setShowLeaveDialog(false);
-      navigate('/groups');
+      navigate('/groups', { replace: true });
     } catch (error) {
       errorHandler.handle(error, { action: 'leave group' });
     } finally {
