@@ -61,6 +61,9 @@ export function TopNav({
           )}
         >
           <span>Roster</span>
+          <span className="text-[10px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent -translate-y-1">
+            BETA
+          </span>
         </h1>
 
         {/* Right side - Notifications and/or Close button */}
