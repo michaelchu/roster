@@ -174,7 +174,7 @@ export function EventsPage() {
     events: Event[] | null,
     isLoading: boolean,
     showDuplicate: boolean,
-    emptyState?: { title: string; description: string },
+    emptyState?: { title: string; description: string; icon?: React.ReactNode },
     showPaymentStatus?: boolean
   ) => {
     if (isLoading) {
@@ -190,10 +190,22 @@ export function EventsPage() {
           : "You haven't joined any events yet");
 
       return (
-        <div className="bg-card rounded-lg p-3 border text-center">
-          <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h2 className="text-base font-medium mb-2">{title}</h2>
-          <p className="text-xs text-muted-foreground mb-4">{description}</p>
+        <div className="bg-card rounded-lg p-3 border">
+          {emptyState?.icon ? (
+            <>
+              <h2 className="text-base font-medium mb-2 flex items-center justify-center gap-2">
+                {title}
+                {emptyState.icon}
+              </h2>
+              <p className="text-xs text-muted-foreground mb-4">{description}</p>
+            </>
+          ) : (
+            <div className="text-center">
+              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <h2 className="text-base font-medium mb-2">{title}</h2>
+              <p className="text-xs text-muted-foreground mb-4">{description}</p>
+            </div>
+          )}
         </div>
       );
     }
@@ -301,9 +313,10 @@ export function EventsPage() {
             title: 'Welcome to Roster!',
             description:
               'Join an event using a link from your organizer, or create your own with the button below.',
+            icon: <span>🎉</span>,
           })}
           {(!joinedEvents || joinedEvents.length === 0) && !isLoadingJoined && (
-            <Alert className="border-violet-500/30 bg-violet-500/10">
+            <Alert className="border-violet-500/30 bg-violet-500/10 [&>svg]:text-violet-500">
               <Lightbulb className="h-4 w-4 text-violet-500" />
               <AlertTitle className="text-xs font-medium text-violet-700 dark:text-violet-300">
                 Tip
