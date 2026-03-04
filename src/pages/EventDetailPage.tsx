@@ -832,12 +832,14 @@ export function EventDetailPage() {
 
                   for (let slotNum = firstEmptySlot; slotNum <= event.max_participants; slotNum++) {
                     const isFirstEmptySlot = slotNum === firstEmptySlot;
-                    const canClaimSpot = canUserClaimSpot({
-                      hasUser: !!user,
-                      isOrganizer,
-                      isFirstEmptySlot,
-                      showGuestRegistration,
-                    });
+                    const canClaimSpot =
+                      !isArchived &&
+                      canUserClaimSpot({
+                        hasUser: !!user,
+                        isOrganizer,
+                        isFirstEmptySlot,
+                        showGuestRegistration,
+                      });
 
                     slots.push(
                       <EmptySlot
