@@ -268,7 +268,7 @@ export const eventService = {
   async duplicateEvent(
     eventId: string,
     organizerId: string,
-    overrides?: { datetime?: string | null; end_datetime?: string | null }
+    overrides?: { name?: string; datetime?: string | null; end_datetime?: string | null }
   ): Promise<Event> {
     await requireValidSession();
 
@@ -283,7 +283,7 @@ export const eventService = {
 
     const insertData: TablesInsert<'events'> = {
       organizer_id: organizerId,
-      name: `${original.name} (Copy)`,
+      name: overrides?.name || `${original.name} (Copy)`,
       description: original.description,
       datetime: overrides?.datetime !== undefined ? overrides.datetime : original.datetime,
       end_datetime:

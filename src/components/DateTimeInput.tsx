@@ -13,13 +13,21 @@ interface DateTimeInputProps {
   id?: string;
   className?: string;
   disabled?: boolean;
+  error?: boolean;
 }
 
 /**
  * DateTime picker with calendar popover and time input
  * Converts between datetime-local format (YYYY-MM-DDTHH:mm) and Date object
  */
-export function DateTimeInput({ value, onChange, id, className, disabled }: DateTimeInputProps) {
+export function DateTimeInput({
+  value,
+  onChange,
+  id,
+  className,
+  disabled,
+  error,
+}: DateTimeInputProps) {
   const [open, setOpen] = React.useState(false);
 
   // Parse datetime-local string to Date object
@@ -108,7 +116,8 @@ export function DateTimeInput({ value, onChange, id, className, disabled }: Date
             id={id}
             className={cn(
               'h-10 flex-1 justify-between font-normal',
-              !selectedDate && 'text-muted-foreground'
+              !selectedDate && 'text-muted-foreground',
+              error && 'border-destructive'
             )}
           >
             {selectedDate ? format(selectedDate, 'MM/dd/yyyy') : 'Select date'}
@@ -129,7 +138,10 @@ export function DateTimeInput({ value, onChange, id, className, disabled }: Date
         type="time"
         value={timeValue}
         onChange={handleTimeChange}
-        className="h-10 flex-1 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+        className={cn(
+          'h-10 flex-1 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none',
+          error && 'border-destructive'
+        )}
       />
     </div>
   );

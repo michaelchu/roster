@@ -328,7 +328,16 @@ export function NewEventPage() {
           label="Start Date & Time"
           value={formData.datetime || ''}
           isTbd={formData.datetimeTbd}
-          onValueChange={(value) => setValue('datetime', value)}
+          onValueChange={(value) => {
+            setValue('datetime', value);
+            if (
+              value &&
+              !formData.endDatetimeTbd &&
+              (!formData.end_datetime || value >= formData.end_datetime)
+            ) {
+              setValue('end_datetime', value);
+            }
+          }}
           onTbdChange={(isTbd, prevValue) => {
             if (isTbd) {
               setPreviousValues((prev) => ({ ...prev, datetime: prevValue }));
@@ -359,6 +368,13 @@ export function NewEventPage() {
             }
           }}
           type="datetime"
+          error={
+            !!(
+              formData.datetime &&
+              formData.end_datetime &&
+              formData.end_datetime <= formData.datetime
+            )
+          }
         />
 
         <TbdDateTimeField

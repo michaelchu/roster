@@ -12,6 +12,7 @@ interface TbdDateTimeFieldProps {
   onTbdChange: (isTbd: boolean, previousValue: string) => void;
   type: 'datetime' | 'text';
   placeholder?: string;
+  error?: boolean;
 }
 
 /**
@@ -27,6 +28,7 @@ export function TbdDateTimeField({
   onTbdChange,
   type,
   placeholder,
+  error,
 }: TbdDateTimeFieldProps) {
   return (
     <div className="space-y-2">
@@ -45,7 +47,13 @@ export function TbdDateTimeField({
         </label>
       </div>
       {type === 'datetime' ? (
-        <DateTimeInput id={id} value={value} onChange={onValueChange} disabled={isTbd} />
+        <DateTimeInput
+          id={id}
+          value={value}
+          onChange={onValueChange}
+          disabled={isTbd}
+          error={error}
+        />
       ) : (
         <Input
           id={id}

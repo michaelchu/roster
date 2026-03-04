@@ -116,12 +116,17 @@ export function EventsPage() {
     setDuplicatingEvent(event);
   };
 
-  const confirmDuplicate = async (datetime: string | null, endDatetime: string | null) => {
+  const confirmDuplicate = async (
+    name: string,
+    datetime: string | null,
+    endDatetime: string | null
+  ) => {
     if (!user || !duplicatingEvent) return;
 
     setDuplicatingEventId(duplicatingEvent.id);
     try {
       const result = await eventService.duplicateEvent(duplicatingEvent.id, user.id, {
+        name,
         datetime,
         end_datetime: endDatetime,
       });
