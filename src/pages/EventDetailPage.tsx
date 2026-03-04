@@ -107,6 +107,7 @@ export function EventDetailPage() {
     waived: 0,
   });
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
+  const [groupName, setGroupName] = useState<string | null>(null);
 
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
@@ -171,6 +172,18 @@ export function EventDetailPage() {
         ...eventData,
         custom_fields: eventData.custom_fields as CustomField[],
       });
+
+      // Load group name if event belongs to a group
+      if (eventData.group_id) {
+        const { data: groupData } = await supabase
+          .from('groups')
+          .select('name')
+          .eq('id', eventData.group_id)
+          .single();
+        setGroupName(groupData?.name || null);
+      } else {
+        setGroupName(null);
+      }
 
       // Load labels
       const labelsData = await labelService.getLabelsByEventId(eventId);
@@ -608,7 +621,10 @@ export function EventDetailPage() {
         <div className="bg-card rounded-lg border overflow-hidden">
           <div>
             {/* Event Name */}
-            <div className="text-lg font-semibold p-3 border-b border-border">{event.name}</div>
+            <div className="p-3 border-b border-border">
+              <div className="text-lg font-semibold">{event.name}</div>
+              {groupName && <p className="text-xs text-muted-foreground mt-0.5">{groupName}</p>}
+            </div>
 
             {/* Top row: Start and End times */}
             <div className="grid grid-cols-2 divide-x divide-border">

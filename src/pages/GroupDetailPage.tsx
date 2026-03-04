@@ -5,13 +5,20 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { Calendar, Users, Plus, UsersRound, Share2, Edit, Copy } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { groupService, eventService, type Group } from '@/services';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 import type { Tables } from '@/types/app.types';
-import { formatEventDateTime } from '@/lib/utils';
+import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
 
 interface GroupEvent extends Tables<'events'> {
   participant_count?: number;
@@ -25,6 +32,7 @@ export function GroupDetailPage() {
   const [groupLoading, setGroupLoading] = useState(true);
   const [memberCount, setMemberCount] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [eventFilter, setEventFilter] = useState<'active' | 'archived'>('active');
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
   const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
   const loadingRef = useRef(false);
@@ -233,73 +241,106 @@ export function GroupDetailPage() {
 
         {/* Events Section */}
         <div className="bg-card rounded-lg border overflow-hidden">
-          <div className="p-3 border-b bg-muted">
+          <div className="p-3 border-b bg-muted flex items-center justify-between">
             <h2 className="text-sm font-medium">Group Events</h2>
+            <Select
+              value={eventFilter}
+              onValueChange={(value) => setEventFilter(value as 'active' | 'archived')}
+            >
+              <SelectTrigger className="h-7 w-[100px] text-xs bg-background border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active" className="text-xs">
+                  Active
+                </SelectItem>
+                <SelectItem value="archived" className="text-xs">
+                  Archived
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {eventsLoading ? (
             <EventListSkeleton count={3} />
-          ) : !events || events.length === 0 ? (
+          ) : !events ||
+            events.filter((e) =>
+              eventFilter === 'active'
+                ? !isEventCompleted(e.datetime, e.end_datetime)
+                : isEventCompleted(e.datetime, e.end_datetime)
+            ).length === 0 ? (
             <div className="p-6 text-center">
               <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-              <h3 className="text-base font-medium mb-2">No Events Yet</h3>
+              <h3 className="text-base font-medium mb-2">
+                {eventFilter === 'active' ? 'No Active Events' : 'No Archived Events'}
+              </h3>
               <p className="text-xs text-muted-foreground">
-                Create your first event for this group
+                {eventFilter === 'active'
+                  ? 'Create your first event for this group'
+                  : 'Completed events will appear here'}
               </p>
             </div>
           ) : (
             <div className="divide-y">
-              {events.map((event) => (
-                <div key={event.id} className="relative">
-                  <button
-                    onClick={() => navigate(`/signup/${event.id}`)}
-                    className="w-full p-3 text-left hover:bg-muted transition-colors"
-                  >
-                    <div className="flex flex-col">
-                      <div className={`mb-3 ${isAdmin && isEventDuplicationEnabled ? 'pr-8' : ''}`}>
-                        <h3 className="text-sm font-semibold truncate">{event.name}</h3>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        {event.datetime && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{formatEventDateTime(event.datetime)}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            <span>{event.participant_count || 0} registered</span>
-                          </div>
-                          {event.is_private && (
-                            <Badge variant="outline" className="text-xs h-5">
-                              Private
-                            </Badge>
+              {events
+                .filter((e) =>
+                  eventFilter === 'active'
+                    ? !isEventCompleted(e.datetime, e.end_datetime)
+                    : isEventCompleted(e.datetime, e.end_datetime)
+                )
+                .map((event) => (
+                  <div key={event.id} className="relative">
+                    <button
+                      onClick={() => navigate(`/signup/${event.id}`)}
+                      className="w-full p-3 text-left hover:bg-muted transition-colors"
+                    >
+                      <div className="flex flex-col">
+                        <div
+                          className={`mb-3 ${isAdmin && isEventDuplicationEnabled ? 'pr-8' : ''}`}
+                        >
+                          <h3 className="text-sm font-semibold truncate">{event.name}</h3>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          {event.datetime && (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{formatEventDateTime(event.datetime)}</span>
+                            </div>
                           )}
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              <span>{event.participant_count || 0} registered</span>
+                            </div>
+                            {event.is_private && (
+                              <Badge variant="outline" className="text-xs h-5">
+                                Private
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </button>
-                  {isAdmin && isEventDuplicationEnabled && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-muted-foreground/10"
-                      disabled={duplicatingEventId === event.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        duplicateEvent(event);
-                      }}
-                    >
-                      {duplicatingEventId === event.id ? (
-                        <LoadingSpinner size="sm" />
-                      ) : (
-                        <Copy className="h-3 w-3" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-              ))}
+                    </button>
+                    {isAdmin && isEventDuplicationEnabled && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-muted-foreground/10"
+                        disabled={duplicatingEventId === event.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicateEvent(event);
+                        }}
+                      >
+                        {duplicatingEventId === event.id ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                ))}
             </div>
           )}
         </div>
