@@ -844,7 +844,7 @@ export function EventDetailPage() {
                     const isFirstEmptySlot = slotNum === firstEmptySlot;
                     const canClaimSpot = !!(
                       user &&
-                      userRegistration &&
+                      isOrganizer &&
                       isFirstEmptySlot &&
                       showGuestRegistration
                     );
