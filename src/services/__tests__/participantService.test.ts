@@ -105,7 +105,7 @@ describe('participantService', () => {
           payment_marked_at: null,
           payment_notes: null,
         },
-        { claimingUserId: 'user-1', claimingUserName: 'John' }
+        { claimingUserId: 'user-1' }
       );
 
       // Verify claimed spot has correct user relationships

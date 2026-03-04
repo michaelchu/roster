@@ -575,10 +575,6 @@ export function EventDetailPage() {
     return claimPattern.test(participant.name);
   };
 
-  const getClaimBadgeNumber = (_participant: Participant) => {
-    return null;
-  };
-
   const getDisplayName = (participant: Participant) => {
     // For linked users, prefer auth_full_name (current) over stored name (stale)
     if (participant.user_id && participant.auth_full_name) {
@@ -799,7 +795,7 @@ export function EventDetailPage() {
                       isOrganizer={isOrganizer}
                       isOrganizerItem={participant.user_id === event.organizer_id}
                       isOwnClaimedSpot={isClaimedSpot(participant)}
-                      claimNumber={getClaimBadgeNumber(participant)}
+                      claimNumber={null}
                       isPaid={effectiveIsPaid}
                       isArchived={isArchived}
                       showRegistrationForm={showRegistrationForm}
