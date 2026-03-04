@@ -745,7 +745,7 @@ export function EventDetailPage() {
         <Tabs defaultValue="participants" className="bg-card rounded-lg border overflow-hidden">
           <div className="p-3 border-b bg-muted flex items-center justify-between">
             {isOrganizer ? (
-              <TabsList className="h-8 p-0.5">
+              <TabsList className="h-8 p-0.5 bg-background border">
                 <TabsTrigger value="participants" className="h-7 px-3 text-xs">
                   Participants
                 </TabsTrigger>
@@ -759,7 +759,7 @@ export function EventDetailPage() {
             <Button
               size="sm"
               variant="ghost"
-              className={`h-7 px-2 border border-border rounded ${showSearchBar ? 'bg-muted' : ''}`}
+              className={`h-7 px-2 border border-border rounded bg-background ${showSearchBar ? '!bg-muted' : ''}`}
               onClick={() => setShowSearchBar(!showSearchBar)}
               disabled={participants.length === 0}
             >
