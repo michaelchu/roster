@@ -603,10 +603,6 @@ export function EventDetailPage() {
   };
 
   const getDisplayName = (participant: Participant) => {
-    // For claimed spots, show the current user's name
-    if (isClaimedSpot(participant)) {
-      return getUserDisplayName(user ?? null, user?.email || 'User');
-    }
     // For linked users, prefer auth_full_name (current) over stored name (stale)
     if (participant.user_id && participant.auth_full_name) {
       return participant.auth_full_name;

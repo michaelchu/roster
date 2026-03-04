@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
 import { UserAvatar } from '@/components/UserAvatar';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
-import { DollarSign, Trash2, UserX, UserPlus } from 'lucide-react';
+import { DollarSign, Trash2, UserPlus } from 'lucide-react';
 import type { Participant as ServiceParticipant, Label as LabelType } from '@/services';
 
 type Participant = ServiceParticipant & {
@@ -149,20 +149,6 @@ export function ParticipantListItem({
                   </Button>
                 )}
               </div>
-            )}
-            {isOwnClaimedSpot && !isArchived && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onWithdraw(participant);
-                }}
-                className="text-xs h-6 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-              >
-                <UserX className="h-3 w-3 mr-1" />
-                Withdraw
-              </Button>
             )}
           </div>
         </div>
