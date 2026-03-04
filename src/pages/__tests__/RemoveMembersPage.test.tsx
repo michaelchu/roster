@@ -161,7 +161,9 @@ describe('RemoveMembersPage', () => {
       render(<RemoveMembersPage />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/groups/group-123/participants');
+        expect(mockNavigate).toHaveBeenCalledWith('/groups/group-123/participants', {
+          replace: true,
+        });
       });
       expect(mockErrorHandler.handle).toHaveBeenCalled();
     });
@@ -185,7 +187,9 @@ describe('RemoveMembersPage', () => {
       render(<RemoveMembersPage />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/groups/group-123/participants');
+        expect(mockNavigate).toHaveBeenCalledWith('/groups/group-123/participants', {
+          replace: true,
+        });
       });
     });
   });

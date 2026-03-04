@@ -161,7 +161,7 @@ describe('ManageRolesPage', () => {
       render(<ManageRolesPage />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/groups');
+        expect(mockNavigate).toHaveBeenCalledWith('/groups', { replace: true });
       });
       expect(mockErrorHandler.handle).toHaveBeenCalled();
     });
@@ -397,7 +397,7 @@ describe('ManageRolesPage', () => {
       render(<ManageRolesPage />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/groups');
+        expect(mockNavigate).toHaveBeenCalledWith('/groups', { replace: true });
       });
       expect(mockErrorHandler.handle).toHaveBeenCalled();
     });
