@@ -238,12 +238,36 @@ export const newEventFormSchema = z.object({
   locationTbd: z.boolean(),
 });
 
+/** Schema for edit event form (extends new event with max_participants) */
+export const editEventFormSchema = newEventFormSchema.omit({ group_id: true }).extend({
+  max_participants: z
+    .number()
+    .int('Max participants must be a whole number')
+    .min(2, 'Must allow at least 2 participants')
+    .max(100, 'Maximum 100 participants allowed'),
+});
+
+/** Schema for signup form validation */
+export const signupFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Name is required')
+    .max(100, 'Name must be less than 100 characters')
+    .trim(),
+  email: z.string().email('Invalid email format').or(z.literal('')),
+  phone: z.string().max(20, 'Phone number must be less than 20 characters'),
+  notes: z.string().max(1000, 'Notes must be less than 1000 characters'),
+  responses: z.record(z.string(), z.string()),
+});
+
 // Type exports
 export type ProfileFormData = z.infer<typeof profileFormSchema>;
 export type GroupFormData = z.infer<typeof groupFormSchema>;
 export type LoginFormData = z.infer<typeof loginFormSchema>;
 export type RegisterFormData = z.infer<typeof registerFormSchema>;
 export type NewEventFormData = z.infer<typeof newEventFormSchema>;
+export type EditEventFormData = z.infer<typeof editEventFormSchema>;
+export type SignupFormData = z.infer<typeof signupFormSchema>;
 export type CustomField = z.infer<typeof customFieldSchema>;
 export type ResponseRecord = z.infer<typeof responseRecordSchema>;
 export type Event = z.infer<typeof eventSchema>;

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +21,8 @@ import { Trash2, Save } from 'lucide-react';
 import { FullScreenDrawer } from '@/components/ui/full-screen-drawer';
 import { eventService } from '@/services';
 import { errorHandler, ValidationError } from '@/lib/errorHandler';
+import { showFormErrors } from '@/lib/formUtils';
+import { editEventFormSchema, type EditEventFormData } from '@/lib/validation';
 import { EditEventPageSkeleton } from '@/components/EditEventPageSkeleton';
 import { MaxParticipantsInput } from '@/components/MaxParticipantsInput';
 import { toLocalInputValue, fromLocalInputValue } from '@/lib/utils';
@@ -60,21 +64,36 @@ export function EditEventPage() {
   const showRegistrationForm = useFeatureFlag('registration_form');
   const [initialLoading, setInitialLoading] = useState(true);
   const [event, setEvent] = useState<EventData | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    datetime: '',
-    end_datetime: '',
-    location: '',
-    is_paid: true,
-    is_private: false,
-    datetimeTbd: false,
-    endDatetimeTbd: false,
-    locationTbd: false,
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm<EditEventFormData>({
+    resolver: zodResolver(editEventFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      datetime: '',
+      end_datetime: '',
+      location: '',
+      is_paid: true,
+      is_private: false,
+      datetimeTbd: false,
+      endDatetimeTbd: false,
+      locationTbd: false,
+      max_participants: 10,
+    },
   });
+
+  const formData = watch();
+
   const { customFields, addCustomField, updateCustomField, removeCustomField, resetCustomFields } =
     useCustomFields();
-  const [maxParticipants, setMaxParticipants] = useState<number>(10);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   // Store previous values when TBD is checked so we can restore them
   const [previousValues, setPreviousValues] = useState({
@@ -109,7 +128,7 @@ export function EditEventPage() {
         ...data,
         custom_fields: data.custom_fields || [],
       });
-      setFormData({
+      reset({
         name: data.name,
         description: data.description || '',
         datetime: data.datetime ? toLocalInputValue(data.datetime) : '',
@@ -120,9 +139,9 @@ export function EditEventPage() {
         datetimeTbd: !data.datetime,
         endDatetimeTbd: !data.end_datetime,
         locationTbd: !data.location,
+        max_participants: data.max_participants || 10,
       });
       resetCustomFields(data.custom_fields || []);
-      setMaxParticipants(data.max_participants || 10);
     } catch (error) {
       errorHandler.handle(error, {
         userId: user?.id,
@@ -134,25 +153,13 @@ export function EditEventPage() {
     }
   };
 
-  const saveChanges = async () => {
+  const onSubmit = async (data: EditEventFormData) => {
     if (!event || !user) return;
-
-    // Validate event name
-    if (!formData.name.trim()) {
-      errorHandler.handle(
-        new ValidationError('Event name validation failed', 'Event name is required'),
-        {
-          userId: user.id,
-          action: 'validateEventName',
-        }
-      );
-      return;
-    }
 
     // Client-side validation for past dates
     const now = new Date();
-    if (formData.datetime) {
-      const startDate = new Date(formData.datetime);
+    if (data.datetime) {
+      const startDate = new Date(data.datetime);
       if (startDate < now) {
         errorHandler.handle(
           new ValidationError('Start date validation failed', 'Start date cannot be in the past'),
@@ -165,8 +172,8 @@ export function EditEventPage() {
       }
     }
 
-    if (formData.end_datetime) {
-      const endDate = new Date(formData.end_datetime);
+    if (data.end_datetime) {
+      const endDate = new Date(data.end_datetime);
       if (endDate < now) {
         errorHandler.handle(
           new ValidationError('End date validation failed', 'End date cannot be in the past'),
@@ -180,9 +187,9 @@ export function EditEventPage() {
     }
 
     // Client-side validation for end date
-    if (formData.datetime && formData.end_datetime) {
-      const startDate = new Date(formData.datetime);
-      const endDate = new Date(formData.end_datetime);
+    if (data.datetime && data.end_datetime) {
+      const startDate = new Date(data.datetime);
+      const endDate = new Date(data.end_datetime);
       if (endDate <= startDate) {
         errorHandler.handle(
           new ValidationError('Date range validation failed', 'End date must be after start date'),
@@ -198,14 +205,14 @@ export function EditEventPage() {
     setLoading(true);
     try {
       await eventService.updateEvent(event.id, {
-        name: formData.name,
-        description: formData.description || null,
-        datetime: formData.datetime ? fromLocalInputValue(formData.datetime) : null,
-        end_datetime: formData.end_datetime ? fromLocalInputValue(formData.end_datetime) : null,
-        location: formData.location || null,
-        max_participants: maxParticipants,
-        is_paid: formData.is_paid,
-        is_private: formData.is_private,
+        name: data.name,
+        description: data.description || null,
+        datetime: data.datetime ? fromLocalInputValue(data.datetime) : null,
+        end_datetime: data.end_datetime ? fromLocalInputValue(data.end_datetime) : null,
+        location: data.location || null,
+        max_participants: data.max_participants,
+        is_paid: data.is_paid,
+        is_private: data.is_private,
         custom_fields: customFields
           .filter((f) => f.label)
           .map((f) => ({
@@ -293,7 +300,10 @@ export function EditEventPage() {
 
   return (
     <FullScreenDrawer open={true} onOpenChange={(open) => !open && handleClose()}>
-      <div className="flex-1 overflow-y-auto p-3 space-y-4 bg-background">
+      <form
+        onSubmit={handleSubmit(onSubmit, showFormErrors)}
+        className="flex-1 overflow-y-auto p-3 space-y-4 bg-background"
+      >
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm">
             Event Name *
@@ -301,12 +311,11 @@ export function EditEventPage() {
           <Input
             id="name"
             type="text"
-            value={formData.name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-            required
-            className="h-10 text-sm"
+            {...register('name')}
+            className={`h-10 text-sm ${errors.name ? 'border-destructive' : ''}`}
             autoComplete="off"
           />
+          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
         </div>
 
         <div className="space-y-2">
@@ -315,13 +324,7 @@ export function EditEventPage() {
           </Label>
           <Textarea
             id="description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
+            {...register('description')}
             className="text-sm resize-none"
             rows={3}
           />
@@ -332,19 +335,17 @@ export function EditEventPage() {
         <TbdDateTimeField
           id="datetime"
           label="Start Date & Time"
-          value={formData.datetime}
+          value={formData.datetime || ''}
           isTbd={formData.datetimeTbd}
-          onValueChange={(value) => setFormData((prev) => ({ ...prev, datetime: value }))}
+          onValueChange={(value) => setValue('datetime', value)}
           onTbdChange={(isTbd, prevValue) => {
             if (isTbd) {
               setPreviousValues((prev) => ({ ...prev, datetime: prevValue }));
-              setFormData((prev) => ({ ...prev, datetimeTbd: true, datetime: '' }));
+              setValue('datetimeTbd', true);
+              setValue('datetime', '');
             } else {
-              setFormData((prev) => ({
-                ...prev,
-                datetimeTbd: false,
-                datetime: previousValues.datetime,
-              }));
+              setValue('datetimeTbd', false);
+              setValue('datetime', previousValues.datetime);
             }
           }}
           type="datetime"
@@ -353,19 +354,17 @@ export function EditEventPage() {
         <TbdDateTimeField
           id="end_datetime"
           label="End Date & Time"
-          value={formData.end_datetime}
+          value={formData.end_datetime || ''}
           isTbd={formData.endDatetimeTbd}
-          onValueChange={(value) => setFormData((prev) => ({ ...prev, end_datetime: value }))}
+          onValueChange={(value) => setValue('end_datetime', value)}
           onTbdChange={(isTbd, prevValue) => {
             if (isTbd) {
               setPreviousValues((prev) => ({ ...prev, end_datetime: prevValue }));
-              setFormData((prev) => ({ ...prev, endDatetimeTbd: true, end_datetime: '' }));
+              setValue('endDatetimeTbd', true);
+              setValue('end_datetime', '');
             } else {
-              setFormData((prev) => ({
-                ...prev,
-                endDatetimeTbd: false,
-                end_datetime: previousValues.end_datetime,
-              }));
+              setValue('endDatetimeTbd', false);
+              setValue('end_datetime', previousValues.end_datetime);
             }
           }}
           type="datetime"
@@ -374,19 +373,17 @@ export function EditEventPage() {
         <TbdDateTimeField
           id="location"
           label="Location"
-          value={formData.location}
+          value={formData.location || ''}
           isTbd={formData.locationTbd}
-          onValueChange={(value) => setFormData((prev) => ({ ...prev, location: value }))}
+          onValueChange={(value) => setValue('location', value)}
           onTbdChange={(isTbd, prevValue) => {
             if (isTbd) {
               setPreviousValues((prev) => ({ ...prev, location: prevValue }));
-              setFormData((prev) => ({ ...prev, locationTbd: true, location: '' }));
+              setValue('locationTbd', true);
+              setValue('location', '');
             } else {
-              setFormData((prev) => ({
-                ...prev,
-                locationTbd: false,
-                location: previousValues.location,
-              }));
+              setValue('locationTbd', false);
+              setValue('location', previousValues.location);
             }
           }}
           type="text"
@@ -394,15 +391,21 @@ export function EditEventPage() {
 
         <div className="border-t" />
 
-        <MaxParticipantsInput value={maxParticipants} onChange={setMaxParticipants} />
+        <Controller
+          name="max_participants"
+          control={control}
+          render={({ field }) => (
+            <MaxParticipantsInput value={field.value} onChange={field.onChange} />
+          )}
+        />
 
         <div className="flex items-center space-x-2">
-          <Checkbox
-            id="is_paid"
-            checked={formData.is_paid}
-            onCheckedChange={(checked) =>
-              setFormData((prev) => ({ ...prev, is_paid: checked === true }))
-            }
+          <Controller
+            name="is_paid"
+            control={control}
+            render={({ field }) => (
+              <Checkbox id="is_paid" checked={field.value} onCheckedChange={field.onChange} />
+            )}
           />
           <label htmlFor="is_paid" className="text-sm cursor-pointer">
             Paid event
@@ -412,7 +415,7 @@ export function EditEventPage() {
         {showEventPrivacy && (
           <PrivacyToggle
             isPrivate={formData.is_private}
-            onChange={(isPrivate) => setFormData((prev) => ({ ...prev, is_private: isPrivate }))}
+            onChange={(isPrivate) => setValue('is_private', isPrivate)}
           />
         )}
 
@@ -430,6 +433,7 @@ export function EditEventPage() {
 
         {/* Delete Event Button */}
         <Button
+          type="button"
           variant="outline"
           className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={() => setShowDeleteDialog(true)}
@@ -441,14 +445,14 @@ export function EditEventPage() {
 
         {/* Save Changes Button */}
         <Button
-          onClick={saveChanges}
+          type="submit"
           disabled={loading}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
         >
           <Save className="h-4 w-4 mr-2" />
           {loading ? 'Saving...' : 'Save Changes'}
         </Button>
-      </div>
+      </form>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

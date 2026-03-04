@@ -35,7 +35,7 @@ import {
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { ParticipantListItem, EmptySlot } from '@/components/ParticipantListItem';
 import { ParticipantDetailsSheet } from '@/components/ParticipantDetailsSheet';
-import { SignupFormDrawer } from '@/components/SignupFormDrawer';
+import { SignupFormDrawer, type SignupFormData } from '@/components/SignupFormDrawer';
 
 type Participant = ServiceParticipant & {
   notes?: string | null;
@@ -87,12 +87,12 @@ export function EventDetailPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [showSignupDrawer, setShowSignupDrawer] = useState(false);
-  const [signupForm, setSignupForm] = useState({
+  const [signupDefaultValues, setSignupDefaultValues] = useState<SignupFormData>({
     name: '',
     email: '',
     phone: '',
     notes: '',
-    responses: {} as Record<string, string>,
+    responses: {},
   });
   const [submitting, setSubmitting] = useState(false);
   const [userRegistration, setUserRegistration] = useState<Participant | null>(null);
@@ -361,7 +361,7 @@ export function EventDetailPage() {
 
     if (isClaiming) {
       // Reset form for claiming a new spot for someone else
-      setSignupForm({
+      setSignupDefaultValues({
         name: '',
         email: '',
         phone: '',
@@ -370,7 +370,7 @@ export function EventDetailPage() {
       });
     } else if (userRegistration) {
       // Pre-fill form with existing registration data
-      setSignupForm({
+      setSignupDefaultValues({
         name: userRegistration.name || '',
         email: userRegistration.email || '',
         phone: userRegistration.phone || '',
@@ -386,7 +386,7 @@ export function EventDetailPage() {
     } else {
       // Reset form for new registration
       // Prepopulate name with user's display name if available
-      setSignupForm({
+      setSignupDefaultValues({
         name: getUserDisplayName(user ?? null, ''),
         email: user?.email || '',
         phone: user?.user_metadata?.phone || '',
@@ -435,9 +435,7 @@ export function EventDetailPage() {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSignup = async (data: SignupFormData) => {
     if (!event) return;
 
     setSubmitting(true);
@@ -446,11 +444,11 @@ export function EventDetailPage() {
       if (userRegistration && !isClaimingForOther) {
         // Update existing registration (only when not claiming for others)
         await participantService.updateParticipant(userRegistration.id, {
-          name: signupForm.name,
-          email: signupForm.email,
-          phone: signupForm.phone,
-          notes: signupForm.notes,
-          responses: signupForm.responses,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          notes: data.notes,
+          responses: data.responses,
         });
       } else {
         // Create new registration
@@ -458,11 +456,11 @@ export function EventDetailPage() {
           // Creating a participant for someone else (claimed spot)
           const participantData = {
             event_id: event.id,
-            name: signupForm.name, // Could be empty for quick claims
-            email: signupForm.email,
-            phone: signupForm.phone,
-            notes: signupForm.notes,
-            responses: signupForm.responses,
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            notes: data.notes,
+            responses: data.responses,
             user_id: null, // Will be set by service based on claiming options
             claimed_by_user_id: null, // Will be set by the service
             payment_status: 'pending' as const,
@@ -470,8 +468,6 @@ export function EventDetailPage() {
             payment_notes: null,
           };
           const claimingOptions = {
-            // Don't pass targetSlotNumber - let database assign next available slot
-            // targetSlotNumber: claimingSlotNumber || undefined,
             claimingUserId: user?.id,
             claimingUserEmail: user?.email || undefined,
           };
@@ -481,11 +477,11 @@ export function EventDetailPage() {
           // Creating their own registration
           await participantService.createParticipant({
             event_id: event.id,
-            name: signupForm.name,
-            email: signupForm.email,
-            phone: signupForm.phone,
-            notes: signupForm.notes,
-            responses: signupForm.responses,
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            notes: data.notes,
+            responses: data.responses,
             user_id: user?.id || null,
             claimed_by_user_id: null,
             payment_status: 'pending' as const,
@@ -495,14 +491,7 @@ export function EventDetailPage() {
         }
       }
 
-      // Reset form and close drawer
-      setSignupForm({
-        name: '',
-        email: '',
-        phone: '',
-        notes: '',
-        responses: {},
-      });
+      // Close drawer
       setShowSignupDrawer(false);
       setIsClaimingForOther(false);
 
@@ -539,14 +528,7 @@ export function EventDetailPage() {
     try {
       await participantService.deleteParticipant(userRegistration.id);
 
-      // Reset form and close drawer
-      setSignupForm({
-        name: '',
-        email: '',
-        phone: '',
-        notes: '',
-        responses: {},
-      });
+      // Close drawer
       setShowSignupDrawer(false);
       setShowWithdrawDialog(false);
       setIsClaimingForOther(false);
@@ -567,7 +549,8 @@ export function EventDetailPage() {
       return;
     }
 
-    setSignupForm((prev) => ({
+    // Update defaultValues to trigger a form reset with profile data
+    setSignupDefaultValues((prev) => ({
       ...prev,
       name: getUserDisplayName(user, '') || prev.name,
       email: user.email || prev.email,
@@ -956,8 +939,7 @@ export function EventDetailPage() {
           }
           setShowSignupDrawer(open);
         }}
-        formData={signupForm}
-        onFormChange={(updates) => setSignupForm((prev) => ({ ...prev, ...updates }))}
+        defaultValues={signupDefaultValues}
         customFields={event?.custom_fields || []}
         isClaimingForOther={isClaimingForOther}
         hasExistingRegistration={!!userRegistration}

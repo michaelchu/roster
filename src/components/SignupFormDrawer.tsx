@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,26 +15,21 @@ import {
 } from '@/components/ui/select';
 import { FormDrawer } from '@/components/FormDrawer';
 import { Zap, UserPlus, UserCheck, UserX } from 'lucide-react';
+import { signupFormSchema, type SignupFormData } from '@/lib/validation';
+import { showFormErrors } from '@/lib/formUtils';
 import type { CustomField } from '@/types/app.types';
 
-export interface SignupFormData {
-  name: string;
-  email: string;
-  phone: string;
-  notes: string;
-  responses: Record<string, string>;
-}
+export type { SignupFormData };
 
 interface SignupFormDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  formData: SignupFormData;
-  onFormChange: (updates: Partial<SignupFormData>) => void;
+  defaultValues: SignupFormData;
   customFields: CustomField[];
   isClaimingForOther: boolean;
   hasExistingRegistration: boolean;
   submitting: boolean;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (data: SignupFormData) => void;
   onWithdraw: () => void;
   onQuickFill: () => void;
 }
@@ -43,8 +41,7 @@ interface SignupFormDrawerProps {
 export function SignupFormDrawer({
   open,
   onOpenChange,
-  formData,
-  onFormChange,
+  defaultValues,
   customFields,
   isClaimingForOther,
   hasExistingRegistration,
@@ -53,12 +50,31 @@ export function SignupFormDrawer({
   onWithdraw,
   onQuickFill,
 }: SignupFormDrawerProps) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupFormSchema),
+    defaultValues,
+  });
+
+  const responses = watch('responses');
+
+  // Reset form when drawer opens or defaultValues change
+  useEffect(() => {
+    if (open) {
+      reset(defaultValues);
+    }
+  }, [open, defaultValues, reset]);
+
   const handleResponseChange = (fieldId: string, value: string) => {
-    onFormChange({
-      responses: {
-        ...formData.responses,
-        [fieldId]: value,
-      },
+    setValue('responses', {
+      ...responses,
+      [fieldId]: value,
     });
   };
 
@@ -124,7 +140,11 @@ export function SignupFormDrawer({
         </div>
       }
     >
-      <form id="signup-form" onSubmit={onSubmit} className="space-y-2 pt-3 pb-3">
+      <form
+        id="signup-form"
+        onSubmit={handleSubmit(onSubmit, showFormErrors)}
+        className="space-y-2 pt-3 pb-3"
+      >
         <Tabs defaultValue="registration" className="w-full">
           <TabsList className="w-full h-10">
             <TabsTrigger value="registration" className="flex-1">
@@ -142,12 +162,11 @@ export function SignupFormDrawer({
               <Input
                 id="signup-name"
                 type="text"
-                value={formData.name}
-                onChange={(e) => onFormChange({ name: e.target.value })}
-                required
+                {...register('name')}
                 autoComplete="off"
-                className="h-9 text-sm"
+                className={`h-9 text-sm ${errors.name ? 'border-destructive' : ''}`}
               />
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-1.5">
@@ -157,11 +176,11 @@ export function SignupFormDrawer({
               <Input
                 id="signup-email"
                 type="email"
-                value={formData.email}
-                onChange={(e) => onFormChange({ email: e.target.value })}
+                {...register('email')}
                 autoComplete="off"
-                className="h-9 text-sm"
+                className={`h-9 text-sm ${errors.email ? 'border-destructive' : ''}`}
               />
+              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1.5">
@@ -171,10 +190,9 @@ export function SignupFormDrawer({
               <Input
                 id="signup-phone"
                 type="tel"
-                value={formData.phone}
-                onChange={(e) => onFormChange({ phone: e.target.value })}
+                {...register('phone')}
                 autoComplete="off"
-                className="h-9 text-sm"
+                className={`h-9 text-sm ${errors.phone ? 'border-destructive' : ''}`}
               />
             </div>
 
@@ -188,7 +206,7 @@ export function SignupFormDrawer({
                     </Label>
                     {field.type === 'select' && field.options ? (
                       <Select
-                        value={formData.responses[field.id || ''] || ''}
+                        value={responses[field.id || ''] || ''}
                         onValueChange={(value) => handleResponseChange(field.id || '', value)}
                       >
                         <SelectTrigger className="h-9 text-sm">
@@ -206,7 +224,7 @@ export function SignupFormDrawer({
                       <Input
                         id={`signup-${field.id}`}
                         type={field.type}
-                        value={formData.responses[field.id || ''] || ''}
+                        value={responses[field.id || ''] || ''}
                         onChange={(e) => handleResponseChange(field.id || '', e.target.value)}
                         required={field.required}
                         autoComplete="off"
@@ -226,8 +244,7 @@ export function SignupFormDrawer({
               </Label>
               <Textarea
                 id="signup-notes"
-                value={formData.notes}
-                onChange={(e) => onFormChange({ notes: e.target.value })}
+                {...register('notes')}
                 placeholder="Any additional notes or comments..."
                 className="min-h-[300px] text-sm"
               />
