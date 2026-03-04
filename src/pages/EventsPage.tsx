@@ -10,7 +10,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Calendar, Users, Copy, CheckCircle, Clock } from 'lucide-react';
+import {
+  Plus,
+  Calendar,
+  Users,
+  Copy,
+  CheckCircle,
+  Clock,
+  Smartphone,
+  Lightbulb,
+} from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { TopNav } from '@/components/TopNav';
 import { eventService, participantService, type Event } from '@/services';
 import { errorHandler } from '@/lib/errorHandler';
@@ -287,7 +297,23 @@ export function EventsPage() {
           </div>
         </div>
         <TabsContent value="joined" className="p-3 space-y-3 mt-0">
-          {renderEventList(joinedEvents, isLoadingJoined, false)}
+          {renderEventList(joinedEvents, isLoadingJoined, false, {
+            title: 'Welcome to Roster!',
+            description:
+              'Join an event using a link from your organizer, or create your own with the button below.',
+          })}
+          {(!joinedEvents || joinedEvents.length === 0) && !isLoadingJoined && (
+            <Alert className="border-violet-500/30 bg-violet-500/10">
+              <Lightbulb className="h-4 w-4 text-violet-500" />
+              <AlertTitle className="text-xs font-medium text-violet-700 dark:text-violet-300">
+                Tip
+              </AlertTitle>
+              <AlertDescription className="text-xs text-violet-700 dark:text-violet-300">
+                Add Roster to your home screen for quick access — tap the share button in your
+                browser and select "Add to Home Screen".
+              </AlertDescription>
+            </Alert>
+          )}
         </TabsContent>
 
         <TabsContent value="organizing" className="p-3 space-y-3 mt-0 pb-24">
