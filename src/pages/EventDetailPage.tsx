@@ -26,7 +26,12 @@ import type { CustomField } from '@/types/app.types';
 import { Users, Share2, Download, Search, Edit, UserPlus, UserCheck, UserX } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { EventActivityTimeline } from '@/components/EventActivityTimeline';
-import { formatEventDateTime, isEventCompleted, getUserDisplayName } from '@/lib/utils';
+import {
+  formatEventDateTime,
+  isEventCompleted,
+  getUserDisplayName,
+  canUserClaimSpot,
+} from '@/lib/utils';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { ParticipantListItem, EmptySlot } from '@/components/ParticipantListItem';
 import { ParticipantDetailsSheet } from '@/components/ParticipantDetailsSheet';
@@ -590,18 +595,13 @@ export function EventDetailPage() {
 
   const getClaimBadgeNumber = (participant: Participant) => {
     if (!isClaimedSpot(participant)) return null;
-    const userName = getUserDisplayName(user ?? null, user?.email || 'User');
-    const match = participant.name.match(
-      new RegExp(`^${userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - (\\d+)$`)
-    );
-    return match ? match[1] : null;
+    // Count this participant's position among all claimed spots by the same user
+    const claimedSpots = participants.filter((p) => isClaimedSpot(p));
+    const index = claimedSpots.findIndex((p) => p.id === participant.id);
+    return index >= 0 ? String(index + 1) : null;
   };
 
   const getDisplayName = (participant: Participant) => {
-    // For claimed spots, show the current user's name
-    if (isClaimedSpot(participant)) {
-      return getUserDisplayName(user ?? null, user?.email || 'User');
-    }
     // For linked users, prefer auth_full_name (current) over stored name (stale)
     if (participant.user_id && participant.auth_full_name) {
       return participant.auth_full_name;
@@ -842,12 +842,12 @@ export function EventDetailPage() {
 
                   for (let slotNum = firstEmptySlot; slotNum <= event.max_participants; slotNum++) {
                     const isFirstEmptySlot = slotNum === firstEmptySlot;
-                    const canClaimSpot = !!(
-                      user &&
-                      userRegistration &&
-                      isFirstEmptySlot &&
-                      showGuestRegistration
-                    );
+                    const canClaimSpot = canUserClaimSpot({
+                      hasUser: !!user,
+                      isOrganizer,
+                      isFirstEmptySlot,
+                      showGuestRegistration,
+                    });
 
                     slots.push(
                       <EmptySlot

@@ -48,38 +48,13 @@ function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Part
 }
 
 /**
- * Generates a unique claim name for a user registering multiple spots.
- * Format: "UserName - N" where N increments for each additional claim.
- * @param userId - UUID of the user claiming spots
- * @param eventId - UUID of the event
- * @param userName - Display name of the user
- * @returns Generated claim name (e.g., "John Doe - 2")
+ * Generates a default claim name when no name is provided.
+ * Returns the plain user name — the UI shows a +N badge separately.
+ * @param userName - Display name of the user claiming spots
+ * @returns The trimmed user name or 'Guest' as fallback
  */
-async function generateClaimName(
-  userId: string,
-  eventId: string,
-  userName: string
-): Promise<string> {
-  const safeName = userName?.trim() || 'User';
-
-  const { data: existingClaims } = await supabase
-    .from('participants')
-    .select('name')
-    .eq('event_id', eventId)
-    .eq('user_id', userId);
-
-  if (!existingClaims) return `${safeName} - 1`;
-
-  const claimPattern = new RegExp(`^${safeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - (\\d+)$`);
-  const claimNumbers = existingClaims
-    .map((p) => {
-      const match = p.name?.match(claimPattern);
-      return match ? parseInt(match[1], 10) : 0;
-    })
-    .filter((num) => num > 0);
-
-  const nextClaimNumber = claimNumbers.length > 0 ? Math.max(...claimNumbers) + 1 : 1;
-  return `${safeName} - ${nextClaimNumber}`;
+function generateClaimName(userName: string): string {
+  return userName?.trim() || 'Guest';
 }
 
 /** Helper to get event info needed for notifications */
@@ -208,20 +183,12 @@ export const participantService = {
   ): Promise<Participant> {
     let finalName = participant.name?.trim();
 
-    if (!finalName && options?.claimingUserId && options?.claimingUserName) {
-      finalName = await generateClaimName(
-        options.claimingUserId,
-        participant.event_id,
-        options.claimingUserName
-      );
+    if (!finalName && options?.claimingUserName) {
+      finalName = generateClaimName(options.claimingUserName);
     }
 
     if (!finalName || finalName.trim().length === 0) {
-      if (options?.claimingUserName) {
-        finalName = `${options.claimingUserName} - Guest`;
-      } else {
-        finalName = 'Guest';
-      }
+      finalName = 'Guest';
     }
 
     let finalEmail = participant.email || null;
