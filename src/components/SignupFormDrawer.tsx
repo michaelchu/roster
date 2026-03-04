@@ -137,17 +137,16 @@ export function SignupFormDrawer({
           <TabsContent value="registration" className="space-y-2 mt-2">
             <div className="space-y-1.5">
               <Label htmlFor="signup-name" className="text-xs">
-                Name {!isClaimingForOther && '*'}
+                Name *
               </Label>
               <Input
                 id="signup-name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => onFormChange({ name: e.target.value })}
-                required={!isClaimingForOther}
+                required
                 autoComplete="off"
                 className="h-9 text-sm"
-                placeholder={isClaimingForOther ? 'Leave empty to claim under your name' : ''}
               />
             </div>
 

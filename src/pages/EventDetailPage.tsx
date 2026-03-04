@@ -473,7 +473,6 @@ export function EventDetailPage() {
             // Don't pass targetSlotNumber - let database assign next available slot
             // targetSlotNumber: claimingSlotNumber || undefined,
             claimingUserId: user?.id,
-            claimingUserName: getUserDisplayName(user ?? null, user?.email || 'User'),
             claimingUserEmail: user?.email || undefined,
           };
 
@@ -593,17 +592,8 @@ export function EventDetailPage() {
     return claimPattern.test(participant.name);
   };
 
-  const getClaimBadgeNumber = (participant: Participant) => {
-    if (!isClaimedSpot(participant)) return null;
-    // Named claims (organizer typed a real name) don't get a badge — they get a row highlight instead
-    const userName = getUserDisplayName(user!, user!.email || 'User');
-    if (getDisplayName(participant) !== userName) return null;
-    // Count this participant's position among unnamed claimed spots only
-    const unnamedClaimedSpots = participants.filter(
-      (p) => isClaimedSpot(p) && getDisplayName(p) === userName
-    );
-    const index = unnamedClaimedSpots.findIndex((p) => p.id === participant.id);
-    return index >= 0 ? String(index + 1) : null;
+  const getClaimBadgeNumber = (_participant: Participant) => {
+    return null;
   };
 
   const getDisplayName = (participant: Participant) => {

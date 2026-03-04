@@ -47,16 +47,6 @@ function dbParticipantToParticipant(dbParticipant: Tables<'participants'>): Part
   };
 }
 
-/**
- * Generates a default claim name when no name is provided.
- * Returns the plain user name — the UI shows a +N badge separately.
- * @param userName - Display name of the user claiming spots
- * @returns The trimmed user name or 'Guest' as fallback
- */
-function generateClaimName(userName: string): string {
-  return userName?.trim() || 'Guest';
-}
-
 /** Helper to get event info needed for notifications */
 async function getEventInfo(eventId: string): Promise<{
   id: string;
@@ -168,7 +158,6 @@ export const participantService = {
    * @param participant - Participant data without id, created_at, or labels
    * @param options - Optional claiming options for registering on behalf of others
    * @param options.claimingUserId - UUID of user claiming the spot (sets claimed_by_user_id)
-   * @param options.claimingUserName - Name for generating claim names
    * @param options.claimingUserEmail - Email for claimed spots
    * @returns The created participant
    * @throws Error if insertion fails
@@ -177,19 +166,10 @@ export const participantService = {
     participant: Omit<Participant, 'id' | 'created_at' | 'labels'>,
     options?: {
       claimingUserId?: string;
-      claimingUserName?: string;
       claimingUserEmail?: string;
     }
   ): Promise<Participant> {
-    let finalName = participant.name?.trim();
-
-    if (!finalName && options?.claimingUserName) {
-      finalName = generateClaimName(options.claimingUserName);
-    }
-
-    if (!finalName || finalName.trim().length === 0) {
-      finalName = 'Guest';
-    }
+    const finalName = participant.name?.trim() || 'Guest';
 
     let finalEmail = participant.email || null;
     if (options?.claimingUserId && options?.claimingUserEmail) {
@@ -227,7 +207,6 @@ export const participantService = {
           participantId: created.id,
           eventId: created.event_id,
           participantName: created.name || 'Unknown',
-          claimedByUserId: created.claimed_by_user_id,
         }),
         'log joined activity'
       );

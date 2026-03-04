@@ -163,7 +163,6 @@ describe('participantActivityService', () => {
         participantId: 'p-1',
         eventId: 'e-1',
         participantName: 'John Doe',
-        claimedByUserId: 'user-1',
       });
 
       expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
@@ -171,30 +170,7 @@ describe('participantActivityService', () => {
         p_event_id: 'e-1',
         p_activity_type: 'joined',
         p_participant_name: 'John Doe',
-        p_details: {
-          claimed_by_user_id: 'user-1',
-        },
-      });
-    });
-
-    it('should handle null claimedByUserId', async () => {
-      mockSupabase.rpc.mockResolvedValue({ data: 'mock-id', error: null } as any);
-
-      await participantActivityService.logJoined({
-        participantId: 'p-1',
-        eventId: 'e-1',
-        participantName: 'John Doe',
-        claimedByUserId: null,
-      });
-
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('log_participant_activity', {
-        p_participant_id: 'p-1',
-        p_event_id: 'e-1',
-        p_activity_type: 'joined',
-        p_participant_name: 'John Doe',
-        p_details: {
-          claimed_by_user_id: null,
-        },
+        p_details: {},
       });
     });
 
@@ -208,7 +184,6 @@ describe('participantActivityService', () => {
         participantId: 'p-1',
         eventId: 'e-1',
         participantName: 'John Doe',
-        claimedByUserId: null,
       });
 
       expect(console.error).toHaveBeenCalledWith('Failed to log participant activity', {

@@ -80,11 +80,14 @@ export const participantActivityService = {
     participantId: string;
     eventId: string;
     participantName: string;
-    claimedByUserId: string | null;
   }): Promise<void> {
-    await insertActivity(params.participantId, params.eventId, 'joined', params.participantName, {
-      claimed_by_user_id: params.claimedByUserId,
-    });
+    await insertActivity(
+      params.participantId,
+      params.eventId,
+      'joined',
+      params.participantName,
+      {}
+    );
   },
 
   /**
