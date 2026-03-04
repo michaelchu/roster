@@ -10,16 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  Plus,
-  Calendar,
-  Users,
-  Copy,
-  CheckCircle,
-  Clock,
-  Smartphone,
-  Lightbulb,
-} from 'lucide-react';
+import { Plus, Calendar, Users, Copy, CheckCircle, Clock, Lightbulb } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { TopNav } from '@/components/TopNav';
 import { eventService, participantService, type Event } from '@/services';
