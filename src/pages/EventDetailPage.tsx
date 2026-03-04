@@ -595,9 +595,14 @@ export function EventDetailPage() {
 
   const getClaimBadgeNumber = (participant: Participant) => {
     if (!isClaimedSpot(participant)) return null;
-    // Count this participant's position among all claimed spots by the same user
-    const claimedSpots = participants.filter((p) => isClaimedSpot(p));
-    const index = claimedSpots.findIndex((p) => p.id === participant.id);
+    // Named claims (organizer typed a real name) don't get a badge — they get a row highlight instead
+    const userName = getUserDisplayName(user!, user!.email || 'User');
+    if (getDisplayName(participant) !== userName) return null;
+    // Count this participant's position among unnamed claimed spots only
+    const unnamedClaimedSpots = participants.filter(
+      (p) => isClaimedSpot(p) && getDisplayName(p) === userName
+    );
+    const index = unnamedClaimedSpots.findIndex((p) => p.id === participant.id);
     return index >= 0 ? String(index + 1) : null;
   };
 

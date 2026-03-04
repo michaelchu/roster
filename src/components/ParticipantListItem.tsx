@@ -61,7 +61,7 @@ export function ParticipantListItem({
 
   return (
     <div
-      className={`px-3 py-2 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : ''}`}
+      className={`px-3 py-2 hover:bg-muted transition-colors ${isOrganizerItem ? 'bg-primary/5' : isOwnClaimedSpot ? 'bg-primary/5' : ''}`}
     >
       <div className="flex items-center gap-3">
         <div className="text-xs text-muted-foreground font-mono flex-shrink-0">
