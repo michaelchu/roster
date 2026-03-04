@@ -18,6 +18,7 @@ import { useLoadingState } from '@/hooks/useLoadingState';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
+import { DuplicateEventDrawer } from '@/components/DuplicateEventDrawer';
 
 type PaymentFilter = 'all' | 'fully_paid' | 'has_unpaid';
 type PaymentSummary = { total: number; paid: number; pending: number; waived: number };
@@ -40,6 +41,7 @@ export function EventsPage() {
     data: archivedEvents,
     execute: loadArchivedEvents,
   } = useLoadingState<Event[]>([]);
+  const [duplicatingEvent, setDuplicatingEvent] = useState<Event | null>(null);
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
   const [paymentSummaries, setPaymentSummaries] = useState<Map<string, PaymentSummary>>(new Map());
@@ -110,14 +112,22 @@ export function EventsPage() {
     });
   }, [archivedEvents, paymentFilter, paymentSummaries]);
 
-  const duplicateEvent = async (event: Event) => {
-    if (!user) return;
+  const openDuplicateDrawer = (event: Event) => {
+    setDuplicatingEvent(event);
+  };
 
-    setDuplicatingEventId(event.id);
+  const confirmDuplicate = async (datetime: string | null, endDatetime: string | null) => {
+    if (!user || !duplicatingEvent) return;
+
+    setDuplicatingEventId(duplicatingEvent.id);
     try {
-      const result = await eventService.duplicateEvent(event.id, user.id);
+      const result = await eventService.duplicateEvent(duplicatingEvent.id, user.id, {
+        datetime,
+        end_datetime: endDatetime,
+      });
       if (result) {
-        errorHandler.success(`"${event.name}" has been duplicated successfully`);
+        errorHandler.success(`"${duplicatingEvent.name}" has been duplicated successfully`);
+        setDuplicatingEvent(null);
         loadOrganizingEvents(loadOrganizingEventsCallback);
       }
     } catch {
@@ -235,7 +245,7 @@ export function EventsPage() {
                   disabled={duplicatingEventId === event.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    duplicateEvent(event);
+                    openDuplicateDrawer(event);
                   }}
                 >
                   {duplicatingEventId === event.id ? (
@@ -324,6 +334,16 @@ export function EventsPage() {
       >
         <Plus className="h-5 w-5" />
       </button>
+
+      <DuplicateEventDrawer
+        open={!!duplicatingEvent}
+        onOpenChange={(open) => !open && setDuplicatingEvent(null)}
+        eventName={duplicatingEvent?.name || ''}
+        datetime={duplicatingEvent?.datetime || null}
+        endDatetime={duplicatingEvent?.end_datetime || null}
+        submitting={!!duplicatingEventId}
+        onConfirm={confirmDuplicate}
+      />
     </div>
   );
 }

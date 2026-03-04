@@ -265,7 +265,11 @@ export const eventService = {
    * @returns The newly created duplicate event
    * @throws Error if original event not found or duplication fails
    */
-  async duplicateEvent(eventId: string, organizerId: string): Promise<Event> {
+  async duplicateEvent(
+    eventId: string,
+    organizerId: string,
+    overrides?: { datetime?: string | null; end_datetime?: string | null }
+  ): Promise<Event> {
     await requireValidSession();
 
     const { data: originalEvent, error: fetchError } = await supabase
@@ -281,8 +285,9 @@ export const eventService = {
       organizer_id: organizerId,
       name: `${original.name} (Copy)`,
       description: original.description,
-      datetime: original.datetime,
-      end_datetime: original.end_datetime,
+      datetime: overrides?.datetime !== undefined ? overrides.datetime : original.datetime,
+      end_datetime:
+        overrides?.end_datetime !== undefined ? overrides.end_datetime : original.end_datetime,
       location: original.location,
       custom_fields: original.custom_fields,
       parent_event_id: original.id,

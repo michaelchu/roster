@@ -19,6 +19,7 @@ import { useLoadingState } from '@/hooks/useLoadingState';
 import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 import type { Tables } from '@/types/app.types';
 import { formatEventDateTime, isEventCompleted } from '@/lib/utils';
+import { DuplicateEventDrawer } from '@/components/DuplicateEventDrawer';
 
 interface GroupEvent extends Tables<'events'> {
   participant_count?: number;
@@ -33,6 +34,7 @@ export function GroupDetailPage() {
   const [memberCount, setMemberCount] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [eventFilter, setEventFilter] = useState<'active' | 'archived'>('active');
+  const [duplicatingEvent, setDuplicatingEvent] = useState<GroupEvent | null>(null);
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
   const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
   const loadingRef = useRef(false);
@@ -108,21 +110,29 @@ export function GroupDetailPage() {
     }
   }, [group]);
 
-  const duplicateEvent = async (event: GroupEvent) => {
-    if (!user) return;
+  const openDuplicateDrawer = (event: GroupEvent) => {
+    setDuplicatingEvent(event);
+  };
 
-    setDuplicatingEventId(event.id);
+  const confirmDuplicate = async (datetime: string | null, endDatetime: string | null) => {
+    if (!user || !duplicatingEvent) return;
+
+    setDuplicatingEventId(duplicatingEvent.id);
     try {
-      const result = await eventService.duplicateEvent(event.id, user.id);
+      const result = await eventService.duplicateEvent(duplicatingEvent.id, user.id, {
+        datetime,
+        end_datetime: endDatetime,
+      });
       if (result) {
-        errorHandler.success(`"${event.name}" has been duplicated successfully`);
+        errorHandler.success(`"${duplicatingEvent.name}" has been duplicated successfully`);
+        setDuplicatingEvent(null);
         loadEvents(loadEventsCallback);
       }
     } catch (error) {
       errorHandler.handle(error, {
         userId: user.id,
         action: 'duplicateEvent',
-        metadata: { eventId: event.id },
+        metadata: { eventId: duplicatingEvent.id },
       });
     } finally {
       setDuplicatingEventId(null);
@@ -329,7 +339,7 @@ export function GroupDetailPage() {
                         disabled={duplicatingEventId === event.id}
                         onClick={(e) => {
                           e.stopPropagation();
-                          duplicateEvent(event);
+                          openDuplicateDrawer(event);
                         }}
                       >
                         {duplicatingEventId === event.id ? (
@@ -356,6 +366,16 @@ export function GroupDetailPage() {
           <Plus className="h-5 w-5" />
         </button>
       )}
+
+      <DuplicateEventDrawer
+        open={!!duplicatingEvent}
+        onOpenChange={(open) => !open && setDuplicatingEvent(null)}
+        eventName={duplicatingEvent?.name || ''}
+        datetime={duplicatingEvent?.datetime || null}
+        endDatetime={duplicatingEvent?.end_datetime || null}
+        submitting={!!duplicatingEventId}
+        onConfirm={confirmDuplicate}
+      />
     </div>
   );
 }
