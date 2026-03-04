@@ -595,11 +595,10 @@ export function EventDetailPage() {
 
   const getClaimBadgeNumber = (participant: Participant) => {
     if (!isClaimedSpot(participant)) return null;
-    const userName = getUserDisplayName(user ?? null, user?.email || 'User');
-    const match = participant.name.match(
-      new RegExp(`^${userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} - (\\d+)$`)
-    );
-    return match ? match[1] : null;
+    // Count this participant's position among all claimed spots by the same user
+    const claimedSpots = participants.filter((p) => isClaimedSpot(p));
+    const index = claimedSpots.findIndex((p) => p.id === participant.id);
+    return index >= 0 ? String(index + 1) : null;
   };
 
   const getDisplayName = (participant: Participant) => {
