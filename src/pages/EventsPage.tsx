@@ -272,15 +272,15 @@ export function EventsPage() {
       <Tabs defaultValue="joined" className="w-full">
         <div className="sticky top-0 z-20 bg-background">
           <TopNav />
-          <div className="bg-card border-b px-3 py-2">
-            <TabsList className="w-full h-10">
-              <TabsTrigger value="joined" className="flex-1">
+          <div className="bg-card border-b px-3 py-2 flex justify-center">
+            <TabsList className="h-8 p-0.5 bg-background border">
+              <TabsTrigger value="joined" className="h-7 px-3 text-xs">
                 Joined
               </TabsTrigger>
-              <TabsTrigger value="organizing" className="flex-1">
+              <TabsTrigger value="organizing" className="h-7 px-3 text-xs">
                 Organizing
               </TabsTrigger>
-              <TabsTrigger value="archive" className="flex-1">
+              <TabsTrigger value="archive" className="h-7 px-3 text-xs">
                 Archive
               </TabsTrigger>
             </TabsList>
