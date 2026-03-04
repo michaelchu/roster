@@ -3,12 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, Users, Plus, UsersRound, Share2, Edit } from 'lucide-react';
+import { Calendar, Users, Plus, UsersRound, Share2, Edit, Copy } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
-import { groupService, type Group } from '@/services';
+import { groupService, eventService, type Group } from '@/services';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
-import { EventListSkeleton } from '@/components/LoadingStates';
+import { EventListSkeleton, LoadingSpinner } from '@/components/LoadingStates';
 import type { Tables } from '@/types/app.types';
 import { formatEventDateTime } from '@/lib/utils';
 
@@ -24,6 +25,8 @@ export function GroupDetailPage() {
   const [groupLoading, setGroupLoading] = useState(true);
   const [memberCount, setMemberCount] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
+  const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
   const loadingRef = useRef(false);
   const hasLoadedRef = useRef(false);
   const {
@@ -96,6 +99,27 @@ export function GroupDetailPage() {
       errorHandler.info('Clipboard access is unavailable. Copy the invite link manually.');
     }
   }, [group]);
+
+  const duplicateEvent = async (event: GroupEvent) => {
+    if (!user) return;
+
+    setDuplicatingEventId(event.id);
+    try {
+      const result = await eventService.duplicateEvent(event.id, user.id);
+      if (result) {
+        errorHandler.success(`"${event.name}" has been duplicated successfully`);
+        loadEvents(loadEventsCallback);
+      }
+    } catch (error) {
+      errorHandler.handle(error, {
+        userId: user.id,
+        action: 'duplicateEvent',
+        metadata: { eventId: event.id },
+      });
+    } finally {
+      setDuplicatingEventId(null);
+    }
+  };
 
   useEffect(() => {
     if (user && !hasLoadedRef.current) {
@@ -226,36 +250,55 @@ export function GroupDetailPage() {
           ) : (
             <div className="divide-y">
               {events.map((event) => (
-                <button
-                  key={event.id}
-                  onClick={() => navigate(`/signup/${event.id}`)}
-                  className="w-full p-3 text-left hover:bg-muted transition-colors"
-                >
-                  <div className="flex flex-col">
-                    <div className="mb-3">
-                      <h3 className="text-sm font-semibold truncate">{event.name}</h3>
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      {event.datetime && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{formatEventDateTime(event.datetime)}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          <span>{event.participant_count || 0} registered</span>
-                        </div>
-                        {event.is_private && (
-                          <Badge variant="outline" className="text-xs h-5">
-                            Private
-                          </Badge>
+                <div key={event.id} className="relative">
+                  <button
+                    onClick={() => navigate(`/signup/${event.id}`)}
+                    className="w-full p-3 text-left hover:bg-muted transition-colors"
+                  >
+                    <div className="flex flex-col">
+                      <div className={`mb-3 ${isAdmin && isEventDuplicationEnabled ? 'pr-8' : ''}`}>
+                        <h3 className="text-sm font-semibold truncate">{event.name}</h3>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        {event.datetime && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{formatEventDateTime(event.datetime)}</span>
+                          </div>
                         )}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            <span>{event.participant_count || 0} registered</span>
+                          </div>
+                          {event.is_private && (
+                            <Badge variant="outline" className="text-xs h-5">
+                              Private
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  {isAdmin && isEventDuplicationEnabled && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-muted-foreground/10"
+                      disabled={duplicatingEventId === event.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicateEvent(event);
+                      }}
+                    >
+                      {duplicatingEventId === event.id ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                    </Button>
+                  )}
+                </div>
               ))}
             </div>
           )}
