@@ -26,7 +26,12 @@ import type { CustomField } from '@/types/app.types';
 import { Users, Share2, Download, Search, Edit, UserPlus, UserCheck, UserX } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { EventActivityTimeline } from '@/components/EventActivityTimeline';
-import { formatEventDateTime, isEventCompleted, getUserDisplayName } from '@/lib/utils';
+import {
+  formatEventDateTime,
+  isEventCompleted,
+  getUserDisplayName,
+  canUserClaimSpot,
+} from '@/lib/utils';
 import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { ParticipantListItem, EmptySlot } from '@/components/ParticipantListItem';
 import { ParticipantDetailsSheet } from '@/components/ParticipantDetailsSheet';
@@ -842,12 +847,12 @@ export function EventDetailPage() {
 
                   for (let slotNum = firstEmptySlot; slotNum <= event.max_participants; slotNum++) {
                     const isFirstEmptySlot = slotNum === firstEmptySlot;
-                    const canClaimSpot = !!(
-                      user &&
-                      isOrganizer &&
-                      isFirstEmptySlot &&
-                      showGuestRegistration
-                    );
+                    const canClaimSpot = canUserClaimSpot({
+                      hasUser: !!user,
+                      isOrganizer,
+                      isFirstEmptySlot,
+                      showGuestRegistration,
+                    });
 
                     slots.push(
                       <EmptySlot

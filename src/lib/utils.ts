@@ -101,3 +101,17 @@ export function getUserDisplayName(user: User | null, fallback = 'User'): string
   if (!user) return fallback;
   return user.user_metadata?.custom_name || user.user_metadata?.full_name || fallback;
 }
+
+export function canUserClaimSpot({
+  hasUser,
+  isOrganizer,
+  isFirstEmptySlot,
+  showGuestRegistration,
+}: {
+  hasUser: boolean;
+  isOrganizer: boolean;
+  isFirstEmptySlot: boolean;
+  showGuestRegistration: boolean;
+}): boolean {
+  return hasUser && isOrganizer && isFirstEmptySlot && showGuestRegistration;
+}
