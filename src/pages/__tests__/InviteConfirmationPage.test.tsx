@@ -220,7 +220,7 @@ describe('InviteConfirmationPage', () => {
       renderWithRouter(<InviteConfirmationPage />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/signup/test-event-id');
+        expect(mockNavigate).toHaveBeenCalledWith('/signup/test-event-id', { replace: true });
       });
     });
 
@@ -242,7 +242,7 @@ describe('InviteConfirmationPage', () => {
 
       await waitFor(() => {
         expect(mockErrorHandler.handle).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith('/');
+        expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
       });
     });
   });
@@ -294,7 +294,7 @@ describe('InviteConfirmationPage', () => {
       renderWithRouter(<InviteConfirmationPage />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/groups/test-group-id');
+        expect(mockNavigate).toHaveBeenCalledWith('/groups/test-group-id', { replace: true });
       });
     });
 
@@ -316,7 +316,7 @@ describe('InviteConfirmationPage', () => {
       renderWithRouter(<InviteConfirmationPage />);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/groups/test-group-id');
+        expect(mockNavigate).toHaveBeenCalledWith('/groups/test-group-id', { replace: true });
       });
     });
   });
