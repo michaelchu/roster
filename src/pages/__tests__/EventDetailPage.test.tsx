@@ -20,6 +20,10 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
     user: { id: 'organizer-123' },
     loading: false,
+    isAdmin: false,
+    isImpersonating: false,
+    impersonate: vi.fn(),
+    stopImpersonating: vi.fn(),
   })),
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -150,6 +154,10 @@ describe('EventDetailPage - Claim button visibility', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     render(<EventDetailPage />);
@@ -171,6 +179,10 @@ describe('EventDetailPage - Claim button visibility', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     render(<EventDetailPage />);
@@ -192,6 +204,10 @@ describe('EventDetailPage - Claim button visibility', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     render(<EventDetailPage />);

@@ -23,6 +23,7 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { SettingsPageSkeleton } from '@/components/SettingsPageSkeleton';
 import { NotificationDebugPanel } from '@/components/notifications/NotificationDebugPanel';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
+import { AdminUserSearch } from '@/components/AdminUserSearch';
 
 const STORAGE_KEYS = {
   defaultCapacity: 'settings:defaultCapacity',
@@ -49,7 +50,7 @@ function saveToStorage<T>(key: string, value: T): void {
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { user, signOut, loading } = useAuth();
+  const { user, signOut, loading, isAdmin } = useAuth();
   const { fontSize, setFontSize } = useFontSize();
   const { theme, setTheme } = useTheme();
   const eventPrivacyEnabled = useFeatureFlag('event_privacy');
@@ -125,6 +126,8 @@ export function SettingsPage() {
               </button>
             </div>
           </div>
+
+          {isAdmin && <AdminUserSearch />}
 
           {debugNotificationsEnabled && <NotificationDebugPanel />}
 

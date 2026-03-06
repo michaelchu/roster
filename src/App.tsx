@@ -8,6 +8,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
+import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 
 import { HomePage } from '@/pages/HomePage';
 import { EventsLayout } from '@/pages/EventsLayout';
@@ -58,6 +59,7 @@ function AppContent() {
 
   return (
     <>
+      <ImpersonationBanner />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<HomePageOrRedirect />} />

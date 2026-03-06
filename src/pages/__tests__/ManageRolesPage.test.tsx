@@ -20,6 +20,10 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
     user: { id: 'user-owner-123' },
     loading: false,
+    isAdmin: false,
+    isImpersonating: false,
+    impersonate: vi.fn(),
+    stopImpersonating: vi.fn(),
   })),
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -156,6 +160,10 @@ describe('ManageRolesPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       render(<ManageRolesPage />);
@@ -178,6 +186,10 @@ describe('ManageRolesPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
     });
 
@@ -264,6 +276,10 @@ describe('ManageRolesPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
     });
 
@@ -333,6 +349,10 @@ describe('ManageRolesPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
     });
 
@@ -390,6 +410,10 @@ describe('ManageRolesPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       mockGroupService.getGroupById.mockRejectedValue(new Error('Load failed'));
@@ -414,6 +438,10 @@ describe('ManageRolesPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       // Only owner and existing admin in members list

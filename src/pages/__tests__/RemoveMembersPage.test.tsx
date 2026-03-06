@@ -20,6 +20,10 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
     user: { id: 'user-admin-123' },
     loading: false,
+    isAdmin: false,
+    isImpersonating: false,
+    impersonate: vi.fn(),
+    stopImpersonating: vi.fn(),
   })),
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -154,6 +158,10 @@ describe('RemoveMembersPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       mockGroupService.isGroupAdmin.mockResolvedValue(false);
@@ -178,6 +186,10 @@ describe('RemoveMembersPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       // Admin check passes but then fails due to some error
@@ -205,6 +217,10 @@ describe('RemoveMembersPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
     });
 
@@ -269,6 +285,10 @@ describe('RemoveMembersPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
     });
 
@@ -478,6 +498,10 @@ describe('RemoveMembersPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       // Only owner and admin in members list

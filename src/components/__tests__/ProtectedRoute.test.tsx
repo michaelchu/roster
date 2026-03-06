@@ -16,7 +16,14 @@ describe('ProtectedRoute', () => {
   });
 
   it('should show loading state while auth is loading', () => {
-    mockUseAuth.mockReturnValue({ user: null, loading: true });
+    mockUseAuth.mockReturnValue({
+      user: null,
+      loading: true,
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
+    });
 
     render(
       <MemoryRouter initialEntries={['/protected']}>
@@ -38,7 +45,14 @@ describe('ProtectedRoute', () => {
   });
 
   it('should render children when user is authenticated', () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'user-1' }, loading: false });
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-1' },
+      loading: false,
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
+    });
 
     render(
       <MemoryRouter initialEntries={['/protected']}>
@@ -59,7 +73,14 @@ describe('ProtectedRoute', () => {
   });
 
   it('should redirect to login when user is not authenticated', () => {
-    mockUseAuth.mockReturnValue({ user: null, loading: false });
+    mockUseAuth.mockReturnValue({
+      user: null,
+      loading: false,
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
+    });
 
     render(
       <MemoryRouter initialEntries={['/protected']}>
@@ -82,7 +103,14 @@ describe('ProtectedRoute', () => {
   });
 
   it('should store return URL in localStorage when redirecting', () => {
-    mockUseAuth.mockReturnValue({ user: null, loading: false });
+    mockUseAuth.mockReturnValue({
+      user: null,
+      loading: false,
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
+    });
 
     render(
       <MemoryRouter initialEntries={['/protected?query=value']}>

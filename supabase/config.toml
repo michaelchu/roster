@@ -100,6 +100,11 @@ port = 54324
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+[functions.impersonate-user]
+# JWT verification is handled inside the function itself via auth.admin.getUserById.
+# Disabling the runtime's built-in check avoids ES256 incompatibility with the local edge runtime.
+verify_jwt = false
+
 [storage]
 enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").

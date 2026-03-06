@@ -99,6 +99,10 @@ describe('NewEventPage', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     renderWithRouter(<NewEventPage />);
@@ -129,6 +133,10 @@ describe('NewEventPage', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     renderWithRouter(<NewEventPage />);
@@ -153,6 +161,10 @@ describe('NewEventPage', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     renderWithRouter(<NewEventPage />);
@@ -171,6 +183,10 @@ describe('NewEventPage', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     renderWithRouter(<NewEventPage />);
@@ -199,6 +215,10 @@ describe('NewEventPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       renderWithRouter(<NewEventPage />);
@@ -234,6 +254,10 @@ describe('NewEventPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       renderWithRouter(<NewEventPage />);
@@ -269,6 +293,10 @@ describe('NewEventPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       renderWithRouter(<NewEventPage />);
@@ -301,6 +329,10 @@ describe('NewEventPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
     });
 

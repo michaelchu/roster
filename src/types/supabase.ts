@@ -744,6 +744,15 @@ export type Database = {
         };
         Returns: string;
       };
+      search_users: {
+        Args: { query: string; result_limit?: number };
+        Returns: {
+          id: string;
+          email: string;
+          full_name: string;
+          avatar_url: string;
+        }[];
+      };
       remove_participants_from_group: {
         Args: { p_group_id: string; p_participant_ids: string[] };
         Returns: {
