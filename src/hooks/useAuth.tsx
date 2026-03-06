@@ -192,13 +192,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!data?.session) throw new Error('No session returned from impersonation');
 
       // Save the current admin session for later restoration
-      setStorageItem(
+      const saved = setStorageItem(
         ADMIN_SESSION_KEY,
         JSON.stringify({
           access_token: session.access_token,
           refresh_token: session.refresh_token,
         })
       );
+      if (!saved) throw new Error('Failed to save admin session — cannot impersonate safely');
 
       // Set the impersonated session
       await supabase.auth.setSession({
@@ -216,10 +217,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const savedSession = getStorageItem(ADMIN_SESSION_KEY);
     if (!savedSession) throw new Error('No admin session to restore');
 
-    const { access_token, refresh_token } = JSON.parse(savedSession);
-    removeStorageItem(ADMIN_SESSION_KEY);
+    let parsed;
+    try {
+      parsed = JSON.parse(savedSession);
+    } catch {
+      removeStorageItem(ADMIN_SESSION_KEY);
+      throw new Error('Corrupted admin session — please sign in again');
+    }
 
-    await supabase.auth.setSession({ access_token, refresh_token });
+    await supabase.auth.setSession({
+      access_token: parsed.access_token,
+      refresh_token: parsed.refresh_token,
+    });
+    removeStorageItem(ADMIN_SESSION_KEY);
   }, []);
 
   const isAdmin = !!user?.app_metadata?.is_admin;

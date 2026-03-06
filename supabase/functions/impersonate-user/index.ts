@@ -114,13 +114,20 @@ serve(async (req) => {
       });
     }
 
+    if (!targetUser.email) {
+      return new Response(
+        JSON.stringify({ error: 'Impersonation requires a user with an email address' }),
+        { status: 400, headers }
+      );
+    }
+
     // Generate a magic link to get session properties
     const {
       data: { properties },
       error: linkError,
     } = await adminClient.auth.admin.generateLink({
       type: 'magiclink',
-      email: targetUser.email!,
+      email: targetUser.email,
     });
 
     if (linkError || !properties?.hashed_token) {

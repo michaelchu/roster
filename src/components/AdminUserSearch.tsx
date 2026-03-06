@@ -56,6 +56,7 @@ export function AdminUserSearch() {
       await impersonate(userId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Impersonation failed');
+    } finally {
       setImpersonating(false);
     }
   };

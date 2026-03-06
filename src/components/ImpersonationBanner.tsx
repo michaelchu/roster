@@ -21,7 +21,13 @@ export function ImpersonationBanner() {
           variant="outline"
           size="sm"
           className="h-6 text-xs shrink-0 border-yellow-400 text-yellow-800 bg-yellow-100 hover:bg-yellow-200 dark:border-yellow-600 dark:text-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800"
-          onClick={stopImpersonating}
+          onClick={async () => {
+            try {
+              await stopImpersonating();
+            } catch {
+              window.location.reload();
+            }
+          }}
         >
           Return
         </Button>
