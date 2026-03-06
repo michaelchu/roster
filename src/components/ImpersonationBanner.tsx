@@ -25,8 +25,9 @@ export function ImpersonationBanner() {
             try {
               await stopImpersonating();
             } catch {
-              window.location.reload();
+              // fallthrough
             }
+            window.location.href = '/events';
           }}
         >
           Return
