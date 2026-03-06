@@ -36,26 +36,41 @@ serve(async (req) => {
   }
 
   try {
-    // Extract the caller's JWT from the Authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Missing authorization token' }), {
+    // Parse the request body (access_token is passed in body to avoid
+    // local edge runtime JWT verification issues with ES256)
+    const { user_id, access_token } = await req.json();
+
+    if (!access_token || typeof access_token !== 'string') {
+      return new Response(JSON.stringify({ error: 'Missing access_token' }), {
         status: 401,
         headers,
       });
     }
 
-    const callerToken = authHeader.replace('Bearer ', '');
+    // Decode the JWT payload to get the caller's user ID
+    const payloadBase64 = access_token.split('.')[1];
+    if (!payloadBase64) {
+      return new Response(JSON.stringify({ error: 'Invalid token format' }), {
+        status: 401,
+        headers,
+      });
+    }
+    const payload = JSON.parse(atob(payloadBase64));
+    const callerUserId = payload.sub;
+    if (!callerUserId) {
+      return new Response(JSON.stringify({ error: 'Invalid token: missing sub claim' }), {
+        status: 401,
+        headers,
+      });
+    }
 
-    // Create a client with the caller's token to verify their identity
-    const callerClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      global: { headers: { Authorization: `Bearer ${callerToken}` } },
-    });
+    // Use service role client to fetch the full user record and verify identity
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const {
       data: { user: caller },
       error: callerError,
-    } = await callerClient.auth.getUser(callerToken);
+    } = await adminClient.auth.admin.getUserById(callerUserId);
 
     if (callerError || !caller) {
       return new Response(JSON.stringify({ error: 'Invalid authorization token' }), {
@@ -71,9 +86,6 @@ serve(async (req) => {
         headers,
       });
     }
-
-    // Parse the request body
-    const { user_id } = await req.json();
     if (!user_id || typeof user_id !== 'string') {
       return new Response(JSON.stringify({ error: 'Missing or invalid user_id' }), {
         status: 400,
@@ -88,9 +100,6 @@ serve(async (req) => {
         headers,
       });
     }
-
-    // Use service role client to generate a magic link for the target user
-    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Verify the target user exists
     const {

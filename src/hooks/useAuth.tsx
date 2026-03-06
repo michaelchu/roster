@@ -176,11 +176,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (userId: string) => {
       if (!session) throw new Error('Must be signed in to impersonate');
 
-      const { data, error } = await supabase.functions.invoke('impersonate-user', {
-        body: { user_id: userId },
-      });
-
-      if (error) throw error;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/impersonate-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ user_id: userId, access_token: session.access_token }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Impersonation failed');
       if (!data?.session) throw new Error('No session returned from impersonation');
 
       // Save the current admin session for later restoration
