@@ -65,7 +65,7 @@ export function AdminUserSearch() {
       <div className="p-3 border-b bg-destructive/10">
         <div className="flex items-center gap-2">
           <ShieldAlert className="h-4 w-4 text-destructive" />
-          <h3 className="text-sm font-medium text-destructive">Admin</h3>
+          <h3 className="text-sm font-medium text-destructive">Log in as</h3>
         </div>
       </div>
 
