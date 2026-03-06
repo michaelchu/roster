@@ -20,7 +20,7 @@ export function AdminUserSearch() {
   const [searching, setSearching] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     if (query.length < 2) {

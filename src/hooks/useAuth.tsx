@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
@@ -214,8 +214,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.setSession({ access_token, refresh_token });
   }, []);
 
-  const isAdmin = useMemo(() => !!user?.app_metadata?.is_admin, [user]);
-  const isImpersonating = useMemo(() => !!getStorageItem(ADMIN_SESSION_KEY), [user]);
+  const isAdmin = !!user?.app_metadata?.is_admin;
+  const isImpersonating = !!getStorageItem(ADMIN_SESSION_KEY);
 
   return (
     <AuthContext.Provider
