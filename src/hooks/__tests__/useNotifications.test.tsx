@@ -77,7 +77,13 @@ describe('useNotifications', () => {
     it('should auto-resubscribe when browser has existing subscription and permission is granted', async () => {
       // Scenario: User signed out, signed back in on same device (Android PWA or browser)
       // Browser still has push subscription from before
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false });
@@ -103,7 +109,13 @@ describe('useNotifications', () => {
     it('should NOT auto-subscribe for new users without existing browser subscription', async () => {
       // Scenario: Brand new user, first time enabling notifications
       // Browser has no push subscription yet
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false });
@@ -124,7 +136,13 @@ describe('useNotifications', () => {
 
     it('should NOT auto-subscribe when permission is not granted even with browser subscription', async () => {
       // Edge case: Browser has subscription but permission changed to denied
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
@@ -145,7 +163,13 @@ describe('useNotifications', () => {
     it('should handle auto-resubscribe failure gracefully', async () => {
       // Scenario: Auto-resubscribe fails (e.g., network error)
       // Browser has subscription but DB is out of sync (push_enabled: false)
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false }); // DB out of sync
@@ -173,7 +197,13 @@ describe('useNotifications', () => {
     it('should not auto-subscribe when iOS PWA has no browser subscription', async () => {
       // Scenario: User enabled notifications in browser, then installed PWA on iOS
       // iOS PWA has separate storage - no browser subscription exists in PWA context
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       // Database preference is enabled (from browser session)
@@ -201,7 +231,13 @@ describe('useNotifications', () => {
       // Scenario: User enabled notifications in browser, then installed PWA on Android
       // Android PWA shares storage with browser - subscription persists
       // DB already has push_enabled: true, so no sync needed
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
@@ -225,7 +261,13 @@ describe('useNotifications', () => {
   describe('account switching', () => {
     it('should reset subscription state when user changes', async () => {
       // Start with User A subscribed
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: true });
@@ -242,7 +284,13 @@ describe('useNotifications', () => {
       });
 
       // User signs out (user becomes null)
-      mockUseAuth.mockReturnValue({ user: null });
+      mockUseAuth.mockReturnValue({
+        user: null,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       rerender();
 
       await waitFor(() => {
@@ -258,7 +306,13 @@ describe('useNotifications', () => {
     it('should re-evaluate subscription when new user signs in', async () => {
       // User B signs in after User A signed out
       const userB = { id: 'user-456', email: 'userb@example.com' };
-      mockUseAuth.mockReturnValue({ user: userB });
+      mockUseAuth.mockReturnValue({
+        user: userB,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false }); // User B has different preferences
@@ -281,7 +335,13 @@ describe('useNotifications', () => {
 
   describe('no user signed in', () => {
     it('should not load anything when no user is signed in', async () => {
-      mockUseAuth.mockReturnValue({ user: null });
+      mockUseAuth.mockReturnValue({
+        user: null,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
 
       const { result } = renderHook(() => useNotifications(), { wrapper });
 
@@ -299,7 +359,13 @@ describe('useNotifications', () => {
 
   describe('push notification support', () => {
     it('should report correct support status', async () => {
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false });
@@ -319,7 +385,13 @@ describe('useNotifications', () => {
     });
 
     it('should report unsupported when browser lacks push API', async () => {
-      mockUseAuth.mockReturnValue({ user: mockUser });
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
+      });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
       mockGetOrCreatePreferences.mockResolvedValue({ push_enabled: false });

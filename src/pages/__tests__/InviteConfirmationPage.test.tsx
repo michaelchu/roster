@@ -141,6 +141,10 @@ describe('InviteConfirmationPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       renderWithRouter(<InviteConfirmationPage />);
@@ -159,6 +163,10 @@ describe('InviteConfirmationPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       vi.mocked(eventService.getEventById).mockResolvedValue(mockEvent);
@@ -184,6 +192,10 @@ describe('InviteConfirmationPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       vi.mocked(eventService.getEventById).mockResolvedValue(mockEvent);
@@ -213,6 +225,10 @@ describe('InviteConfirmationPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       vi.mocked(eventService.getEventById).mockResolvedValue(mockEvent);
@@ -234,6 +250,10 @@ describe('InviteConfirmationPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       vi.mocked(eventService.getEventById).mockRejectedValue(new Error('Event not found'));
@@ -264,6 +284,10 @@ describe('InviteConfirmationPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       vi.mocked(groupService.getGroupById).mockResolvedValue(mockGroup);
@@ -286,6 +310,10 @@ describe('InviteConfirmationPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       vi.mocked(groupService.getGroupById).mockResolvedValue(mockGroup);
@@ -308,6 +336,10 @@ describe('InviteConfirmationPage', () => {
         signInWithGoogle: vi.fn(),
         signInWithGoogleIdToken: vi.fn(),
         signOut: vi.fn(),
+        isAdmin: false,
+        isImpersonating: false,
+        impersonate: vi.fn(),
+        stopImpersonating: vi.fn(),
       });
 
       vi.mocked(groupService.getGroupById).mockResolvedValue(mockGroup);

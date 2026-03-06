@@ -1,20 +1,26 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { getStorageItem, removeStorageItem } from '@/lib/storage';
+import { getStorageItem, removeStorageItem, setStorageItem } from '@/lib/storage';
 import { pushSubscriptionService } from '@/services/pushSubscriptionService';
+
+const ADMIN_SESSION_KEY = 'adminSession';
 
 /** Authentication context value type */
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isAdmin: boolean;
+  isImpersonating: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName?: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithGoogleIdToken: (idToken: string) => Promise<void>;
   signOut: () => Promise<void>;
+  impersonate: (userId: string) => Promise<void>;
+  stopImpersonating: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -154,9 +160,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Don't block sign out if cleanup fails
     }
 
+    // Clear any saved admin session on full sign out
+    removeStorageItem(ADMIN_SESSION_KEY);
+
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
+
+  /**
+   * Impersonates another user by calling the impersonate-user edge function.
+   * Saves the current admin session so it can be restored later.
+   * Only available to platform admins (app_metadata.is_admin = true).
+   */
+  const impersonate = useCallback(
+    async (userId: string) => {
+      if (!session) throw new Error('Must be signed in to impersonate');
+
+      const { data, error } = await supabase.functions.invoke('impersonate-user', {
+        body: { user_id: userId },
+      });
+
+      if (error) throw error;
+      if (!data?.session) throw new Error('No session returned from impersonation');
+
+      // Save the current admin session for later restoration
+      setStorageItem(
+        ADMIN_SESSION_KEY,
+        JSON.stringify({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+        })
+      );
+
+      // Set the impersonated session
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+    },
+    [session]
+  );
+
+  /**
+   * Stops impersonating and restores the original admin session.
+   */
+  const stopImpersonating = useCallback(async () => {
+    const savedSession = getStorageItem(ADMIN_SESSION_KEY);
+    if (!savedSession) throw new Error('No admin session to restore');
+
+    const { access_token, refresh_token } = JSON.parse(savedSession);
+    removeStorageItem(ADMIN_SESSION_KEY);
+
+    await supabase.auth.setSession({ access_token, refresh_token });
+  }, []);
+
+  const isAdmin = useMemo(() => !!user?.app_metadata?.is_admin, [user]);
+  const isImpersonating = useMemo(() => !!getStorageItem(ADMIN_SESSION_KEY), [user]);
 
   return (
     <AuthContext.Provider
@@ -164,11 +223,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         loading,
+        isAdmin,
+        isImpersonating,
         signIn,
         signUp,
         signInWithGoogle,
         signInWithGoogleIdToken,
         signOut,
+        impersonate,
+        stopImpersonating,
       }}
     >
       {children}

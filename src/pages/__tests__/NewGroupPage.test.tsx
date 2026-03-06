@@ -85,6 +85,10 @@ describe('NewGroupPage', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     renderWithRouter(<NewGroupPage />);
@@ -113,6 +117,10 @@ describe('NewGroupPage', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     renderWithRouter(<NewGroupPage />);
@@ -137,6 +145,10 @@ describe('NewGroupPage', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     renderWithRouter(<NewGroupPage />);
@@ -155,6 +167,10 @@ describe('NewGroupPage', () => {
       signInWithGoogle: vi.fn(),
       signInWithGoogleIdToken: vi.fn(),
       signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
     });
 
     renderWithRouter(<NewGroupPage />);
