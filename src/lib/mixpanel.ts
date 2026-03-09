@@ -8,6 +8,7 @@ export function initMixpanel() {
   mixpanel.init(MIXPANEL_TOKEN, {
     autocapture: true,
     record_sessions_percent: 100,
+    ignore_dnt: true,
   });
 }
 
