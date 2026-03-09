@@ -13,6 +13,7 @@ vi.mock('@/lib/supabase', () => ({
       order: vi.fn().mockReturnThis(),
       single: vi.fn().mockReturnThis(),
     })),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
   },
 }));
 
@@ -219,15 +220,26 @@ describe('eventService', () => {
         }),
       };
 
+      // Mock participant insert (organizer auto-registration)
+      const participantInsertChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+
       // Mock labels query
       const labelsChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ data: [], error: null }),
       };
 
+      mockSupabase.rpc.mockResolvedValueOnce({
+        data: [{ name: 'Test Organizer', email: 'org@test.com' }],
+        error: null,
+      });
+
       mockSupabase.from
         .mockReturnValueOnce(fetchChain as any)
         .mockReturnValueOnce(insertChain as any)
+        .mockReturnValueOnce(participantInsertChain as any)
         .mockReturnValueOnce(labelsChain as any);
 
       const result = await eventService.duplicateEvent('event-1', 'org-1');
@@ -269,6 +281,11 @@ describe('eventService', () => {
         }),
       };
 
+      // Mock participant insert (organizer auto-registration)
+      const participantInsertChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+
       const labelsSelectChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ data: mockLabels, error: null }),
@@ -278,9 +295,15 @@ describe('eventService', () => {
         insert: vi.fn().mockResolvedValue({ error: null }),
       };
 
+      mockSupabase.rpc.mockResolvedValueOnce({
+        data: [{ name: 'Organizer', email: 'org@test.com' }],
+        error: null,
+      });
+
       mockSupabase.from
         .mockReturnValueOnce(fetchChain as any)
         .mockReturnValueOnce(insertChain as any)
+        .mockReturnValueOnce(participantInsertChain as any)
         .mockReturnValueOnce(labelsSelectChain as any)
         .mockReturnValueOnce(labelsInsertChain as any);
 
@@ -290,6 +313,64 @@ describe('eventService', () => {
         { event_id: 'event-2', name: 'VIP', color: '#FF0000' },
         { event_id: 'event-2', name: 'Staff', color: '#00FF00' },
       ]);
+    });
+
+    it('should auto-register organizer as participant in duplicated event', async () => {
+      const originalEvent = {
+        id: 'event-1',
+        name: 'Event',
+        custom_fields: [],
+        created_at: '2023-01-01',
+      };
+
+      const fetchChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: originalEvent, error: null }),
+      };
+
+      const insertChain = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { ...originalEvent, id: 'event-2', name: 'Event (Copy)' },
+          error: null,
+        }),
+      };
+
+      const participantInsertChain = {
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      };
+
+      const labelsChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+      };
+
+      mockSupabase.rpc.mockResolvedValueOnce({
+        data: [{ name: 'Test Organizer', email: 'org@test.com' }],
+        error: null,
+      });
+
+      mockSupabase.from
+        .mockReturnValueOnce(fetchChain as any)
+        .mockReturnValueOnce(insertChain as any)
+        .mockReturnValueOnce(participantInsertChain as any)
+        .mockReturnValueOnce(labelsChain as any);
+
+      await eventService.duplicateEvent('event-1', 'org-1');
+
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('get_user_profile', {
+        user_id: 'org-1',
+      });
+      expect(participantInsertChain.insert).toHaveBeenCalledWith({
+        event_id: 'event-2',
+        user_id: 'org-1',
+        claimed_by_user_id: 'org-1',
+        name: 'Test Organizer',
+        email: 'org@test.com',
+        payment_status: 'pending',
+      });
     });
   });
 
