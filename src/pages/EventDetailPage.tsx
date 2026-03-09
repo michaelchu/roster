@@ -727,20 +727,8 @@ export function EventDetailPage() {
                     <div className="border-t border-border"></div>
                     <div className="p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span
-                          className={
-                            isOrganizer
-                              ? 'text-sm font-semibold'
-                              : 'text-sm font-medium text-foreground'
-                          }
-                        >
-                          Cost per Person
-                        </span>
-                        <span
-                          className={
-                            isOrganizer ? 'text-sm font-semibold' : 'text-sm text-muted-foreground'
-                          }
-                        >
+                        <span className="text-sm font-medium text-foreground">Cost per Person</span>
+                        <span className="text-sm text-muted-foreground">
                           ${costPerPerson.toFixed(2)}
                         </span>
                       </div>
