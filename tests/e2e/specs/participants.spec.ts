@@ -5,6 +5,7 @@ import {
   generateTestName,
   createTestEvent,
   getAdminDb,
+  enableFeatureFlagForUser,
 } from '../fixtures/database';
 import {
   registerForEvent,
@@ -173,34 +174,34 @@ test.describe('Participant Registration Flow', () => {
     });
   });
 
-  // Skip Claiming Additional Spots tests - guest_registration feature flag is disabled
-  test.describe.skip('Claiming Additional Spots', () => {
-    test('user can claim additional spot for guest', async ({ page }) => {
-      // Setup
+  test.describe('Claiming Additional Spots', () => {
+    test('organizer can claim additional spot for guest', async ({ page }) => {
       await register(page, {
         email: generateTestEmail('claimer'),
         password: 'TestPassword123!',
       });
 
-
       const organizerId = await getUserId(page);
+      await enableFeatureFlagForUser(organizerId!, 'guest_registration');
+
       const event = await createTestEvent(organizerId!, {
         name: generateTestName('Multi-Spot Event'),
-        max_participants: 10, // Need max_participants for claim button to appear
+        max_participants: 10,
       });
 
-      // Register self first
-      await registerForEvent(page, event.id, {
-        name: 'Main Registrant',
+      // Register organizer as participant directly in DB
+      await getAdminDb().from('participants').insert({
+        event_id: event.id,
+        name: 'Organizer',
+        user_id: organizerId!,
       });
 
-      // Claim additional spot
+      // Claim additional spot via UI
       await claimAdditionalSpot(page, event.id, {
         name: 'Guest 1',
       });
 
       // Verify both registrations exist
-      const userId = await getUserId(page);
       const { data: participants } = await getAdminDb()
         .from('participants')
         .select('*')
@@ -208,91 +209,63 @@ test.describe('Participant Registration Flow', () => {
 
       expect(participants?.length).toBeGreaterThanOrEqual(2);
 
-      // One should have user_id, one should have claimed_by_user_id
-      const selfRegistration = participants?.find((p) => p.user_id === userId);
-      const claimedSpot = participants?.find((p) => p.claimed_by_user_id === userId && p.user_id === null);
+      const selfRegistration = participants?.find((p) => p.user_id === organizerId);
+      const claimedSpot = participants?.find(
+        (p) => p.claimed_by_user_id === organizerId && p.user_id === null
+      );
 
       expect(selfRegistration).toBeDefined();
       expect(claimedSpot).toBeDefined();
     });
 
-    test('claimed spots get auto-generated names', async ({ page }) => {
-      // Setup
+    test('registered non-organizer can claim spot for guest', async ({ page }) => {
+      // Create organizer and event
       await register(page, {
-        email: generateTestEmail('namegen'),
+        email: generateTestEmail('claimorg'),
         password: 'TestPassword123!',
       });
 
-
       const organizerId = await getUserId(page);
       const event = await createTestEvent(organizerId!, {
-        name: generateTestName('Name Generation Event'),
-        max_participants: 10, // Need max_participants for claim button to appear
+        name: generateTestName('Non-Org Claim Event'),
+        max_participants: 10,
       });
 
-      // Register self
-      await registerForEvent(page, event.id, {
-        name: 'John Doe',
+      await clearAuth(page);
+
+      // Create participant user and enable the flag for them
+      await register(page, {
+        email: generateTestEmail('claimpart'),
+        password: 'TestPassword123!',
       });
 
-      // Claim spot without providing name
-      await claimAdditionalSpot(page, event.id, {});
+      const participantId = await getUserId(page);
+      await enableFeatureFlagForUser(participantId!, 'guest_registration');
 
-      // Check if auto-generated name follows pattern
+      // Register participant directly in DB
+      await getAdminDb().from('participants').insert({
+        event_id: event.id,
+        name: 'Participant',
+        user_id: participantId!,
+      });
+
+      // Claim a spot for a guest via UI
+      await claimAdditionalSpot(page, event.id, {
+        name: 'My Guest',
+      });
+
+      // Verify the claimed spot exists in the database
       const { data: participants } = await getAdminDb()
         .from('participants')
         .select('*')
         .eq('event_id', event.id);
 
-      const claimedSpot = participants?.find((p) => p.claimed_by_user_id !== null && p.user_id === null);
-      
-      if (claimedSpot) {
-        // Auto-generated names should follow pattern like "John Doe - 1"
-        expect(claimedSpot.name).toMatch(/.*\s*-\s*\d+/);
-      }
-    });
+      const claimedSpot = participants?.find(
+        (p) => p.claimed_by_user_id === participantId && p.user_id === null
+      );
 
-    test('participants are ordered by registration time', async ({ page }) => {
-      test.setTimeout(60000); // Increase timeout for multiple claims
-      // Setup
-      await register(page, {
-        email: generateTestEmail('slots'),
-        password: 'TestPassword123!',
-      });
-
-
-      const organizerId = await getUserId(page);
-      const event = await createTestEvent(organizerId!, {
-        name: generateTestName('Registration Order Event'),
-        max_participants: 10, // Need max_participants for claim button to appear
-      });
-
-      // Register self
-      await registerForEvent(page, event.id);
-
-      // Claim two additional spots
-      await claimAdditionalSpot(page, event.id);
-
-      // Wait a moment between claims to ensure first claim is fully processed
-      await page.waitForTimeout(2000);
-
-      await claimAdditionalSpot(page, event.id);
-
-      // Verify participants are created and ordered by created_at
-      const { data: participants } = await getAdminDb()
-        .from('participants')
-        .select('*')
-        .eq('event_id', event.id)
-        .order('created_at', { ascending: true });
-
-      expect(participants?.length).toBe(3);
-
-      // Participants should be ordered by creation time
-      if (participants && participants.length === 3) {
-        const times = participants.map((p) => new Date(p.created_at).getTime());
-        expect(times[0]).toBeLessThanOrEqual(times[1]);
-        expect(times[1]).toBeLessThanOrEqual(times[2]);
-      }
+      expect(claimedSpot).toBeDefined();
+      expect(claimedSpot?.name).toBe('My Guest');
     });
   });
 
