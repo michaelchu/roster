@@ -9,6 +9,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
 import { ImpersonationBanner } from '@/components/ImpersonationBanner';
+import { ReloadPrompt } from '@/components/ReloadPrompt';
 
 import { HomePage } from '@/pages/HomePage';
 import { EventsLayout } from '@/pages/EventsLayout';
@@ -61,6 +62,7 @@ function AppContent() {
 
   return (
     <>
+      <ReloadPrompt />
       <ImpersonationBanner />
       <Routes>
         {/* Public routes */}
