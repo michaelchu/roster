@@ -763,6 +763,36 @@ export const participantService = {
   },
 
   /**
+   * Returns the current user's payment status for each of the given events.
+   * Only returns entries where the user is a participant.
+   * @param userId - UUID of the user
+   * @param eventIds - Array of event IDs to check
+   * @returns Map of event ID to payment_status
+   */
+  async getMyPaymentStatusBatch(
+    userId: string,
+    eventIds: string[]
+  ): Promise<Map<string, 'pending' | 'paid' | 'waived'>> {
+    if (eventIds.length === 0) return new Map();
+
+    const { data, error } = await supabase
+      .from('participants')
+      .select('event_id, payment_status')
+      .eq('user_id', userId)
+      .in('event_id', eventIds);
+
+    throwIfSupabaseError({ data, error });
+
+    const result = new Map<string, 'pending' | 'paid' | 'waived'>();
+    if (data) {
+      for (const p of data) {
+        result.set(p.event_id, (p.payment_status as 'pending' | 'paid' | 'waived') || 'pending');
+      }
+    }
+    return result;
+  },
+
+  /**
    * Creates multiple participants in batch, typically for adding group members to an event.
    * Handles duplicates gracefully by tracking them separately.
    * @param eventId - UUID of the event

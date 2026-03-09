@@ -46,38 +46,86 @@ export function EventsPage() {
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
   const [paymentSummaries, setPaymentSummaries] = useState<Map<string, PaymentSummary>>(new Map());
+  const unsettledJoinedIdsRef = useRef<Set<string>>(new Set());
   const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
   const hasLoadedRef = useRef(false);
 
   const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByOrganizer(user.id);
-    return allEvents.filter((event) => !isEventCompleted(event.datetime, event.end_datetime));
+    const activeEvents = allEvents.filter(
+      (event) => !isEventCompleted(event.datetime, event.end_datetime)
+    );
+    const pastEvents = allEvents.filter((event) =>
+      isEventCompleted(event.datetime, event.end_datetime)
+    );
+
+    // Past paid events with unpaid participants stay in Organizing
+    const pastPaidEventIds = pastEvents.filter((e) => e.is_paid).map((e) => e.id);
+    if (pastPaidEventIds.length > 0) {
+      const summaries = await participantService.getPaymentSummariesBatch(pastPaidEventIds);
+      const unsettledPastEvents = pastEvents.filter((event) => {
+        if (!event.is_paid) return false;
+        const summary = summaries.get(event.id);
+        return summary && summary.pending > 0;
+      });
+      return [...activeEvents, ...unsettledPastEvents];
+    }
+
+    return activeEvents;
   }, [user]);
 
   const loadJoinedEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByParticipant(user.id);
-    return allEvents.filter((event) => !isEventCompleted(event.datetime, event.end_datetime));
+    const activeEvents = allEvents.filter(
+      (event) => !isEventCompleted(event.datetime, event.end_datetime)
+    );
+    const pastPaidEvents = allEvents.filter(
+      (event) => isEventCompleted(event.datetime, event.end_datetime) && event.is_paid
+    );
+
+    // Past paid events where the user hasn't paid stay in Joined
+    if (pastPaidEvents.length > 0) {
+      const myStatuses = await participantService.getMyPaymentStatusBatch(
+        user.id,
+        pastPaidEvents.map((e) => e.id)
+      );
+      const unsettledForMe = pastPaidEvents.filter((event) => {
+        const status = myStatuses.get(event.id);
+        return status === 'pending';
+      });
+      unsettledJoinedIdsRef.current = new Set(unsettledForMe.map((e) => e.id));
+      return [...activeEvents, ...unsettledForMe];
+    }
+
+    unsettledJoinedIdsRef.current = new Set();
+    return activeEvents;
   }, [user]);
 
   const loadArchivedEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByOrganizer(user.id);
-    const archived = allEvents.filter((event) =>
+    const pastEvents = allEvents.filter((event) =>
       isEventCompleted(event.datetime, event.end_datetime)
     );
 
-    // Fetch payment summaries for archived events
-    if (archived.length > 0) {
-      const eventIds = archived.map((e) => e.id);
+    // Fetch payment summaries for past events
+    if (pastEvents.length > 0) {
+      const eventIds = pastEvents.map((e) => e.id);
       const summaries = await participantService.getPaymentSummariesBatch(eventIds);
       setPaymentSummaries(summaries);
-    } else {
-      setPaymentSummaries(new Map());
+
+      // Only archive events that are fully settled (or not paid events)
+      return pastEvents.filter((event) => {
+        if (!event.is_paid) return true;
+        const summary = summaries.get(event.id);
+        return !summary || summary.pending === 0;
+      });
     }
 
-    return archived;
+    setPaymentSummaries(new Map());
+    return pastEvents;
   }, [user]);
 
   useEffect(() => {
@@ -166,7 +214,8 @@ export function EventsPage() {
     isLoading: boolean,
     showDuplicate: boolean,
     emptyState?: { title: string; description: string; icon?: React.ReactNode },
-    showPaymentStatus?: boolean
+    showPaymentStatus?: boolean,
+    showUserUnpaid?: Set<string>
   ) => {
     if (isLoading) {
       return <EventListSkeleton count={3} />;
@@ -248,6 +297,12 @@ export function EventsPage() {
                         )}
                       </div>
                     )}
+                    {showUserUnpaid?.has(event.id) && (
+                      <div className="flex items-center gap-1 text-amber-600">
+                        <Clock className="h-3 w-3" />
+                        <span className="font-medium">Unpaid</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <Users className="h-3 w-3" />
                       <span className="font-medium">{event.participant_count || 0}</span>
@@ -300,12 +355,19 @@ export function EventsPage() {
           </div>
         </div>
         <TabsContent value="joined" className="p-3 space-y-3 mt-0">
-          {renderEventList(joinedEvents, isLoadingJoined, false, {
-            title: 'Welcome to Roster!',
-            description:
-              'Join an event using a link from your organizer, or create your own with the button below.',
-            icon: <span>🎉</span>,
-          })}
+          {renderEventList(
+            joinedEvents,
+            isLoadingJoined,
+            false,
+            {
+              title: 'Welcome to Roster!',
+              description:
+                'Join an event using a link from your organizer, or create your own with the button below.',
+              icon: <span>🎉</span>,
+            },
+            false,
+            unsettledJoinedIdsRef.current
+          )}
           {(!joinedEvents || joinedEvents.length === 0) && !isLoadingJoined && (
             <Alert className="border-violet-500/30 bg-violet-500/10 [&>svg]:text-violet-500">
               <Lightbulb className="h-4 w-4 text-violet-500" />
