@@ -60,12 +60,12 @@ export function EventsPage() {
       isEventCompleted(event.datetime, event.end_datetime)
     );
 
-    // Past paid events with unpaid participants stay in Organizing
-    const pastPaidEventIds = pastEvents.filter((e) => e.is_paid).map((e) => e.id);
-    if (pastPaidEventIds.length > 0) {
-      const summaries = await participantService.getPaymentSummariesBatch(pastPaidEventIds);
+    // Past events with unpaid participants stay in Organizing
+    // Use all past event IDs — past events always show payment tracking
+    const pastEventIds = pastEvents.map((e) => e.id);
+    if (pastEventIds.length > 0) {
+      const summaries = await participantService.getPaymentSummariesBatch(pastEventIds);
       const unsettledPastEvents = pastEvents.filter((event) => {
-        if (!event.is_paid) return false;
         const summary = summaries.get(event.id);
         return summary && summary.pending > 0;
       });
@@ -81,17 +81,18 @@ export function EventsPage() {
     const activeEvents = allEvents.filter(
       (event) => !isEventCompleted(event.datetime, event.end_datetime)
     );
-    const pastPaidEvents = allEvents.filter(
-      (event) => isEventCompleted(event.datetime, event.end_datetime) && event.is_paid
+    const pastEvents = allEvents.filter((event) =>
+      isEventCompleted(event.datetime, event.end_datetime)
     );
 
-    // Past paid events where the user hasn't paid stay in Joined
-    if (pastPaidEvents.length > 0) {
+    // Past events where the user hasn't paid stay in Joined
+    // Use all past events — past events always show payment tracking
+    if (pastEvents.length > 0) {
       const myStatuses = await participantService.getMyPaymentStatusBatch(
         user.id,
-        pastPaidEvents.map((e) => e.id)
+        pastEvents.map((e) => e.id)
       );
-      const unsettledForMe = pastPaidEvents.filter((event) => {
+      const unsettledForMe = pastEvents.filter((event) => {
         const status = myStatuses.get(event.id);
         return status === 'pending';
       });
@@ -116,9 +117,8 @@ export function EventsPage() {
       const summaries = await participantService.getPaymentSummariesBatch(eventIds);
       setPaymentSummaries(summaries);
 
-      // Only archive events that are fully settled (or not paid events)
+      // Only archive events that are fully settled (no pending payments)
       return pastEvents.filter((event) => {
-        if (!event.is_paid) return true;
         const summary = summaries.get(event.id);
         return !summary || summary.pending === 0;
       });

@@ -81,24 +81,23 @@ export function GroupDetailPage() {
     if (!groupId) return [];
     const allEvents: GroupEvent[] = await groupService.getGroupEvents(groupId);
 
-    // Mark past paid events with unsettled payments
-    const pastPaidEvents = allEvents.filter(
-      (e) => e.is_paid && isEventCompleted(e.datetime, e.end_datetime)
-    );
-    if (pastPaidEvents.length > 0) {
-      const pastPaidIds = pastPaidEvents.map((e) => e.id);
+    // Mark past events with unsettled payments
+    // Past events always show payment tracking regardless of is_paid flag
+    const pastEvents = allEvents.filter((e) => isEventCompleted(e.datetime, e.end_datetime));
+    if (pastEvents.length > 0) {
+      const pastIds = pastEvents.map((e) => e.id);
 
       if (isAdminRef.current) {
         // Admins: event is unsettled if any participant has pending payments
-        const summaries = await participantService.getPaymentSummariesBatch(pastPaidIds);
-        for (const event of pastPaidEvents) {
+        const summaries = await participantService.getPaymentSummariesBatch(pastIds);
+        for (const event of pastEvents) {
           const summary = summaries.get(event.id);
           event._unsettled = !!(summary && summary.pending > 0);
         }
       } else if (user?.id) {
         // Non-admins: event is unsettled only if their own payment is pending
-        const myStatuses = await participantService.getMyPaymentStatusBatch(user.id, pastPaidIds);
-        for (const event of pastPaidEvents) {
+        const myStatuses = await participantService.getMyPaymentStatusBatch(user.id, pastIds);
+        for (const event of pastEvents) {
           event._unsettled = myStatuses.get(event.id) === 'pending';
         }
       }
