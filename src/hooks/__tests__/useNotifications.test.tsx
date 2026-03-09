@@ -83,6 +83,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -115,6 +117,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -142,6 +146,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -169,6 +175,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -203,6 +211,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -237,6 +247,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -267,6 +279,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -290,6 +304,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       rerender();
 
@@ -312,6 +328,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -341,6 +359,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       const { result } = renderHook(() => useNotifications(), { wrapper });
@@ -365,6 +385,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);
@@ -391,6 +413,8 @@ describe('useNotifications', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
       mockGetNotifications.mockResolvedValue([]);
       mockGetUnreadCount.mockResolvedValue(0);

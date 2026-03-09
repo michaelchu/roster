@@ -162,6 +162,8 @@ describe('RemoveMembersPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       mockGroupService.isGroupAdmin.mockResolvedValue(false);
@@ -190,6 +192,8 @@ describe('RemoveMembersPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       // Admin check passes but then fails due to some error
@@ -221,6 +225,8 @@ describe('RemoveMembersPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
     });
 
@@ -289,6 +295,8 @@ describe('RemoveMembersPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
     });
 
@@ -502,6 +510,8 @@ describe('RemoveMembersPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       // Only owner and admin in members list

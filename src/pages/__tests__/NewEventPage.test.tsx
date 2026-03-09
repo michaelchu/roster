@@ -103,6 +103,8 @@ describe('NewEventPage', () => {
       isImpersonating: false,
       impersonate: vi.fn(),
       stopImpersonating: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updatePassword: vi.fn(),
     });
 
     renderWithRouter(<NewEventPage />);
@@ -137,6 +139,8 @@ describe('NewEventPage', () => {
       isImpersonating: false,
       impersonate: vi.fn(),
       stopImpersonating: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updatePassword: vi.fn(),
     });
 
     renderWithRouter(<NewEventPage />);
@@ -165,6 +169,8 @@ describe('NewEventPage', () => {
       isImpersonating: false,
       impersonate: vi.fn(),
       stopImpersonating: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updatePassword: vi.fn(),
     });
 
     renderWithRouter(<NewEventPage />);
@@ -187,6 +193,8 @@ describe('NewEventPage', () => {
       isImpersonating: false,
       impersonate: vi.fn(),
       stopImpersonating: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updatePassword: vi.fn(),
     });
 
     renderWithRouter(<NewEventPage />);
@@ -219,6 +227,8 @@ describe('NewEventPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       renderWithRouter(<NewEventPage />);
@@ -258,6 +268,8 @@ describe('NewEventPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       renderWithRouter(<NewEventPage />);
@@ -297,6 +309,8 @@ describe('NewEventPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       renderWithRouter(<NewEventPage />);
@@ -333,6 +347,8 @@ describe('NewEventPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
     });
 

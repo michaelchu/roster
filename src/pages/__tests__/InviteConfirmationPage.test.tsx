@@ -145,6 +145,8 @@ describe('InviteConfirmationPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       renderWithRouter(<InviteConfirmationPage />);
@@ -167,6 +169,8 @@ describe('InviteConfirmationPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       vi.mocked(eventService.getEventById).mockResolvedValue(mockEvent);
@@ -196,6 +200,8 @@ describe('InviteConfirmationPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       vi.mocked(eventService.getEventById).mockResolvedValue(mockEvent);
@@ -229,6 +235,8 @@ describe('InviteConfirmationPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       vi.mocked(eventService.getEventById).mockResolvedValue(mockEvent);
@@ -254,6 +262,8 @@ describe('InviteConfirmationPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       vi.mocked(eventService.getEventById).mockRejectedValue(new Error('Event not found'));
@@ -288,6 +298,8 @@ describe('InviteConfirmationPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       vi.mocked(groupService.getGroupById).mockResolvedValue(mockGroup);
@@ -314,6 +326,8 @@ describe('InviteConfirmationPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       vi.mocked(groupService.getGroupById).mockResolvedValue(mockGroup);
@@ -340,6 +354,8 @@ describe('InviteConfirmationPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       vi.mocked(groupService.getGroupById).mockResolvedValue(mockGroup);
