@@ -29,7 +29,7 @@ export function ResetPasswordPage() {
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
       await updatePassword(data.password);
-      navigate('/auth/login');
+      navigate('/');
     } catch (err) {
       const error = err as Error;
       setError('root', { message: error.message || 'Failed to reset password' });
