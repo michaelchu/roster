@@ -734,16 +734,16 @@ export function EventDetailPage() {
                       </div>
                       {isOrganizer && (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Total</span>
-                          <span className="text-sm text-muted-foreground">${total.toFixed(2)}</span>
+                          <span className="text-sm font-semibold">Total</span>
+                          <span className="text-sm font-semibold">${total.toFixed(2)}</span>
                         </div>
                       )}
                       {isOrganizer && (
                         <div className="flex flex-wrap gap-1.5">
                           {event.cost_breakdown.items.map((item, i) => (
                             <Badge key={i} variant="secondary" className="text-xs font-normal">
-                              {item.label}
-                              {item.quantity > 1 ? ` × ${item.quantity}` : ''} $
+                              <span className="font-semibold mr-1">{item.label}</span>
+                              {item.quantity > 1 ? `× ${item.quantity} ` : ''}$
                               {(item.quantity * item.cost).toFixed(2)}
                             </Badge>
                           ))}
