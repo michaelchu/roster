@@ -19,6 +19,8 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithGoogleIdToken: (idToken: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   impersonate: (userId: string) => Promise<void>;
   stopImpersonating: () => Promise<void>;
 }
@@ -48,6 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      if (event === 'PASSWORD_RECOVERY') {
+        navigate('/auth/reset-password');
+        return;
+      }
 
       if (event === 'SIGNED_IN' && session?.user) {
         const returnUrl = getStorageItem('returnUrl');
@@ -168,6 +175,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   /**
+   * Sends a password reset email to the given address.
+   * @param email - Email address to send reset link to
+   * @throws Error if the request fails
+   */
+  const resetPasswordForEmail = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    if (error) throw error;
+  };
+
+  /**
+   * Updates the current user's password. Used after clicking a recovery link.
+   * @param password - The new password
+   * @throws Error if the update fails
+   */
+  const updatePassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+  };
+
+  /**
    * Impersonates another user by calling the impersonate-user edge function.
    * Saves the current admin session so it can be restored later.
    * Only available to platform admins (app_metadata.is_admin = true).
@@ -248,6 +277,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithGoogle,
         signInWithGoogleIdToken,
         signOut,
+        resetPasswordForEmail,
+        updatePassword,
         impersonate,
         stopImpersonating,
       }}

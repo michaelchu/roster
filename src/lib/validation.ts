@@ -260,7 +260,25 @@ export const signupFormSchema = z.object({
   responses: z.record(z.string(), z.string()),
 });
 
+/** Schema for forgot password form */
+export const forgotPasswordFormSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
+});
+
+/** Schema for reset password form */
+export const resetPasswordFormSchema = z
+  .object({
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
 // Type exports
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordFormSchema>;
+export type ResetPasswordFormData = z.infer<typeof resetPasswordFormSchema>;
 export type ProfileFormData = z.infer<typeof profileFormSchema>;
 export type GroupFormData = z.infer<typeof groupFormSchema>;
 export type LoginFormData = z.infer<typeof loginFormSchema>;

@@ -44,3 +44,4 @@ test-results/
 # Claude Code settings
 .claude/settings.local.json
 supabase/.env
+.dual-graph/
