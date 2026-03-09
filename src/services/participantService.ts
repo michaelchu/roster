@@ -10,6 +10,7 @@ import type {
 import { throwIfSupabaseError, requireData, fireAndForget } from '@/lib/errorHandler';
 import { notificationService } from './notificationService';
 import { participantActivityService } from './participantActivityService';
+import { groupService } from './groupService';
 
 /** Extended Participant type with labels and computed properties */
 export interface Participant extends Omit<Tables<'participants'>, 'responses' | 'created_at'> {
@@ -53,10 +54,11 @@ async function getEventInfo(eventId: string): Promise<{
   name: string;
   organizer_id: string;
   max_participants: number | null;
+  group_id: string | null;
 } | null> {
   const { data } = await supabase
     .from('events')
-    .select('id, name, organizer_id, max_participants')
+    .select('id, name, organizer_id, max_participants, group_id')
     .eq('id', eventId)
     .single();
   return data;
@@ -252,6 +254,14 @@ export const participantService = {
             'queue capacity reached notification'
           );
         }
+      }
+
+      // Auto-add user to group when registering for a group event
+      if (eventInfo.group_id && created.user_id) {
+        fireAndForget(
+          groupService.addUserToGroup(eventInfo.group_id, created.user_id),
+          'auto-add participant to group'
+        );
       }
     }
 
