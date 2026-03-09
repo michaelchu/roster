@@ -71,20 +71,25 @@ export function useNotifications() {
         // Don't auto-resubscribe here - let user explicitly enable via settings toggle
         if (browserHasSubscription && currentPermission === 'granted') {
           setIsSubscribed(true);
-          // If browser has subscription but DB doesn't have push_enabled,
-          // sync the DB to match (user previously enabled, just needs DB update)
-          if (!prefs.push_enabled) {
-            try {
-              await pushSubscriptionService.subscribe();
-              await notificationPreferenceService.updatePreferences({ push_enabled: true });
-              // Update local state to reflect the sync
-              if (!cancelled) {
+          // Sync the browser's current subscription endpoint to the DB in the background.
+          // Browser endpoints rotate periodically (browser updates, SW updates, etc.)
+          // and the DB may have a stale endpoint that no longer works.
+          // Fire-and-forget so it doesn't block the initial load.
+          pushSubscriptionService
+            .subscribe()
+            .then(() => {
+              if (!cancelled && !prefs.push_enabled) {
+                return notificationPreferenceService.updatePreferences({ push_enabled: true });
+              }
+            })
+            .then((updated) => {
+              if (!cancelled && updated) {
                 setPreferences({ ...prefs, push_enabled: true });
               }
-            } catch {
+            })
+            .catch(() => {
               // If sync fails, still show as subscribed since browser has subscription
-            }
-          }
+            });
         } else {
           setIsSubscribed(false);
         }

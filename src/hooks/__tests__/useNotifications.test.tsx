@@ -263,9 +263,9 @@ describe('useNotifications', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      // Should show as subscribed without needing to call subscribe
-      // (DB and browser are already in sync)
-      expect(mockSubscribe).not.toHaveBeenCalled();
+      // Should always sync the browser subscription endpoint to DB
+      // to handle cases where the browser rotated the endpoint
+      expect(mockSubscribe).toHaveBeenCalled();
       expect(result.current.isSubscribed).toBe(true);
     });
   });
