@@ -965,7 +965,7 @@ export function EventDetailPage() {
                   for (let slotNum = firstEmptySlot; slotNum <= event.max_participants; slotNum++) {
                     const isFirstEmptySlot = slotNum === firstEmptySlot;
                     const canClaimSpot =
-                      (!isArchived || isOrganizer) &&
+                      !isArchived &&
                       canUserClaimSpot({
                         hasUser: !!user,
                         isOrganizer,
@@ -1014,7 +1014,7 @@ export function EventDetailPage() {
       >
         <Button
           onClick={() => {
-            if (isEventCompleted(event.datetime, event.end_datetime) && !isOrganizer) return;
+            if (isArchived) return;
             if (isEventFull && !userRegistration) return;
             if (showRegistrationForm) {
               openSignupDrawer();
@@ -1024,14 +1024,9 @@ export function EventDetailPage() {
               handleDirectJoin();
             }
           }}
-          disabled={
-            (isEventCompleted(event.datetime, event.end_datetime) && !isOrganizer) ||
-            submitting ||
-            (isEventFull && !userRegistration)
-          }
+          disabled={isArchived || submitting || (isEventFull && !userRegistration)}
           className={`w-full text-white shadow-lg drop-shadow-md ${
-            (isEventCompleted(event.datetime, event.end_datetime) && !isOrganizer) ||
-            (isEventFull && !userRegistration)
+            isArchived || (isEventFull && !userRegistration)
               ? 'bg-muted-foreground'
               : userRegistration && !showRegistrationForm
                 ? 'bg-destructive hover:bg-destructive/90'
@@ -1039,7 +1034,7 @@ export function EventDetailPage() {
           }`}
           size="default"
         >
-          {isEventCompleted(event.datetime, event.end_datetime) && !isOrganizer ? (
+          {isArchived ? (
             <>
               <UserX className="h-5 w-5 mr-2" />
               Registration Closed

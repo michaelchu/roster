@@ -267,9 +267,10 @@ describe('EventDetailPage - Organizer on past events', () => {
     });
   });
 
-  it('shows Claim button for registered organizer on a past event', async () => {
+  it('shows Claim button for organizer on a past paid event with pending payments', async () => {
+    const pastPaidEvent = { ...pastEvent, is_paid: true };
     mockUseAuth.mockReturnValue(mockAuthReturn);
-    mockEventService.getEventById.mockResolvedValue(pastEvent);
+    mockEventService.getEventById.mockResolvedValue(pastPaidEvent);
     mockParticipantService.getParticipantsByEventId.mockResolvedValue([
       {
         id: 'p-1',
@@ -279,6 +280,12 @@ describe('EventDetailPage - Organizer on past events', () => {
         payment_status: 'pending',
       },
     ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 1,
+      paid: 0,
+      pending: 1,
+      waived: 0,
+    });
 
     render(<EventDetailPage />);
 
@@ -306,10 +313,25 @@ describe('EventDetailPage - Organizer on past events', () => {
     expect(screen.queryByRole('button', { name: /claim/i })).not.toBeInTheDocument();
   });
 
-  it('does not show Registration Closed for organizer on a past event', async () => {
+  it('does not show Registration Closed for organizer on a past paid event with pending payments', async () => {
+    const pastPaidEvent = { ...pastEvent, is_paid: true };
     mockUseAuth.mockReturnValue(mockAuthReturn);
-    mockEventService.getEventById.mockResolvedValue(pastEvent);
-    mockParticipantService.getParticipantsByEventId.mockResolvedValue([]);
+    mockEventService.getEventById.mockResolvedValue(pastPaidEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      {
+        id: 'p-1',
+        name: 'Player',
+        user_id: 'user-456',
+        event_id: 'test-event-id',
+        payment_status: 'pending',
+      },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 1,
+      paid: 0,
+      pending: 1,
+      waived: 0,
+    });
 
     render(<EventDetailPage />);
 
@@ -401,8 +423,8 @@ describe('EventDetailPage - Organizer on past events', () => {
       expect(screen.getByText('Test Event')).toBeInTheDocument();
     });
 
-    // Event is archived — organizer bypass still applies for claim/join
-    expect(screen.queryByText('Registration Closed')).not.toBeInTheDocument();
+    // Event is archived — all paid, so Registration Closed for everyone
+    expect(screen.getByText('Registration Closed')).toBeInTheDocument();
   });
 });
 

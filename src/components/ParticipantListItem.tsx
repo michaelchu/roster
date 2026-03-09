@@ -134,7 +134,7 @@ export function ParticipantListItem({
                     )}
                   </Button>
                 )}
-                {!isOrganizerItem && (!isArchived || isOrganizer) && (
+                {!isOrganizerItem && !isArchived && (
                   <Button
                     size="icon"
                     variant="outline"
