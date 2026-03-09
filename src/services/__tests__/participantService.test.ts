@@ -45,6 +45,13 @@ vi.mock('@/lib/errorHandler', () => ({
   }),
 }));
 
+// Mock groupService for auto-add to group
+vi.mock('../groupService', () => ({
+  groupService: {
+    addUserToGroup: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
 // Mock participantActivityService to prevent unhandled rejections from activity logging
 vi.mock('../participantActivityService', () => ({
   participantActivityService: {
@@ -173,6 +180,8 @@ describe('participantService', () => {
       );
     });
   });
+
+  // Auto-add to group tests are in participantService.autoGroup.test.ts
 
   describe('updateParticipant - data transformation', () => {
     it('should convert empty strings to null for optional fields', async () => {
