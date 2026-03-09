@@ -4,12 +4,12 @@ import { canUserClaimSpot } from '@/lib/utils';
 describe('canUserClaimSpot', () => {
   const baseArgs = {
     hasUser: true,
-    isOrganizer: true,
+    isRegistered: true,
     isFirstEmptySlot: true,
     showGuestRegistration: true,
   };
 
-  it('returns true when organizer views first empty slot with guest registration enabled', () => {
+  it('returns true when registered user views first empty slot with guest registration enabled', () => {
     expect(canUserClaimSpot(baseArgs)).toBe(true);
   });
 
@@ -17,8 +17,8 @@ describe('canUserClaimSpot', () => {
     expect(canUserClaimSpot({ ...baseArgs, hasUser: false })).toBe(false);
   });
 
-  it('returns false when user is not the organizer', () => {
-    expect(canUserClaimSpot({ ...baseArgs, isOrganizer: false })).toBe(false);
+  it('returns false when user is not registered for the event', () => {
+    expect(canUserClaimSpot({ ...baseArgs, isRegistered: false })).toBe(false);
   });
 
   it('returns false for non-first empty slots', () => {

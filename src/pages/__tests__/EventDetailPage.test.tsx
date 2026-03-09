@@ -146,7 +146,7 @@ describe('EventDetailPage - Claim button visibility', () => {
     });
   });
 
-  it('shows Claim button when user is the event organizer', async () => {
+  it('shows Claim button when user is registered for the event', async () => {
     mockUseAuth.mockReturnValue({
       user: { id: 'organizer-123' } as User,
       session: null,
@@ -163,6 +163,15 @@ describe('EventDetailPage - Claim button visibility', () => {
       resetPasswordForEmail: vi.fn(),
       updatePassword: vi.fn(),
     });
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      {
+        id: 'p-1',
+        name: 'Organizer',
+        user_id: 'organizer-123',
+        event_id: 'test-event-id',
+        payment_status: 'pending',
+      },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     render(<EventDetailPage />);
 
@@ -173,7 +182,7 @@ describe('EventDetailPage - Claim button visibility', () => {
     expect(screen.getAllByRole('button', { name: /claim/i }).length).toBeGreaterThan(0);
   });
 
-  it('hides Claim button when user is not the event organizer', async () => {
+  it('hides Claim button when user is not registered for the event', async () => {
     mockUseAuth.mockReturnValue({
       user: { id: 'user-456' } as User,
       session: null,
@@ -225,6 +234,116 @@ describe('EventDetailPage - Claim button visibility', () => {
     });
 
     expect(screen.queryByRole('button', { name: /claim/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('EventDetailPage - Organizer on past events', () => {
+  const pastEvent = {
+    ...mockEvent,
+    datetime: '2024-01-01T10:00:00Z',
+    end_datetime: '2024-01-01T12:00:00Z',
+  };
+
+  const mockAuthReturn = {
+    user: { id: 'organizer-123' } as User,
+    session: null,
+    loading: false,
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signInWithGoogle: vi.fn(),
+    signInWithGoogleIdToken: vi.fn(),
+    signOut: vi.fn(),
+    isAdmin: false,
+    isImpersonating: false,
+    impersonate: vi.fn(),
+    stopImpersonating: vi.fn(),
+    resetPasswordForEmail: vi.fn(),
+    updatePassword: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockLabelService.getLabelsByEventId.mockResolvedValue([]);
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 0,
+      paid: 0,
+      pending: 0,
+      waived: 0,
+    });
+    mockUseFeatureFlag.mockImplementation((flag: string) => {
+      if (flag === 'guest_registration') return true;
+      return false;
+    });
+  });
+
+  it('shows Claim button for registered organizer on a past event', async () => {
+    mockUseAuth.mockReturnValue(mockAuthReturn);
+    mockEventService.getEventById.mockResolvedValue(pastEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      {
+        id: 'p-1',
+        name: 'Organizer',
+        user_id: 'organizer-123',
+        event_id: 'test-event-id',
+        payment_status: 'pending',
+      },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByRole('button', { name: /claim/i }).length).toBeGreaterThan(0);
+  });
+
+  it('hides Claim button for non-organizer on a past event', async () => {
+    mockUseAuth.mockReturnValue({
+      ...mockAuthReturn,
+      user: { id: 'user-456' } as User,
+    });
+    mockEventService.getEventById.mockResolvedValue(pastEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([]);
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: /claim/i })).not.toBeInTheDocument();
+  });
+
+  it('does not show Registration Closed for organizer on a past event', async () => {
+    mockUseAuth.mockReturnValue(mockAuthReturn);
+    mockEventService.getEventById.mockResolvedValue(pastEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([]);
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('Registration Closed')).not.toBeInTheDocument();
+  });
+
+  it('shows Registration Closed for non-organizer on a past event', async () => {
+    mockUseAuth.mockReturnValue({
+      ...mockAuthReturn,
+      user: { id: 'user-456' } as User,
+    });
+    mockEventService.getEventById.mockResolvedValue(pastEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([]);
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Registration Closed')).toBeInTheDocument();
   });
 });
 
