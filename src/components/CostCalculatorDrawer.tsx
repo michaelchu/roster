@@ -106,13 +106,13 @@ export function CostCalculatorDrawer({
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Total</span>
-            <span className="font-semibold">¥{total.toFixed(2)}</span>
+            <span className="font-semibold">${total.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">
               Per person ({participantCount} participant{participantCount !== 1 ? 's' : ''})
             </span>
-            <span className="font-semibold">¥{perPerson.toFixed(2)}</span>
+            <span className="font-semibold">${perPerson.toFixed(2)}</span>
           </div>
           <div className="flex gap-1.5">
             <Button
@@ -161,7 +161,7 @@ export function CostCalculatorDrawer({
               />
             </div>
             <div className="w-24 space-y-1">
-              {index === 0 && <Label className="text-xs text-muted-foreground">Cost (¥)</Label>}
+              {index === 0 && <Label className="text-xs text-muted-foreground">Cost ($)</Label>}
               <Input
                 type="number"
                 min="0"

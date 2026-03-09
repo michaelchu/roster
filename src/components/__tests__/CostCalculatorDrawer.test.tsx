@@ -48,7 +48,7 @@ describe('CostCalculatorDrawer', () => {
   it('shows zero total and per-person cost initially', () => {
     render(<CostCalculatorDrawer {...defaultProps} />);
 
-    const allZeros = screen.getAllByText('¥0.00');
+    const allZeros = screen.getAllByText('$0.00');
     expect(allZeros).toHaveLength(2); // total and per-person
     expect(screen.getByText(/4 participants/)).toBeInTheDocument();
   });
@@ -103,8 +103,8 @@ describe('CostCalculatorDrawer', () => {
     await user.type(costInput, '100');
 
     // Total should be 100, per person 100/4 = 25
-    expect(screen.getByText('¥100.00')).toBeInTheDocument();
-    expect(screen.getByText('¥25.00')).toBeInTheDocument();
+    expect(screen.getByText('$100.00')).toBeInTheDocument();
+    expect(screen.getByText('$25.00')).toBeInTheDocument();
   });
 
   it('calls saveCostBreakdown on save with valid items', async () => {
@@ -246,8 +246,8 @@ describe('CostCalculatorDrawer', () => {
     await user.type(screen.getByPlaceholderText('0.00'), '50');
 
     // Total = 3 * 50 = 150, per person = 150 / 2 = 75
-    expect(screen.getByText('¥150.00')).toBeInTheDocument();
-    expect(screen.getByText('¥75.00')).toBeInTheDocument();
+    expect(screen.getByText('$150.00')).toBeInTheDocument();
+    expect(screen.getByText('$75.00')).toBeInTheDocument();
   });
 
   it('closes drawer after successful save', async () => {
@@ -265,7 +265,7 @@ describe('CostCalculatorDrawer', () => {
   it('shows per-person as zero when participant count is 0', () => {
     render(<CostCalculatorDrawer {...defaultProps} participantCount={0} />);
 
-    const allZeros = screen.getAllByText('¥0.00');
+    const allZeros = screen.getAllByText('$0.00');
     expect(allZeros).toHaveLength(2);
     expect(screen.getByText(/0 participants/)).toBeInTheDocument();
   });
