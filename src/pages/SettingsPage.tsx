@@ -231,7 +231,8 @@ export function SettingsPage() {
           </div>
 
           <div className="text-center text-xs text-muted-foreground py-2">
-            Version {__APP_VERSION__}
+            <div>Made in 🇨🇦 by Goldspan Labs</div>
+            <div>Version {__APP_VERSION__}</div>
           </div>
 
           <Button
