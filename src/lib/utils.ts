@@ -104,14 +104,14 @@ export function getUserDisplayName(user: User | null, fallback = 'User'): string
 
 export function canUserClaimSpot({
   hasUser,
-  isRegistered,
+  isOrganizer,
   isFirstEmptySlot,
   showGuestRegistration,
 }: {
   hasUser: boolean;
-  isRegistered: boolean;
+  isOrganizer: boolean;
   isFirstEmptySlot: boolean;
   showGuestRegistration: boolean;
 }): boolean {
-  return hasUser && isRegistered && isFirstEmptySlot && showGuestRegistration;
+  return hasUser && isOrganizer && isFirstEmptySlot && showGuestRegistration;
 }

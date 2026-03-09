@@ -968,7 +968,7 @@ export function EventDetailPage() {
                       (!isArchived || isOrganizer) &&
                       canUserClaimSpot({
                         hasUser: !!user,
-                        isRegistered: !!userRegistration,
+                        isOrganizer,
                         isFirstEmptySlot,
                         showGuestRegistration,
                       });
