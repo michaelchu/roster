@@ -260,6 +260,8 @@ describe('EventsPage - Joined tab: participant payment-aware filtering', () => {
       expect(screen.getByText('Future Event')).toBeInTheDocument();
     });
     expect(screen.getByText('Past Unsettled Event')).toBeInTheDocument();
+    // Should show "Unpaid" indicator on the unsettled event card
+    expect(screen.getByText('Unpaid')).toBeInTheDocument();
   });
 
   it('hides past paid event from Joined tab when participant has paid', async () => {

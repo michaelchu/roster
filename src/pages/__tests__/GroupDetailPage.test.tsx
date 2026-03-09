@@ -261,6 +261,8 @@ describe('GroupDetailPage - Non-admin participant payment filtering', () => {
       expect(screen.getByText('Past Unsettled Group Event')).toBeInTheDocument();
     });
     expect(screen.getByText('Future Group Event')).toBeInTheDocument();
+    // Should show "Unpaid" indicator for non-admin's unsettled event
+    expect(screen.getByText('Unpaid')).toBeInTheDocument();
   });
 
   it('hides past paid event from Active when participant has paid', async () => {
