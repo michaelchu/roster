@@ -1,5 +1,5 @@
 export { eventService } from './eventService';
-export type { Event, Label as EventLabel } from './eventService';
+export type { Event, Label as EventLabel, CostBreakdown, CostLineItem } from './eventService';
 
 export { participantService } from './participantService';
 export type { Participant, Label as ParticipantLabel } from './participantService';

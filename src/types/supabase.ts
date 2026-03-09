@@ -44,8 +44,10 @@ export type Database = {
           name: string;
           organizer_id: string;
           parent_event_id: string | null;
+          cost_breakdown: Json | null;
         };
         Insert: {
+          cost_breakdown?: Json | null;
           created_at?: string;
           custom_fields?: Json;
           datetime?: string | null;
@@ -62,6 +64,7 @@ export type Database = {
           parent_event_id?: string | null;
         };
         Update: {
+          cost_breakdown?: Json | null;
           created_at?: string;
           custom_fields?: Json;
           datetime?: string | null;

@@ -121,6 +121,7 @@ describe('eventService', () => {
         max_participants: 50,
         group_id: null,
         parent_event_id: null,
+        cost_breakdown: null,
       };
 
       const mockQueryChain = {
@@ -158,6 +159,7 @@ describe('eventService', () => {
         max_participants: null,
         group_id: null,
         parent_event_id: null,
+        cost_breakdown: null,
       };
 
       const mockQueryChain = {
@@ -292,4 +294,167 @@ describe('eventService', () => {
   });
 
   // getPublicEvents, getEventsByParticipant are direct queries - tested via integration tests
+
+  describe('saveCostBreakdown', () => {
+    it('should compute total and per-person cost correctly', async () => {
+      const items = [
+        { label: 'Court rental', quantity: 1, cost: 200 },
+        { label: 'Shuttlecocks', quantity: 3, cost: 30 },
+      ];
+
+      // Mock getEventById (called by updateEvent to track changes)
+      const getChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'event-1',
+            name: 'Test',
+            custom_fields: [],
+            cost_breakdown: null,
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      // Mock update
+      const updateChain = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'event-1',
+            name: 'Test',
+            custom_fields: [],
+            cost_breakdown: {
+              items,
+              participant_count: 4,
+              cost_per_person: 72.5,
+            },
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from
+        .mockReturnValueOnce(getChain as any) // getEventById
+        .mockReturnValueOnce(updateChain as any); // update
+
+      await eventService.saveCostBreakdown('event-1', items, 4);
+
+      // Total = 200 + 90 = 290, per person = 290/4 = 72.5
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cost_breakdown: {
+            items,
+            participant_count: 4,
+            cost_per_person: 72.5,
+          },
+        })
+      );
+    });
+
+    it('should handle zero participants without divide-by-zero', async () => {
+      const items = [{ label: 'Court', quantity: 1, cost: 100 }];
+
+      const getChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'event-1',
+            name: 'Test',
+            custom_fields: [],
+            cost_breakdown: null,
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      const updateChain = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'event-1',
+            name: 'Test',
+            custom_fields: [],
+            cost_breakdown: { items, participant_count: 0, cost_per_person: 0 },
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from
+        .mockReturnValueOnce(getChain as any)
+        .mockReturnValueOnce(updateChain as any);
+
+      await eventService.saveCostBreakdown('event-1', items, 0);
+
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cost_breakdown: expect.objectContaining({
+            cost_per_person: 0,
+            participant_count: 0,
+          }),
+        })
+      );
+    });
+
+    it('should round per-person cost to 2 decimal places', async () => {
+      const items = [{ label: 'Court', quantity: 1, cost: 100 }];
+
+      const getChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'event-1',
+            name: 'Test',
+            custom_fields: [],
+            cost_breakdown: null,
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      const updateChain = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            id: 'event-1',
+            name: 'Test',
+            custom_fields: [],
+            cost_breakdown: { items, participant_count: 3, cost_per_person: 33.33 },
+            created_at: '2023-01-01',
+          },
+          error: null,
+        }),
+      };
+
+      mockSupabase.from
+        .mockReturnValueOnce(getChain as any)
+        .mockReturnValueOnce(updateChain as any);
+
+      await eventService.saveCostBreakdown('event-1', items, 3);
+
+      // 100/3 = 33.333... should round to 33.33
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cost_breakdown: expect.objectContaining({
+            cost_per_person: 33.33,
+          }),
+        })
+      );
+    });
+  });
 });

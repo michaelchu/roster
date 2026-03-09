@@ -239,6 +239,7 @@ export function NewEventPage() {
         is_private: data.is_private,
         custom_fields: customFields.filter((f) => f.label),
         parent_event_id: null,
+        cost_breakdown: null,
         group_id: data.group_id === '__no_group__' ? null : data.group_id,
       });
 

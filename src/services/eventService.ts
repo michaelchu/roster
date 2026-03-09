@@ -10,10 +10,25 @@ import { safeValidateEvent, validateCustomFields, type CustomField } from '@/lib
 import { requireValidSession } from '@/lib/sessionValidator';
 import { notificationService } from './notificationService';
 
+/** Cost line item for event cost breakdown */
+export interface CostLineItem {
+  label: string;
+  quantity: number;
+  cost: number;
+}
+
+/** Cost breakdown stored as JSONB on events */
+export interface CostBreakdown {
+  items: CostLineItem[];
+  participant_count: number;
+  cost_per_person: number;
+}
+
 /** Extended Event type with computed properties and properly typed custom_fields */
-export interface Event extends Omit<Tables<'events'>, 'custom_fields'> {
+export interface Event extends Omit<Tables<'events'>, 'custom_fields' | 'cost_breakdown'> {
   participant_count?: number;
   custom_fields: CustomField[];
+  cost_breakdown: CostBreakdown | null;
   group_name?: string;
 }
 
@@ -25,6 +40,17 @@ export type Label = Tables<'labels'>;
  * @param dbEvent - Raw event record from the database
  * @returns Typed Event object with validated custom_fields
  */
+function dbCostBreakdownToCostBreakdown(raw: unknown): CostBreakdown | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  if (!Array.isArray(obj.items)) return null;
+  return {
+    items: obj.items as CostLineItem[],
+    participant_count: Number(obj.participant_count) || 0,
+    cost_per_person: Number(obj.cost_per_person) || 0,
+  };
+}
+
 function dbEventToEvent(dbEvent: Tables<'events'>): Event {
   const validatedCustomFields = validateCustomFields(dbEvent.custom_fields);
 
@@ -33,6 +59,7 @@ function dbEventToEvent(dbEvent: Tables<'events'>): Event {
     is_paid: dbEvent.is_paid ?? true,
     is_private: dbEvent.is_private ?? false,
     custom_fields: validatedCustomFields,
+    cost_breakdown: dbCostBreakdownToCostBreakdown(dbEvent.cost_breakdown),
   };
 }
 
@@ -189,6 +216,8 @@ export const eventService = {
       updateData.max_participants = updates.max_participants;
     if (updates.custom_fields !== undefined)
       updateData.custom_fields = updates.custom_fields as unknown as Json;
+    if (updates.cost_breakdown !== undefined)
+      updateData.cost_breakdown = updates.cost_breakdown as unknown as Json;
     if (updates.group_id !== undefined) updateData.group_id = updates.group_id;
 
     const { data, error } = await supabase
@@ -334,6 +363,31 @@ export const eventService = {
       .order('datetime', { ascending: true });
 
     return (throwIfSupabaseError({ data, error }) || []).map(dbEventToEvent);
+  },
+
+  /**
+   * Saves a cost breakdown for an event, computing the total and per-person cost.
+   * @param eventId - UUID of the event
+   * @param items - Array of cost line items
+   * @param participantCount - Number of participants to split costs among
+   * @returns The updated event
+   */
+  async saveCostBreakdown(
+    eventId: string,
+    items: CostLineItem[],
+    participantCount: number
+  ): Promise<Event> {
+    const total = items.reduce((sum, item) => sum + item.quantity * item.cost, 0);
+    const costPerPerson =
+      participantCount > 0 ? Math.round((total / participantCount) * 100) / 100 : 0;
+
+    const breakdown: CostBreakdown = {
+      items,
+      participant_count: participantCount,
+      cost_per_person: costPerPerson,
+    };
+
+    return this.updateEvent(eventId, { cost_breakdown: breakdown } as Partial<Event>);
   },
 
   /**

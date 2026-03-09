@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -33,6 +34,7 @@ import {
   UserPlus,
   UserCheck,
   UserX,
+  Calculator,
 } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { EventActivityTimeline } from '@/components/EventActivityTimeline';
@@ -46,6 +48,8 @@ import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { ParticipantListItem, EmptySlot } from '@/components/ParticipantListItem';
 import { ParticipantDetailsSheet } from '@/components/ParticipantDetailsSheet';
 import { SignupFormDrawer, type SignupFormData } from '@/components/SignupFormDrawer';
+import { CostCalculatorDrawer } from '@/components/CostCalculatorDrawer';
+import type { CostBreakdown } from '@/services';
 
 type Participant = ServiceParticipant & {
   notes?: string | null;
@@ -64,6 +68,7 @@ interface EventData {
   is_paid: boolean;
   is_private: boolean | null;
   custom_fields: CustomField[];
+  cost_breakdown: CostBreakdown | null;
   group_id: string | null;
 }
 
@@ -119,6 +124,7 @@ export function EventDetailPage() {
   });
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const [groupName, setGroupName] = useState<string | null>(null);
+  const [showCostCalculator, setShowCostCalculator] = useState(false);
 
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
@@ -154,7 +160,7 @@ export function EventDetailPage() {
     try {
       loadingRef.current = true;
       // Load event
-      const eventData = await eventService.getEventById(eventId);
+      let eventData = await eventService.getEventById(eventId);
 
       // If event is private and user is not authenticated, deny access
       if (eventData.is_private && !user) {
@@ -219,6 +225,22 @@ export function EventDetailPage() {
         );
 
         setUserRegistration(currentUserRegistration || null);
+
+        // Recalculate cost breakdown if participant count changed
+        await recalculateCostBreakdown(eventData, participantsData.length);
+        // Re-fetch event to pick up updated cost breakdown
+        if (
+          eventData.cost_breakdown?.participant_count !== undefined &&
+          eventData.cost_breakdown.participant_count !== participantsData.length &&
+          eventData.organizer_id === user?.id
+        ) {
+          const refreshed = await eventService.getEventById(eventId);
+          eventData = refreshed;
+          setEvent({
+            ...refreshed,
+            custom_fields: refreshed.custom_fields as CustomField[],
+          });
+        }
 
         // Load payment summary if user is organizer and event is paid (or archived)
         const archived = isEventCompleted(eventData.datetime, eventData.end_datetime);
@@ -560,6 +582,21 @@ export function EventDetailPage() {
     }
   };
 
+  const recalculateCostBreakdown = async (
+    eventData: { cost_breakdown?: CostBreakdown | null; organizer_id: string },
+    currentParticipantCount: number
+  ) => {
+    if (!eventData.cost_breakdown?.items?.length || !eventId) return;
+    if (eventData.organizer_id !== user?.id) return;
+    const stored = eventData.cost_breakdown;
+    if (stored.participant_count === currentParticipantCount) return;
+    try {
+      await eventService.saveCostBreakdown(eventId, stored.items, currentParticipantCount);
+    } catch {
+      // Non-critical — next load will retry
+    }
+  };
+
   const confirmWithdraw = async () => {
     if (!userRegistration || !user) return;
 
@@ -674,6 +711,49 @@ export function EventDetailPage() {
               <div>{event.location || 'TBD'}</div>
             </div>
 
+            {/* Cost per Person */}
+            {event.cost_breakdown &&
+              (() => {
+                const total = event.cost_breakdown.items.reduce(
+                  (sum, item) => sum + item.quantity * item.cost,
+                  0
+                );
+                const costPerPerson =
+                  participants.length > 0
+                    ? Math.round((total / participants.length) * 100) / 100
+                    : event.cost_breakdown.cost_per_person;
+                return (
+                  <>
+                    <div className="border-t border-border"></div>
+                    <div className="p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-foreground">Cost per Person</span>
+                        <span className="text-sm text-muted-foreground">
+                          ${costPerPerson.toFixed(2)}
+                        </span>
+                      </div>
+                      {isOrganizer && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold">Total</span>
+                          <span className="text-sm font-semibold">${total.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {isOrganizer && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {event.cost_breakdown.items.map((item, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs font-normal">
+                              <span className="font-semibold mr-1">{item.label}</span>
+                              {item.quantity > 1 ? `× ${item.quantity} ` : ''}$
+                              {(item.quantity * item.cost).toFixed(2)}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+
             {/* Horizontal divider */}
             {event.description && <div className="border-t border-border"></div>}
 
@@ -727,37 +807,50 @@ export function EventDetailPage() {
         </div>
 
         {/* Payment Summary (Organizer Only, Paid Events Only) */}
-        {isOrganizer && participants.length > 0 && effectiveIsPaid && (
+        {isOrganizer && effectiveIsPaid && (
           <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="px-3 py-2 border-b bg-muted">
-              <h3 className="text-sm font-medium">Payment Status</h3>
-            </div>
-            <div className="grid grid-cols-3 divide-x">
-              <div className="text-center py-2">
-                <div className="text-xl font-bold text-green-600">{paymentSummary.paid}</div>
-                <div className="text-xs text-muted-foreground">Paid</div>
-              </div>
-              <div className="text-center py-2">
-                <div className="text-xl font-bold text-gray-600">{paymentSummary.pending}</div>
-                <div className="text-xs text-muted-foreground">Pending</div>
-              </div>
-              {paymentSummary.waived > 0 && (
-                <div className="text-center py-2">
-                  <div className="text-xl font-bold text-blue-600">{paymentSummary.waived}</div>
-                  <div className="text-xs text-muted-foreground">Waived</div>
+            {participants.length > 0 && (
+              <>
+                <div className="px-3 py-1.5 border-b bg-muted">
+                  <h3 className="text-sm font-medium">Payment Status</h3>
                 </div>
-              )}
-              {paymentSummary.waived === 0 && (
-                <div className="text-center py-2">
-                  <div className="text-xl font-bold text-primary">
-                    {paymentSummary.total > 0
-                      ? Math.round((paymentSummary.paid / paymentSummary.total) * 100)
-                      : 0}
-                    %
+                <div className="grid grid-cols-3 divide-x">
+                  <div className="text-center py-1.5">
+                    <div className="text-lg font-bold text-green-600">{paymentSummary.paid}</div>
+                    <div className="text-xs text-muted-foreground">Paid</div>
                   </div>
-                  <div className="text-xs text-muted-foreground">Collection</div>
+                  <div className="text-center py-1.5">
+                    <div className="text-lg font-bold text-gray-600">{paymentSummary.pending}</div>
+                    <div className="text-xs text-muted-foreground">Pending</div>
+                  </div>
+                  {paymentSummary.waived > 0 && (
+                    <div className="text-center py-1.5">
+                      <div className="text-lg font-bold text-blue-600">{paymentSummary.waived}</div>
+                      <div className="text-xs text-muted-foreground">Waived</div>
+                    </div>
+                  )}
+                  {paymentSummary.waived === 0 && (
+                    <div className="text-center py-1.5">
+                      <div className="text-lg font-bold text-primary">
+                        {paymentSummary.total > 0
+                          ? Math.round((paymentSummary.paid / paymentSummary.total) * 100)
+                          : 0}
+                        %
+                      </div>
+                      <div className="text-xs text-muted-foreground">Collection</div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </>
+            )}
+            <div className={participants.length > 0 ? 'border-t bg-muted' : 'bg-muted'}>
+              <button
+                onClick={() => setShowCostCalculator(true)}
+                className="w-full flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Calculator className="h-4 w-4 mr-2" />
+                {event.cost_breakdown ? 'Edit Costs' : 'Calculate Costs'}
+              </button>
             </div>
           </div>
         )}
@@ -1093,6 +1186,18 @@ export function EventDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Cost Calculator Drawer */}
+      {isOrganizer && (
+        <CostCalculatorDrawer
+          open={showCostCalculator}
+          onOpenChange={setShowCostCalculator}
+          eventId={event.id}
+          participantCount={participants.length}
+          existingBreakdown={event.cost_breakdown}
+          onSave={loadEventData}
+        />
+      )}
 
       {/* Delete Event Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

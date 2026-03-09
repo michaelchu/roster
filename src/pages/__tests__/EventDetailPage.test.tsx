@@ -64,6 +64,7 @@ vi.mock('@/lib/supabase', () => ({
 vi.mock('@/services', () => ({
   eventService: {
     getEventById: vi.fn(),
+    saveCostBreakdown: vi.fn(),
   },
   participantService: {
     getParticipantsByEventId: vi.fn(),
@@ -129,6 +130,7 @@ const mockEvent = {
   custom_fields: [],
   group_id: null,
   parent_event_id: null,
+  cost_breakdown: null,
   created_at: '2026-01-01T00:00:00Z',
 };
 
@@ -223,5 +225,281 @@ describe('EventDetailPage - Claim button visibility', () => {
     });
 
     expect(screen.queryByRole('button', { name: /claim/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('EventDetailPage - Cost breakdown recalculation', () => {
+  const mockAuthReturn = {
+    user: { id: 'organizer-123' } as User,
+    session: null,
+    loading: false,
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signInWithGoogle: vi.fn(),
+    signInWithGoogleIdToken: vi.fn(),
+    signOut: vi.fn(),
+    isAdmin: false,
+    isImpersonating: false,
+    impersonate: vi.fn(),
+    stopImpersonating: vi.fn(),
+    resetPasswordForEmail: vi.fn(),
+    updatePassword: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseAuth.mockReturnValue(mockAuthReturn);
+    mockLabelService.getLabelsByEventId.mockResolvedValue([]);
+    mockUseFeatureFlag.mockImplementation((flag: string) => {
+      if (flag === 'guest_registration') return true;
+      return false;
+    });
+  });
+
+  it('recalculates cost breakdown when participant count differs from stored count', async () => {
+    const eventWithCost = {
+      ...mockEvent,
+      is_paid: true,
+      cost_breakdown: {
+        items: [{ label: 'Court', quantity: 1, cost: 100 }],
+        participant_count: 2,
+        cost_per_person: 50,
+      },
+    };
+
+    const updatedEvent = {
+      ...eventWithCost,
+      cost_breakdown: {
+        items: [{ label: 'Court', quantity: 1, cost: 100 }],
+        participant_count: 4,
+        cost_per_person: 25,
+      },
+    };
+
+    // First call returns stale count, second call returns updated
+    mockEventService.getEventById
+      .mockResolvedValueOnce(eventWithCost)
+      .mockResolvedValueOnce(updatedEvent);
+    mockEventService.saveCostBreakdown.mockResolvedValue(updatedEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      { id: '1', name: 'A', payment_status: 'pending' },
+      { id: '2', name: 'B', payment_status: 'pending' },
+      { id: '3', name: 'C', payment_status: 'pending' },
+      { id: '4', name: 'D', payment_status: 'pending' },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 4,
+      paid: 0,
+      pending: 4,
+      waived: 0,
+    });
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(mockEventService.saveCostBreakdown).toHaveBeenCalledWith(
+        'test-event-id',
+        [{ label: 'Court', quantity: 1, cost: 100 }],
+        4
+      );
+    });
+
+    // Should re-fetch event after recalculation
+    expect(mockEventService.getEventById).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not recalculate when participant count matches stored count', async () => {
+    const eventWithCost = {
+      ...mockEvent,
+      is_paid: true,
+      cost_breakdown: {
+        items: [{ label: 'Court', quantity: 1, cost: 100 }],
+        participant_count: 2,
+        cost_per_person: 50,
+      },
+    };
+
+    mockEventService.getEventById.mockResolvedValue(eventWithCost);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      { id: '1', name: 'A', payment_status: 'pending' },
+      { id: '2', name: 'B', payment_status: 'pending' },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 2,
+      paid: 0,
+      pending: 2,
+      waived: 0,
+    });
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Cost per Person')).toBeInTheDocument();
+    });
+
+    expect(mockEventService.saveCostBreakdown).not.toHaveBeenCalled();
+    expect(mockEventService.getEventById).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not recalculate for non-organizer users', async () => {
+    mockUseAuth.mockReturnValue({
+      ...mockAuthReturn,
+      user: { id: 'user-456' } as User,
+    });
+
+    const eventWithCost = {
+      ...mockEvent,
+      is_paid: true,
+      cost_breakdown: {
+        items: [{ label: 'Court', quantity: 1, cost: 100 }],
+        participant_count: 2,
+        cost_per_person: 50,
+      },
+    };
+
+    mockEventService.getEventById.mockResolvedValue(eventWithCost);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      { id: '1', name: 'A', payment_status: 'pending' },
+      { id: '2', name: 'B', payment_status: 'pending' },
+      { id: '3', name: 'C', payment_status: 'pending' },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    expect(mockEventService.saveCostBreakdown).not.toHaveBeenCalled();
+  });
+
+  it('non-organizer sees cost per person computed from current participant count', async () => {
+    mockUseAuth.mockReturnValue({
+      ...mockAuthReturn,
+      user: { id: 'user-456' } as User,
+    });
+
+    // DB has stale cost_per_person of 50 (based on 2 participants)
+    const eventWithStaleCost = {
+      ...mockEvent,
+      is_paid: true,
+      cost_breakdown: {
+        items: [{ label: 'Court', quantity: 1, cost: 100 }],
+        participant_count: 2,
+        cost_per_person: 50,
+      },
+    };
+
+    mockEventService.getEventById.mockResolvedValue(eventWithStaleCost);
+    // But there are now 4 participants
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      { id: '1', name: 'A', payment_status: 'pending' },
+      { id: '2', name: 'B', payment_status: 'pending' },
+      { id: '3', name: 'C', payment_status: 'pending' },
+      { id: '4', name: 'D', payment_status: 'pending' },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    render(<EventDetailPage />);
+
+    // Should show $25.00 (100/4) not stale $50.00 (100/2)
+    await waitFor(() => {
+      expect(screen.getByText('$25.00')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('$50.00')).not.toBeInTheDocument();
+    expect(mockEventService.saveCostBreakdown).not.toHaveBeenCalled();
+  });
+
+  it('does not recalculate when no cost breakdown exists', async () => {
+    mockEventService.getEventById.mockResolvedValue(mockEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      { id: '1', name: 'A', payment_status: 'pending' },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    expect(mockEventService.saveCostBreakdown).not.toHaveBeenCalled();
+  });
+
+  it('displays $0.00 when cost breakdown has no items', async () => {
+    const eventWithEmptyCost = {
+      ...mockEvent,
+      is_paid: true,
+      cost_breakdown: {
+        items: [],
+        participant_count: 4,
+        cost_per_person: 0,
+      },
+    };
+
+    mockEventService.getEventById.mockResolvedValue(eventWithEmptyCost);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      { id: '1', name: 'A', payment_status: 'pending' },
+      { id: '2', name: 'B', payment_status: 'pending' },
+      { id: '3', name: 'C', payment_status: 'pending' },
+      { id: '4', name: 'D', payment_status: 'pending' },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 4,
+      paid: 0,
+      pending: 4,
+      waived: 0,
+    });
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Cost per Person')).toBeInTheDocument();
+    });
+    // Cost per person and total both show $0.00
+    expect(screen.getAllByText('$0.00')).toHaveLength(2);
+    expect(mockEventService.saveCostBreakdown).not.toHaveBeenCalled();
+  });
+
+  it('displays updated cost per person after recalculation', async () => {
+    const eventWithCost = {
+      ...mockEvent,
+      is_paid: true,
+      cost_breakdown: {
+        items: [{ label: 'Court', quantity: 1, cost: 100 }],
+        participant_count: 2,
+        cost_per_person: 50,
+      },
+    };
+
+    const updatedEvent = {
+      ...eventWithCost,
+      cost_breakdown: {
+        items: [{ label: 'Court', quantity: 1, cost: 100 }],
+        participant_count: 4,
+        cost_per_person: 25,
+      },
+    };
+
+    mockEventService.getEventById
+      .mockResolvedValueOnce(eventWithCost)
+      .mockResolvedValueOnce(updatedEvent);
+    mockEventService.saveCostBreakdown.mockResolvedValue(updatedEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      { id: '1', name: 'A', payment_status: 'pending' },
+      { id: '2', name: 'B', payment_status: 'pending' },
+      { id: '3', name: 'C', payment_status: 'pending' },
+      { id: '4', name: 'D', payment_status: 'pending' },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 4,
+      paid: 0,
+      pending: 4,
+      waived: 0,
+    });
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('$25.00')).toBeInTheDocument();
+    });
   });
 });
