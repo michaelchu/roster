@@ -121,6 +121,7 @@ describe('eventService', () => {
         max_participants: 50,
         group_id: null,
         parent_event_id: null,
+        cost_breakdown: null,
       };
 
       const mockQueryChain = {
@@ -158,6 +159,7 @@ describe('eventService', () => {
         max_participants: null,
         group_id: null,
         parent_event_id: null,
+        cost_breakdown: null,
       };
 
       const mockQueryChain = {

@@ -33,6 +33,7 @@ import {
   UserPlus,
   UserCheck,
   UserX,
+  Calculator,
 } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import { EventActivityTimeline } from '@/components/EventActivityTimeline';
@@ -46,6 +47,8 @@ import { EventDetailSkeleton } from '@/components/EventDetailSkeleton';
 import { ParticipantListItem, EmptySlot } from '@/components/ParticipantListItem';
 import { ParticipantDetailsSheet } from '@/components/ParticipantDetailsSheet';
 import { SignupFormDrawer, type SignupFormData } from '@/components/SignupFormDrawer';
+import { CostCalculatorDrawer } from '@/components/CostCalculatorDrawer';
+import type { CostBreakdown } from '@/services';
 
 type Participant = ServiceParticipant & {
   notes?: string | null;
@@ -64,6 +67,7 @@ interface EventData {
   is_paid: boolean;
   is_private: boolean | null;
   custom_fields: CustomField[];
+  cost_breakdown: CostBreakdown | null;
   group_id: string | null;
 }
 
@@ -119,6 +123,7 @@ export function EventDetailPage() {
   });
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const [groupName, setGroupName] = useState<string | null>(null);
+  const [showCostCalculator, setShowCostCalculator] = useState(false);
 
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
@@ -674,6 +679,28 @@ export function EventDetailPage() {
               <div>{event.location || 'TBD'}</div>
             </div>
 
+            {/* Cost per person */}
+            {event.cost_breakdown && (
+              <>
+                <div className="border-t border-border"></div>
+                <div className="text-sm text-muted-foreground p-3">
+                  <div className="font-medium text-foreground">
+                    Cost per person: ¥{event.cost_breakdown.cost_per_person.toFixed(2)}
+                  </div>
+                  <div className="text-xs mt-1">
+                    {event.cost_breakdown.items.map((item, i) => (
+                      <span key={i}>
+                        {i > 0 && ' · '}
+                        {item.label}
+                        {item.quantity > 1 ? ` ×${item.quantity}` : ''} ¥
+                        {(item.quantity * item.cost).toFixed(2)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* Horizontal divider */}
             {event.description && <div className="border-t border-border"></div>}
 
@@ -758,6 +785,15 @@ export function EventDetailPage() {
                   <div className="text-xs text-muted-foreground">Collection</div>
                 </div>
               )}
+            </div>
+            <div className="border-t bg-muted">
+              <button
+                onClick={() => setShowCostCalculator(true)}
+                className="w-full flex items-center justify-center py-2 px-3 text-xs text-muted-foreground hover:bg-muted transition-colors"
+              >
+                <Calculator className="h-4 w-4 mr-2" />
+                {event.cost_breakdown ? 'Edit Costs' : 'Calculate Costs'}
+              </button>
             </div>
           </div>
         )}
@@ -1093,6 +1129,18 @@ export function EventDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Cost Calculator Drawer */}
+      {isOrganizer && (
+        <CostCalculatorDrawer
+          open={showCostCalculator}
+          onOpenChange={setShowCostCalculator}
+          eventId={event.id}
+          participantCount={participants.length}
+          existingBreakdown={event.cost_breakdown}
+          onSave={loadEventData}
+        />
+      )}
 
       {/* Delete Event Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

@@ -32,6 +32,7 @@ export const mockEvent: Event = {
   parent_event_id: null,
   group_id: null,
   max_participants: 50,
+  cost_breakdown: null,
   participant_count: 1,
 };
 

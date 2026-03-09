@@ -129,6 +129,7 @@ const mockEvent = {
   custom_fields: [],
   group_id: null,
   parent_event_id: null,
+  cost_breakdown: null,
   created_at: '2026-01-01T00:00:00Z',
 };
 
