@@ -27,6 +27,7 @@ Consult these when working on database changes, adding services, writing tests, 
    - `VITE_VAPID_PUBLIC_KEY` - VAPID public key for push notifications (generate with `npx web-push generate-vapid-keys`)
    - `VITE_SENTRY_DSN` - (optional) Sentry DSN for error tracking
    - `VITE_SENTRY_ENVIRONMENT` - (optional) Sentry environment label
+   - `VITE_MIXPANEL_TOKEN` - (optional) Mixpanel project token for analytics
 
 3. Start local Supabase:
    ```bash

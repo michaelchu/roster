@@ -38,6 +38,14 @@ vi.mock('@/lib/supabase', () => ({
 
 // Mock pushSubscriptionService
 const mockRemoveSubscriptionFromDatabase = vi.fn();
+vi.mock('@/lib/mixpanel', () => ({
+  mixpanel: {
+    identify: vi.fn(),
+    people: { set: vi.fn() },
+    reset: vi.fn(),
+  },
+}));
+
 vi.mock('@/services/pushSubscriptionService', () => ({
   pushSubscriptionService: {
     removeSubscriptionFromDatabase: () => mockRemoveSubscriptionFromDatabase(),

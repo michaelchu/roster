@@ -1,5 +1,7 @@
 import { initSentry } from './lib/sentry';
+import { initMixpanel } from './lib/mixpanel';
 initSentry();
+initMixpanel();
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

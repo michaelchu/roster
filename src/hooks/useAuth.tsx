@@ -4,6 +4,7 @@ import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { getStorageItem, removeStorageItem, setStorageItem } from '@/lib/storage';
 import { pushSubscriptionService } from '@/services/pushSubscriptionService';
+import { mixpanel } from '@/lib/mixpanel';
 
 const ADMIN_SESSION_KEY = 'adminSession';
 
@@ -50,6 +51,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      // Sync Mixpanel identity with auth state
+      if (session?.user) {
+        mixpanel.identify(session.user.id);
+        mixpanel.people.set({
+          $email: session.user.email,
+          $name: session.user.user_metadata?.full_name,
+        });
+      } else {
+        mixpanel.reset();
+      }
 
       if (event === 'PASSWORD_RECOVERY') {
         navigate('/auth/reset-password');
