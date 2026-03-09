@@ -173,7 +173,43 @@ describe('EventDetailPage - Claim button visibility', () => {
     expect(screen.getAllByRole('button', { name: /claim/i }).length).toBeGreaterThan(0);
   });
 
-  it('hides Claim button when user is not the event organizer', async () => {
+  it('shows Claim button when non-organizer user is registered for the event', async () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-456' } as User,
+      session: null,
+      loading: false,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signInWithGoogle: vi.fn(),
+      signInWithGoogleIdToken: vi.fn(),
+      signOut: vi.fn(),
+      isAdmin: false,
+      isImpersonating: false,
+      impersonate: vi.fn(),
+      stopImpersonating: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updatePassword: vi.fn(),
+    });
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      {
+        id: 'p-1',
+        name: 'User',
+        user_id: 'user-456',
+        event_id: 'test-event-id',
+        payment_status: 'pending',
+      },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByRole('button', { name: /claim/i }).length).toBeGreaterThan(0);
+  });
+
+  it('hides Claim button when user is neither organizer nor registered', async () => {
     mockUseAuth.mockReturnValue({
       user: { id: 'user-456' } as User,
       session: null,
