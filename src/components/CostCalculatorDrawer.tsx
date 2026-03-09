@@ -80,11 +80,6 @@ export function CostCalculatorDrawer({
         cost: parseFloat(item.cost) || 0,
       }));
 
-    if (validItems.length === 0) {
-      errorHandler.info('Add at least one item with a label and cost');
-      return;
-    }
-
     setSaving(true);
     try {
       await eventService.saveCostBreakdown(eventId, validItems, participantCount);
@@ -144,7 +139,7 @@ export function CostCalculatorDrawer({
             <div className="flex-1 space-y-1">
               {index === 0 && <Label className="text-xs text-muted-foreground">Item</Label>}
               <Input
-                placeholder="e.g. Court rental"
+                placeholder=""
                 value={item.label}
                 onChange={(e) => updateItem(index, 'label', e.target.value)}
                 className="h-9 text-sm"

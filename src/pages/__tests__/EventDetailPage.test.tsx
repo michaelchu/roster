@@ -424,6 +424,41 @@ describe('EventDetailPage - Cost breakdown recalculation', () => {
     expect(mockEventService.saveCostBreakdown).not.toHaveBeenCalled();
   });
 
+  it('displays $0.00 when cost breakdown has no items', async () => {
+    const eventWithEmptyCost = {
+      ...mockEvent,
+      is_paid: true,
+      cost_breakdown: {
+        items: [],
+        participant_count: 4,
+        cost_per_person: 0,
+      },
+    };
+
+    mockEventService.getEventById.mockResolvedValue(eventWithEmptyCost);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      { id: '1', name: 'A', payment_status: 'pending' },
+      { id: '2', name: 'B', payment_status: 'pending' },
+      { id: '3', name: 'C', payment_status: 'pending' },
+      { id: '4', name: 'D', payment_status: 'pending' },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 4,
+      paid: 0,
+      pending: 4,
+      waived: 0,
+    });
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Cost per Person')).toBeInTheDocument();
+    });
+    // Cost per person and total both show $0.00
+    expect(screen.getAllByText('$0.00')).toHaveLength(2);
+    expect(mockEventService.saveCostBreakdown).not.toHaveBeenCalled();
+  });
+
   it('displays updated cost per person after recalculation', async () => {
     const eventWithCost = {
       ...mockEvent,

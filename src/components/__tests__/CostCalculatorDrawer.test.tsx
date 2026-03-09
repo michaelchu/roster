@@ -41,7 +41,7 @@ describe('CostCalculatorDrawer', () => {
     render(<CostCalculatorDrawer {...defaultProps} />);
 
     expect(screen.getByText('Cost Breakdown')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('e.g. Court rental')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.getByText('Add Item')).toBeInTheDocument();
   });
 
@@ -96,7 +96,7 @@ describe('CostCalculatorDrawer', () => {
     const user = userEvent.setup();
     render(<CostCalculatorDrawer {...defaultProps} />);
 
-    const labelInput = screen.getByPlaceholderText('e.g. Court rental');
+    const labelInput = screen.getByRole('textbox');
     const costInput = screen.getByPlaceholderText('0.00');
 
     await user.type(labelInput, 'Court');
@@ -112,7 +112,7 @@ describe('CostCalculatorDrawer', () => {
     const onSave = vi.fn();
     render(<CostCalculatorDrawer {...defaultProps} onSave={onSave} />);
 
-    await user.type(screen.getByPlaceholderText('e.g. Court rental'), 'Court');
+    await user.type(screen.getByRole('textbox'), 'Court');
     await user.type(screen.getByPlaceholderText('0.00'), '200');
 
     await user.click(screen.getByRole('button', { name: 'Save' }));
@@ -126,17 +126,17 @@ describe('CostCalculatorDrawer', () => {
     expect(onSave).toHaveBeenCalled();
   });
 
-  it('shows info message when saving with no valid items', async () => {
+  it('saves with no items when costs are unknown', async () => {
     const user = userEvent.setup();
-    render(<CostCalculatorDrawer {...defaultProps} />);
+    const onSave = vi.fn();
+    render(<CostCalculatorDrawer {...defaultProps} onSave={onSave} />);
 
-    // Try to save without filling in anything
+    // Save without filling in anything
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(mockSaveCostBreakdown).not.toHaveBeenCalled();
-    expect(mockErrorHandler.info).toHaveBeenCalledWith(
-      'Add at least one item with a label and cost'
-    );
+    expect(mockSaveCostBreakdown).toHaveBeenCalledWith('event-123', [], 4);
+    expect(mockErrorHandler.success).toHaveBeenCalledWith('Cost breakdown saved');
+    expect(onSave).toHaveBeenCalled();
   });
 
   it('filters out items without label or cost when saving', async () => {
@@ -144,7 +144,7 @@ describe('CostCalculatorDrawer', () => {
     render(<CostCalculatorDrawer {...defaultProps} />);
 
     // Fill first item
-    await user.type(screen.getByPlaceholderText('e.g. Court rental'), 'Court');
+    await user.type(screen.getByRole('textbox'), 'Court');
     await user.type(screen.getByPlaceholderText('0.00'), '200');
 
     // Add a second empty item (should be filtered out)
@@ -175,7 +175,7 @@ describe('CostCalculatorDrawer', () => {
 
     render(<CostCalculatorDrawer {...defaultProps} />);
 
-    await user.type(screen.getByPlaceholderText('e.g. Court rental'), 'Court');
+    await user.type(screen.getByRole('textbox'), 'Court');
     await user.type(screen.getByPlaceholderText('0.00'), '100');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -219,7 +219,7 @@ describe('CostCalculatorDrawer', () => {
     render(<CostCalculatorDrawer {...defaultProps} />);
 
     // Type something into the single item
-    await user.type(screen.getByPlaceholderText('e.g. Court rental'), 'Court');
+    await user.type(screen.getByRole('textbox'), 'Court');
 
     // Remove it — should reset to an empty item, not leave zero rows
     const removeButton = screen
@@ -228,7 +228,7 @@ describe('CostCalculatorDrawer', () => {
     await user.click(removeButton);
 
     // Should still have an input but it should be empty
-    expect(screen.getByPlaceholderText('e.g. Court rental')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.queryByDisplayValue('Court')).not.toBeInTheDocument();
   });
 
@@ -236,7 +236,7 @@ describe('CostCalculatorDrawer', () => {
     const user = userEvent.setup();
     render(<CostCalculatorDrawer {...defaultProps} participantCount={2} />);
 
-    await user.type(screen.getByPlaceholderText('e.g. Court rental'), 'Balls');
+    await user.type(screen.getByRole('textbox'), 'Balls');
 
     // Clear default quantity of 1, type 3
     const qtyInput = screen.getByDisplayValue('1');
@@ -255,7 +255,7 @@ describe('CostCalculatorDrawer', () => {
     const onOpenChange = vi.fn();
     render(<CostCalculatorDrawer {...defaultProps} onOpenChange={onOpenChange} />);
 
-    await user.type(screen.getByPlaceholderText('e.g. Court rental'), 'Court');
+    await user.type(screen.getByRole('textbox'), 'Court');
     await user.type(screen.getByPlaceholderText('0.00'), '100');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
