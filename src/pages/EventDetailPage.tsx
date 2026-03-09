@@ -1014,7 +1014,7 @@ export function EventDetailPage() {
       >
         <Button
           onClick={() => {
-            if (isArchived) return;
+            if (isArchived || (isEventPast && !isOrganizer)) return;
             if (isEventFull && !userRegistration) return;
             if (showRegistrationForm) {
               openSignupDrawer();
@@ -1024,9 +1024,14 @@ export function EventDetailPage() {
               handleDirectJoin();
             }
           }}
-          disabled={isArchived || submitting || (isEventFull && !userRegistration)}
+          disabled={
+            isArchived ||
+            (isEventPast && !isOrganizer) ||
+            submitting ||
+            (isEventFull && !userRegistration)
+          }
           className={`w-full text-white shadow-lg drop-shadow-md ${
-            isArchived || (isEventFull && !userRegistration)
+            isArchived || (isEventPast && !isOrganizer) || (isEventFull && !userRegistration)
               ? 'bg-muted-foreground'
               : userRegistration && !showRegistrationForm
                 ? 'bg-destructive hover:bg-destructive/90'
@@ -1034,7 +1039,7 @@ export function EventDetailPage() {
           }`}
           size="default"
         >
-          {isArchived ? (
+          {isArchived || (isEventPast && !isOrganizer) ? (
             <>
               <UserX className="h-5 w-5 mr-2" />
               Registration Closed
