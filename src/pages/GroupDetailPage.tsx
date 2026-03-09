@@ -304,34 +304,34 @@ export function GroupDetailPage() {
             </Select>
           </div>
 
-          {eventsLoading ? (
-            <EventListSkeleton count={3} />
-          ) : !events ||
-            events.filter((e) =>
+          {(() => {
+            if (eventsLoading) return <EventListSkeleton count={3} />;
+
+            const filteredEvents = (events || []).filter((e) =>
               eventFilter === 'active'
                 ? !isEventCompleted(e.datetime, e.end_datetime) || !!e._unsettled
                 : isEventCompleted(e.datetime, e.end_datetime) && !e._unsettled
-            ).length === 0 ? (
-            <div className="p-6 text-center">
-              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-              <h3 className="text-base font-medium mb-2">
-                {eventFilter === 'active' ? 'No Active Events' : 'No Archived Events'}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {eventFilter === 'active'
-                  ? 'Create your first event for this group'
-                  : 'Completed events will appear here'}
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {events
-                .filter((e) =>
-                  eventFilter === 'active'
-                    ? !isEventCompleted(e.datetime, e.end_datetime) || !!e._unsettled
-                    : isEventCompleted(e.datetime, e.end_datetime) && !e._unsettled
-                )
-                .map((event) => (
+            );
+
+            if (filteredEvents.length === 0) {
+              return (
+                <div className="p-6 text-center">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <h3 className="text-base font-medium mb-2">
+                    {eventFilter === 'active' ? 'No Active Events' : 'No Archived Events'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {eventFilter === 'active'
+                      ? 'Create your first event for this group'
+                      : 'Completed events will appear here'}
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="divide-y">
+                {filteredEvents.map((event) => (
                   <div key={event.id} className="relative">
                     <button
                       onClick={() => navigate(`/signup/${event.id}`)}
@@ -384,8 +384,9 @@ export function GroupDetailPage() {
                     )}
                   </div>
                 ))}
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
