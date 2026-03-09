@@ -47,6 +47,7 @@ vi.mock('@/services', () => ({
   },
   participantService: {
     getPaymentSummariesBatch: vi.fn(),
+    getMyPaymentStatusBatch: vi.fn(),
   },
   pushSubscriptionService: {
     isSupported: vi.fn(() => false),
@@ -232,5 +233,48 @@ describe('GroupDetailPage - Unsettled payment filter', () => {
     await waitFor(() => {
       expect(screen.getByText('Past Unsettled Group Event')).toBeInTheDocument();
     });
+  });
+});
+
+describe('GroupDetailPage - Non-admin participant payment filtering', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseAuth.mockReturnValue(mockAuthReturn);
+    mockGroupService.getGroupById.mockResolvedValue(mockGroup as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockGroupService.getGroupParticipants.mockResolvedValue([]);
+    mockGroupService.isGroupAdmin.mockResolvedValue(false); // Non-admin
+  });
+
+  it('shows past paid event in Active when participant has pending payment', async () => {
+    mockGroupService.getGroupEvents.mockResolvedValue([futureEvent, pastPaidUnsettled] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getMyPaymentStatusBatch.mockResolvedValue(
+      new Map([['past-unsettled', 'pending']])
+    );
+
+    render(<GroupDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Group')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Past Unsettled Group Event')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Future Group Event')).toBeInTheDocument();
+  });
+
+  it('hides past paid event from Active when participant has paid', async () => {
+    mockGroupService.getGroupEvents.mockResolvedValue([futureEvent, pastPaidSettled] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getMyPaymentStatusBatch.mockResolvedValue(
+      new Map([['past-settled', 'paid']])
+    );
+
+    render(<GroupDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Future Group Event')).toBeInTheDocument();
+    });
+    // Settled event should NOT appear in Active for non-admin
+    expect(screen.queryByText('Past Settled Group Event')).not.toBeInTheDocument();
   });
 });

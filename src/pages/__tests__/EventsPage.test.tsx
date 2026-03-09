@@ -42,6 +42,7 @@ vi.mock('@/services', () => ({
   },
   participantService: {
     getPaymentSummariesBatch: vi.fn(),
+    getMyPaymentStatusBatch: vi.fn(),
   },
   pushSubscriptionService: {
     isSupported: vi.fn(() => false),
@@ -233,5 +234,61 @@ describe('EventsPage - Unsettled payment tab placement', () => {
     await waitFor(() => {
       expect(screen.getByText('No Archived Events')).toBeInTheDocument();
     });
+  });
+});
+
+describe('EventsPage - Joined tab: participant payment-aware filtering', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseAuth.mockReturnValue(mockAuthReturn);
+    mockEventService.getEventsByOrganizer.mockResolvedValue([]);
+  });
+
+  it('shows past paid event in Joined tab when participant has pending payment', async () => {
+    mockEventService.getEventsByParticipant.mockResolvedValue([
+      futureEvent,
+      pastPaidUnsettled,
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getMyPaymentStatusBatch.mockResolvedValue(
+      new Map([['past-unsettled', 'pending']])
+    );
+
+    render(<EventsPage />);
+
+    // Joined tab is the default
+    await waitFor(() => {
+      expect(screen.getByText('Future Event')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Past Unsettled Event')).toBeInTheDocument();
+  });
+
+  it('hides past paid event from Joined tab when participant has paid', async () => {
+    mockEventService.getEventsByParticipant.mockResolvedValue([
+      futureEvent,
+      pastPaidSettled,
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getMyPaymentStatusBatch.mockResolvedValue(
+      new Map([['past-settled', 'paid']])
+    );
+
+    render(<EventsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Future Event')).toBeInTheDocument();
+    });
+    // Settled event should NOT appear in Joined
+    expect(screen.queryByText('Past Settled Event')).not.toBeInTheDocument();
+  });
+
+  it('hides past free event from Joined tab', async () => {
+    mockEventService.getEventsByParticipant.mockResolvedValue([futureEvent, pastFreeEvent] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    render(<EventsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Future Event')).toBeInTheDocument();
+    });
+    // Past free event should NOT appear in Joined
+    expect(screen.queryByText('Past Free Event')).not.toBeInTheDocument();
   });
 });
