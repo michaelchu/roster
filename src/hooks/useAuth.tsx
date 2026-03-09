@@ -52,15 +52,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      // Sync Mixpanel identity with auth state
-      if (session?.user) {
-        mixpanel.identify(session.user.id);
-        mixpanel.people.set({
-          $email: session.user.email,
-          $name: session.user.user_metadata?.full_name,
-        });
-      } else {
-        mixpanel.reset();
+      // Sync Mixpanel identity with auth state (skip during impersonation)
+      if (!getStorageItem(ADMIN_SESSION_KEY)) {
+        if (session?.user) {
+          mixpanel.identify(session.user.id);
+          mixpanel.people.set({
+            $email: session.user.email,
+            $name: session.user.user_metadata?.full_name,
+          });
+        } else {
+          mixpanel.reset();
+        }
       }
 
       if (event === 'PASSWORD_RECOVERY') {
