@@ -132,7 +132,7 @@ export function EventDetailPage() {
   // Event is past its end time
   const isEventPast = event ? isEventCompleted(event.datetime, event.end_datetime) : false;
   // Event is fully archived only when past AND all participants have settled payment
-  const allPaid = paymentSummary.total === 0 || paymentSummary.pending === 0;
+  const allPaid = paymentSummary.total > 0 && paymentSummary.pending === 0;
   const isArchived = isEventPast && (!event?.is_paid || allPaid);
   const effectiveIsPaid = isEventPast || (event?.is_paid ?? true);
 

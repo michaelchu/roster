@@ -77,7 +77,27 @@ export function EventsPage() {
   const loadJoinedEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByParticipant(user.id);
-    return allEvents.filter((event) => !isEventCompleted(event.datetime, event.end_datetime));
+    const activeEvents = allEvents.filter(
+      (event) => !isEventCompleted(event.datetime, event.end_datetime)
+    );
+    const pastPaidEvents = allEvents.filter(
+      (event) => isEventCompleted(event.datetime, event.end_datetime) && event.is_paid
+    );
+
+    // Past paid events where the user hasn't paid stay in Joined
+    if (pastPaidEvents.length > 0) {
+      const myStatuses = await participantService.getMyPaymentStatusBatch(
+        user.id,
+        pastPaidEvents.map((e) => e.id)
+      );
+      const unsettledForMe = pastPaidEvents.filter((event) => {
+        const status = myStatuses.get(event.id);
+        return status === 'pending';
+      });
+      return [...activeEvents, ...unsettledForMe];
+    }
+
+    return activeEvents;
   }, [user]);
 
   const loadArchivedEventsCallback = useCallback(async () => {

@@ -40,6 +40,7 @@ export function GroupDetailPage() {
   const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
   const loadingRef = useRef(false);
   const hasLoadedRef = useRef(false);
+  const isAdminRef = useRef(false);
   const {
     isLoading: eventsLoading,
     data: events,
@@ -62,6 +63,7 @@ export function GroupDetailPage() {
       // Check if current user is admin or owner
       if (user?.id) {
         const adminStatus = await groupService.isGroupAdmin(groupId, user.id);
+        isAdminRef.current = adminStatus;
         setIsAdmin(adminStatus);
       }
       return true;
@@ -84,17 +86,26 @@ export function GroupDetailPage() {
       (e) => e.is_paid && isEventCompleted(e.datetime, e.end_datetime)
     );
     if (pastPaidEvents.length > 0) {
-      const summaries = await participantService.getPaymentSummariesBatch(
-        pastPaidEvents.map((e) => e.id)
-      );
-      for (const event of pastPaidEvents) {
-        const summary = summaries.get(event.id);
-        event._unsettled = !!(summary && summary.pending > 0);
+      const pastPaidIds = pastPaidEvents.map((e) => e.id);
+
+      if (isAdminRef.current) {
+        // Admins: event is unsettled if any participant has pending payments
+        const summaries = await participantService.getPaymentSummariesBatch(pastPaidIds);
+        for (const event of pastPaidEvents) {
+          const summary = summaries.get(event.id);
+          event._unsettled = !!(summary && summary.pending > 0);
+        }
+      } else if (user?.id) {
+        // Non-admins: event is unsettled only if their own payment is pending
+        const myStatuses = await participantService.getMyPaymentStatusBatch(user.id, pastPaidIds);
+        for (const event of pastPaidEvents) {
+          event._unsettled = myStatuses.get(event.id) === 'pending';
+        }
       }
     }
 
     return allEvents;
-  }, [groupId]);
+  }, [groupId, user?.id]);
 
   const handleInvite = useCallback(async () => {
     if (!group) return;
