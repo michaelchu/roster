@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom';
 import type { ReactElement } from 'react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { ForgotPasswordPage } from '../auth/ForgotPasswordPage';
-import { useAuth } from '@/hooks/useAuth';
 
 // Mock useAuth
 const mockResetPasswordForEmail = vi.fn();
