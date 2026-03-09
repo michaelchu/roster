@@ -966,6 +966,7 @@ export function EventDetailPage() {
                       canUserClaimSpot({
                         hasUser: !!user,
                         isOrganizer,
+                        isRegistered: !!userRegistration,
                         isFirstEmptySlot,
                         showGuestRegistration,
                       });
