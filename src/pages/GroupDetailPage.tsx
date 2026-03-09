@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { groupService, eventService, type Group } from '@/services';
+import { groupService, eventService, participantService, type Group } from '@/services';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
@@ -36,6 +36,7 @@ export function GroupDetailPage() {
   const [eventFilter, setEventFilter] = useState<'active' | 'archived'>('active');
   const [duplicatingEvent, setDuplicatingEvent] = useState<GroupEvent | null>(null);
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
+  const [unsettledEventIds, setUnsettledEventIds] = useState<Set<string>>(new Set());
   const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
   const loadingRef = useRef(false);
   const hasLoadedRef = useRef(false);
@@ -76,7 +77,30 @@ export function GroupDetailPage() {
 
   const loadEventsCallback = useCallback(async () => {
     if (!groupId) return [];
-    return await groupService.getGroupEvents(groupId);
+    const allEvents = await groupService.getGroupEvents(groupId);
+
+    // Identify past paid events with unsettled payments
+    const pastPaidEvents = allEvents.filter(
+      (e) => e.is_paid && isEventCompleted(e.datetime, e.end_datetime)
+    );
+    if (pastPaidEvents.length > 0) {
+      const summaries = await participantService.getPaymentSummariesBatch(
+        pastPaidEvents.map((e) => e.id)
+      );
+      const unsettled = new Set(
+        pastPaidEvents
+          .filter((e) => {
+            const summary = summaries.get(e.id);
+            return summary && summary.pending > 0;
+          })
+          .map((e) => e.id)
+      );
+      setUnsettledEventIds(unsettled);
+    } else {
+      setUnsettledEventIds(new Set());
+    }
+
+    return allEvents;
   }, [groupId]);
 
   const handleInvite = useCallback(async () => {
@@ -281,8 +305,8 @@ export function GroupDetailPage() {
           ) : !events ||
             events.filter((e) =>
               eventFilter === 'active'
-                ? !isEventCompleted(e.datetime, e.end_datetime)
-                : isEventCompleted(e.datetime, e.end_datetime)
+                ? !isEventCompleted(e.datetime, e.end_datetime) || unsettledEventIds.has(e.id)
+                : isEventCompleted(e.datetime, e.end_datetime) && !unsettledEventIds.has(e.id)
             ).length === 0 ? (
             <div className="p-6 text-center">
               <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
