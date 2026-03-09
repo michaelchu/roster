@@ -3,7 +3,7 @@ import mixpanel from 'mixpanel-browser';
 const MIXPANEL_TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN;
 
 export function initMixpanel() {
-  if (!MIXPANEL_TOKEN) return;
+  if (!MIXPANEL_TOKEN || !import.meta.env.PROD) return;
 
   mixpanel.init(MIXPANEL_TOKEN, {
     autocapture: true,
