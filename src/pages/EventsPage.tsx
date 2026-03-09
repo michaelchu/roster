@@ -52,7 +52,26 @@ export function EventsPage() {
   const loadOrganizingEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByOrganizer(user.id);
-    return allEvents.filter((event) => !isEventCompleted(event.datetime, event.end_datetime));
+    const activeEvents = allEvents.filter(
+      (event) => !isEventCompleted(event.datetime, event.end_datetime)
+    );
+    const pastEvents = allEvents.filter((event) =>
+      isEventCompleted(event.datetime, event.end_datetime)
+    );
+
+    // Past paid events with unpaid participants stay in Organizing
+    const pastPaidEventIds = pastEvents.filter((e) => e.is_paid).map((e) => e.id);
+    if (pastPaidEventIds.length > 0) {
+      const summaries = await participantService.getPaymentSummariesBatch(pastPaidEventIds);
+      const unsettledPastEvents = pastEvents.filter((event) => {
+        if (!event.is_paid) return false;
+        const summary = summaries.get(event.id);
+        return summary && summary.pending > 0;
+      });
+      return [...activeEvents, ...unsettledPastEvents];
+    }
+
+    return activeEvents;
   }, [user]);
 
   const loadJoinedEventsCallback = useCallback(async () => {
@@ -64,20 +83,26 @@ export function EventsPage() {
   const loadArchivedEventsCallback = useCallback(async () => {
     if (!user) return [];
     const allEvents = await eventService.getEventsByOrganizer(user.id);
-    const archived = allEvents.filter((event) =>
+    const pastEvents = allEvents.filter((event) =>
       isEventCompleted(event.datetime, event.end_datetime)
     );
 
-    // Fetch payment summaries for archived events
-    if (archived.length > 0) {
-      const eventIds = archived.map((e) => e.id);
+    // Fetch payment summaries for past events
+    if (pastEvents.length > 0) {
+      const eventIds = pastEvents.map((e) => e.id);
       const summaries = await participantService.getPaymentSummariesBatch(eventIds);
       setPaymentSummaries(summaries);
-    } else {
-      setPaymentSummaries(new Map());
+
+      // Only archive events that are fully settled (or not paid events)
+      return pastEvents.filter((event) => {
+        if (!event.is_paid) return true;
+        const summary = summaries.get(event.id);
+        return !summary || summary.pending === 0;
+      });
     }
 
-    return archived;
+    setPaymentSummaries(new Map());
+    return pastEvents;
   }, [user]);
 
   useEffect(() => {
