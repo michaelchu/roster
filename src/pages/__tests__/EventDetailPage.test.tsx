@@ -345,6 +345,74 @@ describe('EventDetailPage - Organizer on past events', () => {
 
     expect(screen.getByText('Registration Closed')).toBeInTheDocument();
   });
+
+  it('treats past paid event with unpaid participants as active for organizer', async () => {
+    const pastPaidEvent = { ...pastEvent, is_paid: true };
+    mockUseAuth.mockReturnValue(mockAuthReturn);
+    mockEventService.getEventById.mockResolvedValue(pastPaidEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      {
+        id: 'p-1',
+        name: 'Organizer',
+        user_id: 'organizer-123',
+        event_id: 'test-event-id',
+        payment_status: 'pending',
+      },
+      {
+        id: 'p-2',
+        name: 'Player',
+        user_id: 'user-456',
+        event_id: 'test-event-id',
+        payment_status: 'pending',
+      },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 2,
+      paid: 0,
+      pending: 2,
+      waived: 0,
+    });
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    // Event is not archived — claim buttons and join button should be active
+    expect(screen.getAllByRole('button', { name: /claim/i }).length).toBeGreaterThan(0);
+    expect(screen.queryByText('Registration Closed')).not.toBeInTheDocument();
+  });
+
+  it('treats past paid event with all paid participants as archived', async () => {
+    const pastPaidEvent = { ...pastEvent, is_paid: true };
+    mockUseAuth.mockReturnValue(mockAuthReturn);
+    mockEventService.getEventById.mockResolvedValue(pastPaidEvent);
+    mockParticipantService.getParticipantsByEventId.mockResolvedValue([
+      {
+        id: 'p-1',
+        name: 'Organizer',
+        user_id: 'organizer-123',
+        event_id: 'test-event-id',
+        payment_status: 'paid',
+      },
+    ] as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    mockParticipantService.getPaymentSummary.mockResolvedValue({
+      total: 1,
+      paid: 1,
+      pending: 0,
+      waived: 0,
+    });
+
+    render(<EventDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Event')).toBeInTheDocument();
+    });
+
+    // Event is archived — organizer bypass still applies for claim/join
+    expect(screen.queryByText('Registration Closed')).not.toBeInTheDocument();
+  });
 });
 
 describe('EventDetailPage - Cost breakdown recalculation', () => {

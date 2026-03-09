@@ -129,9 +129,12 @@ export function EventDetailPage() {
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
 
-  // Archived (completed) events are always treated as paid for payment tracking
-  const isArchived = event ? isEventCompleted(event.datetime, event.end_datetime) : false;
-  const effectiveIsPaid = isArchived || (event?.is_paid ?? true);
+  // Event is past its end time
+  const isEventPast = event ? isEventCompleted(event.datetime, event.end_datetime) : false;
+  // Event is fully archived only when past AND all participants have settled payment
+  const allPaid = paymentSummary.total === 0 || paymentSummary.pending === 0;
+  const isArchived = isEventPast && (!event?.is_paid || allPaid);
+  const effectiveIsPaid = isEventPast || (event?.is_paid ?? true);
 
   // Check if event is at full capacity
   const isEventFull =
