@@ -56,6 +56,7 @@ export function SettingsPage() {
   const eventPrivacyEnabled = useFeatureFlag('event_privacy');
   const { isFeatureEnabled } = useFeatureFlags();
   const debugNotificationsEnabled = isFeatureEnabled('debug_notifications');
+  const adminToolsEnabled = isFeatureEnabled('admin_tools');
   const [defaultCapacity, setDefaultCapacity] = useState(() =>
     loadFromStorage(STORAGE_KEYS.defaultCapacity, 10)
   );
@@ -127,7 +128,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          {isAdmin && <AdminUserSearch />}
+          {isAdmin && adminToolsEnabled && <AdminUserSearch />}
 
           {debugNotificationsEnabled && <NotificationDebugPanel />}
 

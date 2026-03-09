@@ -6,7 +6,8 @@ export type FeatureFlagKey =
   | 'home_page'
   | 'event_privacy'
   | 'guest_registration'
-  | 'debug_notifications';
+  | 'debug_notifications'
+  | 'admin_tools';
 
 // Feature flags interface mapping keys to boolean values
 export interface FeatureFlags {
@@ -17,6 +18,7 @@ export interface FeatureFlags {
   event_privacy: boolean;
   guest_registration: boolean;
   debug_notifications: boolean;
+  admin_tools: boolean;
 }
 
 // Database types for feature flags
