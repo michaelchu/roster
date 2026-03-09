@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, Users, Plus, UsersRound, Share2, Edit, Copy } from 'lucide-react';
+import { Calendar, Users, Plus, UsersRound, Share2, Edit, Copy, Clock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import {
   Select,
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { groupService, eventService, type Group } from '@/services';
+import { groupService, eventService, participantService, type Group } from '@/services';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { errorHandler } from '@/lib/errorHandler';
 import { useLoadingState } from '@/hooks/useLoadingState';
@@ -23,6 +23,7 @@ import { DuplicateEventDrawer } from '@/components/DuplicateEventDrawer';
 
 interface GroupEvent extends Tables<'events'> {
   participant_count?: number;
+  _unsettled?: boolean;
 }
 
 export function GroupDetailPage() {
@@ -39,6 +40,7 @@ export function GroupDetailPage() {
   const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
   const loadingRef = useRef(false);
   const hasLoadedRef = useRef(false);
+  const isAdminRef = useRef(false);
   const {
     isLoading: eventsLoading,
     data: events,
@@ -61,6 +63,7 @@ export function GroupDetailPage() {
       // Check if current user is admin or owner
       if (user?.id) {
         const adminStatus = await groupService.isGroupAdmin(groupId, user.id);
+        isAdminRef.current = adminStatus;
         setIsAdmin(adminStatus);
       }
       return true;
@@ -74,10 +77,35 @@ export function GroupDetailPage() {
     }
   }, [groupId, navigate, user?.id]);
 
-  const loadEventsCallback = useCallback(async () => {
+  const loadEventsCallback = useCallback(async (): Promise<GroupEvent[]> => {
     if (!groupId) return [];
-    return await groupService.getGroupEvents(groupId);
-  }, [groupId]);
+    const allEvents: GroupEvent[] = await groupService.getGroupEvents(groupId);
+
+    // Mark past paid events with unsettled payments
+    const pastPaidEvents = allEvents.filter(
+      (e) => e.is_paid && isEventCompleted(e.datetime, e.end_datetime)
+    );
+    if (pastPaidEvents.length > 0) {
+      const pastPaidIds = pastPaidEvents.map((e) => e.id);
+
+      if (isAdminRef.current) {
+        // Admins: event is unsettled if any participant has pending payments
+        const summaries = await participantService.getPaymentSummariesBatch(pastPaidIds);
+        for (const event of pastPaidEvents) {
+          const summary = summaries.get(event.id);
+          event._unsettled = !!(summary && summary.pending > 0);
+        }
+      } else if (user?.id) {
+        // Non-admins: event is unsettled only if their own payment is pending
+        const myStatuses = await participantService.getMyPaymentStatusBatch(user.id, pastPaidIds);
+        for (const event of pastPaidEvents) {
+          event._unsettled = myStatuses.get(event.id) === 'pending';
+        }
+      }
+    }
+
+    return allEvents;
+  }, [groupId, user?.id]);
 
   const handleInvite = useCallback(async () => {
     if (!group) return;
@@ -276,34 +304,34 @@ export function GroupDetailPage() {
             </Select>
           </div>
 
-          {eventsLoading ? (
-            <EventListSkeleton count={3} />
-          ) : !events ||
-            events.filter((e) =>
+          {(() => {
+            if (eventsLoading) return <EventListSkeleton count={3} />;
+
+            const filteredEvents = (events || []).filter((e) =>
               eventFilter === 'active'
-                ? !isEventCompleted(e.datetime, e.end_datetime)
-                : isEventCompleted(e.datetime, e.end_datetime)
-            ).length === 0 ? (
-            <div className="p-6 text-center">
-              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-              <h3 className="text-base font-medium mb-2">
-                {eventFilter === 'active' ? 'No Active Events' : 'No Archived Events'}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {eventFilter === 'active'
-                  ? 'Create your first event for this group'
-                  : 'Completed events will appear here'}
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {events
-                .filter((e) =>
-                  eventFilter === 'active'
-                    ? !isEventCompleted(e.datetime, e.end_datetime)
-                    : isEventCompleted(e.datetime, e.end_datetime)
-                )
-                .map((event) => (
+                ? !isEventCompleted(e.datetime, e.end_datetime) || !!e._unsettled
+                : isEventCompleted(e.datetime, e.end_datetime) && !e._unsettled
+            );
+
+            if (filteredEvents.length === 0) {
+              return (
+                <div className="p-6 text-center">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <h3 className="text-base font-medium mb-2">
+                    {eventFilter === 'active' ? 'No Active Events' : 'No Archived Events'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {eventFilter === 'active'
+                      ? 'Create your first event for this group'
+                      : 'Completed events will appear here'}
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="divide-y">
+                {filteredEvents.map((event) => (
                   <div key={event.id} className="relative">
                     <button
                       onClick={() => navigate(`/signup/${event.id}`)}
@@ -323,6 +351,12 @@ export function GroupDetailPage() {
                             </div>
                           )}
                           <div className="flex items-center gap-3">
+                            {event._unsettled && !isAdmin && (
+                              <div className="flex items-center gap-1 text-amber-600">
+                                <Clock className="h-3 w-3" />
+                                <span className="font-medium">Unpaid</span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
                               <span>{event.participant_count || 0} registered</span>
@@ -356,8 +390,9 @@ export function GroupDetailPage() {
                     )}
                   </div>
                 ))}
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 

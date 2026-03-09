@@ -129,9 +129,14 @@ export function EventDetailPage() {
   // Check if current user is the organizer
   const isOrganizer = event?.organizer_id === user?.id;
 
-  // Archived (completed) events are always treated as paid for payment tracking
-  const isArchived = event ? isEventCompleted(event.datetime, event.end_datetime) : false;
-  const effectiveIsPaid = isArchived || (event?.is_paid ?? true);
+  // Event is past its end time
+  const isEventPast = event ? isEventCompleted(event.datetime, event.end_datetime) : false;
+  // Event is fully archived only when past AND all participants have settled payment
+  const allPaid = paymentSummary.total > 0 && paymentSummary.pending === 0;
+  const isArchived = isEventPast && (!event?.is_paid || allPaid);
+  // Registration is closed for non-organizers on past events, or for everyone on archived events
+  const isRegistrationClosed = isArchived || (isEventPast && !isOrganizer);
+  const effectiveIsPaid = isEventPast || (event?.is_paid ?? true);
 
   // Check if event is at full capacity
   const isEventFull =
@@ -1011,7 +1016,7 @@ export function EventDetailPage() {
       >
         <Button
           onClick={() => {
-            if (isEventCompleted(event.datetime, event.end_datetime)) return;
+            if (isRegistrationClosed) return;
             if (isEventFull && !userRegistration) return;
             if (showRegistrationForm) {
               openSignupDrawer();
@@ -1021,14 +1026,9 @@ export function EventDetailPage() {
               handleDirectJoin();
             }
           }}
-          disabled={
-            isEventCompleted(event.datetime, event.end_datetime) ||
-            submitting ||
-            (isEventFull && !userRegistration)
-          }
+          disabled={isRegistrationClosed || submitting || (isEventFull && !userRegistration)}
           className={`w-full text-white shadow-lg drop-shadow-md ${
-            isEventCompleted(event.datetime, event.end_datetime) ||
-            (isEventFull && !userRegistration)
+            isRegistrationClosed || (isEventFull && !userRegistration)
               ? 'bg-muted-foreground'
               : userRegistration && !showRegistrationForm
                 ? 'bg-destructive hover:bg-destructive/90'
@@ -1036,7 +1036,7 @@ export function EventDetailPage() {
           }`}
           size="default"
         >
-          {isEventCompleted(event.datetime, event.end_datetime) ? (
+          {isRegistrationClosed ? (
             <>
               <UserX className="h-5 w-5 mr-2" />
               Registration Closed
