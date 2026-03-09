@@ -46,6 +46,7 @@ export function EventsPage() {
   const [duplicatingEventId, setDuplicatingEventId] = useState<string | null>(null);
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
   const [paymentSummaries, setPaymentSummaries] = useState<Map<string, PaymentSummary>>(new Map());
+  const unsettledJoinedIdsRef = useRef<Set<string>>(new Set());
   const isEventDuplicationEnabled = useFeatureFlag('event_duplication');
   const hasLoadedRef = useRef(false);
 
@@ -94,9 +95,11 @@ export function EventsPage() {
         const status = myStatuses.get(event.id);
         return status === 'pending';
       });
+      unsettledJoinedIdsRef.current = new Set(unsettledForMe.map((e) => e.id));
       return [...activeEvents, ...unsettledForMe];
     }
 
+    unsettledJoinedIdsRef.current = new Set();
     return activeEvents;
   }, [user]);
 
@@ -211,7 +214,8 @@ export function EventsPage() {
     isLoading: boolean,
     showDuplicate: boolean,
     emptyState?: { title: string; description: string; icon?: React.ReactNode },
-    showPaymentStatus?: boolean
+    showPaymentStatus?: boolean,
+    showUserUnpaid?: Set<string>
   ) => {
     if (isLoading) {
       return <EventListSkeleton count={3} />;
@@ -293,6 +297,12 @@ export function EventsPage() {
                         )}
                       </div>
                     )}
+                    {showUserUnpaid?.has(event.id) && (
+                      <div className="flex items-center gap-1 text-amber-600">
+                        <Clock className="h-3 w-3" />
+                        <span className="font-medium">Unpaid</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <Users className="h-3 w-3" />
                       <span className="font-medium">{event.participant_count || 0}</span>
@@ -345,12 +355,19 @@ export function EventsPage() {
           </div>
         </div>
         <TabsContent value="joined" className="p-3 space-y-3 mt-0">
-          {renderEventList(joinedEvents, isLoadingJoined, false, {
-            title: 'Welcome to Roster!',
-            description:
-              'Join an event using a link from your organizer, or create your own with the button below.',
-            icon: <span>🎉</span>,
-          })}
+          {renderEventList(
+            joinedEvents,
+            isLoadingJoined,
+            false,
+            {
+              title: 'Welcome to Roster!',
+              description:
+                'Join an event using a link from your organizer, or create your own with the button below.',
+              icon: <span>🎉</span>,
+            },
+            false,
+            unsettledJoinedIdsRef.current
+          )}
           {(!joinedEvents || joinedEvents.length === 0) && !isLoadingJoined && (
             <Alert className="border-violet-500/30 bg-violet-500/10 [&>svg]:text-violet-500">
               <Lightbulb className="h-4 w-4 text-violet-500" />

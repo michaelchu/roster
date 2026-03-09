@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Calendar, Users, Plus, UsersRound, Share2, Edit, Copy } from 'lucide-react';
+import { Calendar, Users, Plus, UsersRound, Share2, Edit, Copy, Clock } from 'lucide-react';
 import { TopNav } from '@/components/TopNav';
 import {
   Select,
@@ -351,6 +351,12 @@ export function GroupDetailPage() {
                             </div>
                           )}
                           <div className="flex items-center gap-3">
+                            {event._unsettled && !isAdmin && (
+                              <div className="flex items-center gap-1 text-amber-600">
+                                <Clock className="h-3 w-3" />
+                                <span className="font-medium">Unpaid</span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
                               <span>{event.participant_count || 0} registered</span>
