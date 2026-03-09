@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['icon-192x192.svg', 'icon-512x512.svg', 'apple-touch-icon.svg', 'sw-push.js'],
       manifest: {
         name: 'Roster',
