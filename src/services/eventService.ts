@@ -335,6 +335,25 @@ export const eventService = {
     throwIfSupabaseError({ data: newEvent, error: createError });
     const created = requireData(newEvent, 'duplicate event');
 
+    // Auto-register the organizer as a participant.
+    // Uses claimed_by_user_id to pass the "organizers can claim spots" RLS policy
+    // (works for both public and private events). Also sets user_id so the event
+    // appears in the organizer's "My Events" list.
+    const { data: organizerData } = await supabase.rpc('get_user_profile', {
+      user_id: organizerId,
+    });
+    const organizer = organizerData?.[0];
+    const organizerName = organizer?.name || organizer?.email?.split('@')[0] || 'Organizer';
+
+    await supabase.from('participants').insert({
+      event_id: created.id,
+      user_id: organizerId,
+      claimed_by_user_id: organizerId,
+      name: organizerName,
+      email: organizer?.email || null,
+      payment_status: 'pending',
+    });
+
     const { data: labels } = await supabase.from('labels').select('*').eq('event_id', eventId);
 
     if (labels && labels.length > 0) {
