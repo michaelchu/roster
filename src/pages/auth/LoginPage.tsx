@@ -101,6 +101,12 @@ export function LoginPage() {
               />
             </div>
 
+            <div className="text-right">
+              <Link to="/auth/forgot-password" className="text-xs text-primary hover:underline">
+                Forgot Password?
+              </Link>
+            </div>
+
             {errors.root && (
               <div className="text-xs text-red-700 bg-red-50 p-2 rounded border border-red-200">
                 {errors.root.message}

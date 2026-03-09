@@ -164,6 +164,8 @@ describe('ManageRolesPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       render(<ManageRolesPage />);
@@ -190,6 +192,8 @@ describe('ManageRolesPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
     });
 
@@ -280,6 +284,8 @@ describe('ManageRolesPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
     });
 
@@ -353,6 +359,8 @@ describe('ManageRolesPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
     });
 
@@ -414,6 +422,8 @@ describe('ManageRolesPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       mockGroupService.getGroupById.mockRejectedValue(new Error('Load failed'));
@@ -442,6 +452,8 @@ describe('ManageRolesPage', () => {
         isImpersonating: false,
         impersonate: vi.fn(),
         stopImpersonating: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updatePassword: vi.fn(),
       });
 
       // Only owner and existing admin in members list

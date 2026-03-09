@@ -26,6 +26,8 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage';
 import { InviteConfirmationPage } from '@/pages/InviteConfirmationPage';
 
 // Component that redirects / to /events if home_page flag is disabled
@@ -65,6 +67,8 @@ function AppContent() {
         <Route path="/" element={<HomePageOrRedirect />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route path="/invite/:type/:id" element={<InviteConfirmationPage />} />
         <Route path="/signup/:eventId" element={<EventDetailLayout />}>
           <Route index element={null} />

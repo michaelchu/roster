@@ -158,6 +158,8 @@ describe('EventDetailPage - Claim button visibility', () => {
       isImpersonating: false,
       impersonate: vi.fn(),
       stopImpersonating: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updatePassword: vi.fn(),
     });
 
     render(<EventDetailPage />);
@@ -183,6 +185,8 @@ describe('EventDetailPage - Claim button visibility', () => {
       isImpersonating: false,
       impersonate: vi.fn(),
       stopImpersonating: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updatePassword: vi.fn(),
     });
 
     render(<EventDetailPage />);
@@ -208,6 +212,8 @@ describe('EventDetailPage - Claim button visibility', () => {
       isImpersonating: false,
       impersonate: vi.fn(),
       stopImpersonating: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updatePassword: vi.fn(),
     });
 
     render(<EventDetailPage />);
